@@ -1,0 +1,16 @@
+[
+  {
+    "name": "user_id",
+    "dbType": "bigInteger:unsigned:foreign,users,id",
+    "htmlType": "number",
+    "validations": "exists:users,id",
+    "primary": true
+  },
+  {
+    "name": "clinic_id",
+    "dbType": "integer:unsigned:foreign,clinics,id",
+    "htmlType": "number",
+    "validations": "exists:clinics,id",
+    "primary": true
+  }
+]

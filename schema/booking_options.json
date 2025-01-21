@@ -1,0 +1,22 @@
+[
+  {
+    "name": "appointment_id",
+    "dbType": "integer:unsigned:foreign,appointments,id",
+    "htmlType": "number",
+    "validations": "exists:appointments,id",
+    "primary": true
+  },
+  {
+    "name": "option_id",
+    "dbType": "integer:unsigned:foreign,options,id",
+    "htmlType": "number",
+    "validations": "exists:options,id",
+    "primary": true
+  },
+  {
+    "name":"price",
+    "dbType": "double,10,2:default,0",
+    "htmlType": "number",
+    "validations": "required|min:0"
+  }
+]

@@ -1,0 +1,68 @@
+[
+  {
+    "name": "id",
+    "dbType": "increments",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "primary": true,
+    "fillable": false,
+    "inForm": false,
+    "inIndex": false
+  },
+  {
+    "name": "clinic_id",
+    "title": "clinic.name",
+    "dbType": "integer:unsigned:foreign,clinics,id",
+    "htmlType": "select,$clinic",
+    "validations": "required|exists:clinics,id",
+    "relation": "mt1,Clinic,clinic_id,id"
+  },
+  {
+    "name":"total_appointments",
+    "dbType": "integer:unsigned:default,0",
+    "htmlType": "number"
+  },
+  {
+    "name":"total_earning",
+    "dbType": "double,10,2:default,0",
+    "htmlType": "number"
+  },
+  {
+    "name":"admin_earning",
+    "dbType": "double,10,2:default,0",
+    "htmlType": "number"
+  },
+  {
+    "name":"clinic_earning",
+    "dbType": "double,10,2:default,0",
+    "htmlType": "number"
+  },
+  {
+    "name":"taxes",
+    "dbType": "double,10,2:default,0",
+    "htmlType": "number"
+  },
+  {
+    "name": "created_at",
+    "dbType": "timestamp",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "fillable": false,
+    "primary": false,
+    "inForm": false,
+    "inIndex": false
+  },
+  {
+    "name": "updated_at",
+    "dbType": "timestamp",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "fillable": false,
+    "primary": false,
+    "inForm": false,
+    "inIndex": true
+  }
+]

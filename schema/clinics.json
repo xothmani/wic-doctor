@@ -1,0 +1,138 @@
+[
+    {
+        "name": "id",
+        "dbType": "increments",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "primary": true,
+        "fillable": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "image",
+        "dbType": "string",
+        "htmlType": "file",
+        "fillable": false,
+        "searchable": false,
+        "inForm": true,
+        "orderable": false,
+        "exportable": false,
+        "printable": false
+    },
+    {
+        "name": "name",
+        "dbType": "string,127",
+        "htmlType": "text",
+        "validations": "required|max:127"
+    },
+    {
+        "name": "description",
+        "dbType": "text",
+        "htmlType": "textarea",
+        "inIndex": false
+    },
+    {
+        "name": "users",
+        "title": "user.name",
+        "dbType": "hidden,mtm",
+        "htmlType": "select,$user",
+        "relation": "mtm,User,clinic_users",
+        "fillable": false,
+        "searchable": false
+    },
+    {
+        "name": "phone_number",
+        "dbType": "string,50",
+        "htmlType": "text",
+        "validations": "max:50"
+    },
+    {
+        "name": "mobile_number",
+        "dbType": "string,50",
+        "htmlType": "text",
+        "validations": "max:50"
+    },
+    {
+        "name": "addresses",
+        "title": "address.address",
+        "dbType": "hidden,mtm",
+        "htmlType": "select,$address",
+        "relation": "mtm,Address,clinic_addresses",
+        "fillable": false,
+        "searchable": false
+    },
+    {
+        "name": "availability_range",
+        "dbType": "double,9,2:default,0",
+        "htmlType": "number",
+        "validations": "required|max:9999999,99|min:0"
+    },
+    {
+        "name": "available",
+        "dbType": "boolean|default:1",
+        "htmlType": "boolean"
+    },
+    {
+        "name": "accepted",
+        "dbType": "boolean|default:0",
+        "htmlType": "boolean"
+    },
+    {
+        "name": "taxes",
+        "title": "tax.name",
+        "dbType": "hidden,mtm",
+        "htmlType": "select,$tax",
+        "relation": "mtm,Tax,clinic_taxes",
+        "fillable": false,
+        "searchable": false
+    },
+    {
+        "name": "featured",
+        "dbType": "boolean|default:0",
+        "htmlType": "boolean"
+    },
+    {
+        "type": "relation",
+        "relation": "1tm,Award,clinic_id"
+    },
+    {
+        "type": "relation",
+        "relation": "1tm,Experience,clinic_id"
+    },
+    {
+        "type": "relation",
+        "relation": "1tm,AvailabilityHour,clinic_id"
+    },
+    {
+        "type": "relation",
+        "relation": "1tm,Doctor,clinic_id"
+    },
+    {
+        "type": "relation",
+        "relation": "1tm,Gallery,clinic_id"
+    },
+    {
+        "name": "created_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "updated_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": true
+    }
+]

@@ -1,0 +1,55 @@
+[
+    {
+        "name": "id",
+        "dbType": "increments",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "primary": true,
+        "fillable": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "title",
+        "dbType": "string,127",
+        "htmlType": "text",
+        "validations": "required|max:127"
+    },
+    {
+        "name": "description",
+        "dbType": "text",
+        "htmlType": "textarea",
+        "validations": "required"
+    },
+    {
+        "name": "clinic_id",
+        "title": "clinic.id",
+        "dbType": "integer:unsigned:foreign,clinics,id",
+        "htmlType": "select,$clinic",
+        "validations": "required|exists:clinics,id",
+        "relation": "mt1,Clinic,clinic_id,id"
+    },
+    {
+        "name": "created_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "updated_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": true
+    }
+]

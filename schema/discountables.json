@@ -1,0 +1,35 @@
+[
+  {
+    "name": "id",
+    "dbType": "increments",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "primary": true,
+    "fillable": false,
+    "inForm": false,
+    "inIndex": false
+  },
+  {
+    "name": "coupon_id",
+    "title": "coupon.description",
+    "dbType": "integer:unsigned:foreign,coupons,id",
+    "htmlType": "select,$coupon",
+    "validations": "required|exists:coupons,id",
+    "relation": "mt1,Coupon,coupon_id,id"
+  },
+  {
+    "name": "discountable_type",
+    "dbType": "string,127",
+    "htmlType":"select,App/Models/Food:food",
+    "validations": "required"
+  },
+  {
+    "name": "discountable_id",
+    "dbType": "integer",
+    "htmlType":"number",
+    "searchable": false,
+    "inForm": false,
+    "inIndex": false
+  }
+]

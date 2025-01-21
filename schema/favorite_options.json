@@ -1,0 +1,16 @@
+[
+  {
+    "name": "option_id",
+    "dbType": "integer:unsigned:foreign,options,id",
+    "htmlType": "number",
+    "validations": "exists:options,id",
+    "primary": true
+  },
+  {
+    "name": "favorite_id",
+    "dbType": "integer:unsigned:foreign,favorites,id",
+    "htmlType": "number",
+    "validations": "exists:favorites,id",
+    "primary": true
+  }
+]

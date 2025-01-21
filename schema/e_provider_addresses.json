@@ -1,0 +1,16 @@
+[
+  {
+    "name": "clinic_id",
+    "dbType": "integer:unsigned:foreign,clinics,id",
+    "htmlType": "number",
+    "validations": "exists:clinics,id",
+    "primary": true
+  },
+  {
+    "name": "address_id",
+    "dbType": "integer:unsigned:foreign,addresses,id",
+    "htmlType": "number",
+    "validations": "exists:addresses,id",
+    "primary": true
+  }
+]

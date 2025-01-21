@@ -1,0 +1,75 @@
+[
+    {
+        "name": "id",
+        "dbType": "increments",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "primary": true,
+        "fillable": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "description",
+        "dbType": "string,255:nullable",
+        "htmlType": "text",
+        "validations": "max:255"
+    },
+    {
+        "name": "address",
+        "dbType": "string,255",
+        "htmlType": "text",
+        "validations": "required|max:255"
+    },
+    {
+        "name": "latitude",
+        "dbType": "double,20,17:default,0",
+        "htmlType": "number",
+        "validations": "required|numeric",
+        "inIndex": false
+    },
+    {
+        "name": "longitude",
+        "dbType": "double,20,17:default,0",
+        "htmlType": "number",
+        "validations": "required|numeric",
+        "inIndex": false
+    },
+    {
+        "name": "default",
+        "dbType": "boolean:default,0",
+        "htmlType": "boolean",
+        "inIndex": false
+    },
+    {
+        "name": "user_id",
+        "title": "user.name",
+        "dbType": "integer:unsigned:foreign,users,id",
+        "htmlType": "select,$user",
+        "validations": "required|exists:users,id",
+        "relation": "mt1,User,user_id,id"
+    },
+    {
+        "name": "created_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "updated_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": true
+    }
+]

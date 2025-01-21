@@ -1,0 +1,156 @@
+select.form-control {
+    height: auto; /* Ensure the height adjusts to the content */
+    padding: 5px 10px; /* Add appropriate padding */
+    line-height: normal; /* Reset line-height */
+    border: 2px solid #7286D3; /* Consistent border with the rest of the form */
+    border-radius: 5px; /* Rounded corners for a clean look */
+    font-size: 14px; /* Ensure the font size matches other form elements */
+    color: #333; /* Text color */
+    background-color: #fff; /* Background color */
+    transition: box-shadow 0.3s ease-in-out, border 0.3s ease-in-out;
+}
+
+select.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 5px #7286D3;
+    border-color: #7286D3;
+}
+
+/* Table Styling */
+.table {
+    border: 1px solid #7286D3; /* Primary blue border */
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: #7286D3;
+    color: #fff;
+    text-align: center;
+    font-weight: bold;
+}
+
+.table tbody tr {
+    background-color: #f9f9f9; /* Light grey for better contrast */
+    border-bottom: 1px solid #ddd;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f2f2f2; /* Slightly darker grey for striped rows */
+}
+
+.table tbody tr:hover {
+    background-color: #eaf4ff; /* Light blue hover effect */
+}
+
+.table tbody td {
+    vertical-align: middle;
+    text-align: center;
+    padding: 10px;
+}
+
+/* Checkbox Styling */
+.form-check-input {
+    width: 40px;
+    height: 20px;
+    margin-top: 5px;
+}
+
+/* Button Styling */
+.btn-primary {
+    background-color: #7286D3;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.btn-primary:hover {
+    background-color: #7286D3;
+}
+
+/* Header and Card Styling */
+.card-header {
+    background-color: #7286D3;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.card {
+    border: 1px solid #7286D3;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.content-header h1 {
+    color: #7286D3;
+    font-weight: bold;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .form-row {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-row .col-md-6 {
+        margin-bottom: 10px;
+    }
+
+    .table {
+        font-size: 0.9rem; /* Slightly smaller font for smaller screens */
+    }
+}
+/* Dropdown Styling */
+
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+/* Hide the default checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.slider::before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+/* When the switch is checked */
+input:checked + .slider {
+    background-color: #2196F3; /* Blue color */
+}
+
+input:checked + .slider::before {
+    transform: translateX(26px);
+}

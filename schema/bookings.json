@@ -1,0 +1,110 @@
+[
+    {
+        "name": "id",
+        "dbType": "increments",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "primary": true,
+        "fillable": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "clinic",
+        "dbType": "json",
+        "htmlType": "select,clinic:'clinic'"
+    },
+    {
+        "name": "doctor",
+        "dbType": "json",
+        "htmlType": "select,doctor:'doctor'"
+    },
+    {
+        "name": "options",
+        "dbType": "json",
+        "htmlType": "select,options:'options'"
+    },
+    {
+        "name": "user_id",
+        "title": "user.name",
+        "dbType": "bigInteger:unsigned:foreign,users,id",
+        "htmlType": "select,$user",
+        "validations": "required|exists:users,id",
+        "relation": "mt1,User,user_id,id"
+    },
+    {
+        "name": "appointment_status_id",
+        "title": "appointment_status.status",
+        "dbType": "integer:unsigned:foreign,appointment_statuses,id",
+        "htmlType": "select,$appointmentStatus",
+        "validations": "required|exists:appointment_statuses,id",
+        "relation": "mt1,AppointmentStatus,appointment_status_id,id"
+    },
+    {
+        "name": "address",
+        "dbType": "json",
+        "htmlType": "select,address:'address'"
+    },
+    {
+        "name": "payment_id",
+        "title": "payment.amount",
+        "dbType": "integer:unsigned:foreign,payments,id",
+        "htmlType": "select,$payment",
+        "validations": "required|exists:payments,id",
+        "relation": "mt1,Payment,payment_id,id"
+    },
+    {
+        "name": "coupon",
+        "dbType": "json",
+        "htmlType": "select,coupon:'coupon'"
+    },
+    {
+        "name": "taxes",
+        "dbType": "json",
+        "htmlType": "select,tax:'tax'"
+    },
+    {
+        "name": "appointment_at",
+        "dbType": "dateTime:nullable",
+        "htmlType": "date"
+    },
+    {
+        "name": "start_at",
+        "dbType": "dateTime:nullable",
+        "htmlType": "date"
+    },
+    {
+        "name": "ends_at",
+        "dbType": "dateTime:nullable",
+        "htmlType": "date"
+    },
+    {
+        "name": "hint",
+        "dbType": "text:nullable",
+        "htmlType": "textarea",
+        "inIndex": false
+    },
+    {
+        "name": "created_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "updated_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": true
+    }
+]

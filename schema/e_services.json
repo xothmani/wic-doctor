@@ -1,0 +1,118 @@
+[
+    {
+        "name": "id",
+        "dbType": "increments",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "primary": true,
+        "fillable": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "name",
+        "dbType": "string,127",
+        "htmlType": "text",
+        "validations": "required|max:127"
+    },
+    {
+        "name": "image",
+        "dbType": "string",
+        "htmlType": "file",
+        "fillable": false,
+        "searchable": false,
+        "inForm": true,
+        "orderable": false,
+        "exportable": false,
+        "printable": false
+    },
+    {
+        "name": "price",
+        "dbType": "double,10,2:default,0",
+        "htmlType": "number",
+        "validations": "required|numeric|min:0|max:99999999,99"
+    },
+    {
+        "name": "discount_price",
+        "dbType": "double,10,2:nullable:default,0",
+        "htmlType": "number",
+        "validations": "nullable|numeric|min:0|max:99999999,99"
+    },
+    {
+        "name": "price_unit",
+        "dbType": "enum,[hourly,fixed]",
+        "htmlType": "text",
+        "validations": "required|regex:/(hourly|fixed)/"
+    },
+    {
+        "name": "duration",
+        "dbType": "string,16",
+        "htmlType": "text",
+        "validations": "required_if:price_unit,fixed"
+    },
+    {
+        "name": "description",
+        "dbType": "text",
+        "htmlType": "textarea",
+        "validations": "required",
+        "inIndex": false
+    },
+    {
+        "name": "specialities",
+        "title": "speciality.name",
+        "dbType": "hidden,mtm",
+        "htmlType": "select,$category",
+        "relation": "mtm,Speciality,doctor_specialities",
+        "fillable": false,
+        "searchable": false
+    },
+    {
+        "name": "featured",
+        "dbType": "boolean:default,0",
+        "htmlType": "boolean"
+    },
+    {
+        "name": "available",
+        "dbType": "boolean:default,1",
+        "htmlType": "boolean"
+    },
+    {
+        "name": "clinic_id",
+        "title": "clinic.name",
+        "dbType": "integer:unsigned:foreign,clinics,id",
+        "htmlType": "select,$clinic",
+        "validations": "required|exists:clinics,id",
+        "relation": "mt1,Clinic,clinic_id,id"
+    },
+    {
+        "type": "relation",
+        "relation": "1tm,Option,doctor_id"
+    },
+    {
+        "type": "relation",
+        "relation": "1tm,DoctorsReview,doctor_id"
+    },
+    {
+        "name": "created_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "updated_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": true
+    }
+]

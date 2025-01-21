@@ -1,0 +1,45 @@
+[
+    {
+        "name": "id",
+        "dbType": "increments",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "primary": true,
+        "fillable": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "day",
+        "dbType": "string,16:default,monday",
+        "htmlType": "select,monday:'monday'",
+        "validations": "required|max:16"
+    },
+    {
+        "name": "start_at",
+        "dbType": "string,16",
+        "htmlType": "text",
+        "validations": "required|max:16"
+    },
+    {
+        "name": "end_at",
+        "dbType": "string,16",
+        "htmlType": "text",
+        "validations": "required|max:16"
+    },
+    {
+        "name": "data",
+        "dbType": "string,255",
+        "htmlType": "text:nullable",
+        "validations": "max:255"
+    },
+    {
+        "name": "clinic_id",
+        "title": "clinic.name",
+        "dbType": "integer:unsigned:foreign,clinics,id",
+        "htmlType": "select,$clinic",
+        "validations": "required|exists:clinics,id",
+        "relation": "mt1,Clinic,clinic_id,id"
+    }
+]

@@ -1,0 +1,89 @@
+[
+  {
+    "name": "id",
+    "dbType": "increments",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "primary": true,
+    "fillable": false,
+    "inForm": false,
+    "inIndex": false
+  },
+  {
+    "name":"code",
+    "dbType": "string,50",
+    "htmlType": "text",
+    "validations": "required|max:50"
+  },
+  {
+    "name":"discount",
+    "dbType": "double,10,2:default,0",
+    "htmlType": "number",
+    "validations": "required"
+  },
+  {
+    "name": "discount_type",
+    "dbType": "string,50:default,percent",
+    "htmlType": "select,'percent':percent",
+    "validations": "required"
+  },
+  {
+    "name":"description",
+    "dbType": "text:nullable",
+    "htmlType": "textarea"
+  },
+  {
+    "name": "food_id",
+    "title": "food.name",
+    "dbType": "integer:unsigned:foreign,foods,id",
+    "htmlType": "select,$food",
+    "relation": "mt1,Food,food_id,id"
+  },
+  {
+    "name": "restaurant_id",
+    "title": "restaurant.name",
+    "dbType": "integer:unsigned:foreign,restaurants,id",
+    "htmlType": "select,$restaurant",
+    "relation": "mt1,Restaurant,restaurant_id,id"
+  },
+  {
+    "name": "speciality_id",
+    "title": "speciality.name",
+    "dbType": "integer:unsigned:foreign,specialities,id",
+    "htmlType": "select,$category",
+    "relation": "mt1,Speciality,speciality_id,id"
+  },
+  {
+    "name": "expires_at",
+    "dbType": "dateTime:nullable",
+    "htmlType": "date"
+  },
+  {
+    "name":"enabled",
+    "dbType": "boolean:default,0",
+    "htmlType": "boolean"
+  },
+  {
+    "name": "created_at",
+    "dbType": "timestamp",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "fillable": false,
+    "primary": false,
+    "inForm": false,
+    "inIndex": false
+  },
+  {
+    "name": "updated_at",
+    "dbType": "timestamp",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "fillable": false,
+    "primary": false,
+    "inForm": false,
+    "inIndex": true
+  }
+]
