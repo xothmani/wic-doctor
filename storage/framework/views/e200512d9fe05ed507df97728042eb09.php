@@ -33,14 +33,27 @@
 
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('doctor_requests.index')): ?>
     <li class="nav-item">
-        <a class="nav-link <?php echo e(Request::is('doctor_requests*') ? 'active' : ''); ?>" href="<?php echo route('doctor_requests.index'); ?>">
+        <a class="nav-link <?php echo e(Request::is('doctor_requests') ? 'active' : ''); ?>" href="<?php echo route('doctor_requests.index'); ?>">
+    <?php if($icons): ?>
+        <i class="nav-icon fas fa-paper-plane"></i> 
+    <?php endif; ?>
+
+                <p><?php echo e(trans('lang.doctor_request_plural')); ?></p>
+            </a>
+        </li>
+<?php endif; ?>
+
+<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('doctor_requests.create')): ?>
+    <li class="nav-item">
+        <a class="nav-link <?php echo e(Request::is('doctor_requests/create') ? 'active' : ''); ?>" href="<?php echo route('doctor_requests.create'); ?>">
             <?php if($icons): ?>
-                <i class="nav-icon fas fa-users"></i> 
+                <i class="nav-icon fas fa-plus-circle"></i> 
             <?php endif; ?>
-            <p><?php echo e(trans('lang.doctor_request_plural')); ?></p>
+            <p><?php echo e(trans('lang.create_doctor_request')); ?></p> 
         </a>
     </li>
 <?php endif; ?>
+
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('telesecretariats.index')): ?>
     <li class="nav-item">
         <a class="nav-link <?php echo e(Request::is('telesecretariats*') ? 'active' : ''); ?>" href="<?php echo route('telesecretariats.index'); ?>">
@@ -51,6 +64,18 @@
         </a>
     </li>
 <?php endif; ?>
+
+<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('doctor_telesecretariat.create')): ?>
+    <li class="nav-item">
+        <a class="nav-link <?php echo e(Request::is('doctor_telesecretariat*') ? 'active' : ''); ?>" href="<?php echo route('doctor_telesecretariat.create'); ?>">
+        <?php if($icons): ?>
+    <i class="nav-icon fas fa-headset"></i> 
+<?php endif; ?>
+            <p><?php echo e(trans('lang.doctor_telesecretariat')); ?></p> 
+        </a>
+    </li>
+<?php endif; ?>
+
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clinics.index')): ?>
     <li class="nav-item has-treeview <?php echo e((Request::is('clinic*') || Request::is('requestedClinics*') || Request::is('galleries*')  || Request::is('awards*')  ) || Request::is('clinicReviews*') && !Request::is('clinicPayouts*') ? 'menu-open' : ''); ?>">
         <a href="#" class="nav-link <?php echo e((Request::is('clinic*') || Request::is('requestedClinics*') || Request::is('galleries*') || Request::is('awards*') ) || Request::is('clinicReviews*') && !Request::is('clinicPayouts*') ? 'active' : ''); ?>"> <?php if($icons): ?>
@@ -205,7 +230,16 @@
     </li>
 <?php endif; ?>
 
-
+<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('seo.index')): ?>
+<li class="nav-item">
+    <a class="nav-link <?php echo e(Request::is('visibiliteSeo*') ? 'active' : ''); ?>" href="<?php echo route('seo.index'); ?>">
+        <?php if($icons): ?>
+            <i class="nav-icon fas fa-search"></i> <!-- Icône de recherche pour SEO -->
+        <?php endif; ?>
+        <p><?php echo e(trans('lang.Visibilité_SEO')); ?></p>
+    </a>
+</li>
+<?php endif; ?>
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('coupons.index')): ?>
     <li class="nav-item">
         <a class="nav-link <?php echo e(Request::is('coupons*') ? 'active' : ''); ?>" href="<?php echo route('coupons.index'); ?>"><?php if($icons): ?>

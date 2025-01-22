@@ -20,7 +20,8 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Spatie\Permission\Models\Permission;
+
 /**
  * Class User
  * @package App\Models
@@ -69,11 +70,8 @@ class User extends Authenticatable implements HasMedia
         'phone_number',
         'phone_verified_at',
         'password',
-	'passwordpatient',
         'api_token',
         'device_token',
-        'lastname',
-
     ];
     /**
      * The attributes that should be casted to native types.
@@ -107,7 +105,8 @@ class User extends Authenticatable implements HasMedia
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     /**
@@ -129,11 +128,11 @@ class User extends Authenticatable implements HasMedia
     {
         $this->addMediaConversion('thumb')
             ->fit(Manipulations::FIT_CROP, 200, 200)
-            ->sharpen(10);
+            ->nonQueued(); // Force immediate conversion for testing
 
         $this->addMediaConversion('icon')
             ->fit(Manipulations::FIT_CROP, 100, 100)
-            ->sharpen(10);
+            ->nonQueued();
     }
 
     /**
@@ -142,7 +141,7 @@ class User extends Authenticatable implements HasMedia
      * @param string $conversion
      * @return string url
      */
-    public function getFirstMediaUrl(string $collectionName = 'default', string $conversion = ''):string
+    public function getFirstMediaUrl(string $collectionName = 'default', string $conversion = ''): string
     {
         $url = $this->getFirstMediaUrlTrait($collectionName);
         if ($url) {
@@ -194,25 +193,123 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsToMany(Clinic::class, 'clinic_users');
     }
 
-	public function doctor()
+    public function doctor()
     {
         return $this->hasOne(Doctor::class, 'user_id');
     }
-        /**
- * @return HasMany
- **/
-public function consultations(): HasMany
-{
-    return $this->hasMany(Consultation::class);
-}
 
-public function patient()
-{
-    return $this->hasOne(Patient::class);
-}
- 
-public function address(): HasOne
-{
-    return $this->hasOne(Address::class, 'user_id', 'id');
-}
+
+    /**
+     * @return HasMany
+     **/
+    public function consultations(): HasMany
+    {
+        return $this->hasMany(Consultation::class);
+    }
+    public function associations()
+    {
+        return $this->hasMany(DoctorAssociate::class, 'doctor_id');
+    }
+    public function associatedDoctors()
+    {
+        return $this->hasMany(DoctorAssociate::class, 'user_id');
+    }
+
+    public function hasPermissionInContext(string $permissionName, ?int $doctorId = null): bool
+    {
+        // Log the start of the method
+        \Log::info('Checking permission in context', [
+            'user_id' => $this->id,
+            'permission_name' => $permissionName,
+            'doctor_id' => $doctorId,
+        ]);
+
+        // Retrieve the permission by name
+        $permission = Permission::where('name', $permissionName)->first();
+
+        if (!$permission) {
+            \Log::warning('Permission not found', ['permission_name' => $permissionName]);
+            return false;
+        }
+
+        // If the user is an admin, allow all permissions
+        if ($this->hasRole('admin')) {
+            \Log::info('Permission granted for admin role', ['user_id' => $this->id]);
+            return true;
+        }
+
+        // If the user is a doctor
+        if ($this->hasRole('doctor')) {
+            $selfDoctorId = $this->doctor->id ?? null;
+            if ($doctorId === null || $doctorId === $selfDoctorId) {
+                \Log::info('Permission granted for doctor role', ['user_id' => $this->id, 'doctor_id' => $selfDoctorId]);
+                return true;
+            }
+            \Log::warning('Doctor attempted to access unrelated doctor context', [
+                'user_id' => $this->id,
+                'doctor_id' => $selfDoctorId,
+                'attempted_doctor_id' => $doctorId,
+            ]);
+            return false;
+        }
+
+        // If the user is a secretary
+        if ($this->hasRole('Secretary')) {
+            // Query the role_profile_permission table for secretary permissions
+            $query = \DB::table('role_profile_permission')
+                ->join('model_has_roles', 'role_profile_permission.role_id', '=', 'model_has_roles.role_id')
+                ->where('model_has_roles.model_id', $this->id)
+                ->where('role_profile_permission.permission_id', $permission->id);
+
+            // Apply doctor_id filter if provided
+            if ($doctorId) {
+                $query->where('role_profile_permission.doctor_id', $doctorId);
+                \Log::info('Applying doctor filter for secretary role', ['doctor_id' => $doctorId]);
+            } else {
+                \Log::info('No doctor filter applied for secretary role');
+            }
+
+            // Check if the record exists
+            $exists = $query->exists();
+
+            // Log the result
+            \Log::info('Permission check result for secretary', [
+                'user_id' => $this->id,
+                'permission_name' => $permissionName,
+                'doctor_id' => $doctorId,
+                'exists' => $exists,
+            ]);
+
+            return $exists;
+        }
+
+        // If none of the roles match, deny permission
+        \Log::warning('Permission denied for user', [
+            'user_id' => $this->id,
+            'permission_name' => $permissionName,
+            'doctor_id' => $doctorId,
+        ]);
+
+        return false;
+    }
+
+    public function getDoctorId(): ?int
+    {
+        // If the user has a doctor role, return their own ID
+        if ($this->hasRole('doctor')) {
+            return $this->doctor->id ?? null; // Assuming the `doctor` relation returns a `Doctor` model
+        }
+
+        // If the user is a secretary, return the associated doctor ID(s)
+        if ($this->hasRole('Secretary')) {
+            $associatedDoctor = $this->associatedDoctors->first(); // Fetch the first associated doctor
+            return $associatedDoctor->doctor_id ?? null;
+        }
+
+        // For other roles, return null
+        return null;
+    }
+
+
+
 }
