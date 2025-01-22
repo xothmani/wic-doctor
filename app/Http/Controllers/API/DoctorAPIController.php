@@ -59,32 +59,31 @@ class DoctorAPIController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
-    {
-        try {
-            $this->doctorRepository->pushCriteria(new RequestCriteria($request));
-            $this->doctorRepository->pushCriteria(new DoctorsOfUserCriteria(auth()->id()));
-            $this->doctorRepository->pushCriteria(new NearCriteria($request));
-
-        } catch (Exception $e) {
-            return $this->sendError($e->getMessage());
-        }
-
-        $doctors = $this->doctorRepository->all();
-
-
-        if (!$request->has('all')) {
-            $this->availableDoctors($doctors);
-        }
-        $this->hasValidSubscription($request, $doctors);
-        $this->orderByRating($request, $doctors);
-        $this->limitOffset($request, $doctors);
-        $this->filterCollection($request, $doctors);
-        $doctors = array_values($doctors->toArray());
-
-        return $this->sendResponse($doctors, 'Doctors retrieved successfully');
+public function index(Request $request): JsonResponse
+{
+    try {
+        $this->doctorRepository->pushCriteria(new RequestCriteria($request));
+        $this->doctorRepository->pushCriteria(new DoctorsOfUserCriteria(auth()->id()));
+        $this->doctorRepository->pushCriteria(new NearCriteria($request));
+    } catch (Exception $e) {
+        return $this->sendError($e->getMessage());
     }
 
+    // Load the address relationship
+    $doctors = $this->doctorRepository->with('address')->all();
+
+    if (!$request->has('all')) {
+        $this->availableDoctors($doctors);
+    }
+    $this->hasValidSubscription($request, $doctors);
+    $this->orderByRating($request, $doctors);
+    $this->limitOffset($request, $doctors);
+    $this->filterCollection($request, $doctors);
+    $doctors = array_values($doctors->toArray());
+
+    return $this->sendResponse($doctors, 'Doctors retrieved successfully');
+}
+       
     /**
      * @param Collection $doctors
      */
@@ -131,7 +130,7 @@ class DoctorAPIController extends Controller
      *
      * @return JsonResponse
      */
-    public function show(Request $request, int $id): JsonResponse
+public function show(Request $request, int $id): JsonResponse
     {
         try {
             $this->doctorRepository->pushCriteria(new RequestCriteria($request));
@@ -153,6 +152,7 @@ class DoctorAPIController extends Controller
 
         return $this->sendResponse($doctor->toArray(), 'Doctor retrieved successfully');
     }
+
 
     /**
      * Store a newly created Doctor in storage.

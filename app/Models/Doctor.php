@@ -27,6 +27,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\OpeningHours\OpeningHours;
 use Illuminate\Support\Facades\Log;
+use App\Models\Address;
 
 /**
  * Class Doctor
@@ -70,10 +71,10 @@ class Doctor extends Model implements HasMedia, Castable
      */
     public static array $rules = [
         'name' => 'required|max:127',
-        'price' => 'required|numeric|min:0|max:99999999,99',
+        'price' => 'nullable|numeric|min:0|max:99999999,99',
         'discount_price' => 'nullable|numeric|min:0|max:99999999,99',
         'description' => 'required',
-        'clinic_id' => 'required|exists:clinics,id',
+        'clinic_id' => 'nullable|exists:clinics,id',
         'user_id' => 'exists:users,id'
     ];
     public array $translatable = [
@@ -102,6 +103,7 @@ class Doctor extends Model implements HasMedia, Castable
 	'tele_price_tnd',
 	'tele_price_eur',
 	'id_aleatoire',
+	'sexe',
     ];
     /**
      * The attributes that should be casted to native types.
@@ -573,6 +575,9 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
         return $this->belongsToMany(Patient::class, 'doctor_patients');
     }
 
-
+  public function address()
+    {
+        return $this->hasOne(Address::class, 'user_id', 'user_id');
+    }
 
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DoctorRequest extends Model
 {
@@ -27,5 +28,16 @@ class DoctorRequest extends Model
         'gouvernorat',
         'ville',
         'type',
+        'status',
+	'sexe',
+        'created_at',
+        'updated_at',
     ];
+
+public function speciality()
+{
+    return $this->belongsTo(Speciality::class);
+}
+
+
 }

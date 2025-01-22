@@ -19,13 +19,28 @@ return [
 'doctor_request_specialities' => 'Spécialité',
 'doctor_request_description' => 'Description',
 'doctor_request_description' => 'Description',
-'doctor_request_plural' => 'Gestion des demandes',
+'doctor_request_plural' => 'Demandes d\'inscri',
 'doctor_request_desc' => 'Les demandes des docteurs',
 'doctor_request_table' => 'Liste des demandes',
     'open_link' => 'Ouvrir le lien',
         'inactive' => 'Inactive',
         'telesecretariat_view' => 'Voir détails',
 
+        'Speciality' => 'Spécialité',
+        'Price' => 'Prix',
+        'Clinic' => 'Clinique',
+        'Color' => 'Couleur',
+
+        'doctor_bio' => ' Courte biographie',
+        'doctor_address' => 'Adresse',
+        'doctor_profile' => 'Profil',
+        'profile' => 'Editer profil',
+        'doctor_about_me' => 'À propos de moi',
+        'gestion_profil' => 'gestion profil',
+
+        'Visibilité_SEO' => 'Visibilité SEO',
+        'doctor_telesecretariat' => 'Télésecrétariat',
+        'doctor_telesecretariat_add' => 'Ajouter Télésecrétariat',
     'not_specified' => 'Non spécifié',
 'availability' => 'Disponibilité',
 'breaks' => 'Cas d\'urgence',
@@ -85,7 +100,9 @@ return [
         'pharmacy_plural_list' => 'Liste des pharmacies', 
     'pharmacy_create' => 'Créer une pharmacie',
     'teleconsultation_plural'=>'Téléconsultation',
-	    'not_associated_to_clinic' => 'Non associé à une clinique',
+	'pattern_name' => 'Nom',
+	'adomicile' => 'Adomicile',
+   'not_associated_to_clinic' => 'Non associé à une clinique',
     'unexpected_error' => 'Une erreur inattendue est survenue. Veuillez réessayer plus tard.',
     'pattern_cannot_be_deleted' => 'Le modèle ne peut pas être supprimé car il est associé à d\'autres enregistrements.',
     'patterns_plural' => 'Motifs de maladie', 
@@ -1860,7 +1877,7 @@ return [
 
 
 
-        'telesecretariat_plural' => 'Télésecrétariat',
+        'telesecretariat_plural' => 'Télésecrétariats',
         'telesecretariat_desc' => 'Gestion Télésecrétariat',
         'telesecretariat_table' => 'Liste des télésecrétariats',
         'telesecretariat_create' => 'Créer télésecrétariat',
@@ -1888,4 +1905,21 @@ return [
         'yes_delete' => 'Confirmer',
         'are_you_sure' => 'Êtes-vous sûr',
         'confirm_delete_message_tele' => 'Vous voulez supprimer cette télésecrétariat ?',
+
+        'nomComplet' => 'Nom Complet',
+        'type' => 'Type',
+        'country' => 'Pays',
+        'gouvernorat' => 'Gouvernorat',
+        'city' => 'Ville',
+        'departement' => 'Département',
+        'region' => 'Région',
+        'description' => 'Description',
+        'status' => 'Status de la demande',
+        'request_view' => 'Détails de la demande',
+        'create_doctor_request' => 'Inscription docteur',
+
+
+
+
+
 ];

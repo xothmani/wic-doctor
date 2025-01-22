@@ -33,14 +33,27 @@
 
 @can('doctor_requests.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor_requests*') ? 'active' : '' }}" href="{!! route('doctor_requests.index') !!}">
+        <a class="nav-link {{ Request::is('doctor_requests') ? 'active' : '' }}" href="{!! route('doctor_requests.index') !!}">
+    @if($icons)
+        <i class="nav-icon fas fa-paper-plane"></i> {{-- Icône pour une demande --}}
+    @endif
+
+                <p>{{ trans('lang.doctor_request_plural') }}</p>
+            </a>
+        </li>
+@endcan
+
+@can('doctor_requests.create')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor_requests/create') ? 'active' : '' }}" href="{!! route('doctor_requests.create') !!}">
             @if($icons)
-                <i class="nav-icon fas fa-users"></i> {{-- Changement de l'icône --}}
+                <i class="nav-icon fas fa-plus-circle"></i> {{-- Icône pour créer une demande --}}
             @endif
-            <p>{{ trans('lang.doctor_request_plural') }}</p>
+            <p>{{ trans('lang.create_doctor_request') }}</p> 
         </a>
     </li>
 @endcan
+
 @can('telesecretariats.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('telesecretariats*') ? 'active' : '' }}" href="{!! route('telesecretariats.index') !!}">
@@ -51,6 +64,18 @@
         </a>
     </li>
 @endcan
+
+@can('doctor_telesecretariat.create')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor_telesecretariat*') ? 'active' : '' }}" href="{!! route('doctor_telesecretariat.create') !!}">
+        @if($icons)
+    <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
+@endif
+            <p>{{ trans('lang.doctor_telesecretariat') }}</p> 
+        </a>
+    </li>
+@endcan
+
 @can('clinics.index')
     <li class="nav-item has-treeview {{ (Request::is('clinic*') || Request::is('requestedClinics*') || Request::is('galleries*')  || Request::is('awards*')  ) || Request::is('clinicReviews*') && !Request::is('clinicPayouts*') ? 'menu-open' : '' }}">
         <a href="#" class="nav-link {{ (Request::is('clinic*') || Request::is('requestedClinics*') || Request::is('galleries*') || Request::is('awards*') ) || Request::is('clinicReviews*') && !Request::is('clinicPayouts*') ? 'active' : '' }}"> @if($icons)
@@ -205,7 +230,16 @@
     </li>
 @endcan
 
-
+@can('seo.index')
+<li class="nav-item">
+    <a class="nav-link {{ Request::is('visibiliteSeo*') ? 'active' : '' }}" href="{!! route('seo.index') !!}">
+        @if($icons)
+            <i class="nav-icon fas fa-search"></i> <!-- Icône de recherche pour SEO -->
+        @endif
+        <p>{{ trans('lang.Visibilité_SEO') }}</p>
+    </a>
+</li>
+@endcan
 @can('coupons.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('coupons*') ? 'active' : '' }}" href="{!! route('coupons.index') !!}">@if($icons)

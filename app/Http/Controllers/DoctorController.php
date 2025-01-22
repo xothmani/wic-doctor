@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\View\View;
 use Prettus\Repository\Exceptions\RepositoryException;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Repositories\RoleRepository;
 
 class DoctorController extends Controller
 {
@@ -59,8 +60,12 @@ class DoctorController extends Controller
      * @var UserRepository
      */
     private UserRepository $userRepository;
+        /**
+     * @var RoleRepository
+     */
+    private RoleRepository $roleRepository;
 
-    public function __construct(DoctorRepository $doctorRepo, CustomFieldRepository $customFieldRepo, UploadRepository $uploadRepo
+    public function __construct(DoctorRepository $doctorRepo, RoleRepository $roleRepo, CustomFieldRepository $customFieldRepo, UploadRepository $uploadRepo
         , SpecialityRepository $specialityRepo
         , ClinicRepository $clinicRepo
         ,UserRepository $userRepo)
@@ -68,6 +73,8 @@ class DoctorController extends Controller
     {
         parent::__construct();
         $this->doctorRepository = $doctorRepo;
+        $this->roleRepository = $roleRepo;
+
         $this->customFieldRepository = $customFieldRepo;
         $this->uploadRepository = $uploadRepo;
         $this->specialityRepository = $specialityRepo;
@@ -132,7 +139,7 @@ class DoctorController extends Controller
 
         Flash::success(__('lang.saved_successfully', ['operator' => __('lang.doctor')]));
 
-        return redirect(route('doctors.index'));
+        return redirect(route('users.profile'));
     }
 
     /**
@@ -229,7 +236,7 @@ class DoctorController extends Controller
 
         Flash::success(__('lang.updated_successfully', ['operator' => __('lang.doctor')]));
 
-        return redirect(route('doctors.index'));
+        return redirect(route('users.profile'));
     }
 
     /**
@@ -274,4 +281,66 @@ class DoctorController extends Controller
             Log::error($e->getMessage());
         }
     }
+
+    public function profileDoctor()
+    {
+        // Récupérer l'utilisateur connecté
+        $user = $this->userRepository->findWithoutFail(auth()->id());
+        if (!$user) {
+            abort(404, "Utilisateur non trouvé");
+        }
+    
+        // Récupérer le docteur associé à cet utilisateur
+        $doctor = $user->doctor; 
+    
+        if (!$doctor) {
+            abort(404, "Aucun docteur associé à cet utilisateur");
+        }
+    
+        unset($doctor->password); // Évitez d'envoyer le mot de passe
+    
+        $customFields = false;
+        $role = $this->roleRepository->pluck('name', 'name');
+        $rolesSelected = $user->getRoleNames()->toArray();
+    
+        $speciality = $this->specialityRepository->pluck('name', 'id');
+        $clinic = $this->clinicRepository->getByCriteria(new ClinicsOfUserCriteria(auth()->id()))->pluck('name', 'id');
+        $specialitiesSelected = $doctor->specialities()->pluck('specialities.id')->toArray();
+    
+        // Récupérer les expériences du docteur
+        $experiences = $doctor->experiences; 
+ 
+        // Débogage : vérifiez si certaines expériences n'ont pas de description
+        /*     foreach ($experiences as $experience) {
+                if (empty($experience->description)) {
+                    \Log::info("Experience sans description : " . json_encode($experience));
+                }
+                else{
+                    \Log::info(json_encode($experience));
+
+                }
+            } */
+        // Récupérer les champs personnalisés
+        $customFieldsValues = $doctor->customFieldsValues()->with('customField')->get();
+        $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
+        if ($hasCustomField) {
+            $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
+            $customFields = generateCustomField($customFields, $customFieldsValues);
+        }
+    
+        // Retourner la vue avec les données nécessaires
+        return view('settings.users.profileDoctor', compact(
+            'doctor', 
+            'role', 
+            'rolesSelected', 
+            'customFields', 
+            'customFieldsValues', 
+            'speciality', 
+            'specialitiesSelected', 
+            'clinic',
+            'experiences' // Passer les expériences à la vue
+        ));
+    }
+    
+    
 }

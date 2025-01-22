@@ -74,13 +74,10 @@
                             <i class="fa fa-list mr-2"></i>{{trans('lang.doctor_request_table')}}
                         </a>
                     </li>
-                    @can('doctor_requests.create')
-                    <li class="nav-item">
-                        <a class="nav-link" href="{!! route('doctor_requests.create') !!}">
-                            <i class="fa fa-plus mr-2"></i>{{trans('lang.doctor_request_create')}}
-                        </a>
-                    </li>
-                    @endcan
+
+
+
+                  
                 </div>
                 @include('layouts.right_toolbar', compact('dataTable'))
             </ul>
