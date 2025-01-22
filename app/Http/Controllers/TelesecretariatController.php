@@ -33,8 +33,9 @@ class TelesecretariatController extends Controller
         $user = null; // Pas d'utilisateur pour la création
         return view('telesecretariats.create', compact('user')); // Passer $user à la vue
     }
+
     public function store(Request $request)
-    {
+{
         // Validation des champs
         $validated = $request->validate([
             'nom_centre' => 'required|string|max:255', // Nom du centre, requis, chaîne de caractères, maximum 255 caractères
@@ -61,9 +62,9 @@ class TelesecretariatController extends Controller
                 
                 // Si un telesecretariat est déjà associé à l'utilisateur
                 if ($existingTelesecretariat) {
-                    return redirect()->back()->with('error', 'Cet utilisateur est déjà associé à un télésecretariat.');
+                    return redirect()->back()->with('error', 'Cet utilisateur est déjà associé à un telesecretariat.');
                 } else {
-                    return redirect()->back()->with('error', 'Cet utilisateur est déjà associé à un autre compte que télésecretariat.');
+                    return redirect()->back()->with('error', 'Cet utilisateur est déjà associé à un autre compte que telesecretariat.');
                 }
             } else {
                 // Si l'utilisateur n'a pas de mot de passe, générer un mot de passe
@@ -83,6 +84,21 @@ class TelesecretariatController extends Controller
                     'model_id' => $existingUser->id,
                 ]);
     
+                Log::info('Début de l\'insertion dans la table membership');
+                try {
+                    DB::table('membership')->insert([
+                        'user_id' => $existingUser->id,
+                        'pack_id' => 1,
+                        'start_date' => now(),
+                        'end_date' => now()->addYear(),
+                        'payment_amount' => 0.00,
+                        'payment_date' => now(),
+                    ]);
+                    Log::info('Insertion réussie dans la table membership');
+                } catch (\Exception $e) {
+                    Log::error('Erreur lors de l\'insertion dans la table membership : ' . $e->getMessage());
+                }
+
                 // Créer le telesecretariat associé à cet utilisateur
                 $telesecretariat = Telesecretariat::create([
                     'nomCentre' => $request->nom_centre,
@@ -91,8 +107,21 @@ class TelesecretariatController extends Controller
                     'description' => $request->description,
                     'user_id' => $existingUser->id, // Associer le telesecretariat à l'utilisateur
                 ]);
+                     // Envoi de l'email
+                $details = [
+                    'name' => $request->prenom_responsable . ' ' . $request->nom_responsable,
+                    'email' => $request->email,
+                    'password' => $password,
+                ];
+
+                try {
+                    Mail::to($request->email)->send(new TelesecretariatCreated($details));
+                    Log::info('Email envoyé à : ' . $request->email);
+                } catch (\Exception $e) {
+                    Log::error('Erreur lors de l\'envoi de l\'email : ' . $e->getMessage());
+                }
     
-                return redirect()->route('telesecretariats.index')->with('success', 'Télésecretariat associé à l\'utilisateur existant avec un mot de passe généré.');
+                return redirect()->route('telesecretariats.index')->with('success', 'Telesecretariat associé à l\'utilisateur existant avec un mot de passe généré.');
             }
         }
     
@@ -118,6 +147,20 @@ class TelesecretariatController extends Controller
             'model_type' => 'App\Models\User',
             'model_id' => $newUser->id,
         ]);
+        Log::info('Début de l\'insertion dans la table membership');
+        try {
+            DB::table('membership')->insert([
+                'user_id' => $newUser->id,
+                'pack_id' => 1,
+                'start_date' => now(),
+                'end_date' => now()->addYear(),
+                'payment_amount' => 0.00,
+                'payment_date' => now(),
+            ]);
+            Log::info('Insertion réussie dans la table membership');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'insertion dans la table membership : ' . $e->getMessage());
+        }
     
         // Créer le telesecretariat associé à cet utilisateur
         $telesecretariat = Telesecretariat::create([
@@ -127,12 +170,22 @@ class TelesecretariatController extends Controller
             'description' => $request->description,
             'user_id' => $newUser->id, // Associer le telesecretariat à l'utilisateur
         ]);
-    
-        return redirect()->route('telesecretariats.index')->with('success', 'Télésecretariat créé et utilisateur enregistré.');
-    }
-    
+            // Envoi de l'email
+        $details = [
+            'name' => $request->prenom_responsable . ' ' . $request->nom_responsable,
+            'email' => $request->email,
+            'password' => $password,
+        ];
 
+        try {
+            Mail::to($request->email)->send(new TelesecretariatCreated($details));
+            Log::info('Email envoyé à : ' . $request->email);
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'envoi de l\'email : ' . $e->getMessage());
+        }
     
+        return redirect()->route('telesecretariats.index')->with('success', 'Telesecretariat créé et utilisateur enregistré.');
+}   
     
     
 /**

@@ -124,4 +124,10 @@ class Address extends Model implements Castable
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
+
+public function getLocalizedDescriptionAttribute()
+{
+    $locale = app()->getLocale(); // Get current locale
+    return $this->description[$locale] ?? $this->description['fr']; // Return the description in the current locale or fallback to 'fr'
+}
 }

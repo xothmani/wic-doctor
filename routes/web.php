@@ -34,6 +34,10 @@ use App\Http\Controllers\DoctorUrgencyController;
 use App\Http\Controllers\DoctorRequestController;
 use App\Http\Controllers\KonnectController;
 use App\Http\Controllers\TelesecretariatController;
+use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\SeoController;
+use App\Http\Controllers\SpecialityController;
+use App\Http\Controllers\DoctorTelesecretariatController;
 
 
 Route::get('/payment-success', function () {
@@ -337,11 +341,24 @@ Route::get('/appointments/today/completed', [AppointmentController::class, 'getT
 Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
 Route::get('/assurances', [AssuranceController::class, 'index'])->name('assurances.index');
 Route::resource('assurances', AssuranceController::class);
+
 Route::resource('doctor_requests', DoctorRequestController::class);
 Route::get('/doctor-request/{id}/create-user', [DoctorRequestController::class, 'createUserFromDoctorRequest'])->name('doctor_requests.createUserFromDoctorRequest');
+Route::get('/doctor-requests/{id}', [DoctorRequestController::class, 'show']);
+Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
 
 Route::resource('telesecretariats', TelesecretariatController::class);
 Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);
+
+Route::get('/profil-doctor', [DoctorController::class, 'profileDoctor'])->name('fieldsDoctor');
+
+Route::get('/seo', [SeoController::class, 'index'])->name('seo.index');
+
+
+Route::get('/specialitiesByPays', [SpecialityController::class, 'getSpecialitiesByCountry']);
+
+
+Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);
 
 });
 

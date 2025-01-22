@@ -51,27 +51,6 @@
                     </div>
                     <!-- /.card -->
 
-                @if($customFields)
-                    <!-- About Me Box -->
-                        <div class="card shadow-sm">
-                            <div class="card-header">
-                                <h3 class="card-title"><i class="fas fa-list mr-2"></i>{{trans('lang.custom_field_plural')}}</h3>
-                            </div>
-                            <!-- /.card-header -->
-                            <div class="card-body">
-                                @foreach($customFieldsValues as $value)
-                                    <strong>{{trans('lang.user_'.$value->customField->name)}}</strong>
-                                    <p class="text-muted">
-                                        {!! $value->view !!}
-                                    </p>
-                                    @if(!$loop->last)
-                                        <hr> @endif
-                                @endforeach
-                            </div>
-                            <!-- /.card-body -->
-                        </div>
-                    <!-- /.card -->
-                    @endif
                 </div>
                 <!-- /.col -->
                 <div class="col-md-9">
@@ -83,6 +62,11 @@
                             <ul class="nav nav-tabs d-flex flex-row align-items-start card-header-tabs">
                                 <li class="nav-item">
                                     <a class="nav-link active" href="{!! url()->current() !!}"><i class="fas fa-cog mr-2"></i>{{trans('lang.app_setting')}}</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('fieldsDoctor') }}">
+                                        <i class="fas fa-cog mr-2"></i>{{ trans('lang.profile') }}
+                                    </a>
                                 </li>
                                 @hasrole('customer')
                                 <div class="ml-auto d-inline-flex">

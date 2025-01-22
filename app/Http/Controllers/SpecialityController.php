@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\View\View;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Models\Speciality;
 
 class SpecialityController extends Controller
 {
@@ -235,4 +236,25 @@ class SpecialityController extends Controller
     $name = json_decode($value, true);
     return $name['fr'] ?? $value; // Retourne la valeur 'fr' ou la valeur brute si non trouvée
 }
+
+public function getSpecialitiesByCountry(Request $request)
+{
+    $pays = $request->input('pays');  // Récupère le pays depuis la requête
+
+    if (!$pays) {
+        return response()->json(['error' => 'Le pays est requis'], 400);
+    }
+
+    // Vérifiez que vous avez bien des spécialités pour ce pays dans la base de données
+    $specialities = Speciality::where('pays', $pays)->get();
+
+    if ($specialities->isEmpty()) {
+        return response()->json(['message' => 'Aucune spécialité trouvée pour ce pays'], 404);
+    }
+
+    return response()->json($specialities);  // Retourne les spécialités en JSON
+}
+
+
+
 }
