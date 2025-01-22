@@ -51,28 +51,6 @@
                     </div>
                     <!-- /.card -->
 
-                <?php if($customFields): ?>
-                    <!-- About Me Box -->
-                        <div class="card shadow-sm">
-                            <div class="card-header">
-                                <h3 class="card-title"><i class="fas fa-list mr-2"></i><?php echo e(trans('lang.custom_field_plural')); ?></h3>
-                            </div>
-                            <!-- /.card-header -->
-                            <div class="card-body">
-                                <?php $__currentLoopData = $customFieldsValues; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <strong><?php echo e(trans('lang.user_'.$value->customField->name)); ?></strong>
-                                    <p class="text-muted">
-                                        <?php echo $value->view; ?>
-
-                                    </p>
-                                    <?php if(!$loop->last): ?>
-                                        <hr> <?php endif; ?>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </div>
-                            <!-- /.card-body -->
-                        </div>
-                    <!-- /.card -->
-                    <?php endif; ?>
                 </div>
                 <!-- /.col -->
                 <div class="col-md-9">
@@ -84,6 +62,12 @@
                             <ul class="nav nav-tabs d-flex flex-row align-items-start card-header-tabs">
                                 <li class="nav-item">
                                     <a class="nav-link active" href="<?php echo url()->current(); ?>"><i class="fas fa-cog mr-2"></i><?php echo e(trans('lang.app_setting')); ?></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?php echo e(route('fieldsDoctor')); ?>">
+                                        <i class="fas fa-cog mr-2"></i><?php echo e(trans('lang.profile')); ?>
+
+                                    </a>
                                 </li>
                                 <?php if (\Illuminate\Support\Facades\Blade::check('hasrole', 'customer')): ?>
                                 <div class="ml-auto d-inline-flex">

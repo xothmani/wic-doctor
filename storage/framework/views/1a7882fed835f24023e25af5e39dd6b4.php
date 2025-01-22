@@ -133,19 +133,10 @@
     <?php endif; ?>
 
 </div>
-<?php if($customFields): ?>
-    
-    <div class="clearfix"></div>
-    <div class="col-12 custom-field-container">
-        <h5 class="col-12 pb-4"><?php echo trans('lang.custom_field_plural'); ?></h5>
-        <?php echo $customFields; ?>
 
-    </div>
-<?php endif; ?>
 <!-- Submit Field -->
 <div class="form-group col-12 d-flex flex-column flex-md-row justify-content-md-end justify-content-sm-center border-top pt-4">
     <button type="submit" class="btn bg-<?php echo e(setting('theme_color')); ?> mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2">
         <i class="fas fa-save"></i> <?php echo e(trans('lang.save')); ?> <?php echo e(trans('lang.user')); ?></button>
-    <a href="<?php echo route('users.index'); ?>" class="btn btn-default"><i class="fas fa-undo"></i> <?php echo e(trans('lang.cancel')); ?></a>
 </div>
 <?php /**PATH /home/support-03/Dev/wic-doctor/resources/views/settings/users/fields.blade.php ENDPATH**/ ?>
