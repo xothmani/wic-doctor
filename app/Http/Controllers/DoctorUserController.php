@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\DoctorAssociate;
 use App\Repositories\RoleRepository;
 use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Flash;
-use App\Models\RoleOwnership;
+use App\Models\RoleForDoctors;
 use App\Models\UserOwnership;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
@@ -145,26 +146,15 @@ class DoctorUserController extends Controller
 
             $selectedRoleName = $request->input('role');
 
-            $role = Role::where('name', $selectedRoleName)
-                ->where('doctor_id', $doctor->id)
-                ->first();
-
-            // If the role doesn't exist, create a new one
-            if (!$role) {
-                $role = Role::create([
-                    'name' => $selectedRoleName,
-                    'guard_name' => 'web',
-                    'doctor_id' => $doctor->id,
-                ]);
-            }
+            $role = Role::where('name', $selectedRoleName)->first();
 
             // Assign the newly created role to the user
             $user->assignRole($role);
 
             // Insert into user_ownership table
-            UserOwnership::create([
+            DoctorAssociate::create([
                 'user_id' => $user->id,
-                'created_by' => $doctor->id,
+                'doctor_id' => $doctor->id,
             ]);
 
             ProfileManagement::create([
@@ -210,17 +200,18 @@ class DoctorUserController extends Controller
         $user = $this->userRepository->find($id);
 
         // Verify if the user is owned by the logged-in doctor
-        $ownership = \DB::table('user_ownership')
+        $UserOwnership = \DB::table('user_ownership')
             ->where('user_id', $id)
             ->where('created_by', $doctorId)
             ->exists();
 
-        if (!$ownership) {
+        if (!$UserOwnership) {
             abort(403, __('Non autorisé : Vous n\'êtes pas autorisé.'));
         }
 
         // Fetch roles
-        $roles = RoleOwnership::join('roles', 'roles.id', '=', 'role_ownership.role_id')
+        $roles = DB::table('role_for_doctors')
+            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id') // Join with the roles table
             ->pluck('roles.name', 'roles.name');
 
         $rolesSelected = $user->getRoleNames()->toArray();

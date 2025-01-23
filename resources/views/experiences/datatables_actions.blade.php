@@ -1,16 +1,22 @@
 <div class='btn-group btn-group-sm'>
-    @can('experiences.edit')
-        <a data-toggle="tooltip" data-placement="left" title="{{trans('lang.experience_edit')}}" href="{{ route('experiences.edit', $id) }}" class='btn btn-link'>
-            <i class="fas fa-edit"></i> </a>
-    @endcan
+    @php
+        $doctorId = auth()->user()->getDoctorId();
+    @endphp
 
-    @can('experiences.destroy')
-        {!! Form::open(['route' => ['experiences.destroy', $id], 'method' => 'delete']) !!}
+    @if(auth()->user()->hasPermissionInContext('experiences.edit', $doctorId))
+        <a data-toggle="tooltip" data-placement="left" title="{{trans('lang.experience_edit')}}"
+            href="{{ route('experiences.edit', $id) }}" class='btn btn-link'>
+            <i class="fas fa-edit"></i>
+        </a>
+    @endif
+
+    @if(auth()->user()->hasPermissionInContext('experiences.destroy', $doctorId))
+        {!! Form::open(['route' => ['experiences.destroy', $id], 'method' => 'delete', 'style' => 'display:inline']) !!}
         {!! Form::button('<i class="fas fa-trash"></i>', [
-        'type' => 'submit',
-        'class' => 'btn btn-link text-danger',
-        'onclick' => "return confirm('Are you sure?')"
+            'type' => 'submit',
+            'class' => 'btn btn-link text-danger',
+            'onclick' => "return confirm('Are you sure?')"
         ]) !!}
         {!! Form::close() !!}
-    @endcan
+    @endif
 </div>

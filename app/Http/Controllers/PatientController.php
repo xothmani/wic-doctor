@@ -69,53 +69,7 @@ class PatientController extends Controller
      */
     public function index(PatientDataTable $patientDataTable): mixed
     {
-        $user = auth()->user();
-        Log::info('User attempting to access patients.index', [
-            'user_id' => $user->id,
-            'role' => $user->getRoleNames(),
-        ]);
-
-        if ($user->hasRole('admin')) {
-            return $patientDataTable->render('patients.index');
-        }
-
-        if ($user->hasRole('doctor')) {
-            return $patientDataTable->render('patients.index');
-        }
-
-        if ($user->hasRole('Secretary')) {
-            $associatedDoctors = $user->associatedDoctors->pluck('doctor_id')->toArray();
-
-            if (empty($associatedDoctors)) {
-                abort(403, __('Vous n\'êtes associé à aucun médecin.'));
-            }
-
-            foreach ($associatedDoctors as $doctorId) {
-                if ($user->hasPermissionInContext('patients.index', $doctorId)) {
-                    return $patientDataTable->render('patients.index');
-                }
-            }
-
-            abort(403, __('Vous n\'avez pas la permission d\'accéder à cette page.'));
-        }
-
-        if ($user->hasRole('Telesecetary')) {
-            $associatedDoctors = $user->associatedDoctors->pluck('doctor_id')->toArray();
-
-            if (empty($associatedDoctors)) {
-                abort(403, __('Vous n\'êtes associé à aucun médecin.'));
-            }
-
-            foreach ($associatedDoctors as $doctorId) {
-                if ($user->hasPermissionInContext('patients.index', $doctorId)) {
-                    return $patientDataTable->render('patients.index');
-                }
-            }
-
-            abort(403, __('Vous n\'avez pas la permission d\'accéder à cette page.'));
-        }
-
-        abort(403, __('Vous n\'avez pas la permission d\'accéder à cette page.'));
+        return $patientDataTable->render('patients.index');
     }
 
     /**

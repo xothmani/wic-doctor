@@ -24,18 +24,12 @@ class AppointmentEventController extends Controller
         $availabilityDays = collect();
         $vacations = collect();
 
-        $userId = Auth::id();
-        Log::info("Retrieving doctor for user ID: {$userId}");
+        $doctorId = auth()->user()->getDoctorId(); // Retrieve doctor ID using user relationship
 
-        // Retrieve the doctor associated with the logged-in user
-        $doctor = Doctor::where('user_id', $userId)->first();
-
-        if (!$doctor) {
-            Log::warning("Doctor not found for user ID: {$userId}");
+        if (!$doctorId) {
+            Log::warning("Doctor ID not found for logged-in user.");
             return response()->json(['error' => 'Doctor not found for the logged-in user'], 404);
         }
-
-        $doctorId = $doctor->id;
 
         // Retrieve distinct availability days for the logged-in doctor
         $availabilityDays = DB::table('availability_hours')
@@ -137,11 +131,9 @@ class AppointmentEventController extends Controller
     public function saveAppointment(Request $request)
     {
         try {
-	Log::info('Incoming Request: aaaaaaaaaaaaaaaaaaaaaaaa', $request->all());
-            $userId = Auth::id();
-            $doctor = Doctor::where('user_id', $userId)->first();
-            //$availability_session_duration = AvailabilityHour::where('doctor_id', $doctor->id)->first();
-            if (!$doctor) {
+            $doctorId = auth()->user()->getDoctorId();
+
+            if (!$doctorId) {
                 return response()->json(['error' => 'Doctor not found'], 404);
             }
 
@@ -157,11 +149,11 @@ class AppointmentEventController extends Controller
                 'appointment_type' => 'required|in:cabinet,Téléconsultation',
             ]);
             Log::info('validate', $validatedData);
-            $availability_hours = AvailabilityHour::where('doctor_id', $doctor->id)
+            $availability_hours = AvailabilityHour::where('doctor_id', $doctorId)
                 ->where('day', $validatedData['day_of_week']) // Replace with your condition
                 ->first();
             $sessionDuration = $availability_hours ? $availability_hours->session_duration : null;
-		        Log::info("Session Duration: {$sessionDuration}");
+            Log::info("Session Duration: {$sessionDuration}");
 
             // Check if the appointment time contains a range
             if (str_contains($validatedData['appointment_time'], ' - ')) {
@@ -172,22 +164,22 @@ class AppointmentEventController extends Controller
                 $startTime = $validatedData['appointment_time'];
                 $endTime = Carbon::parse($startTime)->addMinutes($sessionDuration)->format('H:i');
             }
-	    Log::info("Parsed Times: Start Time - {$startTime}, End Time - {$endTime}");
+            Log::info("Parsed Times: Start Time - {$startTime}, End Time - {$endTime}");
             $motifId = $validatedData['patern_id'];
             $startAt = "{$validatedData['appointment_at']} $startTime:00";
             $endAt = "{$validatedData['appointment_at']} $endTime:00";
-	    Log::info("Start At: {$startAt}, End At: {$endAt}");
+            Log::info("Start At: {$startAt}, End At: {$endAt}");
             // Round times to match the availability format (ignoring seconds)
             $startAtFormatted = Carbon::parse($startAt)->format('Y-m-d H:i:00');
             $endAtFormatted = Carbon::parse($endAt)->format('Y-m-d H:i:00');
-	            Log::info("Formatted Times: Start At - {$startAtFormatted}, End At - {$endAtFormatted}");
+            Log::info("Formatted Times: Start At - {$startAtFormatted}, End At - {$endAtFormatted}");
             // Match availability_hours for the doctor and the selected time
             $availability = DB::table('availability_hours')
-                ->where('doctor_id', $doctor->id)
-                ->where('start_at', '<=', $startAtFormatted)
+                ->where('doctor_id', $doctorId)
+                ->where('start_at', '<=', value: $startAtFormatted)
                 ->where('end_at', '>=', $endAtFormatted)
                 ->first(['id', 'start_at', 'end_at', 'patern_id']);
-	        Log::info('Matched Availability:', $availability ? (array)$availability : ['message' => 'No matching availability found']);
+            Log::info('Matched Availability:', $availability ? (array) $availability : ['message' => 'No matching availability found']);
 
             Log::info("test1");
 
@@ -196,14 +188,14 @@ class AppointmentEventController extends Controller
             //Log::info("Availability Matched: {$availability->id}, Pattern ID: {$motifId}");
 
             $user_id = Patient::where('id', $validatedData['patient_id'])->value('user_id');
-	Log::info("test2");
-	Log::info("Patient's User ID: {$user_id}");
+            Log::info("test2");
+            Log::info("Patient's User ID: {$user_id}");
             $appointmentType = $validatedData['appointment_type']; // Either 'cabinet' or 'teleconsultation'
-		Log::info("Appointment Type: {$appointmentType}");
+            Log::info("Appointment Type: {$appointmentType}");
             // Create the appointment
             $appointment = Appointment::create([
                 'user_id' => $user_id,
-                'doctor_id' => $doctor->id,
+                'doctor_id' => $doctorId,
                 'appointment_at' => $validatedData['appointment_at'],
                 'start_at' => $startAtFormatted,
                 'ends_at' => $endAtFormatted,
@@ -639,23 +631,18 @@ class AppointmentEventController extends Controller
     }*/
     public function getAvailableTimeSlots(Request $request)
     {
-        $userId = Auth::id(); // Get the logged-in user's ID
-        $doctor = Doctor::where('user_id', $userId)->first();
-        $selectedDate = $request->input('date'); // Expected format: YYYY-MM-DD
+        $doctorId = auth()->user()->getDoctorId();
+        $selectedDate = $request->input('date');
 
-        \Log::info('getAvailableTimeSlots called', ['userId' => $userId, 'selectedDate' => $selectedDate]);
-
-        if (!$doctor || !$selectedDate) {
-            \Log::error('Doctor or date not found', ['doctor' => $doctor, 'selectedDate' => $selectedDate]);
+        if (!$doctorId || !$selectedDate) {
             return response()->json(['error' => 'Doctor or date not found'], 404);
         }
-
         // Get the day name for the selected date
         $dayName = Carbon::parse($selectedDate)->locale('fr')->dayName; // Example: "Lundi", "Mardi"
 
         // Fetch availability hours for the selected day and doctor
         $availability = DB::table('availability_hours')
-            ->where('doctor_id', $doctor->id)
+            ->where('doctor_id', $doctorId)
             ->where('day', $dayName)
             ->where('is_available', 1) // Ensure availability is enabled
             ->where('onligne', 0)
@@ -664,12 +651,12 @@ class AppointmentEventController extends Controller
         \Log::info('Availability fetched', ['availability' => $availability]);
 
         if (!$availability) {
-            \Log::warning('No availability found', ['doctor_id' => $doctor->id, 'dayName' => $dayName]);
+            \Log::warning('No availability found', ['doctor_id' => $doctorId, 'dayName' => $dayName]);
             return response()->json(['error' => 'No availability found for this date'], 404);
         }
 
         if (!$availability) {
-            \Log::warning('No availability found', ['doctor_id' => $doctor->id, 'dayName' => $dayName]);
+            \Log::warning('No availability found', ['doctor_id' => $doctorId, 'dayName' => $dayName]);
             return response()->json([
                 'vacation' => false,
                 'all_slots' => [],
@@ -699,7 +686,7 @@ class AppointmentEventController extends Controller
 
         // Exclude urgent hours
         $urgentHours = DB::table('doctor_urgency')
-            ->where('doctor_id', $doctor->id)
+            ->where('doctor_id', $doctorId)
             ->whereDate('jour', $selectedDate)
             ->get();
 
@@ -723,7 +710,7 @@ class AppointmentEventController extends Controller
         \Log::info('Filtered slots after urgency exclusion', ['filteredSlots' => $allSlots]);
 
         // Get taken slots for the selected date
-        $takenSlots = Appointment::where('doctor_id', $doctor->id)
+        $takenSlots = Appointment::where('doctor_id', $doctorId)
             ->whereDate('start_at', $selectedDate)
             ->where('appointment_status_id', '!=', 7) // Exclude failed appointments
             ->pluck(DB::raw("DATE_FORMAT(start_at, '%H:%i')"))
@@ -733,7 +720,7 @@ class AppointmentEventController extends Controller
 
         // Check for vacations
         $vacations = DB::table('vacance')
-            ->where('doctor_id', $doctor->id)
+            ->where('doctor_id', $doctorId)
             ->whereDate('dateDebut', '<=', $selectedDate)
             ->whereDate('dateFin', '>=', $selectedDate)
             ->exists();
@@ -761,20 +748,21 @@ class AppointmentEventController extends Controller
 
     public function getTeleconsultationTimeSlots(Request $request)
     {
-        $userId = Auth::id(); // Get the logged-in user's ID
-        $doctor = Doctor::where('user_id', $userId)->first();
-        $selectedDate = $request->input('date'); // Expected format: YYYY-MM-DD
+        $doctorId = auth()->user()->getDoctorId();
+        $selectedDate = $request->input('date');
 
-        if (!$doctor || !$selectedDate) {
+        if (!$doctorId || !$selectedDate) {
             return response()->json(['error' => 'Doctor or date not found'], 404);
         }
+        $selectedDate = $request->input('date'); // Expected format: YYYY-MM-DD
+
 
         // Get the day name for the selected date
         $dayName = Carbon::parse($selectedDate)->locale('fr')->dayName; // Example: "Lundi", "Mardi"
 
         // Fetch teleconsultation availability hours for the selected day and doctor
         $teleAvailability = DB::table('availability_hours')
-            ->where('doctor_id', $doctor->id)
+            ->where('doctor_id', $doctorId)
             ->where('day', $dayName)
             ->where('is_available', 1) // Ensure availability is enabled
             ->where('onligne', 1) // Fetch only teleconsultation slots
@@ -808,7 +796,7 @@ class AppointmentEventController extends Controller
         }
 
         // Get taken teleconsultation slots for the selected date
-        $takenTeleSlots = Appointment::where('doctor_id', $doctor->id)
+        $takenTeleSlots = Appointment::where('doctor_id', $doctorId)
             ->whereDate('start_at', $selectedDate)
             ->where('online', 'Téléconsultation') // Ensure to filter by teleconsultation type
             ->pluck(DB::raw("DATE_FORMAT(start_at, '%H:%i')"))
@@ -828,8 +816,12 @@ class AppointmentEventController extends Controller
     public function getPatients(Request $request)
     {
         if ($request->ajax()) {
-            $userId = Auth::id();
-            $doctor = Doctor::where('user_id', $userId)->first();
+            $doctorId = auth()->user()->getDoctorId();
+
+            if (!$doctorId) {
+                return response()->json(['error' => 'Doctor not found'], 404);
+            }
+            $doctor = Doctor::where('id', $doctorId)->first();
 
             if (!$doctor) {
                 return response()->json(['error' => 'Doctor not found'], 404);
@@ -899,7 +891,7 @@ class AppointmentEventController extends Controller
     }
     ///////////////////
 
-    public function getVisitsCountByDate(Request $request)
+    /*public function getVisitsCountByDate(Request $request)
     {
         $userId = Auth::id(); // Get the logged-in user's ID
         $doctor = Doctor::where('user_id', $userId)->first();
@@ -917,7 +909,7 @@ class AppointmentEventController extends Controller
             ->pluck('count', 'date'); // Format: ['2024-11-29' => 5, '2024-11-30' => 3]
 
         return response()->json($visitsCount);
-    }
+    }*/
 
 
 
