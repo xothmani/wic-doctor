@@ -183,6 +183,9 @@
                                         @endforeach
 
                                     </select>
+                                    <a href="{{ route('patterns.create') }}" class="btn btn-success d-flex " id="addNewPatient">
+                                        <i class="fa fa-plus"></i>
+                                    </a>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -361,10 +364,10 @@
                 if (response.vacation) {
                     //console.log("Doctor is on vacation. No slots to display.");
                     const vacationMessage = `
-                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                    Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                            `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    `;
                     timeSlotsWrapper.append(vacationMessage);
 
                     // Show a confirmation dialog to the user
@@ -473,10 +476,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                        Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                `);
             }
             //////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
@@ -618,6 +621,7 @@
                     });
                 },
                 eventRender: function (event, element) {
+
                     // Adding title attribute for simple tooltip
                     let icon;
 
@@ -641,6 +645,8 @@
                     }
                     element.find('.fc-title').prepend(icon);
                     element.attr('title', event.description);
+                    element.find('.fc-title').css('white-space', 'nowrap');
+                    element.find('.fc-time').css('font-size', '1em');
 
                 },
                 selectable: true,

@@ -108,14 +108,17 @@ class DoctorUserController extends Controller
 
     public function store(Request $request)
     {
+        // Validate the request data
         $request->validate([
-            'role' => 'required|string',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
-            'is_active' => 'nullable|boolean',
-            'email' => 'required|email|unique:users,email',
+            'name' => 'required|string|max:255', // Ensure name is required
+            'email' => 'required|email|unique:users,email', // Ensure email is unique
+            'password' => 'required|string', // Ensure password is required and strong
+            'phone_number' => 'nullable|string|max:20', // Optional phone number
+            'role' => 'required|string|exists:roles,name', // Ensure role exists in the roles table
+            'start_date' => 'required|date', // Optional start date
+            'end_date' => 'required|date|after_or_equal:start_date', // Ensure end_date is after start_date
+            'is_active' => 'nullable|boolean', // Optional boolean field
         ]);
-
 
         // Check if start_date is before the current date
         if ($request->start_date && $request->start_date < now()->toDateString()) {
@@ -129,26 +132,36 @@ class DoctorUserController extends Controller
             return redirect()->back()->withInput();
         }
 
+        // Get the authenticated user's ID
         $userId = Auth::id();
+
+        // Find the doctor associated with the authenticated user
         $doctor = Doctor::where('user_id', $userId)->first();
 
+        // If no doctor is found, abort with a 403 error
         if (!$doctor) {
             abort(403, __('Unauthorized: You are not associated with any doctor.'));
         }
 
+        // Prepare the input data
         $input = $request->all();
-        $input['password'] = Hash::make($request->password);
-        $input['api_token'] = Str::random(60);
+        $input['password'] = Hash::make($request->password); // Hash the password
+        $input['api_token'] = Str::random(60); // Generate an API token
 
         try {
             // Create the user
             $user = $this->userRepository->create($input);
 
+            // Find the selected role
             $selectedRoleName = $request->input('role');
-
             $role = Role::where('name', $selectedRoleName)->first();
 
-            // Assign the newly created role to the user
+            // If the role doesn't exist, throw an error
+            if (!$role) {
+                throw new \Exception(__('Selected role does not exist.'));
+            }
+
+            // Assign the role to the user
             $user->assignRole($role);
 
             // Insert into user_ownership table
@@ -157,6 +170,7 @@ class DoctorUserController extends Controller
                 'doctor_id' => $doctor->id,
             ]);
 
+            // Insert into profile_management table
             ProfileManagement::create([
                 'user_id' => $user->id,
                 'doctor_id' => $doctor->id,
@@ -165,12 +179,15 @@ class DoctorUserController extends Controller
                 'is_active' => $request->has('is_active') ? $request->is_active : 0,
             ]);
 
+            // Flash success message
             Flash::success(__('Utilisateur créé avec succès.'));
         } catch (\Exception $e) {
+            // Flash error message and redirect back with input
             Flash::error(__('Erreur lors de la création de l\'utilisateur : ') . $e->getMessage());
-            return redirect()->route('Doctors_users.index')->with('error', __('Erreur lors de la création de l\'utilisateur.'));
+            return redirect()->back()->withInput();
         }
 
+        // Redirect to the index page
         return redirect()->route('Doctors_users.index');
     }
 

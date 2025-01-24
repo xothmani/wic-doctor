@@ -38,6 +38,8 @@ use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SpecialityController;
 use App\Http\Controllers\DoctorTelesecretariatController;
+use App\Http\Controllers\DoctorPermissionController;
+
 
 
 Route::get('/payment-success', function () {
@@ -54,6 +56,11 @@ Route::prefix('profile_management')->group(function () {
     Route::resource('Doctors_users', DoctorUserController::class)->parameters([
         'Doctors_users' => 'user', // Alias Doctors_user to user
     ]);
+    Route::post('Doctors_permissions/update', [DoctorPermissionController::class, 'update'])
+        ->name('Doctors_permissions.update');
+    Route::post('Doctors_permissions/fetchUserRoles', [DoctorPermissionController::class, 'fetchUserRoles'])
+        ->name('Doctors_permissions.fetchUserRoles');
+
     Route::post('Doctors_permissions/storePermissions', [DoctorPermissionController::class, 'storePermissions'])->name('Doctors_permissions.storePermissions');
     Route::post('telesecretary_management/store_telesecretary', [DoctorUserController::class, 'store_telesecretary'])->name('telesecretary_management.store_telesecretary');
 

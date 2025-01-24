@@ -69,12 +69,12 @@ class DoctorUserDataTable extends DataTable
         $doctorId = $doctor->id;
 
         return $model->newQuery()
-            ->join('user_ownership', 'users.id', '=', 'user_ownership.user_id')
+            ->join('doctor_associate', 'users.id', '=', 'doctor_associate.user_id')
             ->leftJoin('profile_management', function ($join) use ($doctorId) {
                 $join->on('users.id', '=', 'profile_management.user_id')
                     ->where('profile_management.doctor_id', '=', $doctorId);
             })
-            ->where('user_ownership.created_by', $doctorId)
+            ->where('doctor_associate.doctor_id', $doctorId)
             ->select('users.*', 'profile_management.is_active', 'profile_management.start_date', 'profile_management.end_date');
     }
 

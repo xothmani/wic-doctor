@@ -3,189 +3,124 @@
 namespace App\Http\Controllers;
 
 use App\Models\Doctor;
+use App\Models\DoctorAssociate;
 use Spatie\Permission\Models\Permission;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
-
-
 class DoctorPermissionController extends Controller
 {
-    /**
-     * Display the permissions management interface for doctor-associated users.
-     *
-     * @return \Illuminate\View\View
-     */
     public function index()
     {
-        // Get the currently authenticated user's ID
         $loggedInUserId = auth()->id();
 
-        // Fetch the doctor record associated with the logged-in user
         $doctor = Doctor::where('user_id', $loggedInUserId)->first();
 
         if (!$doctor) {
             abort(403, __('Unauthorized: You are not associated with any doctor.'));
         }
 
-        // Fetch the 'doctor' role
-        $doctorRole = Role::where('name', 'doctor')->first();
+        $associatedUsers = DoctorAssociate::where('doctor_id', $doctor->id)
+            ->with('user.roles.permissions')
+            ->get();
 
-        if (!$doctorRole) {
-            abort(403, __('Unauthorized: No doctor role found.'));
-        }
 
-        // Fetch the permissions assigned to the 'doctor' role
-        $doctorPermissions = $doctorRole->permissions;
-
-        // Fetch all role-profile-permission entries for the current doctor
-        $roleProfilePermissions = DB::table('role_profile_permission')
-            ->where('doctor_id', $doctor->id)
-            ->get()
-            ->keyBy('permission_id'); // Index by permission_id for quick lookup
-
-        // Fetch the 'secretary' role
-        $secretaryRole = Role::where('name', 'secretary')->first();
-
+        $permissions = Permission::paginate(5);
         return view('profile_management.permissions.index', [
-            'roles' => [$secretaryRole],
-            'profilePermissions' => $doctorPermissions,
-            'roleProfilePermissions' => $roleProfilePermissions,
+            'associatedUsers' => $associatedUsers,
+            'permissions' => $permissions,
+            'doctorId' => $doctor->id,
         ]);
     }
-
-
-
-
-
-
-
-
-
-    /**
-     * Update the permissions for a specific user.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param int $userId
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, $roleId)
+    public function fetchUserRoles(Request $request)
     {
-        // Validate the request
-        $request->validate([
-            'permissions' => 'array',
-            'permissions.*' => 'exists:permissions,id',
-        ]);
+        $userId = $request->input('user_id');
+        $doctorId = $request->input('doctor_id');
 
-        // Validate the role
-        $role = Role::findOrFail($roleId);
+        // Fetch the user and their roles
+        $user = DoctorAssociate::where('user_id', $userId)
+            ->with('user.roles.permissions')
+            ->first();
 
-        // Sync the permissions for the role
-        $permissions = $request->input('permissions', []);
-        $role->syncPermissions($permissions);
-
-        app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-
-        return redirect()->back()->with('success', __('Permissions updated successfully.'));
-    }
-
-    public function store(Request $request)
-    {
-        // Log the request data for debugging
-        \Log::info('Request Data:', $request->all());
-
-        // Get the currently authenticated user's ID
-        $loggedInUserId = auth()->id();
-
-        // Fetch the doctor record associated with the logged-in user
-        $doctor = Doctor::where('user_id', $loggedInUserId)->first();
-
-        if (!$doctor) {
-            abort(403, __('Unauthorized: You are not associated with any doctor.'));
+        if (!$user) {
+            return response()->json(['error' => 'User not found.'], 404);
         }
 
-        // Validate the request
-        $roleId = $request->input('role_id'); // Role being updated
-        $submittedPermissions = $request->input('permissions', []); // Permissions from the form (checked)
-        $doctorId = $doctor->id;
-
-        // Fetch the role
-        $role = Role::findOrFail($roleId);
-
-        // Fetch all existing permissions related to the role and doctor_id
+        // Fetch existing permissions for the user in role_profile_permission
         $existingPermissions = DB::table('role_profile_permission')
-            ->where('role_id', $roleId)
-            ->when($doctorId, function ($query) use ($doctorId) {
-                $query->where('doctor_id', $doctorId);
-            })
+            ->where('user_id', $userId)
+            ->where('doctor_id', $doctorId)
             ->pluck('permission_id')
             ->toArray();
 
-        // Determine which permissions to add and which to remove
-        $permissionsToAdd = array_diff($submittedPermissions, $existingPermissions); // New permissions
-        $permissionsToRemove = array_diff($existingPermissions, $submittedPermissions); // Unchecked permissions
-
-        // Add new permissions to the role_profile_permission table
-        foreach ($permissionsToAdd as $permissionId) {
-            DB::table('role_profile_permission')->insert([
-                'role_id' => $roleId,
-                'permission_id' => $permissionId,
-                'doctor_id' => $doctorId, // Optional: associate with the doctor
-                'readable_name' => 'Permission for role ' . $role->name, // Optional readable name
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
-        // Remove unchecked permissions from the role_profile_permission table
-        DB::table('role_profile_permission')
-            ->where('role_id', $roleId)
-            ->when($doctorId, function ($query) use ($doctorId) {
-                $query->where('doctor_id', $doctorId);
-            })
-            ->whereIn('permission_id', $permissionsToRemove)
-            ->delete();
-
-        // Update the role's permissions in the `role_has_permissions` table
-        //$permissions = Permission::whereIn('id', $submittedPermissions)->get();
-        //$role->syncPermissions($permissions);
-
-        // Forget cached permissions to reflect changes
-        //app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-
-        // Redirect back with a success message
-        return redirect()->back()->with('success', __('Permissions updated successfully.'));
+        return response()->json([
+            'roles' => $user->user->roles,
+            'permissions' => $user->user->roles->flatMap->permissions->unique('id'),
+            'existingPermissions' => $existingPermissions,
+        ]);
     }
 
 
 
-
-
-
-
-    public function storePermissions(Request $request)
+    public function update(Request $request)
     {
-        // Fetch the selected permissions from the request
-        $selectedPermissions = $request->input('permissions', []);
+        // Log the incoming request data
+        \Log::info('Update Permission Request Data:', $request->all());
 
-        // Insert selected permissions into the profile_permission table
-        foreach ($selectedPermissions as $permissionId) {
-            $permission = Permission::find($permissionId);
+        // Validate the request data
+        $validated = $request->validate([
+            'permission_id' => 'required|exists:permissions,id',
+            'user_id' => 'required|exists:users,id',
+            'doctor_id' => 'required|exists:doctors,id',
+            'is_checked' => 'required|boolean',
+        ]);
 
-            if ($permission) {
+        $doctorId = $validated['doctor_id'];
+        $userId = $validated['user_id'];
+        $permissionId = $validated['permission_id'];
+        $isChecked = $validated['is_checked'];
+
+        try {
+            if ($isChecked) {
+                // Insert the permission if checked
+                \Log::info("Inserting permission ID: $permissionId for user ID: $userId and doctor ID: $doctorId");
+
                 DB::table('role_profile_permission')->insertOrIgnore([
+                    'role_id' => Role::where('name', 'doctor')->first()->id, // Replace 'doctor' if necessary
                     'permission_id' => $permissionId,
-                    'readable_name' => ucfirst(str_replace('.', ' ', $permission->name)), // Convert "availabilityHours.index" to "Availability Hours Index"
+                    'doctor_id' => $doctorId,
+                    'user_id' => $userId,
+                    'readable_name' => Permission::find($permissionId)->name,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                \Log::info("Permission successfully inserted.");
+            } else {
+                // Remove the permission if unchecked
+                \Log::info("Deleting permission ID: $permissionId for user ID: $userId and doctor ID: $doctorId");
+
+                DB::table('role_profile_permission')
+                    ->where('role_id', Role::where('name', 'doctor')->first()->id)
+                    ->where('permission_id', $permissionId)
+                    ->where('doctor_id', $doctorId)
+                    ->where('user_id', $userId)
+                    ->delete();
+
+                \Log::info("Permission successfully deleted.");
             }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            // Log the exception message
+            \Log::error('Error updating permission:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(['success' => false, 'error' => 'An error occurred while updating permissions.'], 500);
         }
-
-        return redirect()->back()->with('success', __('Permissions saved successfully.'));
     }
-
 
 }

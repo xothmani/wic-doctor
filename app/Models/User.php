@@ -215,6 +215,7 @@ class User extends Authenticatable implements HasMedia
         return $this->hasMany(DoctorAssociate::class, 'user_id');
     }
 
+
     public function hasPermissionInContext(string $permissionName, ?int $doctorId = null): bool
     {
         // Log the start of the method
@@ -268,7 +269,8 @@ class User extends Authenticatable implements HasMedia
             } else {
                 \Log::info('No doctor filter applied for secretary role');
             }
-
+            $query->where('role_profile_permission.user_id', $this->id);
+            \Log::info('Applying user filter for secretary role', ['user_id' => $this->id]);
             // Check if the record exists
             $exists = $query->exists();
 
