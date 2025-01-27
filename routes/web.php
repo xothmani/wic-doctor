@@ -333,7 +333,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::resource('pharmacies', PharmacyController::class);
     Route::resource('pharmacyTypes', PharmacyTypeController::class);
     Route::get('paypal', [PayPalController::class, 'index'])->name('paypal');
-    Route::get('appointment-event', [AppointmentEventController::class, 'index'])->name('appointment-event.index');
+    Route::get('appointment-event', [AppointmentEventController::class, 'index'])->name('appointment-events.index');
     Route::post('appointment-event/action', [AppointmentEventController::class, 'action']);
     Route::get('/appointment-event/search', [AppointmentEventController::class, 'getPatients'])->name('patients.search');
     Route::post('/appointment-event/store', [AppointmentEventController::class, 'saveAppointment'])->name('appointments.store');
@@ -387,7 +387,14 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/seo', [SeoController::class, 'index'])->name('seo.index');
 
 
+    Route::resource('telesecretariats', TelesecretariatController::class);
+    Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);
+
+    Route::get('telesecretariats/relation', [TelesecretariatController::class, 'relation'])->name('telesecretariats.relation');
+
     Route::get('/specialitiesByPays', [SpecialityController::class, 'getSpecialitiesByCountry']);
+
+    Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);
 
 
     Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);

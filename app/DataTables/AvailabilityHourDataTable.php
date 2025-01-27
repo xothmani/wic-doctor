@@ -67,11 +67,11 @@ class AvailabilityHourDataTable extends DataTable
     protected function getColumns(): array
     {
         $columns = [
-	        /*    [
-                'data' => 'day',
-                'title' => trans('lang.availability_hour_day'),
+            /*    [
+                   'data' => 'day',
+                   'title' => trans('lang.availability_hour_day'),
 
-            ],*/
+               ],*/
             [
                 'data' => 'start_at',
                 'title' => trans('lang.availability_hour_start_at'),
@@ -104,12 +104,14 @@ class AvailabilityHourDataTable extends DataTable
         if ($hasCustomField) {
             $customFieldsCollection = CustomField::where('custom_field_model', AvailabilityHour::class)->where('in_table', '=', true)->get();
             foreach ($customFieldsCollection as $key => $field) {
-                array_splice($columns, $field->order - 1, 0, [[
-                    'data' => 'custom_fields.' . $field->name . '.view',
-                    'title' => trans('lang.availability_hour_' . $field->name),
-                    'orderable' => false,
-                    'searchable' => false,
-                ]]);
+                array_splice($columns, $field->order - 1, 0, [
+                    [
+                        'data' => 'custom_fields.' . $field->name . '.view',
+                        'title' => trans('lang.availability_hour_' . $field->name),
+                        'orderable' => false,
+                        'searchable' => false,
+                    ]
+                ]);
             }
         }
         return $columns;
@@ -122,28 +124,28 @@ class AvailabilityHourDataTable extends DataTable
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function query(AvailabilityHour $model): \Illuminate\Database\Eloquent\Builder
-{
-    if (auth()->user()->hasRole('clinic_owner')) {
-        return $model->newQuery()
-            ->with(['doctor', 'pattern']) // Include both doctor and pattern relationships
-            ->join("doctors", "doctors.id", "=", "availability_hours.doctor_id")
-            ->join("clinic_users", "clinic_users.clinic_id", "=", "doctors.clinic_id")
-            ->where('clinic_users.user_id', auth()->id())
-            ->groupBy('availability_hours.id')
-            ->select('availability_hours.*');
-    } elseif (auth()->user()->hasRole('doctor')) {
-        return $model->newQuery()
-            ->with(['doctor', 'pattern']) // Include both doctor and pattern relationships
-            ->join('doctors', 'doctors.id', '=', 'availability_hours.doctor_id')
-            ->where('doctors.user_id', auth()->id())
-            ->groupBy('availability_hours.id')
-            ->select('availability_hours.*');
-    } else {
-        return $model->newQuery()
-            ->with(['doctor', 'pattern']) // Include both doctor and pattern relationships
-            ->select("$model->table.*");
+    {
+        if (auth()->user()->hasRole('clinic_owner')) {
+            return $model->newQuery()
+                ->with(['doctor', 'pattern']) // Include both doctor and pattern relationships
+                ->join("doctors", "doctors.id", "=", "availability_hours.doctor_id")
+                ->join("clinic_users", "clinic_users.clinic_id", "=", "doctors.clinic_id")
+                ->where('clinic_users.user_id', auth()->id())
+                ->groupBy('availability_hours.id')
+                ->select('availability_hours.*');
+        } elseif (auth()->user()->hasRole('doctor')) {
+            return $model->newQuery()
+                ->with(['doctor', 'pattern']) // Include both doctor and pattern relationships
+                ->join('doctors', 'doctors.id', '=', 'availability_hours.doctor_id')
+                ->where('doctors.user_id', auth()->id())
+                ->groupBy('availability_hours.id')
+                ->select('availability_hours.*');
+        } else {
+            return $model->newQuery()
+                ->with(['doctor', 'pattern']) // Include both doctor and pattern relationships
+                ->select("$model->table.*");
+        }
     }
-}
     /**
      * Optional method if you want to use html builder.
      *
@@ -156,10 +158,14 @@ class AvailabilityHourDataTable extends DataTable
             ->minifiedAjax()
             ->addAction(['width' => '80px', 'printable' => false, 'responsivePriority' => '100'])
             ->parameters(array_merge(
-                config('datatables-buttons.parameters'), [
+                config('datatables-buttons.parameters'),
+                [
                     'language' => json_decode(
-                        file_get_contents(base_path('resources/lang/' . app()->getLocale() . '/datatable.json')
-                        ), true)
+                        file_get_contents(
+                            base_path('resources/lang/' . app()->getLocale() . '/datatable.json')
+                        ),
+                        true
+                    )
                 ]
             ));
     }

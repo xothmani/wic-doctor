@@ -61,24 +61,34 @@
 
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('telesecretariats.index')): ?>
     <li class="nav-item">
-        <a class="nav-link <?php echo e(Request::is('telesecretariats*') ? 'active' : ''); ?>"
-            href="<?php echo route('telesecretariats.index'); ?>">
-            <?php if($icons): ?>
-                <i class="nav-icon fas fa-headset"></i> 
-            <?php endif; ?>
+        <a class="nav-link <?php echo e(Request::is('telesecretariats') ? 'active' : ''); ?>" href="<?php echo route('telesecretariats.index'); ?>">
+        <?php if($icons): ?>
+    <i class="nav-icon fas fa-headset"></i> 
+<?php endif; ?>
+
             <p><?php echo e(trans('lang.telesecretariat_plural')); ?></p>
+        </a>
+    </li>
+<?php endif; ?>
+
+<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('doctor_telesecretariat.index')): ?>
+    <li class="nav-item">
+        <a class="nav-link <?php echo e(Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : ''); ?>" href="<?php echo route('doctor_telesecretariat.index'); ?>">
+        <?php if($icons): ?>
+            <i class="nav-icon fas fa-calendar-check"></i> 
+        <?php endif; ?>
+            <p><?php echo e(trans('lang.agenda_des_medecins')); ?></p>
         </a>
     </li>
 <?php endif; ?>
 
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('doctor_telesecretariat.create')): ?>
     <li class="nav-item">
-        <a class="nav-link <?php echo e(Request::is('doctor_telesecretariat*') ? 'active' : ''); ?>"
-            href="<?php echo route('doctor_telesecretariat.create'); ?>">
-            <?php if($icons): ?>
-                <i class="nav-icon fas fa-headset"></i> 
-            <?php endif; ?>
-            <p><?php echo e(trans('lang.doctor_telesecretariat')); ?></p>
+        <a class="nav-link <?php echo e(Request::is('doctor_telesecretariat/create') ? 'active' : ''); ?>" href="<?php echo route('doctor_telesecretariat.create'); ?>">
+        <?php if($icons): ?>
+            <i class="nav-icon fas fa-headset"></i> 
+        <?php endif; ?>
+            <p><?php echo e(trans('lang.doctor_telesecretariat')); ?></p> 
         </a>
     </li>
 <?php endif; ?>
@@ -186,7 +196,7 @@
             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('appointment-events.index')): ?>
                 <li class="nav-item">
                     <a class="nav-link <?php echo e(Request::is('appointment-event*') ? 'active' : ''); ?>"
-                        href="<?php echo route('appointment-event.index'); ?>">
+                        href="<?php echo route('appointment-events.index'); ?>">
                         <?php if($icons): ?>
                             <i class="nav-icon fas fa-calendar-alt"></i>
                         <?php endif; ?>

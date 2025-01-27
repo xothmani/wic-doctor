@@ -38,7 +38,7 @@ class AppointmentEventController extends Controller
             ->distinct()
             ->pluck('day'); // Get distinct day names (e.g., Lundi, Mardi)
 
-        Log::info("Availability days retrieved", ['availability_days' => $availabilityDays->toArray()]);
+        //Log::info("Availability days retrieved", ['availability_days' => $availabilityDays->toArray()]);
 
         // Retrieve vacation data for the doctor
         $vacations = DB::table('vacance')
@@ -46,7 +46,7 @@ class AppointmentEventController extends Controller
             ->select('dateDebut', 'dateFin')
             ->get();
 
-        Log::info("Vacations retrieved", ['vacations' => $vacations]);
+        //Log::info("Vacations retrieved", ['vacations' => $vacations]);
 
         if ($request->ajax()) {
             $start = $request->start ?? '2024-01-01 00:00:00';
@@ -80,7 +80,7 @@ class AppointmentEventController extends Controller
                 ->join('pattern as pattern', 'appointments.motif_id', '=', 'pattern.id')
                 ->get();
 
-            Log::info("Appointments retrieved for Doctor ID {$doctorId}", ['appointments_count' => $data->count()]);
+            //Log::info("Appointments retrieved for Doctor ID {$doctorId}", ['appointments_count' => $data->count()]);
 
             return response()->json($data->map(function ($appointment) {
                 $decodedFirstName = json_decode($appointment->patient_first_name, true);
@@ -118,7 +118,7 @@ class AppointmentEventController extends Controller
             $query->where('doctor_id', $doctorId);
         })->select('id', 'first_name', 'last_name', 'phone_number')->get();
 
-        Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
+        //Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
 
         // Pass availabilityDays and vacations to the view
         return view('appointment_events.appointmentEvent', compact('patients', 'availabilityDays', 'patterns', 'vacations'));

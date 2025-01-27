@@ -11,7 +11,7 @@ use Spatie\Permission\Models\Role;
 
 class DoctorPermissionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $loggedInUserId = auth()->id();
 
@@ -25,14 +25,25 @@ class DoctorPermissionController extends Controller
             ->with('user.roles.permissions')
             ->get();
 
+        $selectedUserId = $request->input('selected_user', null);
 
-        $permissions = Permission::paginate(5);
+        // Fetch all permissions with readable names
+        $permissions = DB::table('permissions')
+            ->leftJoin('readable_permissions', 'permissions.id', '=', 'readable_permissions.permission_id')
+            ->select(
+                'permissions.id as permission_id',
+                DB::raw('COALESCE(readable_permissions.readable_name, permissions.name) as display_name')
+            )
+            ->get();
+
         return view('profile_management.permissions.index', [
             'associatedUsers' => $associatedUsers,
             'permissions' => $permissions,
             'doctorId' => $doctor->id,
+            'selectedUserId' => $selectedUserId,
         ]);
     }
+
     public function fetchUserRoles(Request $request)
     {
         $userId = $request->input('user_id');
@@ -54,12 +65,37 @@ class DoctorPermissionController extends Controller
             ->pluck('permission_id')
             ->toArray();
 
+        // Fetch the current locale
+        $locale = app()->getLocale();
+
+        // Fetch all permissions with readable names
+        $permissions = DB::table('permissions')
+            ->leftJoin('readable_permissions', 'permissions.id', '=', 'readable_permissions.permission_id')
+            ->select(
+                'permissions.id as permission_id',
+                DB::raw('COALESCE(readable_permissions.readable_name, permissions.name) as display_name')
+            )
+            ->get()
+            ->map(function ($permission) use ($existingPermissions, $locale) {
+                // Decode the readable name by parsing the JSON or fallback to permission name
+                $decodedName = json_decode($permission->display_name, true);
+                $localizedName = $decodedName[$locale] ?? $decodedName['fr'] ?? $permission->display_name;
+
+                return [
+                    'id' => $permission->permission_id,
+                    'name' => $localizedName,
+                    'has_permission' => in_array($permission->permission_id, $existingPermissions),
+                ];
+            });
+
         return response()->json([
             'roles' => $user->user->roles,
-            'permissions' => $user->user->roles->flatMap->permissions->unique('id'),
-            'existingPermissions' => $existingPermissions,
+            'permissions' => $permissions,
+            'existingPermissions' => $existingPermissions, // Optional, but kept for backward compatibility
         ]);
     }
+
+
 
 
 
@@ -80,14 +116,22 @@ class DoctorPermissionController extends Controller
         $userId = $validated['user_id'];
         $permissionId = $validated['permission_id'];
         $isChecked = $validated['is_checked'];
-
         try {
+            $role = DB::table('model_has_roles')
+                ->where('model_id', $userId)
+                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+                ->select('roles.*')
+                ->first();
+
+            if (!$role) {
+                return response()->json(['success' => false, 'error' => 'Role not found for the selected user.'], 404);
+            }
             if ($isChecked) {
                 // Insert the permission if checked
                 \Log::info("Inserting permission ID: $permissionId for user ID: $userId and doctor ID: $doctorId");
 
                 DB::table('role_profile_permission')->insertOrIgnore([
-                    'role_id' => Role::where('name', 'doctor')->first()->id, // Replace 'doctor' if necessary
+                    'role_id' => $role->id,
                     'permission_id' => $permissionId,
                     'doctor_id' => $doctorId,
                     'user_id' => $userId,

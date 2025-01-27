@@ -63,24 +63,34 @@
 
 @can('telesecretariats.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('telesecretariats*') ? 'active' : '' }}"
-            href="{!! route('telesecretariats.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
-            @endif
+        <a class="nav-link {{ Request::is('telesecretariats') ? 'active' : '' }}" href="{!! route('telesecretariats.index') !!}">
+        @if($icons)
+    <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
+@endif
+
             <p>{{ trans('lang.telesecretariat_plural') }}</p>
+        </a>
+    </li>
+@endcan
+
+@can('doctor_telesecretariat.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : '' }}" href="{!! route('doctor_telesecretariat.index') !!}">
+        @if($icons)
+            <i class="nav-icon fas fa-calendar-check"></i> {{-- Icône représentant un agenda avec un médecin --}}
+        @endif
+            <p>{{ trans('lang.agenda_des_medecins') }}</p>
         </a>
     </li>
 @endcan
 
 @can('doctor_telesecretariat.create')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor_telesecretariat*') ? 'active' : '' }}"
-            href="{!! route('doctor_telesecretariat.create') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
-            @endif
-            <p>{{ trans('lang.doctor_telesecretariat') }}</p>
+        <a class="nav-link {{ Request::is('doctor_telesecretariat/create') ? 'active' : '' }}" href="{!! route('doctor_telesecretariat.create') !!}">
+        @if($icons)
+            <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
+        @endif
+            <p>{{ trans('lang.doctor_telesecretariat') }}</p> 
         </a>
     </li>
 @endcan
@@ -188,7 +198,7 @@
             @can('appointment-events.index')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('appointment-event*') ? 'active' : '' }}"
-                        href="{!! route('appointment-event.index') !!}">
+                        href="{!! route('appointment-events.index') !!}">
                         @if($icons)
                             <i class="nav-icon fas fa-calendar-alt"></i>
                         @endif

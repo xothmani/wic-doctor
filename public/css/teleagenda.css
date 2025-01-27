@@ -1,0 +1,241 @@
+/* Custom styles for appointment form */
+
+#time-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+#saveAppointmentRef{
+    padding: 10px;
+    background-color: #e0f7ff;
+    border: 1px solid #007bff;
+    color: #007bff;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+.time-slot {
+    padding: 10px;
+    background-color: #e0f7ff;
+    border: 1px solid #007bff;
+    color: #007bff;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.time-slot:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.time-slot.selected {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+.time-slot.taken-slot {
+    background-color: #f5f5f5; /* Light gray to indicate taken */
+    color: #ccc; /* Gray text */
+    cursor: pointer; /* Enable pointer cursor */
+    pointer-events: auto; /* Enable clicking */
+}
+.fc-disabled-date {
+    background-color: #e9ecef;
+    color: #6c757d;
+}
+/* Common style for availability text */
+.availability-text {
+    position: absolute;
+    top: 5px; /* Adjust distance from the top */
+    left: 5px; /* Adjust distance from the left */
+    font-size: 10px; /* Adjust size as needed */
+    font-weight: bold;
+    padding: 2px 4px; /* Padding around the text */
+    border-radius: 3px; /* Rounded corners */
+}
+
+/* Style for available dates */
+.availability-text.available {
+    color: #7DC2A5; /* Green for available */
+    background-color: rgba(255, 255, 255, 0.7); /* Optional: Add background */
+}
+
+/* Style for unavailable dates */
+.availability-text.unavailable {
+    color: #F0604D; /* Red for unavailable */
+    background-color: rgba(255, 255, 255, 0.7); /* Optional: Add background */
+}
+/* Style for event bars */
+.event-bar {
+    width: 5px;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+/* Style for event blocks */
+.fc-event {
+    font-size: 0.8em; /* Smaller font size */
+        padding: 2px 4px; /* Reduced padding */
+        margin: 1px; /* Reduced margin */
+        white-space: nowrap; /* Prevent text from wrapping */
+        overflow: hidden; /* Hide overflow */
+        text-overflow: ellipsis; /* Add ellipsis for overflow text */
+        border-radius: 3px; /* Optional: Adjust border radius */
+}
+
+
+/* Modal header and footer */
+.modal-header, .modal-footer {
+    border-bottom: 1px solid #e3e3e3;
+    border-top: 1px solid #e3e3e3;
+}
+
+/* Input fields */
+.modal-body .form-control {
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Buttons */
+.modal-footer .btn {
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+/* Modal size adjustments */
+.modal-dialog {
+    max-width: 600px;
+}
+
+/* Common dot style */
+.dot {
+    position: absolute;
+    top: 5px;       /* Adjust distance from the top */
+    left: 5px;      /* Adjust distance from the left */
+    width: 10px;    /* Dot size */
+    height: 10px;   /* Dot size */
+    border-radius: 50%; /* Make it circular */
+}
+
+/* Green dot for available dates */
+.available-dot {
+    background-color: #28a745; /* Bootstrap green */
+}
+
+/* Red dot for unavailable dates */
+.unavailable-dot {
+    background-color: #dc3545; /* Bootstrap red */
+}
+#addNewPatient {
+    font-size: 0.2rem; /* Slightly smaller font size */
+    height: 2rem; /* Smaller height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+    margin-top: 5px; 
+    text-decoration: none; /* Remove underline */
+    transition: all 0.3s ease-in-out; /* Smooth hover effect */
+    padding: 0 10px; /* Smaller horizontal padding */
+    background-color: #175392; /* Green background */
+    color: white; /* Icon and text color */
+    border: 1px solid #175392; /* Border matching the background */
+    border-radius: 0.25rem; /* Slightly rounded corners */
+    line-height: 1; /* Ensures proper text/icon alignment */
+}
+
+#addNewPatient i {
+    font-size: 1rem; /* Smaller icon size */
+    margin-right: 5px; /* Space between icon and text */
+}
+
+#addNewPatient:hover {
+    background-color: #218838; /* Darker green on hover */
+    border-color: #1e7e34; /* Darker border on hover */
+}
+
+#patientDropdown {
+    height: 2rem; /* Match the smaller button height */
+}
+#calendar-legend {
+    border-top: 1px solid #ddd;
+    padding-top: 15px;
+}
+
+.legend-box {
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+}
+
+.circle-indicator {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid #ccc;
+}
+
+.d-flex.align-items-center {
+    margin-bottom: 5px;
+}
+.legend-container {
+    display: flex;
+    justify-content: space-between; /* Push left and right sections apart */
+    align-items: center; /* Vertically align items */
+}
+
+
+#addMoreAvailable {
+    position: relative;
+    margin-left: auto; /* Pushes the button to the right */
+    margin-top: 10px;
+    background-color: #175392; /* Bootstrap primary color */
+    border-color: #175392;
+    color: #fff;
+    font-size: 20px; /* Increase the font size for better visibility */
+    width: 40px; /* Circular button */
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease-in-out; /* Smooth hover effect */
+}
+
+#addMoreAvailable:hover {
+    background-color: #175392; /* Darker shade for hover */
+    border-color: #175392;
+    transform: scale(1.1); /* Slightly enlarge the button on hover */
+}
+.cell-with-background {
+    background-image: url('/images/images.png'); /* Replace with your image URL */
+    background-size: cover; /* Make the image cover the entire cell */
+    background-position: center; /* Center the image in the cell */
+    background-repeat: no-repeat; /* Prevent the image from repeating */
+    color: white; /* Adjust text color for better visibility */
+    border-radius: 5px; /* Optional: Add rounded corners */
+    border: 1px solid #ccc; /* Optional: Add a border */
+    opacity: 0.9; /* Optional: Add transparency */
+}
+@media (max-width: 768px) {
+    #calendar {
+        height: 600px; /* Adjust as needed */
+    }
+}
+.time-slot {
+    padding: 5px;
+    margin: 2px;
+    font-size: 1em;
+}
+#calendar-container {
+    width: 100%;
+    height: 700px; /* Adjust height as needed */
+}

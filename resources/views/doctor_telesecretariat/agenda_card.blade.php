@@ -1,3 +1,10 @@
+Here’s the complete code, reorganized so the dropdown occupies a separate card on the left and the agenda occupies
+another card on the right. The layout has been structured with Bootstrap classes to make it responsive and ensure the
+dropdown takes 1/5 of the width, while the calendar takes 4/5.
+
+blade
+Copier
+Modifier
 @extends('layouts.app')
 
 @section('content')
@@ -7,242 +14,41 @@
 
 @if(auth()->user()->hasPermissionInContext('appointment-event.index', $doctorId))
 
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-md-6">
-                    <h1 class="m-0 text-bold">{{ trans('lang.appointment_plural') }}
-                        <small class="mx-3">|</small><small>{{ trans('lang.appointment_desc') }}</small>
-                    </h1>
-                </div>
-                <div class="col-md-6">
-                    <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-                        <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i
-                                    class="fas fa-tachometer-alt mx-1"></i> {{ trans('lang.dashboard') }}</a></li>
-                        <li class="breadcrumb-item">
-                            <a href="{!! route('appointments.index') !!}">{{ trans('lang.appointment_plural') }}</a>
-                        </li>
-                        <li class="breadcrumb-item active">{{ trans('lang.calendar_view') }}</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Second Modal -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-light">
-                    <h5 class="modal-title" id="confirmationModalLabel">Créer des heures disponibles</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Cette date n'est pas disponible. Voulez-vous créer une heure disponible pour cette date ?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button type="button" id="confirmCreateAvailability" class="btn btn-primary">Créer</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Past Date Modal -->
-    <div class="modal fade" id="pastDateModal" tabindex="-1" aria-labelledby="pastDateModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="pastDateModalLabel">Date Antérieure Sélectionnée</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                </div>
-                <div class="modal-body">
-                    <p id="pastDateModalMessage"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Modal for Viewing and Updating Appointment Details -->
-    <div class="modal fade" id="appointmentDetailsModal" tabindex="-1" role="dialog"
-        aria-labelledby="appointmentDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="appointmentDetailsModalLabel">{{ trans('lang.appointment_details') }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div id="appointment-info">
-                        <!-- Patient Details will be dynamically filled here -->
-                        <p><strong>{{ trans('lang.patient_nom') }}:</strong> <span id="patientName"></span></p>
-                        <p><strong>{{ trans('lang.appointment_status') }}:</strong> <span id="appointmentStatus"></span></p>
-                        <p><strong>{{ trans('lang.motif_name') }}:</strong> <span id="motifName"></span></p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary d-none" id="createTeleconsultation"
-                        style="background-color: #AEC6CF; color: #000;">{{ trans('lang.create_teleconsultation') }}</button>
-                    <button type="button" class="btn btn-danger" id="markAsFailed"
-                        style="background-color: #F4C2C2; color: #000;">{{ trans('lang.mark_failed') }}</button>
-                    <button type="button" class="btn btn-success" id="markAsDone"
-                        style="background-color: #B1E5D6; color: #000;">{{ trans('lang.mark_ready') }}</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for Creating Appointment -->
-    <div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="appointmentModalLabel">{{ trans('lang.create_modal_name') }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    @if(auth()->user()->hasPermissionInContext('appointments.store', $doctorId))
-                        <form id="appointmentForm">
-                            @csrf
-                            <!-- Toggle for Appointment Type -->
-                            <div class="form-group">
-                                <label class="font-weight-bold">{{ trans('lang.select_appointment_type') }}</label>
-                                <div class="d-flex align-items-center">
-                                    <div class="form-check mr-3">
-                                        <input class="form-check-input" type="radio" name="appointmentType" id="inCabinet"
-                                            value="cabinet" checked>
-                                        <label class="form-check-label" for="inCabinet">
-                                            {{ trans('lang.in_cabinet') }}
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="appointmentType"
-                                            id="Téléconsultation" value="Téléconsultation">
-                                        <label class="form-check-label" for="Téléconsultation">
-                                            {{ trans('lang.teleconsultation') }}
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Fields for Patient référencé -->
-                            <div id="referencedFields">
-                                <div class="form-group">
-                                    <label for="patientDropdown"
-                                        class="font-weight-bold">{{ trans('lang.Select_Patient') }}</label>
-                                    <div class="d-flex align-items-center">
-                                        <select id="patientDropdown" class="form-control select2-ajax" required
-                                            style="flex-grow: 1;">
-                                            <option value="" disabled selected>{{ trans('lang.Select_Patient') }}</option>
-                                        </select>
-                                        <a href="{{ route('patients.create') }}" class="btn btn-success d-flex "
-                                            id="addNewPatient">
-                                            <i class="fa fa-user-plus"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="form-group" id="dateGroup">
-                                    <label class="font-weight-bold">{{ trans('lang.date') }}</label>
-                                    <input type="date" class="form-control" id="appointmentDate" name="appointment_date"
-                                        readonly>
-                                </div>
-                            </div>
-
-                            <!-- Start and End Time Fields -->
-                            <div id="time-slots-wrapper" class="mt-4" style="display: none;">
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <label class="font-weight-bold mb-0">{{ trans('lang.select_time') }}</label>
-                                    <button type="button" id="addMoreAvailable" class="btn btn-primary ml-3"><i
-                                            class="fas fa-stopwatch"></i></button>
-                                </div>
-
-                                <div id="time-slots" class="d-flex flex-wrap">
-                                    <!-- Time slots will be dynamically populated by JavaScript -->
-                                </div>
-                                <input type="hidden" id="appointment_time" name="appointment_time">
-                            </div>
-                            <!-- Pattern Selection -->
-                            <div class="form-group">
-                                <label for="patternDropdown" class="font-weight-bold">
-                                    {{ trans('lang.availability_hour_pattern') }}
-                                </label>
-                                <div class="d-flex align-items-center">
-                                    <select id="patern_id" name="patern_id" class="form-control select2-ajax" required
-                                        style="flex-grow: 1;">
-                                        <option value="" disabled selected>{{ trans('lang.select_pattern') }}</option>
-                                        @foreach($patterns as $id => $nom)
-                                            <option value="{{ $id }}">{{ $nom }}</option>
-                                        @endforeach
-
-                                    </select>
-                                    <a href="{{ route('patterns.create') }}" class="btn btn-success d-flex " id="addNewPatient">
-                                        <i class="fa fa-plus"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-primary" id="saveAppointmentRef"
-                                    style="display: none;">{{ trans('lang.save_patient_refer') }}</button>
-                                <button type="button" class="btn btn-secondary" id="saveAppointmentPass"
-                                    style="display: none;">Save Patient de Passage</button>
-                            </div>
-                        </form>
-                    @else
-                        <div class="alert alert-danger">
-                            {{ __('Vous n’avez pas la permission de créer un rendez-vous.') }}
-                        </div>
-                        <!-- Start and End Time Fields -->
-                        <div id="time-slots-wrapper" class="mt-4" style="display: none;">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <label class="font-weight-bold mb-0">{{ trans('lang.select_time') }}</label>
-                                <button type="button" id="addMoreAvailable" class="btn btn-primary ml-3"><i
-                                        class="fas fa-stopwatch"></i></button>
-                            </div>
-
-                            <div id="time-slots" class="d-flex flex-wrap">
-                                <!-- Time slots will be dynamically populated by JavaScript -->
-                            </div>
-                            <input type="hidden" id="appointment_time" name="appointment_time">
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
-
 
     <!-- Content -->
     <div class="content">
-        <div class="clearfix"></div>
-        @include('flash::message')
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <ul class="nav nav-tabs d-flex flex-md-row flex-column-reverse align-items-start card-header-tabs">
-                    <div class="d-flex flex-row">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{!! url()->current() !!}"><i
-                                    class="fa fa-calendar mr-2"></i>{{ trans('lang.calendar_view') }}</a>
-                        </li>
+        <div class="row">
+            <!-- Dropdown Card -->
+            <div class="col-md-2 col-sm-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="card-title">{{ trans('lang.select_doctor') }}</h5>
                     </div>
-                </ul>
-            </div>
-            <div class="card-body">
-                <!-- Calendar Container -->
-                <div id="calendar-container">
-                    <div id="calendar"></div>
+                    <div class="card-body">
+                        <select id="doctorDropdown" class="form-control">
+                            <option value="" selected disabled>{{ trans('lang.select_doctor') }}</option>
+                            @foreach($doctors as $doctor)
+                                <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
-                <div class="clearfix"></div>
+            </div>
+
+            <!-- Calendar Card -->
+            <div class="col-md-10 col-sm-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div id="calendar-container">
+                            <div id="calendar"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
+
+        <!-- Legend -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap mt-4">
             <!-- Left Section (Legend Boxes) -->
             <div class="d-flex align-items-center">
                 <div class="d-flex align-items-center me-4">
@@ -283,8 +89,8 @@
                 </div>
             </div>
         </div>
-
     </div>
+
 @else
     <div class="content-header">
         <div class="container-fluid">
@@ -302,7 +108,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css" />
-    <link rel="stylesheet" href="{{ asset('css/eventcustom.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/teleagenda.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 @endpush
@@ -320,6 +126,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
 
         $.ajaxSetup({
@@ -364,10 +171,10 @@
                 if (response.vacation) {
                     //console.log("Doctor is on vacation. No slots to display.");
                     const vacationMessage = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `;
                     timeSlotsWrapper.append(vacationMessage);
 
                     // Show a confirmation dialog to the user
@@ -476,10 +283,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
             }
             //////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
@@ -992,5 +799,17 @@
                 $("#appointmentDetailsModal").modal("show");
             }
         });
+
+        $(document).ready(function () {
+            // Handle doctor selection change
+            $('#doctorDropdown').change(function () {
+                const selectedDoctorId = $(this).val();
+                if (selectedDoctorId) {
+                    // Refresh calendar events based on the selected doctor
+                    $('#calendar').fullCalendar('refetchEvents');
+                }
+            });
+        });
+
     </script>
 @endpush
