@@ -27,7 +27,7 @@ class AppointmentEventController extends Controller
         $doctorId = auth()->user()->getDoctorId(); // Retrieve doctor ID using user relationship
 
         if (!$doctorId) {
-            Log::warning("Doctor ID not found for logged-in user.");
+            //Log::warning("Doctor ID not found for logged-in user.");
             return response()->json(['error' => 'Doctor not found for the logged-in user'], 404);
         }
 

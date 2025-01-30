@@ -396,8 +396,37 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);
 
+    ////////////////////////////
+    //teleagenda
+    //////////////////////////
+    Route::get('tele-doctor-agenda', [DoctorTelesecretariatController::class, 'index'])->name('tele-appointment-events.index');
+    Route::get('/tele-doctor-agenda-data', [DoctorTelesecretariatController::class, 'getDoctorData']);
+    Route::get('/get-doctor-appointments', [DoctorTelesecretariatController::class, 'getDoctorAppointments']);
+    // Save a new appointment for a specific doctor
+    Route::post('/tele-save-appointment', [DoctorTelesecretariatController::class, 'saveAppointment'])->name('tele_save_appointment');
 
-    Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);
+    // Store patient passage (walk-in) appointment
+    Route::post('/tele-store-patient-passage', [DoctorTelesecretariatController::class, 'storePatientPassage'])->name('tele_store_patient_passage');
+
+    // Update appointment status
+    Route::post('/tele-appointment-event/status', [DoctorTelesecretariatController::class, 'updateStatus'])->name('tele_update_appointment_status');
+
+    // Fetch available time slots for a specific doctor
+    Route::get('/tele-get-available-time-slots', [DoctorTelesecretariatController::class, 'getAvailableTimeSlots'])->name('tele_get_available_time_slots');
+
+    // Fetch teleconsultation time slots for a specific doctor
+    Route::get('/tele-get-teleconsultation-time-slots', [DoctorTelesecretariatController::class, 'getTeleconsultationTimeSlots'])->name('tele_get_teleconsultation_time_slots');
+
+    // Fetch patients related to a specific doctor
+    Route::get('/tele-patients/search', [DoctorTelesecretariatController::class, 'getPatients'])->name('tele_patients_search');
+
+    // Fetch appointments for a specific date
+    Route::get('/tele-get-appointments-for-date', [DoctorTelesecretariatController::class, 'getAppointmentsForDate'])->name('tele_get_appointments_for_date');
+
+    Route::get('/tele-patterns', [DoctorTelesecretariatController::class, 'getPatterns'])->name('tele_patterns');
+
+    Route::get('/tele-get-doctor-availability-data', [DoctorTelesecretariatController::class, 'getDoctorAvailabilityData']);
+
 
 });
 

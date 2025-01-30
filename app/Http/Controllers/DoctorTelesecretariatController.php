@@ -13,130 +13,299 @@ use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log; // Add this line to import Log
+
 
 class DoctorTelesecretariatController extends Controller
 {
 
-    public function index(Request $request)
+    public function index()
     {
-        // Initialize availabilityDays as an empty collection
-        $availabilityDays = collect();
-        $vacations = collect();
+        try {
+            // Fetch all doctors
+            $userId = Auth::id();
 
-        $doctorId = auth()->user()->getDoctorId(); // Retrieve doctor ID using user relationship
+            // Chercher cet ID dans la table Telesecretariat
+            $telesecretariat = Telesecretariat::where('user_id', $userId)->first();
 
-        if (!$doctorId) {
-            Log::warning("Doctor ID not found for logged-in user.");
-            return response()->json(['error' => 'Doctor not found for the logged-in user'], 404);
+            if ($telesecretariat) {
+                // Récupérer les médecins associés via DoctorTelesecretariat, avec jointure sur la table doctor
+                $doctors = DoctorTelesecretariat::with(['doctor', 'telesecretariat'])
+                    ->join('doctors', 'doctor_telesecretariat.doctor_id', '=', 'doctors.id') // Jointure sur la table doctor
+                    ->where('telesecretariat_id', $telesecretariat->id)
+                    ->orderBy('doctors.name', 'asc') // Trier par nom du médecin
+                    ->get();
+
+                // Passer les données à la vue
+
+
+
+
+                // Initialize empty data for the agenda
+                $availabilityDays = collect();
+                $vacations = collect();
+                $patterns = collect();
+                $patients = collect();
+                return view('doctor_telesecretariat.agenda_card', compact('doctors', 'availabilityDays', 'patterns', 'vacations', 'patients'));
+            } else {
+                return view('doctor_telesecretariat.agenda_card', compact(['doctors' => []], 'availabilityDays', 'patterns', 'vacations', 'patients'));
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error in index method', ['error' => $e->getMessage()]);
+            abort(500, 'An error occurred while fetching doctors.');
         }
+    }
+    public function getDoctorData(Request $request)
+    {
+        Log::info('ooooooooooooooooooo', ['request_data' => $request->all()]);
+        try {
+            $doctorId = $request->query('doctor_id');
 
-        // Retrieve distinct availability days for the logged-in doctor
-        $availabilityDays = DB::table('availability_hours')
-            ->where('doctor_id', $doctorId)
-            ->where('is_available', 1) // Filter only available days
-            ->distinct()
-            ->pluck('day'); // Get distinct day names (e.g., Lundi, Mardi)
+            if (!$doctorId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No doctor ID provided',
+                ], 400);
+            }
+            // Fetch patterns for the selected doctor
+            $patterns = DB::table('pattern')
+                ->select('id', 'nom')
+                ->where('doctor_id', $doctorId)
+                ->get()
+                ->mapWithKeys(function ($pattern) {
+                    $name = json_decode($pattern->nom, true);
+                    return [$pattern->id => $name[app()->getLocale()] ?? $name['fr']];
+                })
+                ->toArray();
 
-        //Log::info("Availability days retrieved", ['availability_days' => $availabilityDays->toArray()]);
+            // Retrieve patients associated with the doctor
+            $patients = Patient::whereHas('doctors', function ($query) use ($doctorId) {
+                $query->where('doctor_id', $doctorId);
+            })->select('id', 'first_name', 'last_name', 'phone_number')->get();
 
-        // Retrieve vacation data for the doctor
-        $vacations = DB::table('vacance')
-            ->where('doctor_id', $doctorId)
-            ->select('dateDebut', 'dateFin')
-            ->get();
+            if ($request->has('start') && $request->has('end')) {
+                $start = $request->query('start');
+                $end = $request->query('end');
 
-        //Log::info("Vacations retrieved", ['vacations' => $vacations]);
+                // Fetch appointments within the specified range for the given doctor
+                $data = Appointment::with(['user', 'appointmentStatus', 'pattern'])
+                    ->where('appointments.start_at', '>=', $start)
+                    ->where('appointments.ends_at', '<=', $end)
+                    ->where('appointments.doctor_id', $doctorId)
+                    ->select(
+                        'appointments.id',
+                        'appointments.online',
+                        'appointments.user_id',
+                        'appointments.patient_id',
+                        DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
+                        DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        'user.name as user_name',
+                        'user.phone_number as user_phone_number',
+                        'appointment_status.status as status',
+                        'patient.first_name as patient_first_name',
+                        'patient.last_name as patient_last_name',
+                        'patient.email as patient_email',
+                        'patient.phone_number as patient_phone_number',
+                        'patient.mobile_number as patient_mobile_number',
+                        'pattern.nom as motif_name'
+                    )
+                    ->join('users as user', 'appointments.user_id', '=', 'user.id')
+                    ->join('appointment_statuses as appointment_status', 'appointments.appointment_status_id', '=', 'appointment_status.id')
+                    ->join('patients as patient', 'appointments.patient_id', '=', 'patient.id')
+                    ->join('pattern as pattern', 'appointments.motif_id', '=', 'pattern.id')
+                    ->get();
 
-        if ($request->ajax()) {
-            $start = $request->start ?? '2024-01-01 00:00:00';
-            $end = $request->end ?? '2030-12-31 23:59:59';
+                return response()->json($data->map(function ($appointment) {
+                    $decodedFirstName = json_decode($appointment->patient_first_name, true);
+                    $decodedLastName = json_decode($appointment->patient_last_name, true);
+                    $decodedMotifName = json_decode($appointment->motif_name, true);
 
-            // Retrieve appointments for the logged-in doctor with related data
-            $data = Appointment::with(['user', 'appointmentStatus', 'pattern'])
-                ->where('appointments.start_at', '>=', $start)
-                ->where('appointments.ends_at', '<=', $end)
-                ->where('appointments.doctor_id', $doctorId)
-                ->select(
-                    'appointments.id',
-                    'appointments.online',
-                    'appointments.user_id',
-                    'appointments.patient_id',
-                    DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
-                    DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
-                    'user.name as user_name',
-                    'user.phone_number as user_phone_number',
-                    'appointment_status.status as status',
-                    'patient.first_name as patient_first_name',
-                    'patient.last_name as patient_last_name',
-                    'patient.email as patient_email',
-                    'patient.phone_number as patient_phone_number',
-                    'patient.mobile_number as patient_mobile_number',
-                    'pattern.nom as motif_name'
-                )
-                ->join('users as user', 'appointments.user_id', '=', 'user.id')
-                ->join('appointment_statuses as appointment_status', 'appointments.appointment_status_id', '=', 'appointment_status.id')
-                ->join('patients as patient', 'appointments.patient_id', '=', 'patient.id')
-                ->join('pattern as pattern', 'appointments.motif_id', '=', 'pattern.id')
-                ->get();
+                    return [
+                        'id' => $appointment->id,
+                        'start_at' => $appointment->start_at,
+                        'ends_at' => $appointment->ends_at,
+                        'title' => $appointment->user_name,
+                        'status' => $appointment->status,
+                        'patient_id' => $appointment->patient_id,
+                        'patient_email' => $appointment->patient_email,
+                        'patient_phone_number' => $appointment->patient_phone_number,
+                        'patient_name' => ($decodedFirstName['fr'] ?? $decodedFirstName) . ' ' . ($decodedLastName['fr'] ?? $decodedLastName),
+                        'motif_name' => $decodedMotifName['fr'] ?? $decodedMotifName,
+                        'online' => $appointment->online,
+                    ];
+                }));
+            }
 
-            //Log::info("Appointments retrieved for Doctor ID {$doctorId}", ['appointments_count' => $data->count()]);
-
-            return response()->json($data->map(function ($appointment) {
-                $decodedFirstName = json_decode($appointment->patient_first_name, true);
-                $decodedLastName = json_decode($appointment->patient_last_name, true);
-                $decodedMotifName = json_decode($appointment->motif_name, true);
-
-                return [
-                    'id' => $appointment->id,
-                    'start_at' => $appointment->start_at,
-                    'ends_at' => $appointment->ends_at,
-                    'title' => $appointment->user_name,
-                    'status' => $appointment->status,
-                    'patient_id' => $appointment->patient_id,
-                    'patient_email' => $appointment->patient_email,
-                    'user_phone_number' => $appointment->user_phone_number,
-                    'patient_name' => ($decodedFirstName['fr'] ?? $decodedFirstName) . ' ' . ($decodedLastName['fr'] ?? $decodedLastName),
-                    'motif_name' => $decodedMotifName['fr'] ?? $decodedMotifName,
-                    'online' => $appointment->online,
-                ];
-            }));
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid request parameters',
+            ], 400);
+        } catch (\Exception $e) {
+            Log::error('Error fetching doctor data', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching doctor data',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $patterns = DB::table('pattern')
-            ->select('id', 'nom')
-            ->where('doctor_id', $doctorId)
-            ->get()
-            ->mapWithKeys(function ($pattern) {
-                $name = json_decode($pattern->nom, true);
-                return [$pattern->id => $name[app()->getLocale()] ?? $name['fr']];
-            })
-            ->toArray();
-
-        // Retrieve patients related to the doctor
-        $patients = Patient::whereHas('doctors', function ($query) use ($doctorId) {
-            $query->where('doctor_id', $doctorId);
-        })->select('id', 'first_name', 'last_name', 'phone_number')->get();
-        $doctors = Doctor::all();
-        //Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
-
-        // Pass availabilityDays and vacations to the view
-        return view('doctor_telesecretariat.agenda_card', compact('doctors', 'patients', 'availabilityDays', 'patterns', 'vacations'));
     }
 
 
+    public function getDoctorAppointments(Request $request)
+    {
+        Log::info('ttttttttttttttttt', ['request_data' => $request->all()]);
+        // Initialize collections
+        $availabilityDays = collect();
+        $vacations = collect();
+        $patterns = collect();
+        $patients = collect();
 
+        Log::info('Received index request', ['request_data' => $request->all()]);
 
+        // Get the doctor_id from the request
+        $doctorId = $request->query('doctor_id');
 
+        if (!$doctorId) {
+            Log::warning("No doctor ID provided.");
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No doctor selected',
+                    'doctors' => Doctor::all(),
+                ]);
+            }
+            $doctors = Doctor::all();
+            return view('doctor_telesecretariat.agenda_card', compact('doctors', 'availabilityDays', 'patterns', 'vacations', 'patients'));
+        }
+
+        if ($request->ajax() && $request->has('start') && $request->has('end')) {
+            try {
+                $start = $request->query('start');
+                $end = $request->query('end');
+
+                // Fetch appointments within the specified range for the given doctor
+                $data = Appointment::with(['user', 'appointmentStatus', 'pattern'])
+                    ->where('appointments.start_at', '>=', $start)
+                    ->where('appointments.ends_at', '<=', $end)
+                    ->where('appointments.doctor_id', $doctorId)
+                    ->select(
+                        'appointments.id',
+                        'appointments.online',
+                        'appointments.user_id',
+                        'appointments.patient_id',
+                        DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
+                        DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        'user.name as user_name',
+                        'user.phone_number as user_phone_number',
+                        'appointment_status.status as status',
+                        'patient.first_name as patient_first_name',
+                        'patient.last_name as patient_last_name',
+                        'patient.email as patient_email',
+                        'patient.phone_number as patient_phone_number',
+                        'patient.mobile_number as patient_mobile_number',
+                        'pattern.nom as motif_name'
+                    )
+                    ->join('users as user', 'appointments.user_id', '=', 'user.id')
+                    ->join('appointment_statuses as appointment_status', 'appointments.appointment_status_id', '=', 'appointment_status.id')
+                    ->join('patients as patient', 'appointments.patient_id', '=', 'patient.id')
+                    ->join('pattern as pattern', 'appointments.motif_id', '=', 'pattern.id')
+                    ->get();
+
+                Log::info("Appointments retrieved for Doctor ID: {$doctorId}", ['appointments_count' => $data->count()]);
+
+                return response()->json($data->map(function ($appointment) {
+                    $decodedFirstName = json_decode($appointment->patient_first_name, true);
+                    $decodedLastName = json_decode($appointment->patient_last_name, true);
+                    $decodedMotifName = json_decode($appointment->motif_name, true);
+
+                    return [
+                        'id' => $appointment->id,
+                        'start_at' => $appointment->start_at,
+                        'ends_at' => $appointment->ends_at,
+                        'title' => $appointment->user_name,
+                        'status' => $appointment->status,
+                        'patient_id' => $appointment->patient_id,
+                        'patient_email' => $appointment->patient_email,
+                        'user_phone_number' => $appointment->user_phone_number,
+                        'patient_name' => ($decodedFirstName['fr'] ?? $decodedFirstName) . ' ' . ($decodedLastName['fr'] ?? $decodedLastName),
+                        'motif_name' => $decodedMotifName['fr'] ?? $decodedMotifName,
+                        'online' => $appointment->online,
+                    ];
+                }));
+            } catch (\Exception $e) {
+                Log::error('Error fetching appointments', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error fetching appointments',
+                    'error' => $e->getMessage(),
+                ], 500);
+            }
+        }
+
+        try {
+            // Fetch data for the selected doctor
+            $availabilityDays = DB::table('availability_hours')
+                ->where('doctor_id', $doctorId)
+                ->where('is_available', 1)
+                ->distinct()
+                ->pluck('day');
+
+            $vacations = DB::table('vacance')
+                ->where('doctor_id', $doctorId)
+                ->select('dateDebut', 'dateFin')
+                ->get();
+
+            $patterns = DB::table('pattern')
+                ->select('id', 'nom')
+                ->where('doctor_id', $doctorId)
+                ->get()
+                ->mapWithKeys(function ($pattern) {
+                    $name = json_decode($pattern->nom, true);
+                    return [$pattern->id => $name[app()->getLocale()] ?? $name['fr']];
+                })
+                ->toArray();
+
+            $patients = Patient::whereHas('doctors', function ($query) use ($doctorId) {
+                $query->where('doctor_id', $doctorId);
+            })->select('id', 'first_name', 'last_name', 'phone_number')->get();
+
+            Log::info("Data retrieved for Doctor ID: {$doctorId}", [
+                'availability_days' => $availabilityDays,
+                'vacations' => $vacations,
+                'patterns' => $patterns,
+                'patients_count' => $patients->count(),
+            ]);
+
+            $doctors = Doctor::all();
+
+            return view('doctor_telesecretariat.agenda_card', compact('doctors', 'availabilityDays', 'patterns', 'vacations', 'patients'));
+        } catch (\Exception $e) {
+            Log::error('Error fetching data for doctor ID', ['doctor_id' => $doctorId, 'error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching data',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
     public function saveAppointment(Request $request)
     {
         try {
-            $doctorId = auth()->user()->getDoctorId();
+            $doctorId = $request->input('doctor_id'); // Use doctor_id from request
 
             if (!$doctorId) {
-                return response()->json(['error' => 'Doctor not found'], 404);
+                return response()->json(['error' => 'Doctor ID not provided'], 400);
+            }
+
+            $doctor = Doctor::find($doctorId);
+
+            if (!$doctor) {
+                return response()->json(['error' => 'Invalid Doctor ID'], 404);
             }
 
             Log::info('Appointment Data Received:', $request->all());
+
 
             // Validate the incoming request data
             $validatedData = $request->validate([
@@ -223,9 +392,6 @@ class DoctorTelesecretariatController extends Controller
         }
     }
 
-    /**
-     * Update or remove availability slots.
-     */
     private function deleteAvailability($availability, $startAtFormatted, $endAtFormatted)
     {
         $availabilityStart = Carbon::parse($availability->start_at);
@@ -258,8 +424,6 @@ class DoctorTelesecretariatController extends Controller
             ]);
         }
     }
-
-
 
     //
 
@@ -413,21 +577,7 @@ class DoctorTelesecretariatController extends Controller
     /////////////////////
 //les modifications
 /////////////////////
-    /* public function updateStatus(Request $request)
- {
-     try {
-         //Log::info('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
-         // Find the appointment by ID and update its status
-         $appointment = Appointment::findOrFail($request->id);
-         $appointment->appointment_status_id = $request->appointment_status_id;
-         $appointment->save();
 
-         return response()->json(['message' => 'Status updated successfully']);
-     } catch (\Exception $e) {
-         return response()->json(['error' => 'Failed to update status'], 500);
-     }
- }
- */
 
 
     public function updateStatus(Request $request)
@@ -469,168 +619,54 @@ class DoctorTelesecretariatController extends Controller
 // les getters
 /////////////////////
 
-    /**public function getAvailableTimeSlots(Request $request)
+    public function getDoctorAvailabilityData(Request $request)
     {
-        $userId = Auth::id(); // Get the logged-in user's ID
-        $doctor = Doctor::where('user_id', $userId)->first();
-        $selectedDate = $request->input('date');
+        Log::info('vaiabilty', ['request_data' => $request->all()]);
 
-        if (!$doctor || !$selectedDate) {
-            return response()->json(['error' => 'Doctor or date not found'], 404);
-        }
+        try {
+            $doctorId = $request->query('doctor_id');
 
-        // Fetch all availability hours for the selected date
-        $availabilityHours = DB::table('availability_hours')
-            ->where('doctor_id', $doctor->id)
-            ->whereDate('start_at', $selectedDate)
-            ->get(['start_at', 'end_at']);
-
-        if ($availabilityHours->isEmpty()) {
-            return response()->json(['error' => 'No availability found for this date'], 404);
-        }
-        Log::info('DoctorCast - Doctor value:', ['doctor' => $doctor]);
-
-        $sessionDuration = $doctor->session_duration;
-        $allSlots = [];
-        $takenSlots = Appointment::where('doctor_id', $doctor->id)
-            ->whereDate('start_at', $selectedDate)
-            ->where('appointment_status_id', '!=', 7)
-            ->pluck(DB::raw("DATE_FORMAT(start_at, '%H:%i')"))
-            ->toArray();
-
-        // Loop through each availability range and generate time slots
-        foreach ($availabilityHours as $availability) {
-            $startTime = Carbon::parse($availability->start_at);
-            $endTime = Carbon::parse($availability->end_at);
-
-            while ($startTime->lessThan($endTime)) {
-                $allSlots[] = $startTime->format('H:i');
-                $startTime->addMinutes($sessionDuration);
-            }
-        }
-
-        // Remove duplicates in case of overlapping slots
-        $allSlots = array_unique($allSlots);
-        Log::info('Generated slots', [
-            'all_slots' => $allSlots
-        ]);
-        
-        return response()->json([
-            'all_slots' => $allSlots,
-            'taken_slots' => $takenSlots
-        ]);
-    }**/
-    /*public function getAvailableTimeSlots(Request $request)
-    {
-        $userId = Auth::id(); // Get the logged-in user's ID
-        $doctor = Doctor::where('user_id', $userId)->first();
-        $selectedDate = $request->input('date');
-
-        if (!$doctor || !$selectedDate) {
-            return response()->json(['error' => 'Doctor or date not found'], 404);
-        }
-
-        // Fetch all availability hours for the selected date
-        $availabilityHours = DB::table('availability_hours')
-            ->where('doctor_id', $doctor->id)
-            ->whereDate('start_at', $selectedDate)
-            ->get(['start_at', 'end_at']);
-
-        if ($availabilityHours->isEmpty()) {
-            return response()->json(['error' => 'No availability found for this date'], 404);
-        }
-        Log::info('DoctorCast - Doctor value:', ['doctor' => $availabilityHours]);
-
-        $sessionDuration = $doctor->session_duration;
-        $allSlots = [];
-        $takenSlots = Appointment::where('doctor_id', $doctor->id)
-            ->whereDate('start_at', $selectedDate)
-            ->where('appointment_status_id', '!=', 7)
-            ->pluck(DB::raw("DATE_FORMAT(start_at, '%H:%i')"))
-            ->toArray();    
-
-
-            Log::info('taken:', ['doctor' => $takenSlots]);
-        // Loop through each availability range and generate time slots
-        foreach ($availabilityHours as $availability) {
-            $startTime = Carbon::parse($availability->start_at);
-            $endTime = Carbon::parse($availability->end_at);
-            $slotStart = $startTime->format('H:i');
-            $slotEnd = $endTime->format('H:i');
-            $allSlots[] = "$slotStart - $slotEnd";
-        }
-        Log::info('DoctorCast - Doctor value:', ['doctor' => $allSlots]);
-
-        // Remove duplicates in case of overlapping slots
-        $allSlots = array_unique($allSlots);
-        Log::info('Generated slots', [
-            'all_slots' => $allSlots
-        ]);
-        
-        return response()->json([
-            'all_slots' => $allSlots,
-            'taken_slots' => $takenSlots
-        ]);
-    }*/
-    /*public function getAvailableTimeSlots(Request $request)
-    {
-        $userId = Auth::id(); // Get the logged-in user's ID
-        $doctor = Doctor::where('user_id', $userId)->first();
-        $selectedDate = $request->input('date'); // Expected format: YYYY-MM-DD
-
-        if (!$doctor || !$selectedDate) {
-            return response()->json(['error' => 'Doctor or date not found'], 404);
-        }
-
-        // Get the day name for the selected date
-        $dayName = Carbon::parse($selectedDate)->locale('fr')->dayName; // Example: "Lundi", "Mardi"
-
-        // Fetch availability hours for the selected day and doctor
-        $availability = DB::table('availability_hours')
-            ->where('doctor_id', $doctor->id)
-            ->where('day', $dayName)
-            ->where('is_available', 1) // Ensure availability is enabled
-            ->where('onligne', 0)
-            ->first();
-
-        if (!$availability) {
-            return response()->json(['error' => 'No availability found for this date'], 404);
-        }
-
-        // Calculate all available time slots
-        $startTime = Carbon::parse($availability->start_at);
-        $endTime = Carbon::parse($availability->end_at);
-        $pauseFrom = Carbon::parse($availability->pause_from);
-        $pauseTo = Carbon::parse($availability->pause_to);
-        $sessionDuration = $availability->session_duration;
-
-        $allSlots = [];
-        while ($startTime->lessThan($endTime)) {
-            // Skip pause time
-            if ($startTime->greaterThanOrEqualTo($pauseFrom) && $startTime->lessThan($pauseTo)) {
-                $startTime->addMinutes($sessionDuration);
-                continue;
+            if (!$doctorId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Doctor ID is required',
+                ], 400);
             }
 
-            $allSlots[] = $startTime->format('H:i');
-            $startTime->addMinutes($sessionDuration);
+            // Fetch availability days for the doctor
+            $availabilityDays = DB::table('availability_hours')
+                ->where('doctor_id', $doctorId)
+                ->where('is_available', 1)
+                ->distinct()
+                ->pluck('day'); // Example: ["Lundi", "Mardi"]
+
+            // Fetch vacation data for the doctor
+            $vacations = DB::table('vacance')
+                ->where('doctor_id', $doctorId)
+                ->select('dateDebut', 'dateFin')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'availabilityDays' => $availabilityDays,
+                'vacations' => $vacations,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching doctor availability data', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while fetching doctor availability data',
+                'error' => $e->getMessage(),
+            ], 500);
         }
+    }
 
-        // Get taken slots for the selected date
-        $takenSlots = Appointment::where('doctor_id', $doctor->id)
-            ->whereDate('start_at', $selectedDate)
-            ->where('online', 'cabinet')
-            ->pluck(DB::raw("DATE_FORMAT(start_at, '%H:%i')"))
-            ->toArray();
 
-        return response()->json([
-            'all_slots' => $allSlots,
-            'taken_slots' => $takenSlots,
-        ]);
-    }*/
     public function getAvailableTimeSlots(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        Log::info('Entering getAvailableTimeSlots', ['request_data' => $request->all()]);
+
+        $doctorId = $request->input('doctor_id'); // Use doctor_id from request
         $selectedDate = $request->input('date');
 
         if (!$doctorId || !$selectedDate) {
@@ -649,10 +685,6 @@ class DoctorTelesecretariatController extends Controller
 
         \Log::info('Availability fetched', ['availability' => $availability]);
 
-        if (!$availability) {
-            \Log::warning('No availability found', ['doctor_id' => $doctorId, 'dayName' => $dayName]);
-            return response()->json(['error' => 'No availability found for this date'], 404);
-        }
 
         if (!$availability) {
             \Log::warning('No availability found', ['doctor_id' => $doctorId, 'dayName' => $dayName]);
@@ -745,9 +777,10 @@ class DoctorTelesecretariatController extends Controller
         return response()->json($response);
     }
 
+
     public function getTeleconsultationTimeSlots(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = $request->input('doctor_id'); // Use doctor_id from request
         $selectedDate = $request->input('date');
 
         if (!$doctorId || !$selectedDate) {
@@ -807,6 +840,33 @@ class DoctorTelesecretariatController extends Controller
         ]);
     }
 
+    //
+    public function getPatterns(Request $request)
+    {
+        $doctorId = $request->query('doctor_id');
+
+        if (!$doctorId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No doctor ID provided',
+            ], 400);
+        }
+
+        // Fetch patterns for the given doctor ID
+        $patterns = DB::table('pattern')
+            ->select('id', 'nom')
+            ->where('doctor_id', $doctorId)
+            ->get()
+            ->map(function ($pattern) {
+                $name = json_decode($pattern->nom, true);
+                return [
+                    'id' => $pattern->id,
+                    'nom' => $name[app()->getLocale()] ?? $name['fr'],
+                ];
+            });
+
+        return response()->json($patterns);
+    }
 
 
 
@@ -814,8 +874,9 @@ class DoctorTelesecretariatController extends Controller
 
     public function getPatients(Request $request)
     {
+        Log::info('Entering getPatients', ['request_data' => $request->all()]);
         if ($request->ajax()) {
-            $doctorId = auth()->user()->getDoctorId();
+            $doctorId = $request->input('doctor_id'); // Use doctor_id from request
 
             if (!$doctorId) {
                 return response()->json(['error' => 'Doctor not found'], 404);
@@ -890,26 +951,6 @@ class DoctorTelesecretariatController extends Controller
     }
     ///////////////////
 
-    /*public function getVisitsCountByDate(Request $request)
-    {
-        $userId = Auth::id(); // Get the logged-in user's ID
-        $doctor = Doctor::where('user_id', $userId)->first();
-
-        if (!$doctor) {
-            return response()->json(['error' => 'Doctor not found'], 404);
-        }
-
-        // Exclude canceled appointments (assuming 3 is the status ID for canceled)
-        $visitsCount = DB::table('appointments')
-            ->select(DB::raw("DATE(start_at) as date"), DB::raw("COUNT(*) as count"))
-            ->where('doctor_id', $doctor->id)
-            ->where('appointment_status_id', '=', 4) // Exclude canceled appointments
-            ->groupBy(DB::raw("DATE(start_at)"))
-            ->pluck('count', 'date'); // Format: ['2024-11-29' => 5, '2024-11-30' => 3]
-
-        return response()->json($visitsCount);
-    }*/
-
 
 
     public function showAgenda()
@@ -920,6 +961,10 @@ class DoctorTelesecretariatController extends Controller
         // Pass the data to the view
         return view('doctor_telescretariat.agenda_card', compact('doctors'));
     }
+    public function create()
+    {
 
+        return view('doctor_telesecretariat.create');
+    }
 
 }

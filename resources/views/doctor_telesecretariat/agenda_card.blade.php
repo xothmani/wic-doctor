@@ -1,105 +1,238 @@
-Here’s the complete code, reorganized so the dropdown occupies a separate card on the left and the agenda occupies
-another card on the right. The layout has been structured with Bootstrap classes to make it responsive and ensure the
-dropdown takes 1/5 of the width, while the calendar takes 4/5.
-
-blade
-Copier
-Modifier
 @extends('layouts.app')
 
 @section('content')
-@php
-    $doctorId = auth()->user()->getDoctorId();
-@endphp
 
-@if(auth()->user()->hasPermissionInContext('appointment-event.index', $doctorId))
-
-
-    <!-- Content -->
-    <div class="content">
-        <div class="row">
-            <!-- Dropdown Card -->
-            <div class="col-md-2 col-sm-12">
-                <div class="card shadow-sm">
-                    <div class="card-header">
-                        <h5 class="card-title">{{ trans('lang.select_doctor') }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <select id="doctorDropdown" class="form-control">
-                            <option value="" selected disabled>{{ trans('lang.select_doctor') }}</option>
-                            @foreach($doctors as $doctor)
-                                <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+<!-- Second Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="confirmationModalLabel">Créer des heures disponibles</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Cette date n'est pas disponible. Voulez-vous créer une heure disponible pour cette date ?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" id="confirmCreateAvailability" class="btn btn-primary">Créer</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Past Date Modal -->
+<div class="modal fade" id="pastDateModal" tabindex="-1" aria-labelledby="pastDateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pastDateModalLabel">Date Antérieure Sélectionnée</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            </div>
+            <div class="modal-body">
+                <p id="pastDateModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for Viewing and Updating Appointment Details -->
+<div class="modal fade" id="appointmentDetailsModal" tabindex="-1" role="dialog"
+    aria-labelledby="appointmentDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="appointmentDetailsModalLabel">{{ trans('lang.appointment_details') }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="appointment-info">
+                    <!-- Patient Details will be dynamically filled here -->
+                    <p><strong>{{ trans('lang.patient_nom') }}:</strong> <span id="patientName"></span></p>
+                    <p><strong>{{ trans('lang.appointment_status') }}:</strong> <span id="appointmentStatus"></span></p>
+                    <p><strong>{{ trans('lang.motif_name') }}:</strong> <span id="motifName"></span></p>
                 </div>
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary d-none" id="createTeleconsultation"
+                    style="background-color: #AEC6CF; color: #000;">{{ trans('lang.create_teleconsultation') }}</button>
+                <button type="button" class="btn btn-danger" id="markAsFailed"
+                    style="background-color: #F4C2C2; color: #000;">{{ trans('lang.mark_failed') }}</button>
+                <button type="button" class="btn btn-success" id="markAsDone"
+                    style="background-color: #B1E5D6; color: #000;">{{ trans('lang.mark_ready') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Calendar Card -->
-            <div class="col-md-10 col-sm-12">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div id="calendar-container">
-                            <div id="calendar"></div>
+<!-- Modal for Creating Appointment -->
+<div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="appointmentModalLabel">{{ trans('lang.create_modal_name') }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="appointmentForm">
+                    @csrf
+                    <!-- Toggle for Appointment Type -->
+                    <div class="form-group">
+                        <label class="font-weight-bold">{{ trans('lang.select_appointment_type') }}</label>
+                        <div class="d-flex align-items-center">
+                            <div class="form-check mr-3">
+                                <input class="form-check-input" type="radio" name="appointmentType" id="inCabinet"
+                                    value="cabinet" checked>
+                                <label class="form-check-label" for="inCabinet">
+                                    {{ trans('lang.in_cabinet') }}
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="appointmentType"
+                                    id="Téléconsultation" value="Téléconsultation">
+                                <label class="form-check-label" for="Téléconsultation">
+                                    {{ trans('lang.teleconsultation') }}
+                                </label>
+                            </div>
                         </div>
                     </div>
+                    <!-- Fields for Patient référencé -->
+                    <div id="referencedFields">
+                        <div class="form-group">
+                            <label for="patientDropdown"
+                                class="font-weight-bold">{{ trans('lang.Select_Patient') }}</label>
+                            <div class="d-flex align-items-center">
+                                <select id="patientDropdown" class="form-control select2-ajax" required
+                                    style="flex-grow: 1;">
+                                    <option value="" disabled selected>{{ trans('lang.Select_Patient') }}</option>
+                                </select>
+                                <a href="{{ route('patients.create') }}" class="btn btn-success d-flex "
+                                    id="addNewPatient">
+                                    <i class="fa fa-user-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="form-group" id="dateGroup">
+                            <label class="font-weight-bold">{{ trans('lang.date') }}</label>
+                            <input type="date" class="form-control" id="appointmentDate" name="appointment_date"
+                                readonly>
+                        </div>
+                    </div>
+
+                    <!-- Start and End Time Fields -->
+                    <div id="time-slots-wrapper" class="mt-4" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <label class="font-weight-bold mb-0">{{ trans('lang.select_time') }}</label>
+                            <button type="button" id="addMoreAvailable" class="btn btn-primary ml-3"><i
+                                    class="fas fa-stopwatch"></i></button>
+                        </div>
+
+                        <div id="time-slots" class="d-flex flex-wrap">
+                            <!-- Time slots will be dynamically populated by JavaScript -->
+                        </div>
+                        <input type="hidden" id="appointment_time" name="appointment_time">
+                    </div>
+                    <!-- Pattern Selection -->
+                    <div class="form-group">
+                        <label for="patternDropdown" class="font-weight-bold">
+                            {{ trans('lang.availability_hour_pattern') }}
+                        </label>
+                        <div class="d-flex align-items-center">
+                            <select id="patternDropdown" name="patern_id" class="form-control select2-ajax" required
+                                style="flex-grow: 1;">
+                                <option value="" disabled selected>{{ trans('lang.select_pattern') }}</option>
+                            </select>
+                            <a href="{{ route('patterns.create') }}" class="btn btn-success d-flex " id="addNewPatient">
+                                <i class="fa fa-plus"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="saveAppointmentRef"
+                            style="display: none;">{{ trans('lang.save_patient_refer') }}</button>
+                        <button type="button" class="btn btn-secondary" id="saveAppointmentPass"
+                            style="display: none;">Save Patient de Passage</button>
+                    </div>
+                </form>
+                <!-- Start and End Time Fields -->
+                <div id="time-slots-wrapper" class="mt-4" style="display: none;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <label class="font-weight-bold mb-0">{{ trans('lang.select_time') }}</label>
+                        <button type="button" id="addMoreAvailable" class="btn btn-primary ml-3"><i
+                                class="fas fa-stopwatch"></i></button>
+                    </div>
+
+                    <div id="time-slots" class="d-flex flex-wrap">
+                        <!-- Time slots will be dynamically populated by JavaScript -->
+                    </div>
+                    <input type="hidden" id="appointment_time" name="appointment_time">
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+    <div class="row">
+        <div class="col-md-2 col-sm-12 d-flex flex-column">
+            <!-- Doctor Selection -->
+            <div class="card shadow-sm flex-grow-1">
+                <div class="card-header py-2 px-3" style="background-color: #f8f9fa;">
+                    <input type="text" id="doctorSearch" class="form-control"
+                        placeholder="{{ trans('lang.search_doctor') }}" style="height: 35px; font-size: 14px;">
+                </div>
+                <div class="card-body">
+
+                    <ul class="list-group doctor-list" style="max-height: 300px; overflow-y: auto; padding: 0;">
+                        @foreach ($doctors as $doctor)
+                            <li class="list-group-item doctor-item {{ $loop->first ? 'active' : '' }}"
+                                data-doctor-id="{{ $doctor->doctor->id }}" style="cursor: pointer;">
+                                {{ $doctor->doctor->name  }}
+                            </li>
+                        @endforeach
+                    </ul>
+
+                </div>
+            </div>
+
+            <!-- Appointment Details -->
+            <div class="card shadow-sm flex-grow-1 mt-3" id="appointment-card">
+                <div class="card-body">
+                    <div id="appointment-details">
+                        <p>{{ trans('lang.hover_to_view_details') }}</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Legend -->
-        <div class="d-flex justify-content-between align-items-center flex-wrap mt-4">
-            <!-- Left Section (Legend Boxes) -->
-            <div class="d-flex align-items-center">
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #9FCDA8;"></span>
-                    <span class="ms-1">Accepté&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #7DC2A5;"></span>
-                    <span class="ms-1">Terminé&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #9EDF9C;"></span>
-                    <span class="ms-1">Prêt&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #F5DF4D;"></span>
-                    <span class="ms-1">En cours&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #F38071;"></span>
-                    <span class="ms-1">Annulé&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="legend-box" style="background-color: #A594F9;"></span>
-                    <span class="ms-1">Reçu</span>
-                </div>
-            </div>
-
-            <!-- Right Section (Circles) -->
-            <div class="d-flex align-items-center">
-                <div class="d-flex align-items-center me-4">
-                    <span class="circle-indicator" style="background-color: #28a745;"></span>
-                    <span class="ms-2">Disponible&nbsp;&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="circle-indicator" style="background-color: #dc3545;"></span>
-                    <span class="ms-2">Non Disponible</span>
+        <!-- Right Side: Calendar -->
+        <div class="col-md-10 col-sm-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div id="calendar-container">
+                        <div id="calendar"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-@else
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="alert alert-danger">
-                {{ __('Vous n’avez pas la permission d’accéder à cette page.') }}
-            </div>
-        </div>
-    </div>
-@endif
+
+</div>
+
+</div>
+
 @endsection
 
 @push('styles')
@@ -135,181 +268,160 @@ Modifier
             }
         });
 
-        $(document).ready(function () {
-            //
+        let selectedDoctorId = {{ $doctors->first()->id ?? 'null' }};
+        let calendar; // Reference to FullCalendar instance
+        let availabilityDays = @json($availabilityDays);
+        let vacations = @json($vacations);
+        //console.log("Availability Days at Load:", availabilityDays);
+        ///////////////////////////////////////////////////////////////////////////////////////
+        function updateAvailableTimeSlots(response) {
+            const { all_slots, taken_slots } = response;
+            const totalSlots = all_slots.length;
+            const takenSlots = taken_slots.length;
+            const availableSlots = totalSlots - takenSlots;
+            //console.log("Response received:", response);
 
-            // Initialize field visibility based on patient type selection
-            function toggleFields() {
-                $('#referencedFields').show();
-                $('#walkInFields').hide();
-                $('#time-slots-wrapper').show();
-                $('#saveAppointmentRef').show();
-                $('#saveAppointmentPass').hide();
-            }
+            const timeSlotsWrapper = $("#time-slots");
+            timeSlotsWrapper.empty(); // Clear existing slots
 
-            toggleFields();
+            // Check if the doctor is on vacation
+            if (response.vacation) {
+                //console.log("Doctor is on vacation. No slots to display.");
+                const vacationMessage = `
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `;
+                timeSlotsWrapper.append(vacationMessage);
 
-            $('#patientRef, #patientPass').on('change', toggleFields);
-            function refreshCalendarEvents() {
-                $('#calendar').fullCalendar('refetchEvents'); // Fetch and reload events
-                console.log("Calendar events refreshed");
-            }
-
-            // Set interval to refresh calendar every 30 seconds
-            setInterval(refreshCalendarEvents, 10000);
-
-            //const timeSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
-            const timeSlotsContainer = document.getElementById('time-slots');
-            function updateAvailableTimeSlots(response) {
-                const { all_slots, taken_slots } = response;
-                console.log("Response received:", response);
-
-                const timeSlotsWrapper = $("#time-slots");
-                timeSlotsWrapper.empty(); // Clear existing slots
-
-                // Check if the doctor is on vacation
-                if (response.vacation) {
-                    //console.log("Doctor is on vacation. No slots to display.");
-                    const vacationMessage = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `;
-                    timeSlotsWrapper.append(vacationMessage);
-
-                    // Show a confirmation dialog to the user
-                    Swal.fire({
-                        title: "Le docteur est en vacances",
-                        text: "Voulez-vous créer une nouvelle disponibilité pour ce jour ?",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Oui, créer une disponibilité",
-                        cancelButtonText: "Non, annuler",
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Redirect to create new availability
-                            const selectedDate = $("#appointmentDate").val();
-                            window.location.href = `/availabilityHours/create?date=${selectedDate}`;
-                        } else {
-                            console.log("User chose not to create a new availability.");
-                        }
-                    });
-
-                    return; // Exit the function to avoid processing further
-                }
-
-                // Ensure `all_slots` is an array of strings or extract the appropriate property
-                all_slots.forEach(slot => {
-                    // If `slot` is an object, extract the desired property (e.g., `time` or `slot.time`)
-                    const time = typeof slot === "object" ? slot.time || slot.slot : slot;
-
-                    const slotElement = $('<div>')
-                        .addClass('time-slot') // Apply your custom CSS class
-                        .text(time); // Set the time as the displayed text
-
-                    // Check if the time is in taken_slots
-                    if (taken_slots.includes(time)) {
-                        // Mark this slot as taken
-                        slotElement.addClass('taken-slot').css({
-                            'background-color': '#e9ecef'
-                        });
+                // Show a confirmation dialog to the user
+                Swal.fire({
+                    title: "Le docteur est en vacances",
+                    text: "Voulez-vous créer une nouvelle disponibilité pour ce jour ?",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Oui, créer une disponibilité",
+                    cancelButtonText: "Non, annuler",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Redirect to create new availability
+                        const selectedDate = $("#appointmentDate").val();
+                        window.location.href = `/availabilityHours/create?date=${selectedDate}`;
                     } else {
-                        // Mark this slot as available and make it clickable
-                        slotElement.addClass('available-slot').on('click', function () {
-                            $('.time-slot').removeClass('selected');
-                            $(this).addClass('selected');
-                            $('#appointment_time').val(time); // Set selected time in hidden input
-                        });
+                        console.log("User chose not to create a new availability.");
                     }
-                    timeSlotsWrapper.append(slotElement);
                 });
+
+                return; // Exit the function to avoid processing further
             }
 
+            // Ensure `all_slots` is an array of strings or extract the appropriate property
+            all_slots.forEach(slot => {
+                // If `slot` is an object, extract the desired property (e.g., `time` or `slot.time`)
+                const time = typeof slot === "object" ? slot.time || slot.slot : slot;
 
-            function selectTimeSlot(element, time) {
-                document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
-                element.classList.add('selected');
-                $('#appointment_time').val(time);
-            }
-            ////////////////////////////////////////////////
-            $('#addMoreAvailable').click(function () {
-                const selectedDate = $('#appointmentDate').val(); // Get the selected date from the input field
+                const slotElement = $('<div>')
+                    .addClass('time-slot') // Apply your custom CSS class
+                    .text(time); // Set the time as the displayed text
 
-                // Check if a date is selected
-                if (selectedDate) {
-                    // Redirect to the URL with the selected date
-                    window.location.href = `/availability`;
+                // Check if the time is in taken_slots
+                if (taken_slots.includes(time)) {
+                    // Mark this slot as taken
+                    slotElement.addClass('taken-slot').css({
+                        'background-color': '#e9ecef'
+                    });
                 } else {
-                    alert("Please select a date before adding availability.");
+                    // Mark this slot as available and make it clickable
+                    slotElement.addClass('available-slot').on('click', function () {
+                        $('.time-slot').removeClass('selected');
+                        $(this).addClass('selected');
+                        $('#appointment_time').val(time); // Set selected time in hidden input
+                    });
+                }
+                timeSlotsWrapper.append(slotElement);
+            });
+            return { totalSlots, takenSlots, availableSlots };
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        function updateAppointmentStatus(appointmentId, statusId) {
+            $.ajax({
+                url: "/appointment-event/status", // Route URL
+                method: "POST",
+                data: {
+                    id: appointmentId,
+                    appointment_status_id: statusId,
+                    _token: $('meta[name="csrf-token"]').attr('content') // CSRF Token
+                },
+                success: function (response) {
+                    alert(response.message); // Optional: Show a success message
+                    $('#appointmentDetailsModal').modal('hide'); // Close the modal
+                    $('#calendar').fullCalendar('refetchEvents'); // Refresh the calendar
+                },
+                error: function (xhr) {
+                    alert(xhr.responseJSON.error || "An error occurred while updating the status.");
                 }
             });
-            ///////////////////////////////////////////////
-            $('input[name="appointmentType"]').on('change', function () {
-                const appointmentType = $(this).val(); // Get the selected type
-                const selectedDate = $('#appointmentDate').val();
+        }
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        function openAppointmentModal(appointment) {
+            const { start, patient_id, appointment_id, patient_name, patient_first_name, patient_last_name, email, status, motif_name, online, phone } = appointment;
 
-                if (!selectedDate) {
-                    alert("Veuillez d'abord sélectionner une date.");
-                    return;
-                }
 
-                // Decide which endpoint to call based on the appointment type
-                const url =
-                    appointmentType === "Téléconsultation"
-                        ? "/get-teleconsultation-time-slots"
-                        : "/get-available-time-slots";
+            // Update modal fields
+            document.getElementById("patientName").innerText = patient_name || "{{ trans('lang.unknown_patient') }}";
+            document.getElementById("appointmentStatus").innerText = status || "{{ trans('lang.unknown_status') }}";
+            document.getElementById("motifName").innerText = motif_name || "{{ trans('lang.no_motif_name') }}";
 
-                // Fetch time slots based on the selected type
-                $.ajax({
-                    url: url,
-                    type: "GET",
-                    data: { date: selectedDate },
-                    success: function (response) {
-                        if (response.all_slots && response.all_slots.length > 0) {
-                            // Update slots if they exist
-                            updateAvailableTimeSlots(response);
-                        } else {
-                            clearTimeSlots(); // Clear the time slots container
-                        }
-                    },
-                    error: function () {
-                        alert("Erreur lors de la récupération des créneaux horaires. Veuillez réessayer.");
-                    },
-                });
-            });
+            // Pass phone number to teleconsultation button
+            const teleconsultationButton = document.getElementById("createTeleconsultation");
+            // Hide "Mark as Ready" button if status is "Canceled"
+            const doneButton = document.getElementById("markAsDone");
+            const failedButton = document.getElementById("markAsFailed");
+            teleconsultationButton.setAttribute("data-phone", phone);
 
-            // Function to clear the time slots container
-            function clearTimeSlots() {
-                const timeSlotsWrapper = $("#time-slots");
-                timeSlotsWrapper.empty(); // Clear the container
-                timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+            // Show/hide the "Create Teleconsultation" button
+            if (online === "Téléconsultation" && status !== "Annulé" && status !== "Terminé") {
+
+                teleconsultationButton.classList.remove("d-none");
+                teleconsultationButton.onclick = () => {
+                    const url = `{{ route('teleconsultations.createMeet') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
+                    window.location.href = url;
+                };
+
+            } else {
+                teleconsultationButton.classList.add("d-none");
             }
-            //////////////////////////////////////////////////////////////////////////////
-            $('#patientDropdown').select2({
-                allowClear: false,
-                ajax: {
-                    url: "{{ route('patients.search') }}",
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return { q: params.term || '' };
-                    },
-                    processResults: function (data) {
-                        return { results: data };
-                    },
-                    cache: true
-                }
-            });
-            let availabilityDays = @json($availabilityDays);
-            let vacations = @json($vacations);
-            console.log("Availability Days at Load:", availabilityDays);
-            var calendar = $('#calendar').fullCalendar({
+
+
+            if (online === "Téléconsultation") {
+                doneButton.style.display = "none";
+                failedButton.style.display = "none";
+            }
+            else if (status === "Terminé" || status === "Annulé") {
+                doneButton.style.display = "none"; // Hide the Ready button
+                failedButton.style.display = "none"; // Optionally hide the Failed button too
+
+            } else if (status === "Prêt") {
+                doneButton.style.display = "none"; // Hide the Ready button
+                failedButton.style.display = "inline-block";
+            }
+            else {
+                doneButton.style.display = "inline-block"; // Show the Ready button
+                failedButton.style.display = "inline-block"; // Show the Failed button
+            }
+
+            // Show the modal
+            $("#appointmentDetailsModal").modal("show");
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        //the agenda
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        function initializeCalendar() {
+            if (calendar) {
+                $('#calendar').fullCalendar('destroy'); // Destroy the existing calendar
+            }
+            calendar = $('#calendar').fullCalendar({
                 locale: 'fr',
-                editable: true,
                 height: 600,
                 header: {
                     left: 'prev,next today',
@@ -319,10 +431,16 @@ Modifier
                 defaultView: 'agendaWeek',
                 minTime: "08:00:00",
                 eventLimit: true, // Allow "more" link for overflow events
+                allDaySlot: true,
+
+                eventOverlap: false, // Prevent overlapping of events
                 dayRender: function (date, cell) {
+                    //console.log('fetchhhhhhh');
                     // Format date as YYYY-MM-DD for comparison
                     const formattedDayName = date.locale('fr').format('dddd').toLowerCase(); // Normalize to lowercase
+                    // console.log('formatted', formattedDayName);
                     const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase()); // Normalize backend days to lowercase
+                    //console.log('normalize', normalizedAvailabilityDays);
                     const today = moment().startOf('day'); // Get today's date
                     const currentDay = date.startOf('day');
                     // Check if the doctor is on vacation
@@ -338,8 +456,9 @@ Modifier
                         cell.css('cursor', 'not-allowed');
                         cell.css('color', '#721c24'); // Dark red for text
                         cell.css('position', 'relative');
-                        cell.append('<span class="dot past-dot"></span>'); // Add a dot for past day
+                        cell.append('<span class="dot unavailable-dot"></span>'); // Red dot
                         cell.attr('title', 'Ce jour est dans le passé.'); // Tooltip for past days
+                        //console.log('dayisleft');
                     } else if (isVacationDay) {
                         cell.addClass('cell-with-background'); // Apply custom background for vacation days
                         cell.attr('title', 'Le docteur est en vacances ce jour.');
@@ -349,20 +468,44 @@ Modifier
                         cell.css('cursor', 'pointer');
                         cell.css('position', 'relative');
                         cell.append('<span class="dot available-dot"></span>'); // Green dot
+                        //console.log('dayavai');
                     } else {
                         // Mark as unavailable day
                         cell.css('background-color', '#e9ecef'); // Gray for unavailable days
                         cell.css('position', 'relative');
                         cell.append('<span class="dot unavailable-dot"></span>'); // Red dot
+                        //console.log('daynotavai');
                     }
+                    const selectedDate = date.format('YYYY-MM-DD');
+                    $.ajax({
+                        url: "/tele-get-available-time-slots",
+                        type: "GET",
+                        data: { date: selectedDate, doctor_id: selectedDoctorId },
+                        success: function (response) {
+                            const totalSlots = response.all_slots ? response.all_slots.length : 0; // Default to 0 if no slots
+                            const takenSlots = response.taken_slots ? response.taken_slots.length : 0; // Default to 0 if no slots
+
+                            // Display the taken/total ratio in the cell
+                            const ratioHtml = `<div class="static-number">${takenSlots}/${totalSlots}</div>`;
+                            cell.append(ratioHtml);
+                        },
+                        error: function () {
+                            // If there's an error (e.g., no availability), default to 0/0
+                            const ratioHtml = `<div class="static-number">0/0</div>`;
+                            cell.append(ratioHtml);
+                            console.warn(`No availability data found for ${selectedDate}`);
+                        }
+                    });
+
                 },
                 events: function (start, end, timezone, callback) {
                     $.ajax({
-                        url: "/appointment-event",
+                        url: "/tele-doctor-agenda-data",
                         type: "GET",
                         data: {
                             start: start.format("YYYY-MM-DD HH:mm:ss"),
-                            end: end.format("YYYY-MM-DD HH:mm:ss")
+                            end: end.format("YYYY-MM-DD HH:mm:ss"),
+                            doctor_id: selectedDoctorId
                         },
                         dataType: "json",
                         success: function (data) {
@@ -428,6 +571,8 @@ Modifier
                     });
                 },
                 eventRender: function (event, element) {
+                    const appointmentDate = event.start ? moment(event.start).format('YYYY-MM-DD') : 'N/A';
+                    const appointmentTime = event.start ? moment(event.start).format('HH:mm') : 'N/A';
 
                     // Adding title attribute for simple tooltip
                     let icon;
@@ -451,9 +596,22 @@ Modifier
                             break;
                     }
                     element.find('.fc-title').prepend(icon);
-                    element.attr('title', event.description);
-                    element.find('.fc-title').css('white-space', 'nowrap');
-                    element.find('.fc-time').css('font-size', '1em');
+
+                    element.on('mouseenter', function () {
+                        const detailsHtml = `<p><strong>${translations.appointment_date}:</strong> ${appointmentDate}</p><p><strong>${translations.appointment_time}:</strong> ${appointmentTime}</p> <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p> <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p> <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p> <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p> <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p> `;
+
+                        $('#appointment-details').html(detailsHtml);
+                    });
+
+                    element.on('mouseleave', function () {
+                        $('#appointment-details').html(`<p>${translations.hover_to_view_details}</p>`);
+                    });
+
+
+
+                    //element.attr('title', event.description);
+                    //element.find('.fc-title').css('white-space', 'nowrap');
+                    //element.find('.fc-time').css('font-size', '1em');
 
                 },
                 selectable: true,
@@ -464,6 +622,7 @@ Modifier
                 },
                 selectHelper: true,
                 select: function (start, end) {
+                    //console.log('aaaaaaattttt')
                     const selectedDate = start.format("YYYY-MM-DD");
                     const today = moment().format("YYYY-MM-DD"); // Get today's date
 
@@ -498,11 +657,11 @@ Modifier
                     $('#endMinute').val(end.format("mm"));
 
                     $.ajax({
-                        url: "/get-available-time-slots",
+                        url: "/tele-get-available-time-slots",
                         type: "GET",
-                        data: { date: selectedDate },
+                        data: { date: selectedDate, doctor_id: selectedDoctorId },
                         success: function (takenSlots) {
-                            // Call function to update the time slots grid
+
                             updateAvailableTimeSlots(takenSlots);
                             $('#appointmentModal').modal('show');
                         },
@@ -525,42 +684,8 @@ Modifier
                     });
                 },
                 editable: true,
-                eventResize: function (event) {
-                    $.ajax({
-                        url: "/appointment-event/action",
-                        type: "POST",
-                        data: {
-                            id: event.id,
-                            start_at: event.start.utc().format('YYYY-MM-DD HH:mm:ss'),
-                            ends_at: event.end.utc().format('YYYY-MM-DD HH:mm:ss'),
-                            type: 'update'
-
-                        },
-                        success: function () {
-                            calendar.fullCalendar('refetchEvents');
-                            alert("Rendez-vous mis à jour avec succès.");
-                            console.log("Start At:", start_at);
-                            console.log("End At:", ends_at);
-                        }
-                    });
-                },
-                eventDrop: function (event) {
-                    $.ajax({
-                        url: "/appointment-event/action",
-                        type: "POST",
-                        data: {
-                            id: event.id,
-                            start_at: event.start.format(),
-                            ends_at: event.end.format(),
-                            type: 'update'
-                        },
-                        success: function () {
-                            calendar.fullCalendar('refetchEvents');
-                            alert("Rendez-vous mis à jour avec succès.");
-                        }
-                    });
-                },
                 eventClick: function (event) {
+                    console.log("Event object:", event);
                     const appointment = {
                         appointment_id: event.id,
                         patient_name: event.patient_name,
@@ -574,6 +699,7 @@ Modifier
                         start: event.start.format(),
                         phone: event.patient_phone_number // Include the patient phone number
                     };
+                    console.log(event.patient_name);
                     $('#patientName').text(event.patient_name);
                     $('#appointmentStatus').text(event.status);
                     $('#appointmentDetails').text(event.details || 'No additional details');
@@ -595,11 +721,271 @@ Modifier
                     });
                 }
             });
+        }
+        ///////////////////////////
+        const translations = {
+            appointment_date: "{{ trans('lang.appointment_date') }}",
+            appointment_time: "{{ trans('lang.appointment_time') }}",
+            patient_nom: "{{ trans('lang.patient_nom') }}",
+            appointment_status: "{{ trans('lang.appointment_status') }}",
+            motif_name: "{{ trans('lang.motif_name') }}",
+            unknown_patient: "{{ trans('lang.unknown_patient') }}",
+            unknown_status: "{{ trans('lang.unknown_status') }}",
+            no_motif_name: "{{ trans('lang.no_motif_name') }}",
+            phone: "{{ trans('lang.phone') }}",
+            email: "{{ trans('lang.email') }}",
+            hover_to_view_details: "{{ trans('lang.hover_to_view_details') }}"
+        };
+        //////////////////////////
+        function fetchDoctorAvailabilityData() {
+            //console.log('Fetching doctor availability data...');
+            if (!selectedDoctorId) {
+                console.warn("No doctor selected.");
+                return;
+            }
+
+            $.ajax({
+                url: "/tele-get-doctor-availability-data",
+                type: "GET",
+                data: { doctor_id: selectedDoctorId },
+                success: function (response) {
+                    if (response.success) {
+                        availabilityDays = response.availabilityDays || [];
+                        vacations = response.vacations || [];
+
+                        console.log("Updated Availability Days:", availabilityDays);
+                        console.log("Updated Vacations:", vacations);
+
+                        // Initialize or refresh the calendar after data is updated
+                        initializeCalendar();
+                    } else {
+                        console.error("Failed to fetch doctor availability data:", response.message);
+                    }
+                },
+                error: function (xhr) {
+                    console.error("Error fetching doctor availability data:", xhr.responseText);
+                }
+            });
+        }
+        // get patterns for the create modal
+        // Function to refresh the patterns dropdown
+        function refreshPatternDropdown() {
+            //console.log('refpatt');
+            $('#patternDropdown').select2({
+                ajax: {
+                    url: "/tele-patterns", // Endpoint to fetch patterns
+                    dataType: 'json',
+                    delay: 250,
+                    data: function () {
+                        return {
+                            doctor_id: selectedDoctorId // Pass the selected doctor ID
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.map(function (pattern) {
+                                return { id: pattern.id, text: pattern.nom };
+                            })
+                        };
+                    },
+                    cache: true
+                },
+                placeholder: "{{ trans('lang.select_pattern') }}",
+                allowClear: false,
+                minimumResultsForSearch: -1 // Disable search box
+            });
+        }
+
+        // Function to refresh the patients dropdown
+        function refreshPatientDropdown() {
+            //console.log('refpatient');
+            $('#patientDropdown').select2({
+                allowClear: false,
+                ajax: {
+                    url: "/tele-patients/search",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term || '',
+                            doctor_id: selectedDoctorId // Pass the selected doctor ID
+                        };
+                    },
+                    processResults: function (data) {
+                        return { results: data };
+                    },
+                    cache: true
+                }
+            });
+        }
+
+        $('.doctor-item').on('click', function () {
+            $('.doctor-item').removeClass('active');
+            $(this).addClass('active');
+            selectedDoctorId = $(this).data('doctor-id');
+
+            // Store the selected doctor in sessionStorage
+            sessionStorage.setItem('selectedDoctorId', selectedDoctorId);
+            fetchDoctorAvailabilityData();
+            refreshPatternDropdown();
+            refreshPatientDropdown();
+            // Refresh calendar events for the selected doctor
+            $('#calendar').fullCalendar('refetchEvents');
+        });
+
+        $(document).ready(function () {
+            fetchDoctorAvailabilityData();
+            refreshPatternDropdown();
+            refreshPatientDropdown();
+
+            //////////////////////////////////////////////////////////////////////
+            $('.doctor-item').on('click', function () {
+                const savedDoctorId = sessionStorage.getItem('selectedDoctorId');
+
+                if (savedDoctorId) {
+
+                    // Reapply the active class to the previously selected doctor
+                    $('.doctor-item').removeClass('active');
+                    $(`.doctor-item[data-doctor-id="${savedDoctorId}"]`).addClass('active');
+                    selectedDoctorId = savedDoctorId;
+
+                    // Refresh calendar events for the saved doctor
+                    $('#calendar').fullCalendar('refetchEvents');
+                } else {
+                    // Default to the first doctor if no doctor is saved
+                    selectedDoctorId = $('.doctor-item.active').data('doctor-id');
+                }
+
+            });
+            //////////////////////////////////////////////////////////////////////////
+            $('#appointmentModal').on('show.bs.modal', function () {
+                //console.log("Opening modal, refreshing dropdowns...");
+                resetAppointmentType();
+                // Reset and refresh the patient dropdown
+                $('#patientDropdown').val(null).trigger('change'); // Clear selected value
+                refreshPatientDropdown(); // Reinitialize with current doctor
+
+                // Reset and refresh the pattern dropdown
+                $('#patternDropdown').val(null).trigger('change'); // Clear selected value
+                refreshPatternDropdown(); // Reinitialize with current doctor
+            });
+            ////////////////////////////////////////////////////////////////////
+            // Initialize field visibility based on patient type selection
+            function toggleFields() {
+                $('#referencedFields').show();
+                $('#walkInFields').hide();
+                $('#time-slots-wrapper').show();
+                $('#saveAppointmentRef').show();
+                $('#saveAppointmentPass').hide();
+            }
+
+            toggleFields();
+            ////////////////////////////////////////////////////////////////////
+            $('#patientRef, #patientPass').on('change', toggleFields);
+            function refreshCalendarEvents() {
+                $('#calendar').fullCalendar('refetchEvents'); // Fetch and reload events
+                console.log("Calendar events refreshed");
+            }
+
+            // Set interval to refresh calendar every 30 seconds
+            //setInterval(refreshCalendarEvents, 10000);
+
+            //const timeSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
+            const timeSlotsContainer = document.getElementById('time-slots');
+
+
+            //////////////////////////////////////////////////////////////////////////////////
+            function selectTimeSlot(element, time) {
+                document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+                element.classList.add('selected');
+                $('#appointment_time').val(time);
+            }
+            ////////////////////////////////////////////////
+            $('#addMoreAvailable').click(function () {
+                const selectedDate = $('#appointmentDate').val(); // Get the selected date from the input field
+
+                // Check if a date is selected
+                if (selectedDate) {
+                    // Redirect to the URL with the selected date
+                    window.location.href = `/availability`;
+                } else {
+                    alert("Please select a date before adding availability.");
+                }
+            });
+            ///////////////////////////////////////////////
+            $('input[name="appointmentType"]').on('change', function () {
+                const appointmentType = $(this).val(); // Get the selected type
+                const selectedDate = $('#appointmentDate').val();
+
+                if (!selectedDate) {
+                    alert("Veuillez d'abord sélectionner une date.");
+                    return;
+                }
+
+                // Decide which endpoint to call based on the appointment type
+                const url =
+                    appointmentType === "Téléconsultation"
+                        ? "/tele-get-teleconsultation-time-slots"
+                        : "/tele-get-available-time-slots";
+
+                // Fetch time slots based on the selected type
+                $.ajax({
+                    url: url,
+                    type: "GET",
+                    data: { date: selectedDate, doctor_id: selectedDoctorId },
+                    success: function (response) {
+                        if (response.all_slots && response.all_slots.length > 0) {
+                            // Update slots if they exist
+                            updateAvailableTimeSlots(response);
+                        } else {
+                            clearTimeSlots(); // Clear the time slots container
+                        }
+                    },
+                    error: function () {
+                        alert("Erreur lors de la récupération des créneaux horaires. Veuillez réessayer.");
+                    },
+                });
+            });
+
+            // Function to clear the time slots container
+            function clearTimeSlots() {
+                const timeSlotsWrapper = $("#time-slots");
+                timeSlotsWrapper.empty(); // Clear the container
+                timeSlotsWrapper.append(`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+            }
+            /////////////////////////////////////////////////////////////////
+            function getStatusColor(status) {
+                const colors = {
+                    'Accepté': '#9FCDA8',
+                    'Terminé': '#7DC2A5',
+                    'Prêt': '#9EDF9C',
+                    'En cours': '#F5DF4D',
+                    'Annulé': '#F38071',
+                    'Reçu': '#A594F9'
+                };
+                return colors[status] || '#B4BAFF';
+            }
+            ////////////////////////////////////////////////////////////////
+            $('#doctorSearch').on('keyup', function () {
+                const searchText = $(this).val().toLowerCase();
+
+                // Filter the list items
+                $('.doctor-list .doctor-item').filter(function () {
+                    const doctorName = $(this).text().toLowerCase();
+                    $(this).toggle(doctorName.includes(searchText));
+                });
+            });
+            //////////////////////////////////////////////////////////////////
             $('#saveAppointmentRef').click(function () {
+
                 let appointmentDate = $('#appointmentDate').val();
                 let patientId = $('#patientDropdown').val();
                 let selectedTime = $('#appointment_time').val();
-                let patternId = $('#patern_id').val();
+                let patternId = $('#patternDropdown').val();
                 let appointmentType = $('input[name="appointmentType"]:checked').val(); // Get appointment type
                 let isValid = true;
 
@@ -609,26 +995,31 @@ Modifier
 
                 // Validation checks
                 if (!patientId) {
+
                     $('#patientDropdown').addClass('error-input')
                         .after('<div class="error-message text-danger">Veuillez sélectionner un patient.</div>');
                     isValid = false;
                 }
                 if (!appointmentDate) {
+
                     $('#appointmentDate').addClass('error-input')
                         .after('<div class="error-message text-danger">Veuillez sélectionner une date.</div>');
                     isValid = false;
                 }
                 if (!selectedTime) {
+
                     $('#appointment_time').addClass('error-input')
                         .after('<div class="error-message text-danger">Veuillez sélectionner une heure.</div>');
                     isValid = false;
                 }
                 if (!patternId) {
-                    $('#patern_id').addClass('error-input')
+
+                    $('#patternDropdown').addClass('error-input')
                         .after('<div class="error-message text-danger">Veuillez sélectionner un motif.</div>');
                     isValid = false;
                 }
                 if (!appointmentType) {
+
                     alert("Veuillez sélectionner le type de rendez-vous (cabinet ou téléconsultation).");
                     isValid = false;
                 }
@@ -643,6 +1034,7 @@ Modifier
                 // Construct the appointment data
                 let startAt = `${appointmentDate} ${selectedTime}:00`;
                 let appointmentData = {
+                    doctor_id: selectedDoctorId,
                     patient_id: patientId,
                     appointment_at: appointmentDate,
                     appointment_time: selectedTime,
@@ -655,14 +1047,28 @@ Modifier
 
                 // Make the AJAX call
                 $.ajax({
-                    url: "{{ route('appointments.store') }}", // Ensure this route exists in your backend
+                    url: "/tele-save-appointment",
                     method: "POST",
                     data: appointmentData,
                     success: function (response) {
                         $('#appointmentModal').modal('hide'); // Close the modal
                         alert("Rendez-vous enregistré avec succès."); // Success message in French
-                        location.reload(true); // Reload the page to reflect the changes
-                        $('#calendar').fullCalendar('refetchEvents'); // Refetch calendar events
+                        refreshPatternDropdown();
+                        refreshPatientDropdown();
+                        const savedDoctorId = sessionStorage.getItem('selectedDoctorId');
+
+                        // Refetch calendar events
+                        if (savedDoctorId) {
+                            selectedDoctorId = savedDoctorId;
+                            $('#calendar').fullCalendar('refetchEvents');
+
+                            // Ensure the previously selected doctor remains active
+                            $('.doctor-item').removeClass('active');
+                            $(`.doctor-item[data-doctor-id="${savedDoctorId}"]`).addClass('active');
+                        } else {
+                            // Default to the first doctor if none is saved
+                            selectedDoctorId = $('.doctor-item.active').data('doctor-id');
+                        }
                     },
                     error: function (xhr) {
                         if (xhr.status === 422) {
@@ -680,25 +1086,7 @@ Modifier
                 });
             });
 
-            function updateAppointmentStatus(appointmentId, statusId) {
-                $.ajax({
-                    url: "/appointment-event/status", // Route URL
-                    method: "POST",
-                    data: {
-                        id: appointmentId,
-                        appointment_status_id: statusId,
-                        _token: $('meta[name="csrf-token"]').attr('content') // CSRF Token
-                    },
-                    success: function (response) {
-                        alert(response.message); // Optional: Show a success message
-                        $('#appointmentDetailsModal').modal('hide'); // Close the modal
-                        $('#calendar').fullCalendar('refetchEvents'); // Refresh the calendar
-                    },
-                    error: function (xhr) {
-                        alert(xhr.responseJSON.error || "An error occurred while updating the status.");
-                    }
-                });
-            }
+
             $('#saveAppointmentPass').click(function () {
                 // Gather form data from "Patient de passage" fields
                 let formData = {
@@ -729,6 +1117,7 @@ Modifier
                             $('#appointmentModal').modal('hide'); // Hide the modal
                             $('#appointmentForm')[0].reset(); // Reset the form
                             $('#calendar').fullCalendar('refetchEvents'); // Refresh the calendar
+                            refreshDoctorList(selectedDoctorId);
                         }
                     },
                     error: function (xhr) {
@@ -742,74 +1131,28 @@ Modifier
                     }
                 });
             });
-            function openAppointmentModal(appointment) {
-                const { start, patient_id, appointment_id, patient_name, patient_first_name, patient_last_name, email, status, motif_name, online, phone } = appointment;
 
-
-                // Update modal fields
-                document.getElementById("patientName").innerText = patient_name || "{{ trans('lang.unknown_patient') }}";
-                document.getElementById("appointmentStatus").innerText = status || "{{ trans('lang.unknown_status') }}";
-                document.getElementById("motifName").innerText = motif_name || "{{ trans('lang.no_motif_name') }}";
-
-                // Pass phone number to teleconsultation button
-                const teleconsultationButton = document.getElementById("createTeleconsultation");
-                // Hide "Mark as Ready" button if status is "Canceled"
-                const doneButton = document.getElementById("markAsDone");
-                const failedButton = document.getElementById("markAsFailed");
-                teleconsultationButton.setAttribute("data-phone", phone);
-                const hasUpdateStatusPermission = {{ auth()->user()->hasPermissionInContext('updateStatus', $doctorId) ? 'true' : 'false' }};
-                const isDoctor = {{ auth()->user()->hasRole('doctor') ? 'true' : 'false' }};
-
-                // Show/hide the "Create Teleconsultation" button
-                if (isDoctor && online === "Téléconsultation" && status !== "Annulé" && status !== "Terminé") {
-
-                    teleconsultationButton.classList.remove("d-none");
-                    teleconsultationButton.onclick = () => {
-                        const url = `{{ route('teleconsultations.createMeet') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
-                        window.location.href = url;
-                    };
-
-                } else {
-                    teleconsultationButton.classList.add("d-none");
-                }
-
-                if (hasUpdateStatusPermission) {
-                    if (online === "Téléconsultation") {
-                        doneButton.style.display = "none";
-                        failedButton.style.display = "none";
-                    }
-                    else if (status === "Terminé" || status === "Annulé") {
-                        doneButton.style.display = "none"; // Hide the Ready button
-                        failedButton.style.display = "none"; // Optionally hide the Failed button too
-
-                    } else if (status === "Prêt") {
-                        doneButton.style.display = "none"; // Hide the Ready button
-                        failedButton.style.display = "inline-block";
-                    }
-                    else {
-                        doneButton.style.display = "inline-block"; // Show the Ready button
-                        failedButton.style.display = "inline-block"; // Show the Failed button
-                    }
-                } else {
-                    // If the user does not have permission, hide both buttons
-                    doneButton.style.display = "none";
-                    failedButton.style.display = "none";
-                }
-                // Show the modal
-                $("#appointmentDetailsModal").modal("show");
-            }
         });
-
-        $(document).ready(function () {
-            // Handle doctor selection change
-            $('#doctorDropdown').change(function () {
-                const selectedDoctorId = $(this).val();
-                if (selectedDoctorId) {
-                    // Refresh calendar events based on the selected doctor
-                    $('#calendar').fullCalendar('refetchEvents');
+        function resetAppointmentType() {
+            // Set the "cabinet" radio button as checked
+            $('#inCabinet').prop('checked', true);
+            // Uncheck the "Téléconsultation" radio button
+            $('#Téléconsultation').prop('checked', false);
+        }
+        function refreshDoctorList(selectedDoctorId) {
+            $.ajax({
+                url: "/get-doctors-list", // Adjust this endpoint as needed
+                type: "GET",
+                success: function (response) {
+                    // Update the doctor list dropdown
+                    const doctorDropdown = $('#doctorDropdown');
+                    doctorDropdown.empty(); // Clear the current options
+                    response.doctors.forEach(doctor => {
+                        const selected = doctor.id === selectedDoctorId ? 'selected' : '';
+                        doctorDropdown.append(`<option value="${doctor.id}" ${selected}>${doctor.name}</option>`);
+                    });
                 }
             });
-        });
-
+        }
     </script>
 @endpush

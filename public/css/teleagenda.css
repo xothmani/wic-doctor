@@ -80,15 +80,24 @@
 
 /* Style for event blocks */
 .fc-event {
-    font-size: 0.8em; /* Smaller font size */
-        padding: 2px 4px; /* Reduced padding */
-        margin: 1px; /* Reduced margin */
-        white-space: nowrap; /* Prevent text from wrapping */
-        overflow: hidden; /* Hide overflow */
-        text-overflow: ellipsis; /* Add ellipsis for overflow text */
-        border-radius: 3px; /* Optional: Adjust border radius */
+    font-size: calc(0.5rem + 0.3vw); /* Adjusts based on viewport width */
+    padding: 0 4px; /* Adds padding for better spacing */
 }
-
+.fc-event {
+    font-size: 13px; /* Adjust the size as needed */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-overflow: ellipsis; /* Show "..." for overflowing text */
+    white-space: nowrap;
+    overflow: hidden;
+}
+.fc-event {
+    border-radius: 5px; /* Adds rounded corners */
+    border: 1px solid #ccc; /* Light border */
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1); /* Adds a slight shadow */
+}
 
 /* Modal header and footer */
 .modal-header, .modal-footer {
@@ -227,7 +236,7 @@
 }
 @media (max-width: 768px) {
     #calendar {
-        height: 600px; /* Adjust as needed */
+        height: 700px; /* Adjust as needed */
     }
 }
 .time-slot {
@@ -237,5 +246,142 @@
 }
 #calendar-container {
     width: 100%;
-    height: 700px; /* Adjust height as needed */
+    height: 650px; /* Adjust height as needed */
+}
+.doctor-list-container {
+    flex-grow: 1;
+    overflow-y: auto;  /* Scroll uniquement pour cette zone */
+    max-height: 300px;  /* Hauteur maximale pour la liste des médecins */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0;
+}
+.doctor-details-container {
+    flex-grow: 1;
+    overflow-y: auto;  /* Scroll uniquement pour cette nouvelle zone */
+    max-height: 200px;  /* Hauteur maximale pour la sous-section */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 10px;
+    padding: 10px;
+}
+.card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: auto; /* Let the height adjust based on content */
+    min-height: 200px; /* Ensure a minimum height for both cards */
+    margin-bottom: 20px; /* Add some spacing between cards */
+}
+
+.card-body {
+    flex: 1;
+    overflow-y: auto; /* Add scroll if content overflows */
+}
+
+.doctor-list-container,
+
+#appointment-details p {
+    margin: 0;
+    padding: 5px 0;
+    font-size: 14px; /* Adjust font size for better readability */
+    line-height: 1.5;
+}
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    background-color: #f8f9fa; /* Light gray */
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.card-title {
+    margin: 0;
+}
+
+.doctor-list-container {
+    max-height: 300px; /* Set height for scrollable content */
+    overflow-y: auto;
+}
+
+.list-group {
+    margin: 0;
+    padding: 0;
+}
+
+.list-group-item {
+    /*max-height: fit-content;
+    border: none;
+    font-size: 0.9rem; /* Reduce font size */
+    padding: 8px 10px; /* Smaller padding */
+    margin: 3px 0; /* Smaller margin between items */
+    background-color: #ffffff !important;
+    color: #000000 !important; /* Default text color */
+    transition: background-color 0.3s, color 0.3s;
+    transition: all 0.3s ease-in-out;
+    border-radius: 4px; /* Slightly rounded corners */
+}
+
+.list-group-item:hover {
+    background-color: #e9ecef;
+    color: #007bff; /* Bootstrap primary color */
+}
+
+.list-group-item.active {
+    background-color: #789DBC !important;
+    color: white;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.list-group-item.active:hover {
+    background-color: #0056b3;
+}
+
+.doctor-item {
+    cursor: pointer;
+    text-align: center;
+}
+.d-flex.align-items-stretch {
+    display: flex;
+    align-items: stretch;
+}
+
+.card.h-100 {
+    height: 100%; /* Stretch cards to full height */
+}
+
+.row.d-flex.align-items-stretch > .col-md-2,
+.row.d-flex.align-items-stretch > .col-md-10 {
+    display: flex;
+    flex-direction: column;
+}
+#doctorSearch {
+    border-radius: 5px;
+    font-size: 14px;
+}
+.fc-daygrid-day-number {
+    font-size: 14px;
+    color: #007bff; /* Blue color */
+    margin-bottom: 5px;
+}
+
+.fc-daygrid-day .static-number {
+    font-size: 12px;
+    color: red;
+    font-weight: bold;
+}
+.static-number {
+    position: absolute;
+    left: 50%; /* Adjust horizontal position if needed */
+    font-size: 12px; /* Adjust font size */
+    color: #333; /* Change the color if desired */
+    z-index: 10; /* Ensure it appears above other elements */
 }

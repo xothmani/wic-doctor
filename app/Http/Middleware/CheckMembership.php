@@ -29,7 +29,7 @@ class CheckMembership
             }
 
             // Check for 'doctor' role
-            if ($user->hasRole('doctor')) {
+            if ($user->hasRole('doctor') || $user->hasRole('Telesecretary')) {
                 $activeMembership = DB::table('membership')
                     ->where('user_id', $userId)
                     ->where('end_date', '>=', $today)
@@ -48,12 +48,6 @@ class CheckMembership
 
             // Check for 'Secretary' role
             if ($user->hasRole('Secretary')) {
-                $this->checkAccess($userId, $today);
-                return $next($request);
-            }
-
-            // Check for 'Telsecretary' role
-            if ($user->hasRole('Telesecretary')) {
                 $this->checkAccess($userId, $today);
                 return $next($request);
             }
