@@ -41,6 +41,8 @@ use App\Http\Controllers\DoctorTelesecretariatController;
 use App\Http\Controllers\NewsLatterController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\DoctorTagController;
+use App\Http\Controllers\DoctorPermissionController;
+
 
 
 Route::get('/payment-success', function () {
@@ -51,7 +53,22 @@ Route::get('/payment-error', function () {
     return view('payment.error'); // Your error Blade view
 })->name('payment.error');
 
+////////////////////////////
+Route::prefix('profile_management')->group(function () {
+    Route::resource('Doctors_permissions', DoctorPermissionController::class);
+    Route::resource('Doctors_users', DoctorUserController::class)->parameters([
+        'Doctors_users' => 'user', // Alias Doctors_user to user
+    ]);
+    Route::post('Doctors_permissions/update', [DoctorPermissionController::class, 'update'])
+        ->name('Doctors_permissions.update');
+    Route::post('Doctors_permissions/fetchUserRoles', [DoctorPermissionController::class, 'fetchUserRoles'])
+        ->name('Doctors_permissions.fetchUserRoles');
 
+    Route::post('Doctors_permissions/storePermissions', [DoctorPermissionController::class, 'storePermissions'])->name('Doctors_permissions.storePermissions');
+    Route::post('telesecretary_management/store_telesecretary', [DoctorUserController::class, 'store_telesecretary'])->name('telesecretary_management.store_telesecretary');
+
+});
+////////////////////////
 
 
 Auth::routes();
@@ -124,7 +141,7 @@ Route::resource('clinicLevels', 'ClinicLevelController')->except([
 
 Route::get('storage/app/public/{id}/{conversion}/{filename?}', 'UploadController@storage');
 //Route::middleware('auth')->group(function () {
-Route::group(['middleware' => ['auth', 'check.membership']], function () {  
+Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
     Route::get('/', 'DashboardController@index')->name('dashboard');
     Route::resource('patterns', PatternController::class);
@@ -159,10 +176,10 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::put('modules/{id}', 'ModuleController@enable')->name('modules.enable');
     Route::post('modules/{id}/install', 'ModuleController@install')->name('modules.install');
     Route::post('modules/{id}/update', 'ModuleController@update')->name('modules.update');
-// Route indépendante pour updateLanguage avec son propre middleware ou sans middleware
-Route::patch('settings/updateLanguage', 'AppSettingController@updateLanguage')
-    ->middleware(['permission:update-language']) // Remplacez ou supprimez le middleware selon vos besoins
-    ->name('update-language');
+    // Route indépendante pour updateLanguage avec son propre middleware ou sans middleware
+    Route::patch('settings/updateLanguage', 'AppSettingController@updateLanguage')
+        ->middleware(['permission:update-language']) // Remplacez ou supprimez le middleware selon vos besoins
+        ->name('update-language');
 
 
     Route::group(['middleware' => ['permission:app-settings']], function () {
@@ -178,7 +195,7 @@ Route::patch('settings/updateLanguage', 'AppSettingController@updateLanguage')
             ]);
             Route::get('users/login-as-user/{id}', 'UserController@loginAsUser')->name('users.login-as-user');
             Route::patch('update', 'AppSettingController@update');
-           // Route::patch('updateLanguage', 'AppSettingController@updateLanguage');
+            // Route::patch('updateLanguage', 'AppSettingController@updateLanguage');
             Route::patch('translate', 'AppSettingController@translate');
             Route::get('sync-translation', 'AppSettingController@syncTranslation');
             Route::get('clear-cache', 'AppSettingController@clearCache');
@@ -194,7 +211,7 @@ Route::patch('settings/updateLanguage', 'AppSettingController@updateLanguage')
         'show'
     ]);
 
-    Route::post('patients/remove-media','PatientController@removeMedia');
+    Route::post('patients/remove-media', 'PatientController@removeMedia');
     Route::resource('patients', 'PatientController');
 
     Route::get('requestedClinics', 'ClinicController@requestedClinics')->name('requestedClinics.index');
@@ -233,7 +250,11 @@ Route::patch('settings/updateLanguage', 'AppSettingController@updateLanguage')
         'show'
     ]);
     Route::resource('payments', 'PaymentController')->except([
-        'create', 'store', 'edit', 'update', 'destroy'
+        'create',
+        'store',
+        'edit',
+        'update',
+        'destroy'
     ]);
     Route::post('paymentMethods/remove-media', 'PaymentMethodController@removeMedia');
     Route::resource('paymentMethods', 'PaymentMethodController')->except([
@@ -249,17 +270,25 @@ Route::patch('settings/updateLanguage', 'AppSettingController@updateLanguage')
         'show'
     ]);
     Route::resource('notifications', 'NotificationController')->except([
-        'create', 'store', 'update', 'edit',
+        'create',
+        'store',
+        'update',
+        'edit',
     ]);
-   // Route::resource('appointments', 'AppointmentController');
+    // Route::resource('appointments', 'AppointmentController');
 
     Route::resource('earnings', 'EarningController')->except([
-        'show', 'edit', 'update'
+        'show',
+        'edit',
+        'update'
     ]);
 
     Route::get('clinicPayouts/create/{id}', 'ClinicPayoutController@create')->name('clinicPayouts.create');
     Route::resource('clinicPayouts', 'ClinicPayoutController')->except([
-        'show', 'edit', 'update', 'create'
+        'show',
+        'edit',
+        'update',
+        'create'
     ]);
 
     Route::resource('optionGroups', 'OptionGroupController')->except([
@@ -282,58 +311,61 @@ Route::patch('settings/updateLanguage', 'AppSettingController@updateLanguage')
         'show'
     ]);
     Route::resource('walletTransactions', 'WalletTransactionController')->except([
-        'show', 'edit', 'update', 'destroy'
+        'show',
+        'edit',
+        'update',
+        'destroy'
     ]);
 
-    Route::post('patients/remove-media','PatientController@removeMedia');
+    Route::post('patients/remove-media', 'PatientController@removeMedia');
     Route::resource('patients', 'PatientController');
 
     Route::get('consultations/create', [ConsultationController::class, 'create'])->name('consultations.create');
     Route::resource('consultations', 'ConsultationController');
-  // Route pour créer une prescription avec un ID de consultation
-Route::get('prescriptions/create/{consultation_id}', [PrescriptionController::class, 'create'])->name('prescriptions.create');
+    // Route pour créer une prescription avec un ID de consultation
+    Route::get('prescriptions/create/{consultation_id}', [PrescriptionController::class, 'create'])->name('prescriptions.create');
 
-// Ressource pour gérer les prescriptions
-Route::resource('prescriptions', PrescriptionController::class);
+    // Ressource pour gérer les prescriptions
+    Route::resource('prescriptions', PrescriptionController::class);
 
 
-Route::get('patients/{id}/email', [PatientController::class, 'openEmailClient'])->name('patients.email');
-Route::get('patients/{id}/whatsapp', 'PatientController@openWhatsAppClient')->name('patients.whatsapp');
-Route::get('/fiche/{id}', [FicheController::class, 'show'])->name('fiche.show');
-//route pour rayen
-Route::resource('pharmacies', PharmacyController::class);
-	Route::resource('pharmacyTypes', PharmacyTypeController::class);
-	Route::get('paypal', [PayPalController::class, 'index'])->name('paypal');
-	Route::get('appointment-event', [AppointmentEventController::class, 'index'])->name('appointment-event.index');
-	Route::post('appointment-event/action', [AppointmentEventController::class, 'action']);
-	Route::get('/appointment-event/search', [AppointmentEventController::class, 'getPatients'])->name('patients.search');
-	Route::post('/appointment-event/store', [AppointmentEventController::class, 'saveAppointment'])->name('appointments.store');
-	Route::post('/appointment-event/status', [AppointmentEventController::class, 'updateStatus']);
-	Route::get('/appointments-for-date', [AppointmentEventController::class, 'getAppointmentsForDate']);
-	//Route::get('/appointments-for-date', [AppointmentEventController::class, 'getAppointmentsForDate'])->name('appointments.taken_slots');
-	Route::get('/appointment-event/create', [AppointmentEventController::class, 'create'])->name('appointment-event.create');
-	Route::post('/appointments/store-patient-passage', [AppointmentEventController::class, 'storePatientPassage'])->name('appointments.storePatientPassage');
-	Route::get('/doctor-availability', [AppointmentEventController::class, 'getDoctorAvailability'])->name('appointment-event.getDoctorAvailability');
-	Route::get('/patterns/search', [PatternController::class, 'getPatterns'])->name('patterns.search');
-	Route::get('/teleconsultations', [MeetController::class, 'index'])->name('teleconsultations.index');
-	Route::get('/teleconsultations/create', [MeetController::class, 'createMeet'])->name('teleconsultations.createMeet');
-	Route::post('/teleconsultations/send-meeting-info', [MeetController::class, 'sendMeetingInfo'])->name('send.meeting.info');
-	Route::get('/meet', [MeetController::class, 'index'])->name('meet.index');
-	Route::post('/meet/create', [MeetController::class, 'createMeet']);
-	Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
-	Route::resource('patterns', PatternController::class);
-	Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name('appointments.getAvailableTimeSlots');
-	Route::get('/get-teleconsultation-time-slots', [AppointmentEventController::class, 'getTeleconsultationTimeSlots'])->name('get.teleconsultation.slots');
+    Route::get('patients/{id}/email', [PatientController::class, 'openEmailClient'])->name('patients.email');
+    Route::get('patients/{id}/whatsapp', 'PatientController@openWhatsAppClient')->name('patients.whatsapp');
+    Route::get('/fiche/{id}', [FicheController::class, 'show'])->name('fiche.show');
+    //route pour rayen
+    Route::resource('pharmacies', PharmacyController::class);
+    Route::resource('pharmacyTypes', PharmacyTypeController::class);
+    Route::get('paypal', [PayPalController::class, 'index'])->name('paypal');
+    Route::get('appointment-event', [AppointmentEventController::class, 'index'])->name('appointment-events.index');
+    Route::post('appointment-event/action', [AppointmentEventController::class, 'action']);
+    Route::get('/appointment-event/search', [AppointmentEventController::class, 'getPatients'])->name('patients.search');
+    Route::post('/appointment-event/store', [AppointmentEventController::class, 'saveAppointment'])->name('appointments.store');
+    Route::post('/appointment-event/status', [AppointmentEventController::class, 'updateStatus']);
+    Route::get('/appointments-for-date', [AppointmentEventController::class, 'getAppointmentsForDate']);
+    //Route::get('/appointments-for-date', [AppointmentEventController::class, 'getAppointmentsForDate'])->name('appointments.taken_slots');
+    Route::get('/appointment-event/create', [AppointmentEventController::class, 'create'])->name('appointment-event.create');
+    Route::post('/appointments/store-patient-passage', [AppointmentEventController::class, 'storePatientPassage'])->name('appointments.storePatientPassage');
+    Route::get('/doctor-availability', [AppointmentEventController::class, 'getDoctorAvailability'])->name('appointment-event.getDoctorAvailability');
+    Route::get('/patterns/search', [PatternController::class, 'getPatterns'])->name('patterns.search');
+    Route::get('/teleconsultations', [MeetController::class, 'index'])->name('teleconsultations.index');
+    Route::get('/teleconsultations/create', [MeetController::class, 'createMeet'])->name('teleconsultations.createMeet');
+    Route::post('/teleconsultations/send-meeting-info', [MeetController::class, 'sendMeetingInfo'])->name('send.meeting.info');
+    Route::get('/meet', [MeetController::class, 'index'])->name('meet.index');
+    Route::post('/meet/create', [MeetController::class, 'createMeet']);
+    Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
+    Route::resource('patterns', PatternController::class);
+    Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name('appointments.getAvailableTimeSlots');
+    Route::get('/get-teleconsultation-time-slots', [AppointmentEventController::class, 'getTeleconsultationTimeSlots'])->name('get.teleconsultation.slots');
 
-// Route pour afficher toutes les prescriptions liées à une consultation
-Route::get('/consultation/{consultation}/prescriptions', [ConsultationController::class, 'showPrescriptions'])->name('consultation.prescriptions');
-Route::get('/prescriptions/{prescription}/pdf', [PrescriptionController::class, 'generatePrescriptionPdf'])->name('prescriptions.pdf');
-Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
+    // Route pour afficher toutes les prescriptions liées à une consultation
+    Route::get('/consultation/{consultation}/prescriptions', [ConsultationController::class, 'showPrescriptions'])->name('consultation.prescriptions');
+    Route::get('/prescriptions/{prescription}/pdf', [PrescriptionController::class, 'generatePrescriptionPdf'])->name('prescriptions.pdf');
+    Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
 
-Route::get('send-mail',[MailController::class,'index']);
+    Route::get('send-mail', [MailController::class, 'index']);
 
-Route::get('/appointments/today/completed', [AppointmentController::class, 'getTodayCompletedAppointments'])
-    ->name('appointments.today.completed');
+    Route::get('/appointments/today/completed', [AppointmentController::class, 'getTodayCompletedAppointments'])
+        ->name('appointments.today.completed');
 
 
 
@@ -341,28 +373,66 @@ Route::get('/appointments/today/completed', [AppointmentController::class, 'getT
 
 
 
-Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
-Route::get('/assurances', [AssuranceController::class, 'index'])->name('assurances.index');
-Route::resource('assurances', AssuranceController::class);
+    Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
+    Route::get('/assurances', [AssuranceController::class, 'index'])->name('assurances.index');
+    Route::resource('assurances', AssuranceController::class);
 
-Route::resource('doctor_requests', DoctorRequestController::class);
-Route::get('/doctor-request/{id}/create-user', [DoctorRequestController::class, 'createUserFromDoctorRequest'])->name('doctor_requests.createUserFromDoctorRequest');
-Route::get('/doctor-requests/{id}', [DoctorRequestController::class, 'show']);
-Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
+    Route::resource('doctor_requests', DoctorRequestController::class);
+    Route::get('/doctor-request/{id}/create-user', [DoctorRequestController::class, 'createUserFromDoctorRequest'])->name('doctor_requests.createUserFromDoctorRequest');
+    Route::get('/doctor-requests/{id}', [DoctorRequestController::class, 'show']);
+    Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
 
-Route::resource('telesecretariats', TelesecretariatController::class);
-Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);
+    Route::resource('telesecretariats', TelesecretariatController::class);
+    Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);
 
-Route::get('/profil-doctor', [DoctorController::class, 'profileDoctor'])->name('fieldsDoctor');
+    Route::get('/profil-doctor', [DoctorController::class, 'profileDoctor'])->name('fieldsDoctor');
 
-Route::get('/seo', [SeoController::class, 'index'])->name('seo.index');
+    Route::get('/seo', [SeoController::class, 'index'])->name('seo.index');
 
 
-Route::get('/specialitiesByPays', [SpecialityController::class, 'getSpecialitiesByCountry']);
+    Route::resource('telesecretariats', TelesecretariatController::class);
+    Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);
 
+    Route::get('telesecretariats/relation', [TelesecretariatController::class, 'relation'])->name('telesecretariats.relation');
+
+    Route::get('/specialitiesByPays', [SpecialityController::class, 'getSpecialitiesByCountry']);
+
+    Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);
+
+    ////////////////////////////
+    //teleagenda
+    //////////////////////////
+    Route::get('tele-doctor-agenda', [DoctorTelesecretariatController::class, 'index'])->name('tele-appointment-events.index');
+    Route::get('/tele-doctor-agenda-data', [DoctorTelesecretariatController::class, 'getDoctorData']);
+    Route::get('/get-doctor-appointments', [DoctorTelesecretariatController::class, 'getDoctorAppointments']);
+    // Save a new appointment for a specific doctor
+    Route::post('/tele-save-appointment', [DoctorTelesecretariatController::class, 'saveAppointment'])->name('tele_save_appointment');
+
+    // Store patient passage (walk-in) appointment
+    Route::post('/tele-store-patient-passage', [DoctorTelesecretariatController::class, 'storePatientPassage'])->name('tele_store_patient_passage');
+
+    // Update appointment status
+    Route::post('/tele-appointment-event/status', [DoctorTelesecretariatController::class, 'updateStatus'])->name('tele_update_appointment_status');
+
+    // Fetch available time slots for a specific doctor
+    Route::get('/tele-get-available-time-slots', [DoctorTelesecretariatController::class, 'getAvailableTimeSlots'])->name('tele_get_available_time_slots');
+
+    // Fetch teleconsultation time slots for a specific doctor
+    Route::get('/tele-get-teleconsultation-time-slots', [DoctorTelesecretariatController::class, 'getTeleconsultationTimeSlots'])->name('tele_get_teleconsultation_time_slots');
+
+    // Fetch patients related to a specific doctor
+    Route::get('/tele-patients/search', [DoctorTelesecretariatController::class, 'getPatients'])->name('tele_patients_search');
+
+    // Fetch appointments for a specific date
+    Route::get('/tele-get-appointments-for-date', [DoctorTelesecretariatController::class, 'getAppointmentsForDate'])->name('tele_get_appointments_for_date');
+
+    Route::get('/tele-patterns', [DoctorTelesecretariatController::class, 'getPatterns'])->name('tele_patterns');
+
+    Route::get('/tele-get-doctor-availability-data', [DoctorTelesecretariatController::class, 'getDoctorAvailabilityData']);
 
 Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);
 Route::resource('newsletters', NewsLatterController::class);
+
 
 
 Route::get('/generer-link', [PatientController::class, 'genererLink'])->name('generer.link');

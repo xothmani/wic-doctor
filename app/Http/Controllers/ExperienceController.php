@@ -65,16 +65,28 @@ class ExperienceController extends Controller
      *
      * @return View
      */
-    public function create():View
+    public function create(): View
     {
-        $doctor = $this->doctorRepository->getByCriteria(new DoctorsOfUserCriteria(auth()->id()))->pluck('name', 'id');
 
+        //$doctor = $this->doctorRepository->getByCriteria(new DoctorsOfUserCriteria(auth()->id()))->pluck('name', 'id');
+        $doctorId = auth()->user()->getDoctorId();
+
+        // Check if a doctor is associated with the logged-in user
+        if (!$doctorId) {
+            abort(403, 'No doctor is associated with your account.');
+        }
+
+        // Fetch the doctor using the ID and retrieve the name
+        $doctor = $this->doctorRepository->find($doctorId);
+
+        // Prepare the doctor options for the select field
+        $doctorOptions = [$doctor->id => $doctor->name];
         $hasCustomField = in_array($this->experienceRepository->model(), setting('custom_field_models', []));
         if ($hasCustomField) {
             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->experienceRepository->model());
             $html = generateCustomField($customFields);
         }
-        return view('experiences.create')->with("customFields", isset($html) ? $html : false)->with("doctor", $doctor);
+        return view('experiences.create')->with("customFields", isset($html) ? $html : false)->with("doctorOptions", $doctorOptions);
     }
 
     /**
@@ -84,7 +96,7 @@ class ExperienceController extends Controller
      *
      * @return RedirectResponse
      */
-    public function store(CreateExperienceRequest $request):RedirectResponse
+    public function store(CreateExperienceRequest $request): RedirectResponse
     {
         $input = $request->all();
         $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->experienceRepository->model());
@@ -133,13 +145,25 @@ class ExperienceController extends Controller
      */
     public function edit(int $id): RedirectResponse|View
     {
-	\Log::info("Attempting to edit experience with ID: {$id}");
-       // $this->experienceRepository->pushCriteria(new ExperiencesOfUserCriteria(auth()->id()));
+        //Log::info("Attempting to edit experience with ID: {$id}");
+        $doctorId = auth()->user()->getDoctorId();
+
+        // Check if a doctor is associated with the logged-in user
+        if (!$doctorId) {
+            abort(403, 'No doctor is associated with your account.');
+        }
+
+        // Fetch the doctor using the ID and retrieve the name
+        $doctor = $this->doctorRepository->find($doctorId);
+
+        // Prepare the doctor options for the select field
+        $doctorOptions = [$doctor->id => $doctor->name];
+        // $this->experienceRepository->pushCriteria(new ExperiencesOfUserCriteria(auth()->id()));
         $experience = $this->experienceRepository->findWithoutFail($id);
-        $doctor = $this->doctorRepository->getByCriteria(new DoctorsOfUserCriteria(auth()->id()))->pluck('name', 'id');
+        //$doctor = $this->doctorRepository->getByCriteria(new DoctorsOfUserCriteria(auth()->id()))->pluck('name', 'id');
 
         if (empty($experience)) {
-	\Log::error("Experience not found for ID: {$id}");
+            \Log::error("Experience not found for ID: {$id}");
             Flash::error(__('lang.not_found', ['operator' => __('lang.experience')]));
 
             return redirect(route('experiences.index'));
@@ -151,7 +175,7 @@ class ExperienceController extends Controller
             $html = generateCustomField($customFields, $customFieldsValues);
         }
 
-        return view('experiences.edit')->with('experience', $experience)->with("customFields", isset($html) ? $html : false)->with("doctor", $doctor);
+        return view('experiences.edit')->with('experience', $experience)->with("customFields", isset($html) ? $html : false)->with("doctorOptions", $doctorOptions);
     }
 
     /**
@@ -163,7 +187,7 @@ class ExperienceController extends Controller
      * @return RedirectResponse
      * @throws RepositoryException
      */
-    public function update(int $id, UpdateExperienceRequest $request):RedirectResponse
+    public function update(int $id, UpdateExperienceRequest $request): RedirectResponse
     {
         //$this->experienceRepository->pushCriteria(new ExperiencesOfUserCriteria(auth()->id()));
         $experience = $this->experienceRepository->findWithoutFail($id);
@@ -199,7 +223,7 @@ class ExperienceController extends Controller
      * @return RedirectResponse
      * @throws RepositoryException
      */
-    public function destroy(int $id):RedirectResponse
+    public function destroy(int $id): RedirectResponse
     {
         //$this->experienceRepository->pushCriteria(new ExperiencesOfUserCriteria(auth()->id()));
         $experience = $this->experienceRepository->findWithoutFail($id);

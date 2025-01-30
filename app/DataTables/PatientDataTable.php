@@ -53,9 +53,13 @@ class PatientDataTable extends DataTable
      */
     public function query(Patient $model): \Illuminate\Database\Eloquent\Builder
     {
-        if (auth()->user()->hasRole('admin')) {
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
             return $model->newQuery()->select("patients.*");
-        } else if (auth()->user()->hasRole('clinic_owner')) {
+        }
+
+        if ($user->hasRole('clinic_owner')) {
             return $model->newQuery()
                 ->join("doctor_patients", "patient_id", "=", "patients.id")
                 ->join("doctors", "doctors.id", "=", "doctor_patients.doctor_id")
@@ -63,7 +67,9 @@ class PatientDataTable extends DataTable
                 ->where('clinic_users.user_id', auth()->id())
                 ->groupBy("patients.id")
                 ->select("patients.*");
-        } else if (auth()->user()->hasRole('doctor')) {
+        }
+
+        if ($user->hasRole('doctor')) {
             return $model->newQuery()
                 ->join("doctor_patients", "patient_id", "=", "patients.id")
                 ->join("doctors", "doctors.id", "=", "doctor_patients.doctor_id")
@@ -71,17 +77,48 @@ class PatientDataTable extends DataTable
                 ->groupBy("patients.id")
                 ->select("patients.*");
         }
-        else if (auth()->user()->hasRole('customer')) {
+
+        if ($user->hasRole('Secretary')) {
+            $associatedDoctorIds = $user->associatedDoctors->pluck('doctor_id')->toArray();
+
+            if (empty($associatedDoctorIds)) {
+                abort(403, __('Vous n\'êtes associé à aucun médecin.'));
+            }
+
+            return $model->newQuery()
+                ->join("doctor_patients", "patient_id", "=", "patients.id")
+                ->join("doctors", "doctors.id", "=", "doctor_patients.doctor_id")
+                ->whereIn('doctors.id', $associatedDoctorIds)
+                ->groupBy("patients.id")
+                ->select("patients.*");
+        }
+
+        if ($user->hasRole('Telesecetary')) {
+            $associatedDoctorIds = $user->associatedDoctors->pluck('doctor_id')->toArray();
+
+            if (empty($associatedDoctorIds)) {
+                abort(403, __('Vous n\'êtes associé à aucun médecin.'));
+            }
+
+            return $model->newQuery()
+                ->join("doctor_patients", "patient_id", "=", "patients.id")
+                ->join("doctors", "doctors.id", "=", "doctor_patients.doctor_id")
+                ->whereIn('doctors.id', $associatedDoctorIds)
+                ->groupBy("patients.id")
+                ->select("patients.*");
+        }
+
+        if ($user->hasRole('customer')) {
             return $model->newQuery()
                 ->join("doctor_patients", "patient_id", "=", "patients.id")
                 ->where('patients.user_id', auth()->id())
                 ->groupBy("patients.id")
                 ->select("patients.*");
         }
-        else {
-            return $model->newQuery()->select("patients.*");
-        }
+
+        abort(403, __('Vous n\'avez pas la permission d\'accéder à cette page.'));
     }
+
 
     /**
      * Optional method if you want to use html builder.
@@ -95,10 +132,14 @@ class PatientDataTable extends DataTable
             ->minifiedAjax()
             ->addAction(['width' => '80px', 'printable' => false, 'responsivePriority' => '100'])
             ->parameters(array_merge(
-                config('datatables-buttons.parameters'), [
+                config('datatables-buttons.parameters'),
+                [
                     'language' => json_decode(
-                        file_get_contents(base_path('resources/lang/' . app()->getLocale() . '/datatable.json')
-                        ), true)
+                        file_get_contents(
+                            base_path('resources/lang/' . app()->getLocale() . '/datatable.json')
+                        ),
+                        true
+                    )
                 ]
             ));
     }
@@ -114,7 +155,10 @@ class PatientDataTable extends DataTable
             [
                 'data' => 'image',
                 'title' => trans('lang.patient_image'),
-                'searchable' => false, 'orderable' => false, 'exportable' => false, 'printable' => false,
+                'searchable' => false,
+                'orderable' => false,
+                'exportable' => false,
+                'printable' => false,
             ],
             [
                 'data' => 'first_name',
@@ -131,12 +175,12 @@ class PatientDataTable extends DataTable
                 'title' => trans('lang.patient_phone_number'),
 
             ],
-/**            [
-                'data' => 'mobile_number',
-                'title' => trans('lang.patient_mobile_number'),
+            /**            [
+                            'data' => 'mobile_number',
+                            'title' => trans('lang.patient_mobile_number'),
 
-            ],
-   **/         [
+                        ],
+               **/ [
                 'data' => 'age',
                 'title' => trans('lang.patient_age'),
 
@@ -146,33 +190,35 @@ class PatientDataTable extends DataTable
                 'title' => trans('lang.patient_gender'),
 
             ],
-      /**      [
-                'data' => 'weight',
-                'title' => trans('lang.patient_weight'),
+            /**      [
+                      'data' => 'weight',
+                      'title' => trans('lang.patient_weight'),
 
-            ],
-            [
-                'data' => 'height',
-                'title' => trans('lang.patient_height'),
+                  ],
+                  [
+                      'data' => 'height',
+                      'title' => trans('lang.patient_height'),
 
-            ],
-            [
-                'data' => 'updated_at',
-                'title' => trans('lang.patient_updated_at'),
-                'searchable' => false,
-            ]**/
+                  ],
+                  [
+                      'data' => 'updated_at',
+                      'title' => trans('lang.patient_updated_at'),
+                      'searchable' => false,
+                  ]**/
         ];
 
         $hasCustomField = in_array(Patient::class, setting('custom_field_models', []));
         if ($hasCustomField) {
             $customFieldsCollection = CustomField::where('custom_field_model', Patient::class)->where('in_table', '=', true)->get();
             foreach ($customFieldsCollection as $key => $field) {
-                array_splice($columns, $field->order - 1, 0, [[
-                    'data' => 'custom_fields.' . $field->name . '.view',
-                    'title' => trans('lang.patient_' . $field->name),
-                    'orderable' => false,
-                    'searchable' => false,
-                ]]);
+                array_splice($columns, $field->order - 1, 0, [
+                    [
+                        'data' => 'custom_fields.' . $field->name . '.view',
+                        'title' => trans('lang.patient_' . $field->name),
+                        'orderable' => false,
+                        'searchable' => false,
+                    ]
+                ]);
             }
         }
         return $columns;

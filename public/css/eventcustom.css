@@ -6,7 +6,16 @@
     gap: 10px;
     margin-top: 20px;
 }
-
+#saveAppointmentRef{
+    padding: 10px;
+    background-color: #e0f7ff;
+    border: 1px solid #007bff;
+    color: #007bff;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
 .time-slot {
     padding: 10px;
     background-color: #e0f7ff;
@@ -71,10 +80,13 @@
 
 /* Style for event blocks */
 .fc-event {
-    border-radius: 5px;
-    padding: 5px;
-    font-size: 12px;
-    line-height: 0.9;
+    font-size: 0.8em; /* Smaller font size */
+        padding: 2px 4px; /* Reduced padding */
+        margin: 1px; /* Reduced margin */
+        white-space: nowrap; /* Prevent text from wrapping */
+        overflow: hidden; /* Hide overflow */
+        text-overflow: ellipsis; /* Add ellipsis for overflow text */
+        border-radius: 3px; /* Optional: Adjust border radius */
 }
 
 
@@ -212,4 +224,14 @@
     border-radius: 5px; /* Optional: Add rounded corners */
     border: 1px solid #ccc; /* Optional: Add a border */
     opacity: 0.9; /* Optional: Add transparency */
+}
+@media (max-width: 768px) {
+    #calendar {
+        height: 600px; /* Adjust as needed */
+    }
+}
+.time-slot {
+    padding: 5px;
+    margin: 2px;
+    font-size: 1em;
 }

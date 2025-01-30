@@ -6,43 +6,43 @@ use App\Models\Pattern;
 use App\Models\Doctor;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Yajra\DataTables\EloquentDataTable;
-use Yajra\DataTables\DataTableAbstract;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
-use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
-use Yajra\DataTables\Html\Editor\Editor;
-use Yajra\DataTables\Html\Editor\Fields;
 use Yajra\DataTables\Services\DataTable;
 
 class PatternDataTable extends DataTable
 {
+    /**
+     * Build the DataTable class.
+     *
+     * @param mixed $query Results from query() method.
+     * @return \Yajra\DataTables\DataTableAbstract
+     */
     public function dataTable($query)
     {
-        $dataTable = datatables()->eloquent($query);
-
-        return $dataTable->addColumn('action', 'patterns.datatables_actions')
+        return datatables()
+            ->eloquent($query)
+            ->addColumn('action', 'patterns.datatables_actions')
             ->editColumn('nom', function ($pattern) {
-                $nomJson = $pattern->nom;
-                $nomArray = json_decode($nomJson, true);
-                $locale = app()->getLocale(); // Get the current language setting
-                return $nomArray[$locale] ?? ''; // Return the localized value or an empty string if not found
+                $nomArray = json_decode($pattern->nom, true);
+                $locale = app()->getLocale();
+                return $nomArray[$locale] ?? ''; // Return localized name or empty string
             })
             ->editColumn('type', function ($pattern) {
-                // Map integer type values to their corresponding localized strings
                 $typeMapping = [
                     1 => trans('lang.cabinet'),
                     2 => trans('lang.clinique'),
                     3 => trans('lang.adomicile'),
                 ];
-                return $typeMapping[$pattern->type] ?? ''; // Return the localized type or an empty string if not found
+                return $typeMapping[$pattern->type] ?? '';
             })
             ->editColumn('speciality.name', function ($pattern) {
-                return $pattern->speciality ? $pattern->speciality->name : '';
+                return $pattern->speciality->name ?? '';
             })
             ->editColumn('clinic.name', function ($pattern) {
                 return $pattern->clinic
                     ? $pattern->clinic->name
-                    : trans('lang.not_associated_to_clinic'); // Show "Non associé à une clinique"
+                    : trans('lang.not_associated_to_clinic');
             })
             ->editColumn('color', function ($pattern) {
                 return "<span style='display: inline-block; padding: 0.2em 0.6em; color: #fff; background-color: {$pattern->color}; border-radius: 0.25rem;'>{$pattern->color}</span>";
@@ -50,44 +50,64 @@ class PatternDataTable extends DataTable
             ->rawColumns(['color', 'action']);
     }
 
-
+    /**
+     * Get query source of dataTable.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function query()
     {
         $query = Pattern::query();
 
         if (auth()->user()->hasRole('admin')) {
-            return $query; // Admin sees all patterns
+            return $query;
         }
 
-        $doctor = Doctor::where('user_id', auth()->id())->first();
-        if ($doctor) {
-            return $query->where('doctor_id', $doctor->id) // Filter patterns by the logged-in doctor
-                ->whereHas('speciality', function ($q) use ($doctor) {
-                    $q->where('doctor_id', $doctor->id); // Ensure the specialty is associated with the doctor
-                });
+        $doctorId = auth()->user()->getDoctorId();
+
+        if ($doctorId) {
+            return $query->where('doctor_id', $doctorId);
         }
 
-        return $query->where('doctor_id', -1); // No patterns for unauthorized users
+        return $query->where('doctor_id', -1); // Return empty if unauthorized
     }
 
-
+    /**
+     * Optional method for HTML builder.
+     *
+     * @return \Yajra\DataTables\Html\Builder
+     */
     public function html()
     {
         return $this->builder()
-            ->columns([
-                'nom' => ['title' => trans('lang.pattern_name')], // Localized title for "Name"
-                'type' => ['title' => trans('lang.pattern_type')], // Localized title for "Type"
-                'speciality.name' => ['title' => trans('lang.speciality')], // Localized title for "Speciality"
-                'price' => ['title' => trans('lang.pattern_price')], // Localized title for "Price"
-                'clinic.name' => ['title' => trans('lang.clinic')], // Localized title for "Clinic"
-                'color' => ['title' => trans('lang.pattern_color')], // Localized title for "Color"
-            ])
+            ->columns($this->getColumns())
             ->minifiedAjax()
             ->addAction(['width' => '80px', 'printable' => false])
             ->parameters(config('datatables-buttons.parameters'));
     }
 
+    /**
+     * Get the columns.
+     *
+     * @return array
+     */
+    protected function getColumns(): array
+    {
+        return [
+            Column::make('nom')->title(trans('lang.pattern_name')),
+            Column::make('type')->title(trans('lang.pattern_type')),
+            Column::make('speciality.name')->title(trans('lang.speciality')),
+            Column::make('price')->title(trans('lang.pattern_price')),
+            Column::make('clinic.name')->title(trans('lang.clinic')),
+            Column::make('color')->title(trans('lang.pattern_color')),
+        ];
+    }
 
+    /**
+     * Get the filename for export.
+     *
+     * @return string
+     */
     protected function filename(): string
     {
         return 'Patterns_' . time();

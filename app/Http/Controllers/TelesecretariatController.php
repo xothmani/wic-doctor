@@ -33,7 +33,6 @@ class TelesecretariatController extends Controller
         $user = null; // Pas d'utilisateur pour la création
         return view('telesecretariats.create', compact('user')); // Passer $user à la vue
     }
-
     public function store(Request $request)
 {
         // Validation des champs
@@ -185,7 +184,10 @@ class TelesecretariatController extends Controller
         }
     
         return redirect()->route('telesecretariats.index')->with('success', 'Telesecretariat créé et utilisateur enregistré.');
-}   
+}
+    
+
+    
     
     
 /**
@@ -259,7 +261,7 @@ public function update(Request $request, string $id)
     ]);
 
     // Retourner à la liste avec un message de succès
-    return redirect()->route('telesecretariats.index')->with('success', 'Télésecretariat et utilisateur mis à jour avec succès.');
+    return redirect()->route('telesecretariats.index')->with('success', 'Telesecretariat et utilisateur mis à jour avec succès.');
 }
 
 
@@ -284,5 +286,11 @@ public function update(Request $request, string $id)
         // Redirection avec un message de succès
         return redirect()->route('telesecretariats.index')->with('success', 'Télésecrétariat et utilisateur associés supprimés avec succès.');
 }
+
+public function relation()
+{
+    return view('telesecretariats.relation');
+}
+
     
 }
