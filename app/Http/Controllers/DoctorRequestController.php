@@ -35,16 +35,19 @@ public function show($id)
     
         // Vérification du pays pour ajuster les informations retournées
         $response = [
-            'name' => $doctorRequest->name,
-            'lastname' => $doctorRequest->lastname,
-            'email' => $doctorRequest->email,
-            'Phone' => $doctorRequest->Phone,
+            'name' => $doctorRequest->name ?? 'Non spécifié',
+            'lastname' => $doctorRequest->lastname ?? 'Non spécifié',
+            'email' => $doctorRequest->email ?? 'Non spécifié',
+            'Phone' => $doctorRequest->Phone ?? 'Non spécifié',
             'speciality_id' => $doctorRequest->speciality ? $doctorRequest->speciality->name : 'Non spécifié', // Gérer le cas où la spécialité est null
-            'description' => $doctorRequest->description,
-            'adresse' => $doctorRequest->adresse,
-            'pays' => $doctorRequest->pays,
-            'type' => $doctorRequest->type,
-            'status' => $doctorRequest->status,
+            'description' => $doctorRequest->description ?? 'Non spécifié',
+            'adresse' => $doctorRequest->adresse ?? 'Non spécifié',
+            'pays' => $doctorRequest->pays ?? 'Non spécifié',
+            'type' => $doctorRequest->type ?? 'Non spécifié',
+            'status' => $doctorRequest->status ?? 'Non spécifié',
+            'code_parent' => $doctorRequest->code_parent ?? 'Non spécifié',
+            'code_doctor' => $doctorRequest->code_doctor ?? 'Non spécifié',
+
 
         ];
     
@@ -99,7 +102,8 @@ public function store(Request $request)
         'status' => 'en cours',
         'created_at' => now(),
         'updated_at' => now(),
-    ];
+        'code_doctor' => 'WD-' . strtoupper(Str::random(4)) . rand(1000, 9999), // Exemple : WD-A1B2C3
+            ];
 
     // If the country is Tunisia, store 'ville' and 'gouvernorat'
     if ($request->pays == 'tunisie') {
@@ -330,6 +334,7 @@ private function createDoctor($user, $doctorRequest)
             'user_id' => $user->id,
             'id_aleatoire' => $randomId,
             'sexe' => $doctorRequest->sexe,
+            'code_doctor' => $doctorRequest->code_doctor,
 
         ]);
 

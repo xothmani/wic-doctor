@@ -208,7 +208,9 @@ public function store(Request $request)
             } else {
                 DB::table('availability_hours')->insert($data);
             }
-        }
+            DB::table('doctors')->where('id', $doctorId)->update(['session_duration' => $sessionDuration]);
+      
+	}
 
         return redirect()->route('availability.index')->with('success', 'Disponibilité sauvegardée avec succès !');
     } catch (\Exception $e) {

@@ -29,6 +29,8 @@ use Prettus\Repository\Exceptions\RepositoryException;
 use App\Models\DoctorUrgency;
 use App\Models\DoctorVacation;
 use Carbon\Carbon;
+use App\Models\Speciality;
+use App\Models\DoctorSpeciality;
 /**
  * Class DoctorController
  * @package App\Http\Controllers\API
@@ -87,10 +89,21 @@ public function index(Request $request): JsonResponse
     /**
      * @param Collection $doctors
      */
-    private function availableDoctors(Collection &$doctors)
-    {
-        $doctors = $doctors->where('available', true);
-    }
+   private function availableDoctors(Collection &$doctors)
+{
+// Assuming you have Eloquent models for the tables `Doctor`, `DoctorSpeciality`, and `Speciality` 
+ 
+    // Iterate over the doctors and load their specialties 
+    $doctors->each(function ($doctor) { 
+        // Get the specialties for each doctor 
+        $doctor->specialities = Speciality::whereIn('id',  
+            DoctorSpeciality::where('doctor_id', $doctor->id) 
+                ->pluck('speciality_id') 
+        )->pluck('name'); 
+    });
+    return $doctors;
+}
+
 
     /**
      * @param Request $request
@@ -131,27 +144,33 @@ public function index(Request $request): JsonResponse
      * @return JsonResponse
      */
 public function show(Request $request, int $id): JsonResponse
-    {
-        try {
-            $this->doctorRepository->pushCriteria(new RequestCriteria($request));
-            $this->doctorRepository->pushCriteria(new LimitOffsetCriteria($request));
-        } catch (RepositoryException $e) {
-            return $this->sendError($e->getMessage());
-        }
-        $doctor = $this->doctorRepository->findWithoutFail($id);
-        if (empty($doctor)) {
-            return $this->sendError('Doctor not found');
-        }
-        if ($request->has('api_token')) {
-            $user = $this->userRepository->findByField('api_token', $request->input('api_token'))->first();
-            if (!empty($user)) {
-                auth()->login($user, true);
-            }
-        }
-        $this->filterModel($request, $doctor);
-
-        return $this->sendResponse($doctor->toArray(), 'Doctor retrieved successfully');
+{
+    try {
+        $this->doctorRepository->pushCriteria(new RequestCriteria($request));
+        $this->doctorRepository->pushCriteria(new LimitOffsetCriteria($request));
+    } catch (RepositoryException $e) {
+        return $this->sendError($e->getMessage());
     }
+
+    // Eager load the 'address' relationship with the doctor
+    $doctor = $this->doctorRepository->with('address')->findWithoutFail($id);
+
+    if (empty($doctor)) {
+        return $this->sendError('Doctor not found');
+    }
+
+    // Optionally, handle API token and authentication if provided
+    if ($request->has('api_token')) {
+        $user = $this->userRepository->findByField('api_token', $request->input('api_token'))->first();
+        if (!empty($user)) {
+            auth()->login($user, true);
+        }
+    }
+
+
+    // Return the doctor data, now including the address
+    return $this->sendResponse($doctor->toArray(), 'Doctor retrieved successfully');
+}
 
 
     /**

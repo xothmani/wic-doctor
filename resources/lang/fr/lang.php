@@ -2,7 +2,18 @@
 
 return [
 	///////////translation from rayen
-'cabinet' => 'Cabinet',
+        'newsletters_plural' => 'Newsletters',
+        'news_latter_email' => 'Email',
+        'news_latter_created_at' => 'Créé à',
+        'newsletter_desc' => 'Gestion des Newsletters',
+        'newsletter_plural' => 'Newsletters',
+        'newsletter_table' => 'Liste des Newsletters',
+        'agenda_des_medecins' => 'Agendas des médecins',
+        'gestion_agenda' => 'Gestion des agendas',
+	
+        'code_doctor' => 'Code Doctor',
+        'code_parent' => 'Code Parent',
+	'cabinet' => 'Cabinet',
     'clinique' => 'Clinique',
     "pattern_type" => "Emplacement",
     'select_clinic' => 'Séléctionner une clinique',
@@ -25,6 +36,16 @@ return [
     'open_link' => 'Ouvrir le lien',
         'inactive' => 'Inactive',
         'telesecretariat_view' => 'Voir détails',
+
+        'tag_plural' => 'Étiquettes',
+        'tag_desc' => 'Gestion des étiquettes',
+        'tag_table' => 'Liste des étiquette',
+        'tag_edit' => 'Modifier étiquette',
+        'tag_create' => 'Créer étiquette',
+        'tag_name' => 'Nom de l\'étiquette',
+        'select_speciality' => 'Sélectionnez la spécialité',
+        'tag_name_placeholder' => 'Insérez le nom de l\'étiquette',
+        'my_tag_plural' => 'Mes étiquettes',
 
         'Speciality' => 'Spécialité',
         'Price' => 'Prix',

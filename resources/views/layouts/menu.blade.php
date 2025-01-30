@@ -65,16 +65,43 @@
     </li>
 @endcan
 
+
+
+@can('doctor_telesecretariat.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : '' }}" href="{!! route('doctor_telesecretariat.index') !!}">
+        @if($icons)
+            <i class="nav-icon fas fa-calendar-check"></i> {{-- Icône représentant un agenda avec un médecin --}}
+        @endif
+            <p>{{ trans('lang.agenda_des_medecins') }}</p>
+        </a>
+    </li>
+@endcan
+
 @can('doctor_telesecretariat.create')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor_telesecretariat*') ? 'active' : '' }}" href="{!! route('doctor_telesecretariat.create') !!}">
+        <a class="nav-link {{ Request::is('doctor_telesecretariat/create') ? 'active' : '' }}" href="{!! route('doctor_telesecretariat.create') !!}">
         @if($icons)
-    <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
-@endif
+            <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
+        @endif
             <p>{{ trans('lang.doctor_telesecretariat') }}</p> 
         </a>
     </li>
 @endcan
+
+
+@can('newsletters.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('newsletters') ? 'active' : '' }}" href="{!! route('newsletters.index') !!}">
+        @if($icons)
+    <i class="nav-icon fas fa-envelope"></i> 
+@endif
+         <p>{{ trans('lang.newsletters_plural') }}</p>
+        </a>
+    </li>
+@endcan
+
+
 
 @can('clinics.index')
     <li class="nav-item has-treeview {{ (Request::is('clinic*') || Request::is('requestedClinics*') || Request::is('galleries*')  || Request::is('awards*')  ) || Request::is('clinicReviews*') && !Request::is('clinicPayouts*') ? 'menu-open' : '' }}">
@@ -128,6 +155,28 @@
                 <i class="nav-icon fas fa-book-medical"></i>@endif<p>{{trans('lang.speciality_plural')}}</p></a>
     </li>
 @endcan
+
+@can('tags.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('tags') ? 'active' : '' }}" href="{!! route('tags.index') !!}">
+        @if($icons)
+            <i class="nav-icon fas fa-tags"></i>
+        @endif
+        <p>{{ trans('lang.tag_plural') }}</p></a>
+    </li>
+@endcan
+
+@can('doctor_tag.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor_tag') && !Request::is('doctor_tag/create') ? 'active' : '' }}" href="{!! route('doctor_tag.index') !!}">
+        @if($icons)
+            <i class="nav-icon fas fa-tags"></i>
+        @endif
+        <p>{{ trans('lang.my_tag_plural') }}</p></a>
+    </li>
+@endcan
+
+
 @can('assurances.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('assurances*') ? 'active' : '' }}" href="{!! route('assurances.index') !!}">

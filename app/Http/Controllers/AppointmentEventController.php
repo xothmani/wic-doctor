@@ -13,8 +13,10 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\NewAppointment;
-
-
+use Benwilkins\FCM\FcmMessage;
+use Google\Auth\Credentials\ServiceAccountCredentials;
+use GuzzleHttp\Client;
+use App\Notifications\StatusChangedAppointment;
 class AppointmentEventController extends Controller
 {
 
@@ -350,7 +352,6 @@ class AppointmentEventController extends Controller
             $sessionDuration = $doctor->session_duration;
             $doctorId = $doctor->id;
 
-
             // Construct start and end times for the appointment
             $startAt = "{$validatedData['appointment_date']} {$validatedData['appointment_time']}:00";
             $endAt = Carbon::parse($startAt)->addMinutes(30)->format('Y-m-d H:i:s');
@@ -439,7 +440,7 @@ class AppointmentEventController extends Controller
  */
 
 
-    public function updateStatus(Request $request)
+public function updateStatus(Request $request)
     {
         try {
             // Find the appointment by ID
@@ -465,14 +466,95 @@ class AppointmentEventController extends Controller
 
             // Update the appointment status
             $appointment->appointment_status_id = $request->appointment_status_id;
-            $appointment->save();
+	    $appointment->save();
 
+	    if ($appointment->user) {
+            $appointment->user->notify(new StatusChangedAppointment($appointment));
+        }
+
+        Log::info('Creating message for appointment status update');
+ // Log the message creation
+                Log::info('Creating message for appointment status update');
+            if ($appointment->appointment_status_id < 2) {
+                $message = $this->createMessageForAppointment($appointment, $appointment->doctor_id);
+            } else {
+                $message = $this->createMessageForAppointment($appointment, $appointment->user_id);
+            }
+            // Log the message data
+            if ($message!==null){
+            Log::info('Message created:'. $message->formatData());
+            $serviceAccountPath = env('OAUTH_SERVICE_ACCOUNT');
+            Log::info('Service account path retrieved', ['path' => $serviceAccountPath]);
+
+            $credentials = new ServiceAccountCredentials(
+                ['https://www.googleapis.com/auth/firebase.messaging'],
+                $serviceAccountPath
+            );
+            Log::info('ServiceAccountCredentials created');
+
+            // Fetch the access token
+            $accessToken = $credentials->fetchAuthToken()['access_token'];
+            Log::info('Access token fetched', ['token' => $accessToken]);
+
+            // Send API request
+            try {
+                $response = (new Client())->post($this->getApiUri(), [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $accessToken,
+                        'Content-Type' => 'application/json',
+                    ],
+                'body' => $message->formatData(),
+                ]);
+                Log::info('API request sent successfully', ['response' => $response->getBody()->getContents()]);
+            } catch (\Exception $e) {
+                Log::error('Failed to send API request', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                throw $e;
+            }
+
+            // Handle the response if needed
+            if ($response->getStatusCode() !== 200) {
+                // Log the error message
+                Log::error('Failed to send API request:', ['message' => $response->getReasonPhrase()]);
+                return $this->sendError('Failed to send API request');
+            }
+
+
+            }
             return response()->json(['message' => 'Status updated successfully']);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => 'Failed to update status: ' . $e->getMessage()], 500);
         }
-    }
+}
 
+
+
+        /**
+     * Create message for the API request (example function).
+     *
+     * @param Appointment $appointment
+     * @return FcmMessage
+     */
+    private function createMessageForAppointment(Appointment $appointment, string $id)
+    {
+        // Logic to create the message object based on the appointment data
+        $user = User::findOrFail($id);
+	if (!$user->device_token){
+		return null;
+
+}
+        $message = new FcmMessage(); // Example, you may have your own message formatting
+        $message->content(['title' => 'Rendez-vous Changé', 'body' => 'Votre statut de rendez-vous a été changé'])->to($user->device_token);
+        return $message;
+    }
+    
+    private function getApiUri()
+    {
+        $projectId = env('FIREBASE_PROJECT_ID');
+        return 'https://fcm.googleapis.com/v1/projects/' . $projectId . '/messages:send';
+    }
 
     //////////////////////
 // les getters

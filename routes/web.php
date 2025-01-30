@@ -38,6 +38,9 @@ use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SpecialityController;
 use App\Http\Controllers\DoctorTelesecretariatController;
+use App\Http\Controllers\NewsLatterController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\DoctorTagController;
 
 
 Route::get('/payment-success', function () {
@@ -359,6 +362,14 @@ Route::get('/specialitiesByPays', [SpecialityController::class, 'getSpecialities
 
 
 Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);
+Route::resource('newsletters', NewsLatterController::class);
 
+
+Route::get('/generer-link', [PatientController::class, 'genererLink'])->name('generer.link');
+Route::resource('/tags', TagController::class);
+Route::get('/tags/{id}/edit', [TagController::class, 'edit']);
+
+Route::resource('doctor_tag', DoctorTagController::class);
+Route::post('/doctor-tags', [DoctorTagController::class, 'store'])->name('doctor_tags.store');
 });
 
