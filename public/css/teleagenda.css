@@ -339,6 +339,8 @@
     font-weight: bold;
     border: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px; /* Optional for consistent padding */
+    text-align: center; /* Center text if necessary */
 }
 
 .list-group-item.active:hover {
