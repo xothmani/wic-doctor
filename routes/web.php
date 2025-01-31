@@ -42,7 +42,7 @@ use App\Http\Controllers\DoctorPermissionController;
 use App\Http\Controllers\NewsLatterController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\DoctorTagController;
-
+use App\Http\Controllers\ParrainerController;
 
 
 Route::get('/payment-success', function () {
@@ -328,7 +328,10 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     // Ressource pour gérer les prescriptions
     Route::resource('prescriptions', PrescriptionController::class);
 
+    Route::post('/parrainer', [ParrainerController::class, 'store']);
 
+    Route::get('/doctors/index2', [DoctorRequestController::class, 'index2']);
+    
     Route::get('patients/{id}/email', [PatientController::class, 'openEmailClient'])->name('patients.email');
     Route::get('patients/{id}/whatsapp', 'PatientController@openWhatsAppClient')->name('patients.whatsapp');
     Route::get('/fiche/{id}', [FicheController::class, 'show'])->name('fiche.show');
@@ -441,5 +444,32 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     Route::resource('doctor_tag', DoctorTagController::class);
     Route::post('/doctor-tags', [DoctorTagController::class, 'store'])->name('doctor_tags.store');
+
+
+
+Route::post('/envoyer-email', [ParrainerController::class, 'envoyerEmail'])
+->name('envoyer-email')
+->middleware('auth');
+Route::get('/doctors/parrainage/{codeParrain}', [DoctorController::class, 'getDoctors'])->name('doctors.parrainage');
+Route::get('/parrainer', [ParrainerController::class, 'index'])
+->name('parrainers.index')
+->middleware('auth');
+
+
+Route::get('/parrainer2', [ParrainerController::class, 'parrainer'])
+->name('parrainers.parrainer')
+->middleware('auth');
+
+Route::get('/listdoctors', [ParrainerController::class, 'listDoctors'])->name('parrainers.listdoctors');
+
+Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+
+
+Route::middleware(['auth'])->group(function() {
+    Route::get('/messagerie', [MessagerieController::class, 'index'])->name('messagerie.index');
+    Route::get('/messagerie/create', [MessagerieController::class, 'create'])->name('messagerie.create');
+    Route::post('/messagerie/send', [MessagerieController::class, 'send'])->name('messagerie.send');
+    Route::get('/messagerie/conversation/{id}', [MessagerieController::class, 'showConversation'])->name('messagerie.showConversation');
+});
 });
 

@@ -338,6 +338,16 @@
         </a>
     </li>
 @endcan
+@can('parrainers.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('parrainer*') ? 'active' : '' }}" href="{!! route('parrainers.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-users"></i> <!-- Remplacez par l'icône de votre choix -->
+            @endif
+            <p>Parrainage</p> <!-- Texte directement modifié ici -->
+        </a>
+    </li>
+@endcan
 @can('addresses.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"
@@ -345,7 +355,6 @@
             <i class="nav-icon fas fa-map-marked-alt"></i>@endif<p>{{trans('lang.address_plural')}}</p></a>
     </li>
 @endcan
-
 @can('seo.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('visibiliteSeo*') ? 'active' : '' }}" href="{!! route('seo.index') !!}">

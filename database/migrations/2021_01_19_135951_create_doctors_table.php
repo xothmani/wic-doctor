@@ -37,6 +37,9 @@ class CreateDoctorsTable extends Migration
             $table->string('session_duration')->default('30')->nullable();
             $table->bigInteger('user_id')->unsigned();
             $table->integer('clinic_id')->unsigned();
+            $table->longText('code_parent')->nullable();  // Add parrain as a text field
+            $table->longText('code_doctor')->nullable();  // AouadiSamar
+
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('clinic_id')->references('id')->on('clinics')->onDelete('cascade')->onUpdate('cascade');

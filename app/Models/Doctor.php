@@ -104,7 +104,8 @@ class Doctor extends Model implements HasMedia, Castable
 	'tele_price_eur',
 	'id_aleatoire',
 	'sexe',
-	'code_doctor',
+    'code_parent',  
+    'code_doctor',  
     ];
     /**
      * The attributes that should be casted to native types.
@@ -128,7 +129,9 @@ class Doctor extends Model implements HasMedia, Castable
         'clinic_id' => 'integer',
         'user_id' => 'integer',
         'rate' => 'double',
-        'total_reviews' => 'integer'
+        'total_reviews' => 'integer',
+        'code_parent' => 'string',  // Add the parrain attribute cast if needed
+        'code_doctor' => 'string',
     ];
     /**
      * New Attributes
@@ -189,7 +192,16 @@ class Doctor extends Model implements HasMedia, Castable
         } else {
             return asset(config('media-library.icons_folder') . '/' . $extension . '.png');
         }
+    } public function getCodeParrainAttribute()
+    {
+        return $this->attributes['code_parent'];
     }
+
+    public function setCodeParrainAttribute($value)
+    {
+        $this->attributes['code_parent'] = $value;
+    }
+
 
     public function getCustomFieldsAttribute(): array
     {

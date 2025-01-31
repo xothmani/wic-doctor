@@ -25,7 +25,15 @@ class DoctorRequestController extends Controller
 public function index(DoctorRequestDataTable $dataTable)
 {
         return $dataTable->render('doctor_requests.index');
+} public function index2()
+{
+    // Récupérer tous les docteurs depuis la table doctor_requests_b2b
+    $doctors = DoctorRequest::all();
+
+    // Passer les données à la vue
+    return view('parrainers.parrainer', compact('doctors'));
 }
+
 
 
 public function show($id)
