@@ -32,6 +32,8 @@ class DoctorRequest extends Model
 	'sexe',
         'created_at',
         'updated_at',
+        'code_parent',
+        'code_doctor',
     ];
 
 public function speciality()

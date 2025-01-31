@@ -150,4 +150,14 @@ class AddressAPIController extends Controller
         return $this->sendResponse($address, __('lang.deleted_successfully', ['operator' => __('lang.address')]));
     }
 
+
+
+
+    /**
+ * Get all unique "ville" names from the "addresses" table.
+ * GET /addresses/unique-villes
+ *
+ * @return JsonResponse
+ */
+
 }

@@ -212,10 +212,10 @@
                     <div id="appointment-details">
                         <p>{{ trans('lang.hover_to_view_details') }}</p>
                     </div>
+
                 </div>
             </div>
         </div>
-
         <!-- Right Side: Calendar -->
         <div class="col-md-10 col-sm-12">
             <div class="card shadow-sm">

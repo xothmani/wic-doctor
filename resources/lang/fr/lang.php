@@ -1,6 +1,7 @@
 <?php
 
 return [
+
     ///////////translation from rayen
     'agenda_des_medecins' => 'Agenda des médecins',
     'tele_appointment_date' => 'Date RDV',
@@ -9,6 +10,19 @@ return [
     'search_doctor' => 'Rechercher un médecin',
     'hover_to_view_details' => 'Détails du rendez-vous',
     'cabinet' => 'Cabinet',
+
+        'newsletters_plural' => 'Newsletters',
+        'news_latter_email' => 'Email',
+        'news_latter_created_at' => 'Créé à',
+        'newsletter_desc' => 'Gestion des Newsletters',
+        'newsletter_plural' => 'Newsletters',
+        'newsletter_table' => 'Liste des Newsletters',
+        'agenda_des_medecins' => 'Agendas des médecins',
+        'gestion_agenda' => 'Gestion des agendas',
+	
+        'code_doctor' => 'Code Doctor',
+        'code_parent' => 'Code Parent',
+
     'clinique' => 'Clinique',
     "pattern_type" => "Emplacement",
     'select_clinic' => 'Séléctionner une clinique',
@@ -32,10 +46,23 @@ return [
     'inactive' => 'Inactive',
     'telesecretariat_view' => 'Voir détails',
 
+
     'Speciality' => 'Spécialité',
     'Price' => 'Prix',
     'Clinic' => 'Clinique',
     'Color' => 'Couleur',
+
+        'tag_plural' => 'Étiquettes',
+        'tag_desc' => 'Gestion des étiquettes',
+        'tag_table' => 'Liste des étiquette',
+        'tag_edit' => 'Modifier étiquette',
+        'tag_create' => 'Créer étiquette',
+        'tag_name' => 'Nom de l\'étiquette',
+        'select_speciality' => 'Sélectionnez la spécialité',
+        'tag_name_placeholder' => 'Insérez le nom de l\'étiquette',
+        'my_tag_plural' => 'Mes étiquettes',
+
+
 
     'doctor_bio' => ' Courte biographie',
     'doctor_address' => 'Adresse',

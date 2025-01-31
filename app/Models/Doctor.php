@@ -104,6 +104,7 @@ class Doctor extends Model implements HasMedia, Castable
 	'tele_price_eur',
 	'id_aleatoire',
 	'sexe',
+	'code_doctor',
     ];
     /**
      * The attributes that should be casted to native types.
@@ -317,7 +318,7 @@ public function weekCalendarRange(Carbon $date, bool $online): array
 
     $dates = [];
     $now = Carbon::now($date->timezone);
-    
+
     Log::info('----------Period', [
         'date' => $date,
         'period'=>$period
@@ -331,7 +332,7 @@ public function weekCalendarRange(Carbon $date, bool $online): array
     }
 
     $vacance = $this->vacance($date);
-    
+
 
     foreach ($dates as &$timeSlot) {
         // Log each time slot for debugging
@@ -364,8 +365,8 @@ public function weekCalendarRange(Carbon $date, bool $online): array
                 'is_past' => $timeSlot[2],
                 'appointments_exist' => $appointmentsExist
             ]);
-	    $timeSlot[1] = !$appointmentsExist &&  $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && $this->isOnlineAvailable($date, $startTime, $endTime, $online) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $online);  
-  	}
+            $timeSlot[1] = !$appointmentsExist &&  $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && $this->isOnlineAvailable($date, $startTime, $endTime, $online) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $online);
+        }
     }
     unset($timeSlot);
     // Log final calendar for debugging

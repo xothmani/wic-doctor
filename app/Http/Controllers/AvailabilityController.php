@@ -210,9 +210,11 @@ class AvailabilityController extends Controller
         $doctorId = auth()->user()->getDoctorId();
         Log::info("Retrieving doctor ID: {$doctorId}");
 
+
         if (!$doctorId) {
             return redirect()->route('users.profile'); // Redirect if no doctor found
         }
+
 
         try {
             Log::info('Form Data Before Processing:', $request->all());

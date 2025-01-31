@@ -187,6 +187,11 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('favorites', 'API\FavoriteAPIController');
     Route::resource('addresses', 'API\AddressAPIController');
 
+
+	
+
+
+
     Route::get('notifications/count', 'API\NotificationAPIController@count');
     Route::resource('notifications', 'API\NotificationAPIController');
     Route::resource('appointments', 'API\AppointmentAPIController');

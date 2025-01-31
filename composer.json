@@ -11,6 +11,7 @@
         "php": "^8.1",
         "ext-curl": "*",
         "ext-json": "*",
+        "anhskohbo/no-captcha": "^3.6",
         "anlutro/l4-settings": "^v1.2.0",
         "barryvdh/laravel-dompdf": "^v2.1.1",
         "fruitcake/laravel-cors": "dev-develop",

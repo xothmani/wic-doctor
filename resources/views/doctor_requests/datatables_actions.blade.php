@@ -77,6 +77,8 @@ function loadRequestDetails(requestId) {
             // Ajouter le reste des informations
             detailsHtml += `
                 <strong>{{ trans('lang.address') }}:</strong> ${response.adresse}<br>
+                <strong>{{ trans('lang.code_parent') }}:</strong> ${response.code_parent}<br>
+                <strong>{{ trans('lang.code_doctor') }}:</strong> ${response.code_doctor}<br>
                 <strong>{{ trans('lang.description') }}:</strong> ${response.description}<br>
                 <strong>{{ trans('lang.status') }}:</strong> ${response.status}<br>
             `;

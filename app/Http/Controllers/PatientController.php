@@ -24,9 +24,13 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Str;
 use App\Models\Assurance;
-use App\Models\Patient;
+use App\Models\Patient;  
+use App\Models\Doctor;  
+
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AddPatientMail;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 class PatientController extends Controller
 {
@@ -179,7 +183,11 @@ class PatientController extends Controller
             }
 
             // Créez le patient et associez-le à l'utilisateur
-            $patient = $this->patientRepository->create(array_merge($input, ['user_id' => $user->id]));
+            // Créez le patient et associez-le à l'utilisateur
+            $patient = $this->patientRepository->create(array_merge($input, [
+                'user_id' => $user->id,
+                'email' => $user->email, 
+            ]));
             Log::info("New patient created with ID: " . $patient->id);
 
             // Établir la relation doctor-patient
@@ -187,37 +195,79 @@ class PatientController extends Controller
                 Log::info("Patient ID: " . $patient->id . " successfully associated with doctor.");
                 Flash::success("Le patient a été associé au médecin avec succès.");
             }
-            // Vérifiez si l'utilisateur a un email avant d'envoyer l'email
-            if (!empty($request->email)) {
-                // Envoi de l'email avec les informations du patient
-                Mail::to($request->email)->send(new AddPatientMail($user, $generatedPassword, $request->email));
-                Log::info("Email sent to " . $request->email);
+            // Vérifiez si le short link a été généré avec succès
+            $shortUrlResponse = $this->genererLink();
+
+            if ($shortUrlResponse instanceof \Illuminate\Http\JsonResponse) {
+                $responseData = json_decode($shortUrlResponse->getContent(), true);
+                
+                if (isset($responseData['short_link'])) {
+                    $shortUrl = $responseData['short_link'];
+
+                    // Ajoutez le short link dans l'email
+                    if (!empty($request->email)) {
+                        try {
+                            // Envoi de l'email avec le lien court
+                            Mail::to($request->email)->send(new AddPatientMail($user, $generatedPassword, $request->email, $shortUrl));
+                            Log::info("Email sent to " . $request->email . " with short link: " . $shortUrl);
+                        } catch (\Exception $e) {
+                            Log::error("Failed to send email: " . $e->getMessage());
+                        }
+                    } else {
+                        Log::info("No email provided, skipping email sending.");
+                    }
+                } else {
+                    Log::error("Le lien court n'a pas pu être généré.");
+                }
             } else {
-                Log::info("No email provided, skipping email sending.");
+                Log::error("La réponse n'est pas un JsonResponse valide.");
             }
 
-
+    
             // Gestion des pièces jointes
             $this->handleMediaAttachments($input, $patient);
-            /*   // Envoi du mot de passe par SMS
-              $api_key = 'INS757364498';
-              $from = '33743134488'; // Remplacez par votre nom d'expéditeur ou numéro autorisé
-              $to = $request->phone_number;
-              $alphasender = 'Wic doctor';
-              $message = "Bienvenue " . $user->name . " " . $user->lastname . " !\n" .
-              "Vous êtes maintenant inscrit chez Wic-Doctor.\n" .
-              "Votre mot de passe pour accéder à votre compte : $generatedPassword\n" .
-              "Merci de votre confiance!";
-      
-              $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
-      
-              // Vérifiez le résultat de l'envoi du SMS
-              if ($smsResult) {
-                  Log::info("SMS envoyé avec succès à $to : $message");
-              } else {
-                  Log::error("Échec de l'envoi du SMS à $to.");
-              }  */
 
+
+
+
+             $shortUrlResponse = $this->genererLink();
+
+             // Ensure that the response is a valid JsonResponse before accessing it
+             if ($shortUrlResponse instanceof \Illuminate\Http\JsonResponse) {
+                 $responseData = json_decode($shortUrlResponse->getContent(), true); // Decode the response content into an array
+                 
+                 // Check if the 'short_link' exists in the response data
+                 if (isset($responseData['short_link'])) {
+                     $shortUrl = $responseData['short_link'];
+             
+                     // Continue with the rest of your code
+                     $api_key = 'INS15422525105';
+                     $from = '33743134840'; // Replace with your sender ID or authorized number
+                     $to = $request->phone_number;
+                     $alphasender = 'Wic doctor';
+                     
+                     // SMS message with short link
+                     $message = "Bienvenue " . $user->name . " " . $user->lastname . " chez Wic-Doctor.\n" .
+                     "Nom d'utilisateur : " . $request->phone_number . "\n" .
+                     "Mot de passe : $generatedPassword\n" .
+                     "Lien RDV : $shortUrl\n";
+          
+                     
+                     // Send SMS
+                     $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+                     
+                     if ($smsResult) {
+                         Log::info("SMS envoyé avec succès à $to : $message");
+                     } else {
+                         Log::error("Échec de l'envoi du SMS à $to.");
+                     }
+                 } else {
+                     Log::error("Le lien court n'a pas pu être généré.");
+                 }
+             } else {
+                 Log::error("La réponse n'est pas un JsonResponse valide.");
+             }
+             
 
             // Enregistrez un flag pour afficher le modal
             session()->flash('showModal', true);
@@ -232,44 +282,41 @@ class PatientController extends Controller
         }
 
         return redirect()->route('patients.create');
-    }
-
-
-
-    /**
-     * Associe un patient à un médecin connecté s'il ne l'est pas déjà.
-     *
-     * @param Patient $patient
-     * @return bool True si l'association a été effectuée, False sinon.
-     */
-    private function associatePatientToDoctor(\App\Models\Patient $patient): bool
-    {
-        if (auth()->user()->hasRole('doctor')) {
-            $doctor = auth()->user()->doctor;
-
-            if ($doctor) {
-                if (!$doctor->patients()->where('patient_id', $patient->id)->exists()) {
-                    $doctor->patients()->attach($patient->id);
-                    Log::info("Patient ID: " . $patient->id . " associated with Doctor ID: " . $doctor->id);
-                    return true;
-                }
-
-                Log::info("Patient ID: " . $patient->id . " already associated with Doctor ID: " . $doctor->id);
-            } else {
-                Log::warning("No doctor associated with user ID: " . auth()->id());
-            }
-        } else {
-            Log::warning("Authenticated user is not a doctor. User ID: " . auth()->id());
-        }
-
-        return false;
-    }
-
-
-    private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor')
-    {
-        $url = 'https://wicsms.com/apis/smscontact/';
-
+    }  
+     
+     /**
+      * Associe un patient à un médecin connecté s'il ne l'est pas déjà.
+      *
+      * @param Patient $patient
+      * @return bool True si l'association a été effectuée, False sinon.
+      */
+      private function associatePatientToDoctor(\App\Models\Patient $patient): bool
+      {
+         if (auth()->user()->hasRole('doctor')) {
+             $doctor = auth()->user()->doctor;
+     
+             if ($doctor) {
+                 if (!$doctor->patients()->where('patient_id', $patient->id)->exists()) {
+                     $doctor->patients()->attach($patient->id);
+                     Log::info("Patient ID: " . $patient->id . " associated with Doctor ID: " . $doctor->id);
+                     return true;
+                 }
+     
+                 Log::info("Patient ID: " . $patient->id . " already associated with Doctor ID: " . $doctor->id);
+             } else {
+                 Log::warning("No doctor associated with user ID: " . auth()->id());
+             }
+         } else {
+             Log::warning("Authenticated user is not a doctor. User ID: " . auth()->id());
+         }
+     
+         return false;
+     }
+     
+     
+     private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor') {
+        $url = 'https://dashboard.wic-sms.com/apis/smscontact/';
+    
         // Supprimer le "+" au début si présent
         if (strpos($to, '+') === 0) {
             $to = substr($to, 1); // Supprime le premier caractère '+'
@@ -552,7 +599,114 @@ class PatientController extends Controller
         $phone = urlencode($user->phone_number);
         return redirect("https://web.whatsapp.com/send?phone={$phone}");
     }
+public function genererLink()
+{
+    $user = auth()->user();
 
+    if (!$user) {
+        return response()->json(['error' => 'Utilisateur non connecté'], 401);
+    }
 
+    $doctor = Doctor::where('user_id', $user->id)->first();
+
+    if (!$doctor) {
+        return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
+    }
+
+    $userWithAddress = $doctor->user()->with('address')->first();
+    $address = $userWithAddress->address;
+
+    $pays = $address && $address->pays ? json_decode($address->pays, true) : null;
+    $pays = isset($pays['fr']) ? strtolower($pays['fr']) : (is_array($pays) ? strtolower(reset($pays) ?: '') : ($pays ? strtolower($pays) : null));
+
+    $gouvernorat = $address && $address->gouvernorat ? json_decode($address->gouvernorat, true) : null;
+    $gouvernorat = isset($gouvernorat['fr']) ? strtolower($gouvernorat['fr']) : (is_array($gouvernorat) ? strtolower(reset($gouvernorat) ?: '') : ($gouvernorat ? strtolower($gouvernorat) : null));
+
+    if ($gouvernorat) {
+        $gouvernorat = str_replace(' ', '-', $gouvernorat);
+    }
+
+    if (!$pays || !$gouvernorat) {
+        return response()->json(['error' => 'Adresse du médecin incomplète'], 400);
+    }
+
+    $specialities = $doctor->specialities;
+
+    if ($specialities->isEmpty()) {
+        return response()->json(['error' => 'Aucune spécialité trouvée pour ce médecin'], 400);
+    }
+
+    $specialityName = $specialities->first()->name;
+
+    if (is_string($specialityName)) {
+        $specialityName = strtolower($specialityName);
+    } else {
+        $specialityName = json_decode($specialityName, true);
+        $specialityName = isset($specialityName['fr']) ? strtolower($specialityName['fr']) : (is_array($specialityName) ? strtolower(reset($specialityName) ?: '') : null);
+    }
+
+    if ($specialityName) {
+        $specialityName = str_replace(' ', '-', $specialityName);
+    }
+
+    $randomId = $doctor->id_aleatoire;
+    $doctorName = strtolower(str_replace(' ', '-', $user->name));
+
+    $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/dr-{$doctorName}-{$randomId}.html";
+
+    $randomId = rand(100000, 999999);
+    $aliasBase = 'dr-' . $randomId;
+    $alias = substr($aliasBase . '-' . uniqid(), 0, 10);
+
+    $client = new Client();
+    $apiUrl = 'https://wic-link.com/api/v1/link';
+    $token = '3|XCU8CPfKmf6oKzKWBv2zz9XCiWvyjIfNRLDB4yyxe5c42bcd';
+
+    try {
+        $response = $client->post($apiUrl, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+            ],
+            'json' => [
+                'long_url' => $link,
+                'type' => 'direct',
+                'active' => true,
+                'alias' => $alias,
+            ]
+        ]);
+
+        $responseContent = $response->getBody()->getContents();
+        \Log::info('Full API response: ' . $responseContent);
+        $responseData = json_decode($responseContent, true);
+
+        \Log::info('Response Data: ' . print_r($responseData, true));
+
+        if (isset($responseData['status']) && $responseData['status'] == 'success') {
+            if (isset($responseData['link']['short_url']) && !empty($responseData['link']['short_url'])) {
+                $shortUrl = $responseData['link']['short_url'];
+                \Log::info('Short URL: ' . $shortUrl);
+                return response()->json(['short_link' => $shortUrl], 200);
+            } else {
+                \Log::error('Missing short_url in response data.');
+                return response()->json(['error' => 'Le champ short_url est manquant dans la réponse de l\'API'], 400);
+            }
+        } else {
+            \Log::error('API response status not success: ' . print_r($responseData, true));
+            return response()->json(['error' => 'Erreur lors du raccourcissement du lien'], 400);
+        }
+
+    } catch (RequestException $e) {
+        if ($e->hasResponse()) {
+            \Log::error('API HTTP error response: ' . $e->getResponse()->getBody()->getContents());
+        }
+        \Log::error('Request failed: ' . $e->getMessage());
+        return response()->json(['error' => 'Erreur lors de la requête à l\'API'], 500);
+    } catch (\Exception $e) {
+        \Log::error('Unexpected error: ' . $e->getMessage());
+        return response()->json(['error' => 'Une erreur est survenue lors de l\'appel à l\'API'], 500);
+    }
+}
 
 }
