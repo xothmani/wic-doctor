@@ -29,7 +29,7 @@ class CheckMembership
             }
 
             // Check for 'doctor' role
-            if ($user->hasRole('doctor') || $user->hasRole('Telesecretary')) {
+            if ($user->hasRole('doctor') || $user->hasRole('Telesecretary') || $user->hasRole('commercial')) {
                 $activeMembership = DB::table('membership')
                     ->where('user_id', $userId)
                     ->where('end_date', '>=', $today)
