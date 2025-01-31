@@ -246,7 +246,7 @@
                 Voulez-vous envoyer cet enregistrement pour générer un rapport de consultation ?
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Non</button>
+                <button type="button" class="btn btn-secondary" id="declineSendAudio">Non</button>
                 <button type="button" class="btn bg-{{setting('theme_color')}}" id="confirmSendAudio">Oui</button>
             </div>
         </div>
@@ -429,6 +429,9 @@
             $('#audioConfirmationModal').modal('show');
         }
     });
+    document.getElementById('declineSendAudio').addEventListener('click', async function () {
+            this.closest('form').submit();
+    });
 
     document.getElementById('confirmSendAudio').addEventListener('click', async function () {
         $('#audioConfirmationModal').modal('hide');
@@ -458,4 +461,5 @@
     });
 </script>
 @endpush
+
 

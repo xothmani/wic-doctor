@@ -31,6 +31,8 @@ use App\Models\DoctorVacation;
 use Carbon\Carbon;
 use App\Models\Speciality;
 use App\Models\DoctorSpeciality;
+use App\Criteria\FilterByGouvernoratCriteria;
+
 /**
  * Class DoctorController
  * @package App\Http\Controllers\API
@@ -64,9 +66,17 @@ class DoctorAPIController extends Controller
 public function index(Request $request): JsonResponse
 {
     try {
+        // Push existing criteria
         $this->doctorRepository->pushCriteria(new RequestCriteria($request));
         $this->doctorRepository->pushCriteria(new DoctorsOfUserCriteria(auth()->id()));
         $this->doctorRepository->pushCriteria(new NearCriteria($request));
+
+        // Apply gouvernorat filter if provided
+        if ($request->has('gouvernorat') && $request->input('gouvernorat')) {
+            $gouvernoratList = $request->input('gouvernorat');  // This should be an array of gouvernorat values
+            // Push custom gouvernorat filtering criteria
+            $this->doctorRepository->pushCriteria(new FilterByGouvernoratCriteria($gouvernoratList));
+        }
     } catch (Exception $e) {
         return $this->sendError($e->getMessage());
     }
@@ -74,6 +84,7 @@ public function index(Request $request): JsonResponse
     // Load the address relationship
     $doctors = $this->doctorRepository->with('address')->all();
 
+    // Additional filtering and processing
     if (!$request->has('all')) {
         $this->availableDoctors($doctors);
     }
@@ -81,8 +92,11 @@ public function index(Request $request): JsonResponse
     $this->orderByRating($request, $doctors);
     $this->limitOffset($request, $doctors);
     $this->filterCollection($request, $doctors);
+
+    // Convert collection to array
     $doctors = array_values($doctors->toArray());
 
+    // Return response
     return $this->sendResponse($doctors, 'Doctors retrieved successfully');
 }
        
