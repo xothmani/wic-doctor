@@ -29,3 +29,4 @@ Homestead.json
 .phpactor.json
 auth.json
 WicDoctor/
+storage/framework/cache/
