@@ -8,6 +8,7 @@ use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder;
 use Yajra\DataTables\Services\DataTable;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Carbon\Carbon;
 
 class DoctorRequestDataTable extends DataTable
 {
@@ -26,9 +27,14 @@ class DoctorRequestDataTable extends DataTable
                 $name = json_decode($row->speciality_name, true);
                 return $name['fr'] ?? $row->speciality_name; // Affiche la clé 'fr'
             })
+            ->editColumn('created_at', function ($row) {
+                // Formatage de la date avant de l'afficher
+                return $row->created_at ? \Carbon\Carbon::parse($row->created_at)->format('d/m/Y') : '';
+            })
             ->addColumn('action', 'doctor_requests.datatables_actions')
             ->rawColumns(['action']);
     }
+    
     
     
     /**
@@ -37,12 +43,31 @@ class DoctorRequestDataTable extends DataTable
      * @param DoctorRequest $model
      * @return \Illuminate\Database\Eloquent\Builder
      */
+    protected $filter = [];
+
+    public function setFilter(string $key, mixed $value)
+    {
+        $this->filter[$key] = $value;
+    }
+    
     public function query(DoctorRequest $model): \Illuminate\Database\Eloquent\Builder
     {
-        return $model->newQuery()
+        $query = $model->newQuery()
             ->select('doctor_requests_b2b.*', 'specialities.name as speciality_name')
-            ->leftJoin('specialities', 'doctor_requests_b2b.speciality_id', '=', 'specialities.id');
+            ->leftJoin('specialities', 'doctor_requests_b2b.speciality_id', '=', 'specialities.id')
+            ->orderByRaw("
+                CASE 
+                    WHEN doctor_requests_b2b.status = 'en cours' THEN 1
+                    WHEN doctor_requests_b2b.status = 'accepté' THEN 2
+                    ELSE 3 
+                END
+            ")
+            ->orderBy('doctor_requests_b2b.created_at', 'desc');
+    
+        return $query;
     }
+    
+    
     
 
     /**
@@ -81,6 +106,11 @@ class DoctorRequestDataTable extends DataTable
             ['data' => 'Phone', 'title' => trans('lang.doctor_request_phone_number')],
             ['data' => 'type', 'title' => trans('lang.doctor_request_type')],
             ['data' => 'speciality_name', 'title' => trans('lang.doctor_request_specialities')],
+            [
+                'data' => 'created_at',
+                'title' => trans('Date création'),
+               
+            ],
         ];
     }
     

@@ -25,15 +25,7 @@ class DoctorRequestController extends Controller
 public function index(DoctorRequestDataTable $dataTable)
 {
         return $dataTable->render('doctor_requests.index');
-} public function index2()
-{
-    // Récupérer tous les docteurs depuis la table doctor_requests_b2b
-    $doctors = DoctorRequest::all();
-
-    // Passer les données à la vue
-    return view('parrainers.parrainer', compact('doctors'));
 }
-
 
 
 public function show($id)
@@ -466,4 +458,16 @@ private function createPatient($user, $doctorRequest)
         ]);
 }
 
+public function destroy(string $id)
+{
+        // Trouver la demande par son ID
+        $doctorRequest = DoctorRequest::findOrFail($id);
+
+    
+        // Supprimer la demande
+        $doctorRequest->delete();
+    
+        // Redirection avec un message de succès
+        return redirect()->route('doctor_requests.index')->with('success', 'Demande supprimés avec succès.');
+}
 }

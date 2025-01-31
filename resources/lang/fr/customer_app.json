@@ -351,5 +351,6 @@
   "These are all patients assigned to your account, you can create new ones using the Add button below":"Ce sont tous les patients attribués à votre compte, vous pouvez en créer de nouveaux en utilisant le bouton Ajouter ci-dessous",
   "No patterns available":"Pas de motifs disponibles.",
   "Address not found":"Adresse non trouvée",
-  "Location":"Localisation"
+  "Location":"Localisation",
+  "Review added successfully":"Avis ajouté"
 }

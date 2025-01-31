@@ -39,12 +39,15 @@ class TagController extends Controller
         // Validation des données
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+
             'speciality' => 'required|exists:specialities,id', // Assurez-vous que l'ID de spécialité existe
         ]);
     
         // Création du tag avec les données validées
         $tag = new \App\Models\Tag();
         $tag->name = $validated['name'];
+        $tag->country = $validated['country'];
         $tag->speciality_id = $validated['speciality'];
         $tag->save(); // Sauvegarde du tag dans la base de données
     
@@ -76,6 +79,8 @@ class TagController extends Controller
     
         return response()->json([
             'name' => $tag->name,
+            'country' => $tag->country,
+
             'speciality_id' => $tag->speciality_id,  // Assurez-vous de renvoyer l'ID de la spécialité
             'specialities' => $specialities // Envoyer toutes les spécialités disponibles
         ]);
@@ -91,6 +96,7 @@ public function update(Request $request, $id)
     // Validation des données
     $validated = $request->validate([
         'name' => 'required|string|max:255',
+        'country' => 'required|string|max:255',
         'speciality_id' => 'required|exists:specialities,id', // Assurez-vous que l'ID de spécialité existe
     ]);
     
@@ -99,6 +105,8 @@ public function update(Request $request, $id)
     
     // Mise à jour des données
     $tag->name = $validated['name'];
+    $tag->country = $validated['country'];
+
     $tag->speciality_id = $validated['speciality_id'];
     $tag->save(); // Sauvegarder les modifications
     
