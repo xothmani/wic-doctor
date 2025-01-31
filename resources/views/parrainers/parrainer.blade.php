@@ -145,4 +145,24 @@
 </div>
 
     </div>
+    <script>
+    function copyToClipboard() {
+        var copyText = document.getElementById("parrain-link");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the text to the clipboard
+        document.execCommand("copy");
+
+        // Provide feedback to the user
+        var feedback = document.getElementById("copy-feedback");
+        feedback.style.display = "block";
+
+        // Optionally, hide the feedback after a short time
+        setTimeout(function() {
+            feedback.style.display = "none";
+        }, 2000); // Hide after 2 seconds
+    }
+</script>
+
 @endsection

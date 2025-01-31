@@ -356,6 +356,16 @@
         </a>
     </li>
 @endcan
+@can('Messagerie.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('Messagerie*') ? 'active' : '' }}" href="{!! route('messagerie.index') !!}">
+            @if($icons)
+            <i class="nav-icon fas fa-comment-dots"></i>
+            @endif
+            <p>Messagerie</p> <!-- Texte directement modifié ici -->
+        </a>
+    </li>
+@endcan
 @can('addresses.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"
