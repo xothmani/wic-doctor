@@ -217,9 +217,9 @@ class DoctorUserController extends Controller
         $user = $this->userRepository->find($id);
 
         // Verify if the user is owned by the logged-in doctor
-        $UserOwnership = \DB::table('user_ownership')
+        $UserOwnership = \DB::table('doctor_associate')
             ->where('user_id', $id)
-            ->where('created_by', $doctorId)
+            ->where('doctor_id', $doctorId) // Adjusted to match the column name in the `doctor_associate` table
             ->exists();
 
         if (!$UserOwnership) {
@@ -345,16 +345,15 @@ class DoctorUserController extends Controller
         $user = $this->userRepository->find($id);
 
         // Verify if the user is owned by the logged-in doctor
-        $ownership = \DB::table('user_ownership')
+        $ownership = \DB::table('doctor_associate')
             ->where('user_id', $id)
-            ->where('created_by', $doctorId)
+            ->where('doctor_id', $doctorId) // Adjusted to match the column in the `doctor_associate` table
             ->exists();
 
         if (!$ownership) {
             Flash::error(__('User not found or unauthorized.'));
             return redirect()->route('Doctors_users.index');
         }
-
         try {
             $this->userRepository->delete($id);
 
