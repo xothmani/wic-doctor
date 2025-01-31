@@ -93,6 +93,20 @@
     </li>
 <?php endif; ?>
 
+
+<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('newsletters.index')): ?>
+    <li class="nav-item">
+        <a class="nav-link <?php echo e(Request::is('newsletters') ? 'active' : ''); ?>" href="<?php echo route('newsletters.index'); ?>">
+        <?php if($icons): ?>
+    <i class="nav-icon fas fa-envelope"></i> 
+<?php endif; ?>
+         <p><?php echo e(trans('lang.newsletters_plural')); ?></p>
+        </a>
+    </li>
+<?php endif; ?>
+
+
+
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clinics.index')): ?>
     <li
         class="nav-item has-treeview <?php echo e((Request::is('clinic*') || Request::is('requestedClinics*') || Request::is('galleries*') || Request::is('awards*')) || Request::is('clinicReviews*') && !Request::is('clinicPayouts*') ? 'menu-open' : ''); ?>">
@@ -156,6 +170,28 @@
             <i class="nav-icon fas fa-book-medical"></i><?php endif; ?><p><?php echo e(trans('lang.speciality_plural')); ?></p></a>
     </li>
 <?php endif; ?>
+
+<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('tags.index')): ?>
+    <li class="nav-item">
+        <a class="nav-link <?php echo e(Request::is('tags') ? 'active' : ''); ?>" href="<?php echo route('tags.index'); ?>">
+        <?php if($icons): ?>
+            <i class="nav-icon fas fa-tags"></i>
+        <?php endif; ?>
+        <p><?php echo e(trans('lang.tag_plural')); ?></p></a>
+    </li>
+<?php endif; ?>
+
+<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('doctor_tag.index')): ?>
+    <li class="nav-item">
+        <a class="nav-link <?php echo e(Request::is('doctor_tag') && !Request::is('doctor_tag/create') ? 'active' : ''); ?>" href="<?php echo route('doctor_tag.index'); ?>">
+        <?php if($icons): ?>
+            <i class="nav-icon fas fa-tags"></i>
+        <?php endif; ?>
+        <p><?php echo e(trans('lang.my_tag_plural')); ?></p></a>
+    </li>
+<?php endif; ?>
+
+
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('assurances.index')): ?>
     <li class="nav-item">
         <a class="nav-link <?php echo e(Request::is('assurances*') ? 'active' : ''); ?>" href="<?php echo route('assurances.index'); ?>">
@@ -300,6 +336,16 @@
         </a>
     </li>
 <?php endif; ?>
+<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('parrainers.index')): ?>
+    <li class="nav-item">
+        <a class="nav-link <?php echo e(Request::is('parrainer*') ? 'active' : ''); ?>" href="<?php echo route('parrainers.index'); ?>">
+            <?php if($icons): ?>
+                <i class="nav-icon fas fa-users"></i> <!-- Remplacez par l'icône de votre choix -->
+            <?php endif; ?>
+            <p>Parrainage</p> <!-- Texte directement modifié ici -->
+        </a>
+    </li>
+<?php endif; ?>
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('addresses.index')): ?>
     <li class="nav-item">
         <a class="nav-link <?php echo e(Request::is('addresses*') ? 'active' : ''); ?>"
@@ -307,7 +353,6 @@
             <i class="nav-icon fas fa-map-marked-alt"></i><?php endif; ?><p><?php echo e(trans('lang.address_plural')); ?></p></a>
     </li>
 <?php endif; ?>
-
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('seo.index')): ?>
     <li class="nav-item">
         <a class="nav-link <?php echo e(Request::is('visibiliteSeo*') ? 'active' : ''); ?>" href="<?php echo route('seo.index'); ?>">
