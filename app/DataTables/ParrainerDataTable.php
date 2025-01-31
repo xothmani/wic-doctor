@@ -91,11 +91,11 @@ class ParrainerDataTable extends DataTable
     {
         return [
         //    ['data' => 'id', 'title' => trans('lang.doctor_request_id')],
-            ['data' => 'lastname', 'title' => trans('lang.doctor_request_lastname')],
+            ['data' => 'lastname', 'title' => trans('Last Name')],
             ['data' => 'name', 'title' => trans('lang.doctor_request_name')],
             ['data' => 'email', 'title' => trans('lang.doctor_request_email')],
             ['data' => 'Phone', 'title' => trans('lang.doctor_request_phone_number')],
-            ['data' => 'code_parent', 'title' => trans('code_parent')],
+            ['data' => 'code_parent', 'title' => trans('Code Parent')],
 
             //['data' => 'type', 'title' => trans('lang.doctor_request_type')],
            // ['data' => 'speciality_id', 'title' => trans('lang.doctor_request_specialities')],

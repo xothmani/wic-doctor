@@ -19,6 +19,8 @@
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\PharmacyTypeController;
+use App\Http\Controllers\MessagerieController;
+
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\PatientController;
@@ -454,6 +456,7 @@ Route::get('/doctors/parrainage/{codeParrain}', [DoctorController::class, 'getDo
 Route::get('/parrainer', [ParrainerController::class, 'index'])
 ->name('parrainers.index')
 ->middleware('auth');
+Route::get('/messagerie', [MessagerieController::class, 'index'])->name('messagerie.index');
 
 
 Route::get('/parrainer2', [ParrainerController::class, 'parrainer'])
