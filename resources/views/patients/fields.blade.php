@@ -502,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Gestion du clic sur le bouton "Oui" dans le modal
         $('#confirmSave').on('click', function () {
             // Rediriger vers l'agenda pour la création de rendez-vous
-            window.location.href = "{{ route('appointment-event.index') }}";
+            window.location.href = "{{ route('appointment-events.index') }}";
         });
 
         // Gestion du clic sur le bouton "Non" dans le modal
