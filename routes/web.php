@@ -140,6 +140,7 @@ Route::resource('clinicLevels', 'ClinicLevelController')->except([
 ]);
 
 
+Route::post('/consultation/report', [ConsultationController::class, 'addReport']);
 
 Route::get('storage/app/public/{id}/{conversion}/{filename?}', 'UploadController@storage');
 //Route::middleware('auth')->group(function () {

@@ -18695,6 +18695,7 @@ Stack trace:
 #67 C:\\Users\\samar\\OneDrive\\Desktop\\devversion1\\wic-doctor\\server.php(21): require_once('C:\\\\Users\\\\samar\\\\...')
 #68 {main}
 "} 
+<<<<<<< HEAD
 [2025-01-31 12:40:48] local.ERROR: Class "App\Mail\ParrainageMail" not found {"userId":21,"exception":"[object] (Error(code: 0): Class \"App\\Mail\\ParrainageMail\" not found at C:\\Users\\samar\\OneDrive\\Desktop\\devversion1\\wic-doctor\\app\\Http\\Controllers\\ParrainerController.php:145)
 [stacktrace]
 #0 C:\\Users\\samar\\OneDrive\\Desktop\\devversion1\\wic-doctor\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Controller.php(54): App\\Http\\Controllers\\ParrainerController->envoyerEmail(Object(Illuminate\\Http\\Request))
@@ -18948,3 +18949,141 @@ Stack trace:
 #57 C:\\Users\\samar\\OneDrive\\Desktop\\devversion1\\wic-doctor\\server.php(21): require_once('C:\\\\Users\\\\samar\\\\...')
 #58 {main}
 "} 
+=======
+[2025-01-31 14:16:52] local.INFO: Update Permission Request Data: {"permission_id":"1","user_id":"568","doctor_id":"134","is_checked":true} 
+[2025-01-31 14:16:52] local.INFO: Inserting permission ID: 1 for user ID: 568 and doctor ID: 134  
+[2025-01-31 14:16:52] local.INFO: Permission successfully inserted.  
+[2025-01-31 14:17:14] local.INFO: vaiabilty {"request_data":{"doctor_id":"131"}} 
+[2025-01-31 14:17:14] local.INFO: ooooooooooooooooooo {"request_data":{"start":"2025-01-27 00:00:00","end":"2025-02-03 00:00:00","doctor_id":"131"}} 
+[2025-01-31 14:17:14] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-27","doctor_id":"131"}} 
+[2025-01-31 14:17:14] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1875,"day":"Lundi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:14] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:14] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Taken slots fetched {"takenSlots":[]} 
+[2025-01-31 14:17:14] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:14] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":[]}} 
+[2025-01-31 14:17:14] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-28","doctor_id":"131"}} 
+[2025-01-31 14:17:14] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1876,"day":"Mardi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:14] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:14] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Taken slots fetched {"takenSlots":[]} 
+[2025-01-31 14:17:14] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:14] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":[]}} 
+[2025-01-31 14:17:14] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-29","doctor_id":"131"}} 
+[2025-01-31 14:17:14] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1877,"day":"Mercredi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:14] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:14] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Taken slots fetched {"takenSlots":["09:15","09:30","09:45","10:00","09:00"]} 
+[2025-01-31 14:17:14] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:14] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":["09:15","09:30","09:45","10:00","09:00"]}} 
+[2025-01-31 14:17:14] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-30","doctor_id":"131"}} 
+[2025-01-31 14:17:14] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1878,"day":"Jeudi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:14] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:14] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Taken slots fetched {"takenSlots":["09:00","09:15","09:30"]} 
+[2025-01-31 14:17:14] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:14] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":["09:00","09:15","09:30"]}} 
+[2025-01-31 14:17:14] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-31","doctor_id":"131"}} 
+[2025-01-31 14:17:14] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1879,"day":"Vendredi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:14] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:14] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:14] local.INFO: Taken slots fetched {"takenSlots":["09:00"]} 
+[2025-01-31 14:17:14] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:14] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":["09:00"]}} 
+[2025-01-31 14:17:14] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-02-01","doctor_id":"131"}} 
+[2025-01-31 14:17:14] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1880,"day":"Samedi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"13:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:14] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45"]} 
+[2025-01-31 14:17:14] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:14] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45"]} 
+[2025-01-31 14:17:14] local.INFO: Taken slots fetched {"takenSlots":[]} 
+[2025-01-31 14:17:14] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:14] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45"],"taken_slots":[]}} 
+[2025-01-31 14:17:14] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-02-02","doctor_id":"131"}} 
+[2025-01-31 14:17:14] local.INFO: Availability fetched {"availability":null} 
+[2025-01-31 14:17:14] local.WARNING: No availability found {"doctor_id":"131","dayName":"dimanche"} 
+[2025-01-31 14:17:16] local.INFO: vaiabilty {"request_data":{"doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: ooooooooooooooooooo {"request_data":{"start":"2025-01-27 00:00:00","end":"2025-02-03 00:00:00","doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-27","doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: Availability fetched {"availability":null} 
+[2025-01-31 14:17:17] local.WARNING: No availability found {"doctor_id":"170","dayName":"lundi"} 
+[2025-01-31 14:17:17] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-28","doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: Availability fetched {"availability":null} 
+[2025-01-31 14:17:17] local.WARNING: No availability found {"doctor_id":"170","dayName":"mardi"} 
+[2025-01-31 14:17:17] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-29","doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: Availability fetched {"availability":null} 
+[2025-01-31 14:17:17] local.WARNING: No availability found {"doctor_id":"170","dayName":"mercredi"} 
+[2025-01-31 14:17:17] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-30","doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: Availability fetched {"availability":null} 
+[2025-01-31 14:17:17] local.WARNING: No availability found {"doctor_id":"170","dayName":"jeudi"} 
+[2025-01-31 14:17:17] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-31","doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: Availability fetched {"availability":null} 
+[2025-01-31 14:17:17] local.WARNING: No availability found {"doctor_id":"170","dayName":"vendredi"} 
+[2025-01-31 14:17:17] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-02-01","doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: Availability fetched {"availability":null} 
+[2025-01-31 14:17:17] local.WARNING: No availability found {"doctor_id":"170","dayName":"samedi"} 
+[2025-01-31 14:17:17] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-02-02","doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: Availability fetched {"availability":null} 
+[2025-01-31 14:17:17] local.WARNING: No availability found {"doctor_id":"170","dayName":"dimanche"} 
+[2025-01-31 14:17:17] local.INFO: ooooooooooooooooooo {"request_data":{"start":"2025-01-27 00:00:00","end":"2025-02-03 00:00:00","doctor_id":"170"}} 
+[2025-01-31 14:17:17] local.INFO: ooooooooooooooooooo {"request_data":{"start":"2025-01-27 00:00:00","end":"2025-02-03 00:00:00","doctor_id":"170"}} 
+[2025-01-31 14:17:18] local.INFO: vaiabilty {"request_data":{"doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: ooooooooooooooooooo {"request_data":{"start":"2025-01-27 00:00:00","end":"2025-02-03 00:00:00","doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-27","doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1875,"day":"Lundi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:18] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:18] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Taken slots fetched {"takenSlots":[]} 
+[2025-01-31 14:17:18] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:18] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":[]}} 
+[2025-01-31 14:17:18] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-28","doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1876,"day":"Mardi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:18] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:18] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Taken slots fetched {"takenSlots":[]} 
+[2025-01-31 14:17:18] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:18] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":[]}} 
+[2025-01-31 14:17:18] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-29","doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1877,"day":"Mercredi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:18] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:18] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Taken slots fetched {"takenSlots":["09:15","09:30","09:45","10:00","09:00"]} 
+[2025-01-31 14:17:18] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:18] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":["09:15","09:30","09:45","10:00","09:00"]}} 
+[2025-01-31 14:17:18] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-30","doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1878,"day":"Jeudi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:18] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:18] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Taken slots fetched {"takenSlots":["09:00","09:15","09:30"]} 
+[2025-01-31 14:17:18] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:18] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":["09:00","09:15","09:30"]}} 
+[2025-01-31 14:17:18] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-01-31","doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1879,"day":"Vendredi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"16:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:18] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:18] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"]} 
+[2025-01-31 14:17:18] local.INFO: Taken slots fetched {"takenSlots":["09:00"]} 
+[2025-01-31 14:17:18] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:18] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45","13:00","13:15","13:30","13:45","14:00","14:15","14:30","14:45","15:00","15:15","15:30","15:45"],"taken_slots":["09:00"]}} 
+[2025-01-31 14:17:18] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-02-01","doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: Availability fetched {"availability":{"stdClass":{"id":1880,"day":"Samedi","data":null,"doctor_id":131,"start_at":"09:00:00","end_at":"13:00:00","patern_id":null,"onligne":0,"session_duration":15,"pause_from":null,"pause_to":null,"is_available":1}}} 
+[2025-01-31 14:17:18] local.INFO: Calculated all slots {"allSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45"]} 
+[2025-01-31 14:17:18] local.INFO: Urgent hours fetched {"urgentHours":{"Illuminate\\Support\\Collection":[]}} 
+[2025-01-31 14:17:18] local.INFO: Filtered slots after urgency exclusion {"filteredSlots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45"]} 
+[2025-01-31 14:17:18] local.INFO: Taken slots fetched {"takenSlots":[]} 
+[2025-01-31 14:17:18] local.INFO: Vacation status {"vacations":false} 
+[2025-01-31 14:17:18] local.INFO: Final response {"response":{"vacation":false,"all_slots":["09:00","09:15","09:30","09:45","10:00","10:15","10:30","10:45","11:00","11:15","11:30","11:45","12:00","12:15","12:30","12:45"],"taken_slots":[]}} 
+[2025-01-31 14:17:18] local.INFO: Entering getAvailableTimeSlots {"request_data":{"date":"2025-02-02","doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: Availability fetched {"availability":null} 
+[2025-01-31 14:17:18] local.WARNING: No availability found {"doctor_id":"131","dayName":"dimanche"} 
+[2025-01-31 14:17:18] local.INFO: ooooooooooooooooooo {"request_data":{"start":"2025-01-27 00:00:00","end":"2025-02-03 00:00:00","doctor_id":"131"}} 
+[2025-01-31 14:17:18] local.INFO: ooooooooooooooooooo {"request_data":{"start":"2025-01-27 00:00:00","end":"2025-02-03 00:00:00","doctor_id":"131"}} 
+>>>>>>> 7a680990fb6dd17992caa45b959a9d0d55d59acb

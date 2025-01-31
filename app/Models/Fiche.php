@@ -40,4 +40,11 @@ class Fiche extends Model
     return $this->hasMany(Consultation::class, 'fiche_code', 'code');
 }
 
+public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+
 }
+
+

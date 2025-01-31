@@ -63,10 +63,11 @@
 
 @can('telesecretariats.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('telesecretariats') ? 'active' : '' }}" href="{!! route('telesecretariats.index') !!}">
-        @if($icons)
-    <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
-@endif
+        <a class="nav-link {{ Request::is('telesecretariats') ? 'active' : '' }}"
+            href="{!! route('telesecretariats.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
+            @endif
 
             <p>{{ trans('lang.telesecretariat_plural') }}</p>
         </a>
@@ -75,10 +76,11 @@
 
 @can('doctor_telesecretariat.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : '' }}" href="{!! route('doctor_telesecretariat.index') !!}">
-        @if($icons)
-            <i class="nav-icon fas fa-calendar-check"></i> {{-- Icône représentant un agenda avec un médecin --}}
-        @endif
+        <a class="nav-link {{ Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : '' }}"
+            href="{!! route('doctor_telesecretariat.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-calendar-check"></i> {{-- Icône représentant un agenda avec un médecin --}}
+            @endif
             <p>{{ trans('lang.agenda_des_medecins') }}</p>
         </a>
     </li>
@@ -86,11 +88,12 @@
 
 @can('doctor_telesecretariat.create')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor_telesecretariat/create') ? 'active' : '' }}" href="{!! route('doctor_telesecretariat.create') !!}">
-        @if($icons)
-            <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
-        @endif
-            <p>{{ trans('lang.doctor_telesecretariat') }}</p> 
+        <a class="nav-link {{ Request::is('doctor_telesecretariat/create') ? 'active' : '' }}"
+            href="{!! route('doctor_telesecretariat.create') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
+            @endif
+            <p>{{ trans('lang.doctor_telesecretariat') }}</p>
         </a>
     </li>
 @endcan
@@ -99,10 +102,10 @@
 @can('newsletters.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('newsletters') ? 'active' : '' }}" href="{!! route('newsletters.index') !!}">
-        @if($icons)
-    <i class="nav-icon fas fa-envelope"></i> 
-@endif
-         <p>{{ trans('lang.newsletters_plural') }}</p>
+            @if($icons)
+                <i class="nav-icon fas fa-envelope"></i>
+            @endif
+            <p>{{ trans('lang.newsletters_plural') }}</p>
         </a>
     </li>
 @endcan
@@ -157,7 +160,8 @@
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('clinicReviews*') ? 'active' : '' }}"
                         href="{!! route('clinicReviews.index') !!}">@if($icons)<i class="nav-icon fas fa-comments"></i>@endif<p>
-                            {{trans('lang.clinic_review_plural')}}</p></a>
+                            {{trans('lang.clinic_review_plural')}}
+                        </p></a>
                 </li>
             @endcan
 
@@ -176,20 +180,23 @@
 @can('tags.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('tags') ? 'active' : '' }}" href="{!! route('tags.index') !!}">
-        @if($icons)
-            <i class="nav-icon fas fa-tags"></i>
-        @endif
-        <p>{{ trans('lang.tag_plural') }}</p></a>
+            @if($icons)
+                <i class="nav-icon fas fa-tags"></i>
+            @endif
+            <p>{{ trans('lang.tag_plural') }}</p>
+        </a>
     </li>
 @endcan
 
 @can('doctor_tag.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor_tag') && !Request::is('doctor_tag/create') ? 'active' : '' }}" href="{!! route('doctor_tag.index') !!}">
-        @if($icons)
-            <i class="nav-icon fas fa-tags"></i>
-        @endif
-        <p>{{ trans('lang.my_tag_plural') }}</p></a>
+        <a class="nav-link {{ Request::is('doctor_tag') && !Request::is('doctor_tag/create') ? 'active' : '' }}"
+            href="{!! route('doctor_tag.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-tags"></i>
+            @endif
+            <p>{{ trans('lang.my_tag_plural') }}</p>
+        </a>
     </li>
 @endcan
 
@@ -313,7 +320,8 @@
     <li class="nav-item">
         <a class="nav-link {{ Request::is('patients*') ? 'active' : '' }}"
             href="{!! route('patients.index') !!}">@if($icons)<i class="nav-icon fas fa-procedures"></i>@endif<p>
-                {{trans('lang.patient_plural')}}</p></a>
+                {{trans('lang.patient_plural')}}
+            </p></a>
     </li>
 @endcan
 @can('appointments.today.completed')
@@ -427,7 +435,8 @@
                         href="{!! route('pharmacies.index') !!}">@if($icons)
                         <i class="nav-icon fas fa-first-aid"></i>@endif<p>
                             {{trans('lang.pharmacy_plural')}}@if (config('installer.demo_app')) <span
-                            class="right badge badge-danger">Addon</span> @endif</p></a>
+                            class="right badge badge-danger">Addon</span> @endif
+                        </p></a>
                 </li>
             @endcan
             @can('pharmacyTypes.index')
@@ -436,7 +445,8 @@
                         href="{!! route('pharmacyTypes.index') !!}">@if($icons)
                         <i class="nav-icon fas fa-first-aid"></i>@endif<p>
                             {{trans('lang.pharmacy_type_plural')}}@if (config('installer.demo_app')) <span
-                            class="right badge badge-danger">Addon</span> @endif</p></a>
+                            class="right badge badge-danger">Addon</span> @endif
+                        </p></a>
                 </li>
             @endcan
             @can('availabilityHourPharmacies.index')
@@ -445,7 +455,8 @@
                         href="{!! route('availabilityHourPharmacies.index') !!}">@if($icons)
                         <i class="nav-icon far fa-clock"></i>@endif<p>
                             {{trans('pharmacies::lang.availability_hour_pharmacy_plural')}}@if (config('installer.demo_app'))
-                            <span class="right badge badge-danger">Addon</span> @endif</p></a>
+                            <span class="right badge badge-danger">Addon</span> @endif
+                        </p></a>
                 </li>
             @endcan
             @can('pharmaciesEarnings.index')
@@ -454,7 +465,8 @@
                         href="{!! route('pharmaciesEarnings.index') !!}">@if($icons)
                         <i class="nav-icon fas fa-money-bill"></i>@endif<p>
                             {{trans('pharmacies::lang.pharmacy_earning_plural')}}@if (config('installer.demo_app')) <span
-                            class="right badge badge-danger">Addon</span> @endif</p></a>
+                            class="right badge badge-danger">Addon</span> @endif
+                        </p></a>
                 </li>
             @endcan
         </ul>
@@ -481,7 +493,8 @@
                 href="{!! route('clinicSubscriptions.index') !!}">@if($icons)
                 <i class="nav-icon fa fa-address-card"></i>@endif<p>
                     {{trans('subscription::lang.clinic_subscription_plural')}}@if (config('installer.demo_app')) <span
-                    class="right badge badge-danger">Addon</span> @endif</p></a>
+                    class="right badge badge-danger">Addon</span> @endif
+                </p></a>
         </li>
     @endcan
 @endif
@@ -503,7 +516,8 @@
                             href="{!! route('pharmacies.index') !!}">@if($icons)
                             <i class="nav-icon fas fa-first-aid"></i>@endif<p>
                                 {{trans('pharmacies::lang.pharmacy_plural')}}@if (config('installer.demo_app')) <span
-                                class="right badge badge-danger">Addon</span> @endif</p></a>
+                                class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
                 @can('pharmacyTypes.index')
@@ -512,7 +526,8 @@
                             href="{!! route('pharmacyTypes.index') !!}">@if($icons)
                             <i class="nav-icon fas fa-first-aid"></i>@endif<p>
                                 {{trans('pharmacies::lang.pharmacy_type_plural')}}@if (config('installer.demo_app')) <span
-                                class="right badge badge-danger">Addon</span> @endif</p></a>
+                                class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
                 @can('availabilityHourPharmacies.index')
@@ -521,7 +536,8 @@
                             href="{!! route('availabilityHourPharmacies.index') !!}">@if($icons)
                             <i class="nav-icon far fa-clock"></i>@endif<p>
                                 {{trans('pharmacies::lang.availability_hour_pharmacy_plural')}}@if (config('installer.demo_app'))
-                                <span class="right badge badge-danger">Addon</span> @endif</p></a>
+                                <span class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
                 @can('pharmaciesEarnings.index')
@@ -530,7 +546,8 @@
                             href="{!! route('pharmaciesEarnings.index') !!}">@if($icons)
                             <i class="nav-icon fas fa-money-bill"></i>@endif<p>
                                 {{trans('pharmacies::lang.pharmacy_earning_plural')}}@if (config('installer.demo_app')) <span
-                                class="right badge badge-danger">Addon</span> @endif</p></a>
+                                class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
             </ul>
@@ -551,7 +568,8 @@
                             href="{!! route('medicines.index') !!}">@if($icons)
                             <i class="nav-icon fas fa-capsules"></i>@endif<p>
                                 {{trans('pharmacies::lang.medicine_plural')}}@if (config('installer.demo_app')) <span
-                                class="right badge badge-danger">Addon</span> @endif</p></a>
+                                class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
                 @can('forms.index')
@@ -560,7 +578,8 @@
                             href="{!! route('forms.index') !!}">@if($icons)
                             <i class="nav-icon fas fa-flask"></i>@endif<p>
                                 {{trans('pharmacies::lang.form_plural')}}@if (config('installer.demo_app')) <span
-                                class="right badge badge-danger">Addon</span> @endif</p></a>
+                                class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
                 @can('medicineOptionGroups.index')
@@ -569,7 +588,8 @@
                             href="{!! route('medicineOptionGroups.index') !!}">@if($icons)
                             <i class="nav-icon fas fa-plus-square"></i>@endif<p>
                                 {{trans('pharmacies::lang.medicine_option_group_plural')}}@if (config('installer.demo_app')) <span
-                                class="right badge badge-danger">Addon</span> @endif</p></a>
+                                class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
                 @can('medicineOptions.index')
@@ -578,7 +598,8 @@
                             href="{!! route('medicineOptions.index') !!}">@if($icons)
                             <i class="nav-icon far fa-plus-square"></i>@endif<p>
                                 {{trans('pharmacies::lang.medicine_option_plural')}}@if (config('installer.demo_app')) <span
-                                class="right badge badge-danger">Addon</span> @endif</p></a>
+                                class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
 
@@ -591,7 +612,8 @@
                 href="{!! route('categories.index') !!}">@if($icons)
                 <i class="nav-icon fas fa-book-medical"></i>@endif<p>
                     {{trans('pharmacies::lang.category_plural')}}@if (config('installer.demo_app')) <span
-                    class="right badge badge-danger">Addon</span> @endif</p></a>
+                    class="right badge badge-danger">Addon</span> @endif
+                </p></a>
         </li>
     @endcan
     @can('orders.index')
@@ -610,7 +632,8 @@
                             href="{!! route('orders.index') !!}">@if($icons)
                             <i class="nav-icon fas fa-shopping-bag"></i>@endif<p>
                                 {{trans('pharmacies::lang.order_plural')}}@if (config('installer.demo_app')) <span
-                                class="right badge badge-danger">Addon</span> @endif</p></a>
+                                class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
                 @can('orderStatuses.index')
@@ -619,7 +642,8 @@
                             href="{!! route('orderStatuses.index') !!}">@if($icons)
                             <i class="nav-icon fa fa-server"></i>@endif<p>
                                 {{trans('pharmacies::lang.order_status_plural')}}@if (config('installer.demo_app')) <span
-                                class="right badge badge-danger">Addon</span> @endif</p></a>
+                                class="right badge badge-danger">Addon</span> @endif
+                            </p></a>
                     </li>
                 @endcan
 
@@ -665,7 +689,7 @@
                     <a class="nav-link {{ Request::is('paymentStatuses*') ? 'active' : '' }}"
                         href="{!! route('paymentStatuses.index') !!}">@if($icons)
                         <i class="nav-icon fas fa-file-invoice-dollar"></i>@endif<p>{{trans('lang.payment_status_plural')}}</p>
-                        </a>
+                    </a>
                 </li>
             @endcan
 
