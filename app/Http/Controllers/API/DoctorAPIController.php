@@ -72,14 +72,10 @@ public function index(Request $request): JsonResponse
         $this->doctorRepository->pushCriteria(new NearCriteria($request));
 
         // Apply gouvernorat filter if provided
-        if ($request->has('gouvernorat') && $request->input('gouvernorat')) {
-            $gouvernoratList = $request->input('gouvernorat');  // This should be an array of gouvernorat values
-            // Push custom gouvernorat filtering criteria
-            $this->doctorRepository->pushCriteria(new FilterByGouvernoratCriteria($gouvernoratList));
-        }
-    } catch (Exception $e) {
-        return $this->sendError($e->getMessage());
-    }
+       if ($request->has('gouvernorat') && !empty($request->input('gouvernorat'))) {
+    $gouvernoratList = (array) $request->input('gouvernorat'); // Ensure it's an array
+    $this->doctorRepository->pushCriteria(new FilterByGouvernoratCriteria($gouvernoratList));
+}
 
     // Load the address relationship
     $doctors = $this->doctorRepository->with('address')->all();
@@ -99,21 +95,21 @@ public function index(Request $request): JsonResponse
     // Return response
     return $this->sendResponse($doctors, 'Doctors retrieved successfully');
 }
-       
+
     /**
      * @param Collection $doctors
      */
    private function availableDoctors(Collection &$doctors)
 {
-// Assuming you have Eloquent models for the tables `Doctor`, `DoctorSpeciality`, and `Speciality` 
- 
-    // Iterate over the doctors and load their specialties 
-    $doctors->each(function ($doctor) { 
-        // Get the specialties for each doctor 
-        $doctor->specialities = Speciality::whereIn('id',  
-            DoctorSpeciality::where('doctor_id', $doctor->id) 
-                ->pluck('speciality_id') 
-        )->pluck('name'); 
+// Assuming you have Eloquent models for the tables `Doctor`, `DoctorSpeciality`, and `Speciality`
+
+    // Iterate over the doctors and load their specialties
+    $doctors->each(function ($doctor) {
+        // Get the specialties for each doctor
+        $doctor->specialities = Speciality::whereIn('id',
+            DoctorSpeciality::where('doctor_id', $doctor->id)
+                ->pluck('speciality_id')
+        )->pluck('name');
     });
     return $doctors;
 }
@@ -372,3 +368,4 @@ public function getUrgencyHours(int $id, Request $request): JsonResponse
 
 
 }
+
