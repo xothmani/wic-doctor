@@ -23,7 +23,10 @@ class TagDataTable extends DataTable
     
         return $dataTable
             ->editColumn('name', function ($tag) {
-                return '<span class="badge">' . $tag->name . '</span>';
+                return $tag->name;
+            })
+            ->editColumn('country', function ($tag) {
+                return $tag->country ;
             })
             ->addColumn('speciality', function ($tag) {
                 return $tag->speciality ? $tag->speciality->name : 'N/A';
@@ -82,6 +85,10 @@ class TagDataTable extends DataTable
             [
                 'data' => 'speciality',
                 'title' => trans('lang.speciality'), // Nom de la spécialité
+            ],
+            [
+                'data' => 'country',
+                'title' => trans('lang.country'), // country de la spécialité
             ],
 
     

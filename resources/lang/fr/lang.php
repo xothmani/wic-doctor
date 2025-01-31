@@ -19,6 +19,13 @@ return [
         'newsletter_table' => 'Liste des Newsletters',
         'agenda_des_medecins' => 'Agendas des médecins',
         'gestion_agenda' => 'Gestion des agendas',
+
+
+        'my_tag_plural' => 'Mes étiquettes',
+
+
+        'app_setting_it' => 'Italien',
+        'select_country' => 'Sélectionnez le pays',
 	
         'code_doctor' => 'Code Doctor',
         'code_parent' => 'Code Parent',

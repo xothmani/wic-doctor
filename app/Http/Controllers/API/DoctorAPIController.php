@@ -72,30 +72,33 @@ public function index(Request $request): JsonResponse
         $this->doctorRepository->pushCriteria(new NearCriteria($request));
 
         // Apply gouvernorat filter if provided
-       if ($request->has('gouvernorat') && !empty($request->input('gouvernorat'))) {
-    $gouvernoratList = (array) $request->input('gouvernorat'); // Ensure it's an array
-    $this->doctorRepository->pushCriteria(new FilterByGouvernoratCriteria($gouvernoratList));
-}
+        if ($request->has('gouvernorat') && !empty($request->input('gouvernorat'))) {
+            $gouvernoratList = (array) $request->input('gouvernorat'); // Ensure it's an array
+            $this->doctorRepository->pushCriteria(new FilterByGouvernoratCriteria($gouvernoratList));
+        }
 
-    // Load the address relationship
-    $doctors = $this->doctorRepository->with('address')->all();
+        // Load the address relationship
+        $doctors = $this->doctorRepository->with('address')->all();
 
-    // Additional filtering and processing
-    if (!$request->has('all')) {
-        $this->availableDoctors($doctors);
+        // Additional filtering and processing
+        if (!$request->has('all')) {
+            $this->availableDoctors($doctors);
+        }
+        $this->hasValidSubscription($request, $doctors);
+        $this->orderByRating($request, $doctors);
+        $this->limitOffset($request, $doctors);
+        $this->filterCollection($request, $doctors);
+
+        // Convert collection to array
+        $doctors = array_values($doctors->toArray());
+
+        // Return response
+        return $this->sendResponse($doctors, 'Doctors retrieved successfully');
+    } catch (\Exception $e) {
+        // Handle any exceptions that may occur
+        return $this->sendError('Error retrieving doctors: ' . $e->getMessage());
     }
-    $this->hasValidSubscription($request, $doctors);
-    $this->orderByRating($request, $doctors);
-    $this->limitOffset($request, $doctors);
-    $this->filterCollection($request, $doctors);
-
-    // Convert collection to array
-    $doctors = array_values($doctors->toArray());
-
-    // Return response
-    return $this->sendResponse($doctors, 'Doctors retrieved successfully');
 }
-
     /**
      * @param Collection $doctors
      */

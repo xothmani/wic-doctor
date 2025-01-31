@@ -32,23 +32,19 @@
         url: '/tags/' + tagId + '/edit',
         method: 'GET',
         success: function(response) {
-            console.log(response);  // Vérifiez que les données sont bien reçues
+            console.log(response);
 
-            if (response && response.name && response.specialities) {
-                // Remplir le champ "name"
-                $('#tagName').val(response.name);
+            if (response && response.name && response.specialities && response.country) {
+                // Remplir les champs avec les ID uniques
+                $('#tagName-' + tagId).val(response.name);
+                $('#editCountry-' + tagId).val(response.country).trigger('change');
 
-                // Vider la liste déroulante des spécialités
-                $('#speciality').empty();
-                
-                // Ajouter une option par défaut
-                $('#speciality').append('<option value="" disabled selected>{{ trans('lang.select_speciality') }}</option>');
+                // Charger les spécialités initiales
+                updateEditSpecialities(response.country, response.speciality_id, tagId);
 
-                // Ajouter chaque spécialité dans la liste déroulante
-                response.specialities.forEach(function(speciality) {
-                    $('#speciality').append(
-                        `<option value="${speciality.id}" ${speciality.id == response.speciality_id ? 'selected' : ''}>${speciality.name.fr}</option>`
-                    );
+                // Attacher l'événement change pour le pays
+                $('#editCountry-' + tagId).off('change').on('change', function() {
+                    updateEditSpecialities($(this).val(), null, tagId);
                 });
             } else {
                 alert('Les données du tag ou des spécialités sont manquantes.');
@@ -60,8 +56,33 @@
         }
     });
 }
+function updateEditSpecialities(selectedCountry, selectedSpecialityId, tagId) {
+    if (!selectedCountry) {
+        $('#speciality-' + tagId).empty().append('<option value="">{{ trans("lang.select_speciality") }}</option>').prop('disabled', true);
+        return;
+    }
 
-
+    fetch(`/specialitiesByPays?pays=${selectedCountry}`)
+        .then(response => response.json())
+        .then(data => {
+            $('#speciality-' + tagId).empty().append('<option value="">{{ trans("lang.select_speciality") }}</option>');
+            if (data.length === 0) {
+                $('#speciality-' + tagId).append('<option value="" disabled>Aucune spécialité disponible pour ce pays</option>').prop('disabled', true);
+                return;
+            }
+            data.forEach(speciality => {
+                $('#speciality-' + tagId).append(
+                    `<option value="${speciality.id}" ${speciality.id == selectedSpecialityId ? 'selected' : ''}>${speciality.name.fr}</option>`
+                );
+            });
+            $('#speciality-' + tagId).prop('disabled', false);
+        })
+        .catch(error => console.error('Erreur lors du chargement des spécialités:', error));
+}
+// Déclencher le chargement des spécialités quand le pays change dans le modal d'édition
+$('#editCountry-' + tagId).change(function() {
+    updateEditSpecialities($(this).val(), null, tagId);
+});
 
 
 </script>
@@ -87,12 +108,22 @@
     @method('PUT')
     <div class="form-group">
         <label for="tagName">{{ trans('lang.tag_name') }}</label>
-        <input type="text" class="form-control" id="tagName" name="name" required>
+        <input type="text" class="form-control" id="tagName-{{ $id }}" name="name" required>
     </div>
 
     <div class="form-group">
+    <label for="editCountry">{{ trans('lang.country') }}</label>
+    <select class="form-control" id="editCountry-{{ $id }}" name="country" required>
+        <option value="" disabled selected>{{ trans('lang.select_country') }}</option>
+        <option value="Tunisie">Tunisie</option>
+        <option value="France">France</option>
+    </select>
+</div>
+
+
+    <div class="form-group">
         <label for="speciality">{{ trans('lang.speciality') }}</label>
-        <select class="form-control" id="speciality" name="speciality_id" required>
+        <select class="form-control" id="speciality-{{ $id }}" name="speciality_id" required>
             <option value="" disabled selected>{{ trans('lang.select_speciality') }}</option>
             <!-- Les options des spécialités seront ajoutées dynamiquement avec JavaScript -->
         </select>
