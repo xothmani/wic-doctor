@@ -31,15 +31,8 @@ class MeetController extends Controller
         // Fetch unique patient IDs from rooms
         $patient_user_ids = $rooms->pluck('patient_id')->unique();
         Log::info('Unique Patient IDs Array:', ['patient_user_ids' => $patient_user_ids->toArray()]);
-
-        if ($patient_user_ids->isEmpty()) {
-            Log::info('No patient_user_ids found from rooms.');
-            $patients = collect(); // Empty collection for consistency
-        } else {
-            // Fetch patient data for these IDs
-            $patients = Patient::whereIn('id', $patient_user_ids)->get()->keyBy('id');
-            Log::info('Patients Retrieved:', ['patients' => $patients->toArray()]);
-        }
+        // Fetch patient data for these IDs
+        $patients = Patient::whereIn('id', $patient_user_ids)->get()->keyBy('id');
 
         // Fetch purchased phone numbers
         $purchased_numbers = PurchasedNumber::where('user_id', $user_id)->pluck('phone_number');
