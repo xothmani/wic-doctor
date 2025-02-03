@@ -226,8 +226,8 @@ public function addReport(Request $request) : JsonResponse
         'patient_id' => 'required|exists:patients,id',
         'doctor_id' => 'required|exists:doctors,user_id',
         'report' => 'required|file|mimes:pdf|max:2048', // PDF file max 2MB
-        'title' => 'nullable|string|max:255',
-        'description' => 'nullable|string'
+        'title' => 'required|string|max:255',
+        'description' => 'required|string'
     ]);
 
     $patient_id = $request->input('patient_id');
@@ -252,7 +252,7 @@ public function addReport(Request $request) : JsonResponse
         // Handle PDF upload
         if ($request->hasFile('report')) {
             $file = $request->file('report');
-            $filename = 'report_' . time() . '.' . $file->getClientOriginalExtension();
+            $filename = $request->input('title') . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('public/reports', $filename); // Save to storage
 
             \Log::info('File uploaded successfully, file path: ' . $path);

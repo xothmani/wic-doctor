@@ -2,6 +2,15 @@
 
 return [
 
+    ///////////translation from Ismail
+    "report_title"=> "Titre",
+    "report_description"=> "Description",
+    "actions"=> "Actions",
+    "view_pdf"=> "Voir Pdf",
+    "download_pdf"=> "Télecharger",
+    "no_reports_found"=> "Le patient n\'a pas de Rapports. Établir une consultation pour génerer un rapport.",
+
+    "reports_list"=> "Liste des rapports",
     ///////////translation from rayen
     'agenda_des_medecins' => 'Agenda des médecins',
     'tele_appointment_date' => 'Date RDV',
