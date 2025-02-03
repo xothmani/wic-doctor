@@ -39,3 +39,7 @@ storage/logs/
 # Ignore custom project directories
 WicDoctor/
 
+WicDoctor
+public/Back-WIc-Doctors
+public/Back-NodeJS/Back-WIc-Doctors
+

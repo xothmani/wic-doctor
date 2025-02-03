@@ -36,15 +36,13 @@ class Fiche extends Model
 
 
     public function consultations()
-{
-    return $this->hasMany(Consultation::class, 'fiche_code', 'code');
-}
-
-public function reports()
     {
-        return $this->hasMany(Report::class);
+        return $this->hasMany(Consultation::class, 'fiche_code', 'code');
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'fiche_id', 'code');
     }
 
 }
-
-
