@@ -21,7 +21,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Permission;
-
+use Illuminate\Database\Eloquent\Relations\HasOne;
 /**
  * Class User
  * @package App\Models
@@ -71,6 +71,7 @@ class User extends Authenticatable implements HasMedia
         'phone_verified_at',
         'password',
         'api_token',
+	'lastname',
         'device_token',
     ];
     /**
@@ -313,5 +314,12 @@ class User extends Authenticatable implements HasMedia
     }
 
 
-
+public function patient()
+{
+    return $this->hasOne(Patient::class);
+}
+public function address(): HasOne
+{
+    return $this->hasOne(Address::class, 'user_id', 'id');
+}
 }

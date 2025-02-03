@@ -30,7 +30,7 @@ class MeetController extends Controller
         $patient_user_ids = $rooms->pluck('patient_id')->unique();
 
         // Fetch patient data for these IDs
-        $patients = Patient::whereIn('user_id', $patient_user_ids)->get()->keyBy('user_id'); // Key by user_id for easier access
+        $patients = Patient::whereIn('id', $patient_user_ids)->get()->keyBy('id'); 
 
         // Fetch purchased phone numbers
         $purchased_numbers = PurchasedNumber::where('user_id', $user_id)->pluck('phone_number');
