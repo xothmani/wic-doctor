@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fiche;
+use App\Models\Report;
 use App\Models\Patient;
 use App\Models\Consultation;
 use App\Models\Appointment;
@@ -218,64 +219,70 @@ class ConsultationController extends Controller
      *
      * @return JsonResponse
      */
-    public function addReport(Request $request) : JsonResponse
-    {
-        // Validate request
-        $request->validate([
-            'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:doctors,user_id',
-            'report' => 'required|file|mimes:pdf|max:2048' // Accepts only PDFs, max 2MB
-        ]);
-    
-        $patient_id = $request->input('patient_id');
-        $user_id = $request->input('doctor_id');
-    
-        // Find patient
-        $patient = Patient::find($patient_id);
-        if (!$patient) {
-            return $this->sendError('Patient not found');
-        }
-    
-        // Find doctor
-        $doctor = Doctor::where('user_id', $user_id)->first();
-        if (!$doctor) {
-            return $this->sendError('Doctor not found');
-        }
-    
-        // Find patient's fiche
-        $fiche = Fiche::where('patient_id', $patient_id)
-                    ->where('user_id', $user_id)
-                    ->first();
-    
-        if (!$fiche) {
-            return $this->sendError('Fiche Patient not found');
-        }
-    
-        try {
-            // Handle PDF upload
-            if ($request->hasFile('report')) {
-                $file = $request->file('report');
-                $filename = 'report_' . time() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('public/reports', $filename); // Save to storage/app/public/reports
-    
-                // Save file path to database
-                $fiche->report_path = str_replace('public/', 'storage/', $path);
-                $fiche->save();
-            }
-    
-            \Log::info('Report added successfully:', ['fiche_code' => $fiche->code]);
-    
-            return $this->sendResponse($fiche->toArray(), 'Report Added successfully');
-    
-        } catch (\Exception $e) {
-            \Log::error('Error while adding report:', [
-                'message' => $e->getMessage(),
-                'stack' => $e->getTraceAsString()
-            ]);
-    
-            return $this->sendError('Error while adding report: ' . $e->getMessage());
-        }
+public function addReport(Request $request) : JsonResponse
+{
+    // Validate input
+    $request->validate([
+        'patient_id' => 'required|exists:patients,id',
+        'doctor_id' => 'required|exists:doctors,user_id',
+        'report' => 'required|file|mimes:pdf|max:2048', // PDF file max 2MB
+        'title' => 'nullable|string|max:255',
+        'description' => 'nullable|string'
+    ]);
+
+    $patient_id = $request->input('patient_id');
+    $user_id = $request->input('doctor_id');
+
+    // Log the input parameters for debugging
+    \Log::info('Adding report with patient_id: ' . $patient_id . ' and doctor_id: ' . $user_id);
+
+    // Find Fiche
+    $fiche = Fiche::where('patient_id', $patient_id)
+                ->where('user_id', $user_id)
+                ->first();
+
+    if (!$fiche) {
+        \Log::warning('Fiche not found for patient_id: ' . $patient_id . ' and doctor_id: ' . $user_id);
+        return $this->sendError('Fiche Patient not found');
     }
-    
+
+    \Log::info('Fiche found with id: ' . $fiche->code);
+
+    try {
+        // Handle PDF upload
+        if ($request->hasFile('report')) {
+            $file = $request->file('report');
+            $filename = 'report_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('public/reports', $filename); // Save to storage
+
+            \Log::info('File uploaded successfully, file path: ' . $path);
+
+            // Create new report entry
+            $report = new Report([
+                'fiche_id' => $fiche->code,
+                'file_path' => str_replace('public/', 'storage/', $path),
+                'title' => $request->input('title'),
+                'description' => $request->input('description')
+            ]);
+
+            \Log::info('Report data: ', $report->toArray());
+            $report->save();
+
+            \Log::info('Report added successfully:', ['fiche_id' => $fiche->code, 'report_id' => $report->id]);
+        }
+
+        return $this->sendResponse($report->toArray(), 'Report Added successfully');
+
+    } catch (\Exception $e) {
+        \Log::error('Error while adding report:', [
+            'message' => $e->getMessage(),
+            'stack' => $e->getTraceAsString()
+        ]);
+
+        return $this->sendError('Error while adding report: ' . $e->getMessage());
+    }
+}
+  
 
 }
+
