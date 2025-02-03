@@ -22,21 +22,33 @@ class MeetController extends Controller
     public function index()
     {
         $user_id = auth()->id();
+        Log::info('Authenticated User ID:', ['user_id' => $user_id]);
 
         // Paginate rooms with patient data
         $rooms = Room::where('owner_id', $user_id)->paginate(10);
+        Log::info('Rooms Retrieved:', ['rooms' => $rooms->toArray()]);
 
         // Fetch unique patient IDs from rooms
         $patient_user_ids = $rooms->pluck('patient_id')->unique();
+        Log::info('Unique Patient IDs Array:', ['patient_user_ids' => $patient_user_ids->toArray()]);
 
-        // Fetch patient data for these IDs
-        $patients = Patient::whereIn('user_id', $patient_user_ids)->get()->keyBy('user_id'); // Key by user_id for easier access
+        if ($patient_user_ids->isEmpty()) {
+            Log::info('No patient_user_ids found from rooms.');
+            $patients = collect(); // Empty collection for consistency
+        } else {
+            // Fetch patient data for these IDs
+            $patients = Patient::whereIn('id', $patient_user_ids)->get()->keyBy('id');
+            Log::info('Patients Retrieved:', ['patients' => $patients->toArray()]);
+        }
 
         // Fetch purchased phone numbers
         $purchased_numbers = PurchasedNumber::where('user_id', $user_id)->pluck('phone_number');
+        Log::info('Purchased Phone Numbers:', ['purchased_numbers' => $purchased_numbers->toArray()]);
 
         return view('meet.index', compact('rooms', 'patients', 'purchased_numbers'));
     }
+
+
 
     public function DirectIndex(Request $request)
     {
@@ -60,7 +72,7 @@ class MeetController extends Controller
         ], compact('rooms', 'purchased_numbers'));
     }
 
-    
+
     public function createMeet(Request $request)
     {
         try {
@@ -100,9 +112,9 @@ class MeetController extends Controller
         $time = $start_at->format('H-i-s');
 
         $patient_first_name = str_replace(' ', '_', $patient_first_name);
-	$patient_last_name = str_replace(' ', '_', $patient_last_name);
-	$room_name = "{$patient_first_name}_{$patient_last_name}_{$patient_phone}_{$date}_{$time}";
-	$meet_link = "https://meet.jit.si/{$room_name}";
+        $patient_last_name = str_replace(' ', '_', $patient_last_name);
+        $room_name = "{$patient_first_name}_{$patient_last_name}_{$patient_phone}_{$date}_{$time}";
+        $meet_link = "https://meet.jit.si/{$room_name}";
 
         $user_id = auth()->id();
         $purchased_numbers = PurchasedNumber::where('user_id', $user_id)->pluck('phone_number');
