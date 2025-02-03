@@ -97,8 +97,10 @@ class AppointmentEventController extends Controller
                     'status' => $appointment->status,
                     'patient_id' => $appointment->patient_id,
                     'patient_email' => $appointment->patient_email,
-                    'user_phone_number' => $appointment->user_phone_number,
+            	    'patient_phone_number' => $appointment->patient_phone_number,
                     'patient_name' => ($decodedFirstName['fr'] ?? $decodedFirstName) . ' ' . ($decodedLastName['fr'] ?? $decodedLastName),
+                    'patient_first_name' => ($decodedFirstName['fr'] ?? $decodedFirstName),
+                    'patient_last_name' => ($decodedLastName['fr'] ?? $decodedLastName),
                     'motif_name' => $decodedMotifName['fr'] ?? $decodedMotifName,
                     'online' => $appointment->online,
                 ];
