@@ -2,10 +2,18 @@
 
 @php
   $doctorId = auth()->user()->getDoctorId();
+  $permissionKey = 'patients.index';
+  // Retrieve the permission with its related readable record
+  $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
+    ->with('readable')
+    ->first();
+
+  // Use the dynamic attribute for the display name; fall back to the key if not found
+  $readablePermission = $permission ? $permission->display_name : $permissionKey;
 @endphp
 
 @section('content')
-@if(auth()->user()->hasPermissionInContext('patients.index', $doctorId))
+@if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
   <!-- Content Header (Page header) -->
   <div class="content-header">
     <div class="container-fluid">
@@ -60,7 +68,7 @@
   <div class="content-header">
     <div class="container-fluid">
     <div class="alert alert-danger">
-      {{ __('Vous n’avez pas la permission d’accéder à cette page.') }}
+      {{ __('Vous n’avez pas la permission d’accéder à cette page. Permission requise : :permission', ['permission' => $readablePermission]) }}
     </div>
     </div>
   </div>
