@@ -47,6 +47,9 @@ class DoctorPermissionController extends Controller
 
     public function fetchUserRoles(Request $request)
     {
+        Log::info('Incoming request to fetchUserRoles', [
+            'request_data' => $request->all()
+        ]);
         $userId = $request->input('user_id');
         $doctorId = $request->input('doctor_id');
 
