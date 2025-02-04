@@ -21,12 +21,14 @@ class DoctorTelesecretariatController extends Controller
 
     public function index()
     {
+        Log::info('Entered the index method');
         try {
             // Fetch all doctors
             $userId = Auth::id();
 
             // Chercher cet ID dans la table Telesecretariat
             $telesecretariat = Telesecretariat::where('user_id', $userId)->first();
+            Log::info('Fetched Telesecretariat', ['telesecretariat' => $telesecretariat]);
 
             if ($telesecretariat) {
                 // Récupérer les médecins associés via DoctorTelesecretariat, avec jointure sur la table doctor

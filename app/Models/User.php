@@ -71,7 +71,7 @@ class User extends Authenticatable implements HasMedia
         'phone_verified_at',
         'password',
         'api_token',
-	'lastname',
+        'lastname',
         'device_token',
     ];
     /**
@@ -256,7 +256,7 @@ class User extends Authenticatable implements HasMedia
         }
 
         // If the user is a secretary
-        if ($this->hasRole('Secretary')) {
+        if ($this->hasRole('Secretary') || $this->hasRole('Telesecretary')) {
             // Query the role_profile_permission table for secretary permissions
             $query = \DB::table('role_profile_permission')
                 ->join('model_has_roles', 'role_profile_permission.role_id', '=', 'model_has_roles.role_id')
@@ -314,12 +314,12 @@ class User extends Authenticatable implements HasMedia
     }
 
 
-public function patient()
-{
-    return $this->hasOne(Patient::class);
-}
-public function address(): HasOne
-{
-    return $this->hasOne(Address::class, 'user_id', 'id');
-}
+    public function patient()
+    {
+        return $this->hasOne(Patient::class);
+    }
+    public function address(): HasOne
+    {
+        return $this->hasOne(Address::class, 'user_id', 'id');
+    }
 }

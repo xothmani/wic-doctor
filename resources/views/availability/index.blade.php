@@ -2,10 +2,18 @@
 
 @section('content')
 @php
-    $doctorId = auth()->user()->getDoctorId();
+  $doctorId = auth()->user()->getDoctorId();
+  $permissionKey = 'availability.index';
+  // Retrieve the permission with its related readable record
+  $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
+    ->with('readable')
+    ->first();
+
+  // Use the dynamic attribute for the display name; fall back to the key if not found
+  $readablePermission = $permission ? $permission->display_name : $permissionKey;
 @endphp
 
-@if(auth()->user()->hasPermissionInContext('availability.index', $doctorId))
+@if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -264,13 +272,13 @@
     </div>
 </div>
 @else
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="alert alert-danger">
-                {{ __('Vous n’avez pas la permission d’accéder à cette page.') }}
-            </div>
-        </div>
+  <div class="content-header">
+    <div class="container-fluid">
+    <div class="alert alert-danger">
+      {{ __('Vous n’avez pas la permission (:permission) d’accéder à cette page.', ['permission' => $readablePermission]) }}
     </div>
+    </div>
+  </div>
 @endif
 @endsection
 @section('styles')
