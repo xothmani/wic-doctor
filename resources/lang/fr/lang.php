@@ -3,15 +3,22 @@
 return [
 
     ///////////translation from Ismail
-    "report_title"=> "Titre",
-    "report_description"=> "Description",
-    "actions"=> "Actions",
-    "view_pdf"=> "Voir Pdf",
-    "download_pdf"=> "Télecharger",
-    "no_reports_found"=> "Le patient n\'a pas de Rapports. Établir une consultation pour génerer un rapport.",
+    "report_title" => "Titre",
+    "report_description" => "Description",
+    "actions" => "Actions",
+    "view_pdf" => "Voir Pdf",
+    "download_pdf" => "Télecharger",
+    "no_reports_found" => "Le patient n\'a pas de Rapports. Établir une consultation pour génerer un rapport.",
 
-    "reports_list"=> "Liste des rapports",
+    "reports_list" => "Liste des rapports",
     ///////////translation from rayen
+    'doctor_user_table' => 'Utilisateurs associés',
+    'doctor_user_desc' => 'Gérer les utilisateurs associés au médecin.',
+    'doctor_user_create' => 'Créer un utilisateur associé',
+    'doctor_user_plural' => 'Utilisateurs associés',
+    'profile_management' => 'Gestion des profils',
+    'permission_management' => 'Gestion des permissions',
+    'user_management' => 'Gestion des utilisateurs',
     'agenda_des_medecins' => 'Agenda des médecins',
     'tele_appointment_date' => 'Date RDV',
     'tele_appointment_time' => 'Heure RDV',
@@ -20,24 +27,24 @@ return [
     'hover_to_view_details' => 'Détails du rendez-vous',
     'cabinet' => 'Cabinet',
 
-        'newsletters_plural' => 'Newsletters',
-        'news_latter_email' => 'Email',
-        'news_latter_created_at' => 'Créé à',
-        'newsletter_desc' => 'Gestion des Newsletters',
-        'newsletter_plural' => 'Newsletters',
-        'newsletter_table' => 'Liste des Newsletters',
-        'agenda_des_medecins' => 'Agendas des médecins',
-        'gestion_agenda' => 'Gestion des agendas',
+    'newsletters_plural' => 'Newsletters',
+    'news_latter_email' => 'Email',
+    'news_latter_created_at' => 'Créé à',
+    'newsletter_desc' => 'Gestion des Newsletters',
+    'newsletter_plural' => 'Newsletters',
+    'newsletter_table' => 'Liste des Newsletters',
+    'agenda_des_medecins' => 'Agendas des médecins',
+    'gestion_agenda' => 'Gestion des agendas',
 
 
-        'my_tag_plural' => 'Mes étiquettes',
+    'my_tag_plural' => 'Mes étiquettes',
 
 
-        'app_setting_it' => 'Italien',
-        'select_country' => 'Sélectionnez le pays',
-	
-        'code_doctor' => 'Code Doctor',
-        'code_parent' => 'Code Parent',
+    'app_setting_it' => 'Italien',
+    'select_country' => 'Sélectionnez le pays',
+
+    'code_doctor' => 'Code Doctor',
+    'code_parent' => 'Code Parent',
 
     'clinique' => 'Clinique',
     "pattern_type" => "Emplacement",
@@ -68,15 +75,15 @@ return [
     'Clinic' => 'Clinique',
     'Color' => 'Couleur',
 
-        'tag_plural' => 'Étiquettes',
-        'tag_desc' => 'Gestion des étiquettes',
-        'tag_table' => 'Liste des étiquette',
-        'tag_edit' => 'Modifier étiquette',
-        'tag_create' => 'Créer étiquette',
-        'tag_name' => 'Nom de l\'étiquette',
-        'select_speciality' => 'Sélectionnez la spécialité',
-        'tag_name_placeholder' => 'Insérez le nom de l\'étiquette',
-        'my_tag_plural' => 'Mes étiquettes',
+    'tag_plural' => 'Étiquettes',
+    'tag_desc' => 'Gestion des étiquettes',
+    'tag_table' => 'Liste des étiquette',
+    'tag_edit' => 'Modifier étiquette',
+    'tag_create' => 'Créer étiquette',
+    'tag_name' => 'Nom de l\'étiquette',
+    'select_speciality' => 'Sélectionnez la spécialité',
+    'tag_name_placeholder' => 'Insérez le nom de l\'étiquette',
+    'my_tag_plural' => 'Mes étiquettes',
 
 
 
