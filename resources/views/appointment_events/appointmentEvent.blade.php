@@ -3,9 +3,17 @@
 @section('content')
 @php
     $doctorId = auth()->user()->getDoctorId();
+    $permissionKey = 'appointment-event.index';
+    // Retrieve the permission with its related readable record
+    $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
+        ->with('readable')
+        ->first();
+
+    // Use the dynamic attribute for the display name; fall back to the key if not found
+    $readablePermission = $permission ? $permission->display_name : $permissionKey;
 @endphp
 
-@if(auth()->user()->hasPermissionInContext('appointment-event.index', $doctorId))
+@if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
 
     <!-- Content Header (Page header) -->
     <div class="content-header">
@@ -289,7 +297,7 @@
     <div class="content-header">
         <div class="container-fluid">
             <div class="alert alert-danger">
-                {{ __('Vous n’avez pas la permission d’accéder à cette page.') }}
+                {{ __('Vous n’avez pas la permission (:permission) d’accéder à cette page.', ['permission' => $readablePermission]) }}
             </div>
         </div>
     </div>
@@ -364,10 +372,10 @@
                 if (response.vacation) {
                     //console.log("Doctor is on vacation. No slots to display.");
                     const vacationMessage = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `;
                     timeSlotsWrapper.append(vacationMessage);
 
                     // Show a confirmation dialog to the user
@@ -476,10 +484,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
             }
             //////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
