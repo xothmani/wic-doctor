@@ -8,7 +8,6 @@ use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Log;
 
 class DoctorPermissionController extends Controller
 {
@@ -47,14 +46,8 @@ class DoctorPermissionController extends Controller
 
     public function fetchUserRoles(Request $request)
     {
-        Log::info('Incoming request to fetchUserRoles', [
-            'request_data' => $request->all()
-        ]);
         $userId = $request->input('user_id');
         $doctorId = $request->input('doctor_id');
-
-        // Log request data
-        Log::info('Fetching user roles', ['user_id' => $userId, 'doctor_id' => $doctorId]);
 
         // Fetch the user and their roles
         $user = DoctorAssociate::where('user_id', $userId)
@@ -62,24 +55,20 @@ class DoctorPermissionController extends Controller
             ->first();
 
         if (!$user) {
-            Log::warning('User not found', ['user_id' => $userId]);
             return response()->json(['error' => 'User not found.'], 404);
         }
 
-        // Fetch existing permissions
+        // Fetch existing permissions for the user in role_profile_permission
         $existingPermissions = DB::table('role_profile_permission')
             ->where('user_id', $userId)
             ->where('doctor_id', $doctorId)
             ->pluck('permission_id')
             ->toArray();
 
-        Log::info('Existing permissions fetched', ['user_id' => $userId, 'existingPermissions' => $existingPermissions]);
-
         // Fetch the current locale
         $locale = app()->getLocale();
-        Log::info('Current locale', ['locale' => $locale]);
 
-        // Fetch all permissions
+        // Fetch all permissions with readable names
         $permissions = DB::table('permissions')
             ->leftJoin('readable_permissions', 'permissions.id', '=', 'readable_permissions.permission_id')
             ->select(
@@ -88,6 +77,7 @@ class DoctorPermissionController extends Controller
             )
             ->get()
             ->map(function ($permission) use ($existingPermissions, $locale) {
+                // Decode the readable name by parsing the JSON or fallback to permission name
                 $decodedName = json_decode($permission->display_name, true);
                 $localizedName = $decodedName[$locale] ?? $decodedName['fr'] ?? $permission->display_name;
 
@@ -98,12 +88,10 @@ class DoctorPermissionController extends Controller
                 ];
             });
 
-        Log::info('Permissions processed', ['permissions' => $permissions]);
-
         return response()->json([
             'roles' => $user->user->roles,
             'permissions' => $permissions,
-            'existingPermissions' => $existingPermissions,
+            'existingPermissions' => $existingPermissions, // Optional, but kept for backward compatibility
         ]);
     }
 
