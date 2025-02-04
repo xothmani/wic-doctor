@@ -68,7 +68,7 @@
   <div class="content-header">
     <div class="container-fluid">
     <div class="alert alert-danger">
-      {{ __('Vous n’avez pas la permission d’accéder à cette page. Permission requise : :permission', ['permission' => $readablePermission]) }}
+      {{ __('Vous n’avez pas la permission (:permission) d’accéder à cette page.', ['permission' => $readablePermission]) }}
     </div>
     </div>
   </div>

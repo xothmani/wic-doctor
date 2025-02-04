@@ -1,12 +1,20 @@
 @extends('layouts.app')
 
-@section('content')
 @php
   $doctorId = auth()->user()->getDoctorId();
+  // Define the permission key for this page
+  $permissionKey = 'appointments.today.completed';
+  // Retrieve the permission record along with its human-readable info
+  $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
+    ->with('readable')
+    ->first();
+  // Use the display_name accessor to get the localized readable permission name
+  $readablePermission = $permission ? $permission->display_name : $permissionKey;
 @endphp
 
-<!-- En-tête du contenu -->
-@if(auth()->user()->hasPermissionInContext('appointment-event.index', $doctorId))
+@section('content')
+@if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
+  <!-- En-tête du contenu -->
   <div class="content-header">
     <div class="container-fluid">
     <div class="row mb-2">
@@ -15,10 +23,16 @@
       </div>
       <div class="col-md-6">
       <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-        <li class="breadcrumb-item"><a href="{{ url('/') }}"><i class="fa fa-dashboard"></i>
-          {{ trans('lang.dashboard') }}</a></li>
-        <li class="breadcrumb-item"><a
-          href="{!! route('appointments.index') !!}">{{ trans('lang.appointment_plural') }}</a></li>
+        <li class="breadcrumb-item">
+        <a href="{{ url('/') }}">
+          <i class="fa fa-dashboard"></i> {{ trans('lang.dashboard') }}
+        </a>
+        </li>
+        <li class="breadcrumb-item">
+        <a href="{!! route('appointments.index') !!}">
+          {{ trans('lang.appointment_plural') }}
+        </a>
+        </li>
         <li class="breadcrumb-item active">{{ trans('lang.appointments_completed_today') }}</li>
       </ol>
       </div>
@@ -42,14 +56,14 @@
       <h5 class="card-title">{{ trans('lang.appointments_completed_today') }}</h5>
     </div>
     <div class="card-body">
-      @if(auth()->user()->hasPermissionInContext('appointment-event.index', $doctorId))
+      @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
       <div class="table-responsive">
       <table class="table table-bordered table-striped">
       <thead>
       <tr>
         <th>{{ trans('lang.appointment_patient_first_name') }}</th>
         <th>{{ trans('lang.appointment_patient_last_name') }}</th>
-        <th>{{ trans('lang.appointment_motif') }}</th> <!-- Nouvelle colonne -->
+        <th>{{ trans('lang.appointment_motif') }}</th>
         <th>{{ trans('lang.appointment_start_time') }}</th>
         <th>{{ trans('lang.appointment_end_time') }}</th>
         <th>{{ trans('lang.appointment_status') }}</th>
@@ -89,7 +103,7 @@
       </tbody>
       </table>
       </div>
-      <!-- Ajouter les liens de pagination -->
+      <!-- Pagination links -->
       <div class="d-flex justify-content-end">
       {{ $appointments->links() }}
       </div>
@@ -103,12 +117,11 @@
   <div class="content-header">
     <div class="container-fluid">
     <div class="alert alert-danger">
-      {{ __('Vous n’avez pas la permission d’accéder à cette page.') }}
+      {{ __('Vous n’avez pas la permission (:permission) d’accéder à cette page.', ['permission' => $readablePermission]) }}
     </div>
     </div>
   </div>
 @endif
-
 @endsection
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
