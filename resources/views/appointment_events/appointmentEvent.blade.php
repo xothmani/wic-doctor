@@ -357,7 +357,7 @@
             }
 
             // Set interval to refresh calendar every 30 seconds
-            setInterval(refreshCalendarEvents, 3000);
+            setInterval(refreshCalendarEvents, 10000);
 
             //const timeSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
             const timeSlotsContainer = document.getElementById('time-slots');
@@ -372,10 +372,10 @@
                 if (response.vacation) {
                     //console.log("Doctor is on vacation. No slots to display.");
                     const vacationMessage = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `;
                     timeSlotsWrapper.append(vacationMessage);
 
                     // Show a confirmation dialog to the user
@@ -398,7 +398,8 @@
 
                     return; // Exit the function to avoid processing further
                 }
-
+                const selectedDate = $("#appointmentDate").val();
+                const isToday = selectedDate === moment().format("YYYY-MM-DD");
                 // Ensure `all_slots` is an array of strings or extract the appropriate property
                 all_slots.forEach(slot => {
                     // If `slot` is an object, extract the desired property (e.g., `time` or `slot.time`)
@@ -410,17 +411,25 @@
 
                     // Check if the time is in taken_slots
                     if (taken_slots.includes(time)) {
-                        // Mark this slot as taken
                         slotElement.addClass('taken-slot').css({
                             'background-color': '#e9ecef'
                         });
                     } else {
-                        // Mark this slot as available and make it clickable
-                        slotElement.addClass('available-slot').on('click', function () {
-                            $('.time-slot').removeClass('selected');
-                            $(this).addClass('selected');
-                            $('#appointment_time').val(time); // Set selected time in hidden input
-                        });
+                        // If today and the slot's time is in the past, disable it and style it gray
+                        if (isToday && moment(`${selectedDate} ${time}`, "YYYY-MM-DD HH:mm").isBefore(moment())) {
+                            slotElement.addClass('passed-slot').css({
+                                'background-color': '#e9ecef',
+                                'pointer-events': 'none',
+                                'opacity': '0.6'
+                            });
+                        } else {
+                            // Otherwise, mark the slot as available and attach a click event handler
+                            slotElement.addClass('available-slot').on('click', function () {
+                                $('.time-slot').removeClass('selected');
+                                $(this).addClass('selected');
+                                $('#appointment_time').val(time);
+                            });
+                        }
                     }
                     timeSlotsWrapper.append(slotElement);
                 });
@@ -484,10 +493,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
             }
             //////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
