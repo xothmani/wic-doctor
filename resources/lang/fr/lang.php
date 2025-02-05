@@ -12,6 +12,7 @@ return [
 
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
+    'tele_patient_phone' => 'Téléphone du patient',
     'doctor_user_table' => 'Utilisateurs associés',
     'doctor_user_desc' => 'Gérer les utilisateurs associés au médecin.',
     'doctor_user_create' => 'Créer un utilisateur associé',
