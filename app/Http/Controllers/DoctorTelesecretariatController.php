@@ -60,7 +60,7 @@ class DoctorTelesecretariatController extends Controller
     }
     public function getDoctorData(Request $request)
     {
-        Log::info('ooooooooooooooooooo', ['request_data' => $request->all()]);
+        //Log::info('ooooooooooooooooooo', ['request_data' => $request->all()]);
         try {
             $doctorId = $request->query('doctor_id');
 
