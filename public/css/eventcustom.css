@@ -80,13 +80,23 @@
 
 /* Style for event blocks */
 .fc-event {
-    font-size: 0.8em; /* Smaller font size */
-        padding: 2px 4px; /* Reduced padding */
-        margin: 1px; /* Reduced margin */
-        white-space: nowrap; /* Prevent text from wrapping */
-        overflow: hidden; /* Hide overflow */
-        text-overflow: ellipsis; /* Add ellipsis for overflow text */
-        border-radius: 3px; /* Optional: Adjust border radius */
+    font-size: calc(0.5rem + 0.3vw); /* Adjusts based on viewport width */
+    padding: 0 4px; /* Adds padding for better spacing */
+}
+.fc-event {
+    font-size: 13px; /* Adjust the size as needed */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-overflow: ellipsis; /* Show "..." for overflowing text */
+    white-space: nowrap;
+    overflow: hidden;
+}
+.fc-event {
+    border-radius: 5px; /* Adds rounded corners */
+    border: 1px solid #ccc; /* Light border */
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1); /* Adds a slight shadow */
 }
 
 

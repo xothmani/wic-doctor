@@ -191,8 +191,67 @@ class AvailabilityController extends Controller
                     ->where('onligne', 0) // Vérification de `onligne = 0`
                     ->first();
 
+                $dayMap = [
+                    'Dimanche' => 1,
+                    'Lundi' => 2,
+                    'Mardi' => 3,
+                    'Mercredi' => 4,
+                    'Jeudi' => 5,
+                    'Vendredi' => 6,
+                    'Samedi' => 7,
+                ];
+
                 if ($existing) {
                     DB::table('availability_hours')->where('id', $existing->id)->update($data);
+                    // Get the numeric value for the day.
+                    $dayNumber = $dayMap[$day] ?? null;
+                    if ($dayNumber === null) {
+                        \Log::warning("Day {$day} is not mapped to a numeric value.");
+                    } else {
+                        // Fetch appointments for this doctor on the given day,
+                        // for upcoming appointments (appointment_at >= today)
+                        // and excluding canceled appointments (assuming canceled status is 7)
+                        $appointments = DB::table('appointments')
+                            ->where('doctor_id', $doctorId)
+                            ->whereRaw("DAYOFWEEK(appointment_at) = ?", [$dayNumber])
+                            ->where('appointment_at', '>=', Carbon::today()->toDateString())
+                            ->where('appointment_status_id', '!=', 7)
+                            ->orderBy('start_at', 'asc')
+                            ->get();
+
+                        \Log::info("Appointments to update for doctor {$doctorId} on {$day} (Day Number: {$dayNumber}):", $appointments->toArray());
+
+                        // Re-schedule appointments consecutively
+                        $prevEnd = null;
+                        $rows_updated = 0;
+                        foreach ($appointments as $appointment) {
+                            if ($prevEnd === null) {
+                                // For the first appointment, keep its original start_at.
+                                $newStart = $appointment->start_at;
+                            } else {
+                                // Subsequent appointments start immediately after the previous one ends.
+                                $newStart = $prevEnd;
+                            }
+                            // Calculate new end time based on the new session duration.
+                            $newEnd = Carbon::parse($newStart)
+                                ->addMinutes($sessionDuration)
+                                ->format('Y-m-d H:i:s');
+                            // Update this appointment.
+                            $updateCount = DB::table('appointments')
+                                ->where('id', $appointment->id)
+                                ->update([
+                                    'start_at' => $newStart,
+                                    'ends_at' => $newEnd,
+                                ]);
+                            $rows_updated += $updateCount;
+                            // The new appointment’s end time becomes the starting point for the next.
+                            $prevEnd = $newEnd;
+                        }
+                        \Log::info("Updated appointments for doctor {$doctorId} on {$day} contiguously.", [
+                            'sessionDuration' => $sessionDuration,
+                            'rows_updated' => $rows_updated,
+                        ]);
+                    }
                 } else {
                     DB::table('availability_hours')->insert($data);
                 }
