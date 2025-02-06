@@ -32,6 +32,9 @@ use Illuminate\View\View;
 use Prettus\Repository\Exceptions\RepositoryException;
 use Prettus\Validator\Exceptions\ValidatorException;
 use App\Repositories\RoleRepository;
+use App\Models\Address;
+use App\Models\Doctor;
+use App\Models\Speciality;
 
 class DoctorController extends Controller
 {
@@ -341,6 +344,135 @@ class DoctorController extends Controller
             'experiences' // Passer les expériences à la vue
         ));
     }
+    public function editProfil()
+    {
+        // Récupérer l'utilisateur authentifié
+        $user = auth()->user();
+        
+        // Récupérer le médecin associé à l'utilisateur
+        $doctor = Doctor::where('user_id', $user->id)->first();
     
+        // Récupérer l'adresse du médecin associée à l'utilisateur
+        $address = Address::where('user_id', $user->id)->first();
+
+        // Récupérer typ_consultation du doctor
+        $consultationMethods = explode(',', $doctor->type_consultation ?? '');
+     
+     
+        // Récupérer payment_methods du doctor
+        $paymentMethods = explode(',', $doctor->payment_methods ?? '');
+
+        // Récupérer les langues parlées et les transformer en tableau
+        $languesParlees = explode(',', $doctor->langues_parlees ?? '');
+
+
+        // Récupérer toutes les spécialités disponibles
+        $specialities = Speciality::pluck('name', 'id');  // Assurez-vous d'utiliser le bon nom de champ pour la spécialité
+
+        // Récupérer les spécialités sélectionnées pour ce médecin
+        $specialitiesSelected = $doctor->specialities->pluck('id')->toArray();
+        // Récupérer les diplômes associés au médecin
+        $diplomes = $doctor->diplomes;
+
+
+
+
+        // Vérifier que l'adresse existe et que le pays est défini dans le tableau
+        if ($address && isset($address->pays['fr'])) {
+            $pays = $address->pays['fr'];
+            
+            // Vérifier le pays et récupérer les informations correspondantes
+            if ($pays == 'france') {
+                // Récupérer la région, le département et la ville pour la France
+                $Région = $address->Région['fr'] ?? null;
+                $Département = $address->Département['fr'] ?? null;
+                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'Région', 'Département', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitiesSelected', 'languesParlees', 'diplomes'));
+            } elseif ($pays == 'tunisie') {
+                // Récupérer la ville et le gouvernorat pour la Tunisie
+                $ville = $address->ville['fr'] ?? null;
+                $gouvernorat = $address->gouvernorat['fr'] ?? null;
+                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'ville', 'gouvernorat', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitiesSelected', 'languesParlees', 'diplomes'));
+            }
+        }
+    
+        // Si aucun pays n'est trouvé ou la structure est incorrecte, retourner la vue sans informations spécifiques
+        return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitiesSelected', 'languesParlees', 'diplomes'));
+    }
+
+    public function editInfoPersonnelle(Request $request)
+    {
+        $user = auth()->user();
+        $doctor = Doctor::where('user_id', $user->id)->first();
+    
+        if (!$doctor) {
+            return response()->json(['error' => 'Le médecin n\'existe pas.'], 404);
+        }
+    
+        $user->update([
+            'name' => $request->input('lastname'),
+            'lastname' => $request->input('name'),
+            'email' => $request->input('email'),
+            'phone_number' => $request->input('phone_number'),
+        ]);
+        // Convertir les méthodes de consultation en chaîne séparée par des virgules
+        $consultationMethods = implode(',', $request->input('consultation_methods', []));
+        $payment_methods = implode(',', $request->input('payment_methods', []));
+
+            $doctor->update([
+                'name' => $request->input('name') . ' ' . $request->input('lastname'),
+                'bio' => $request->input('bio'),
+                'type_consultation' => $consultationMethods,
+                'cabinet_number' => $request->input('cabinet_number'),
+                'facebook' => $request->input('facebook'),
+                'instagram' => $request->input('instagram'),
+                'website' => $request->input('website'),
+                'description' => $request->input('description'),
+                'payment_methods' => $payment_methods,
+            ]);
+        
+            return response()->json(['success' => 'Informations mises à jour avec succès.']);
+    }
+    
+    
+    
+    
+        public function editCV(Request $request)
+    {
+        $user = auth()->user();
+        $doctor = Doctor::where('user_id', $user->id)->first();
+        
+        if (!$doctor) {
+            return response()->json(['error' => 'Le médecin n\'existe pas.'], 404);
+        }
+        
+        // Récupérer les langues sélectionnées
+        $langues = $request->input('langues', []);
+        
+        // Convertir le tableau de langues en chaîne séparée par des virgules
+        $languesStr = implode(',', $langues);
+        
+        // Mettre à jour les langues parlées du médecin
+        $doctor->update([
+            'langues_parlees' => $languesStr,
+        ]);
+        
+        // Gérer les diplômes
+        $diplomes = $request->input('diplomes', []);
+        
+        // Supprimer les anciens diplômes pour ce médecin
+        $doctor->diplomes()->delete();
+        
+        // Ajouter les nouveaux diplômes
+        foreach ($diplomes as $diplome) {
+            if (!empty($diplome)) {
+                $doctor->diplomes()->create([
+                    'name' => $diplome,
+                    'doctor_id' => $doctor->id,
+                ]);
+            }
+        }
+        
+        return response()->json(['success' => 'Informations mises à jour avec succès.']);
+    }    
     
 }

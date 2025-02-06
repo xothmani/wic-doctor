@@ -28,8 +28,8 @@
         </div><!-- /.container-fluid -->
     </div>
     <!-- /.content-header -->
-    <section class="content">
-        <div class="container-fluid">
+    <section class="content" >
+        <div class="container-fluid" style="min-height: 100vh">
             <div class="row">
                 <div class="col-md-3">
 
@@ -47,8 +47,41 @@
                             <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="mailto:{{auth()->user()->email}}"><i class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}
                             </a>
                         </div>
+                    
                         <!-- /.card-body -->
                     </div>
+
+                    <!-- Profile Edit -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-user mr-2"></i>  {{trans('lang.edit_profil')}}</h3>
+                    </div>
+                    <div class="card-body box-profile">
+                        <!-- Liste des étapes -->
+                        <ul class="task-list">
+                            <li class="task completed"><i class="fas fa-check-circle"></i>{{trans('lang.import_avatar')}} </li>
+                            <li class="task completed"><i class="fas fa-check-circle"></i> {{trans('lang.complet_adresse')}}</li>
+                            <li class="task pending"><i class="far fa-circle"></i>{{trans('lang.complet_cv')}}</li>
+                            <li class="task completed"><i class="fas fa-check-circle"></i>{{trans('lang.import_photos')}}</li>
+                            <li class="task pending"><i class="far fa-circle"></i> {{trans('lang.final_profil')}}</li>
+
+
+                        </ul>
+
+                        <!-- Progress Bar -->
+                        <div class="progress-container">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 75%; background-color: #5c6bc0;"></div>
+                            </div>
+                        </div>
+
+                        <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="{{ route('doctors.editProfil') }}">
+                            <i class="fas fa-edit mr-2"></i>{{trans('lang.edit_profil')}}
+                        </a>
+                    </div>
+                </div>
+
+
                     <!-- /.card -->
 
                 </div>
@@ -63,11 +96,11 @@
                                 <li class="nav-item">
                                     <a class="nav-link active" href="{!! url()->current() !!}"><i class="fas fa-cog mr-2"></i>{{trans('lang.app_setting')}}</a>
                                 </li>
-                                <li class="nav-item">
+                           <!--      <li class="nav-item">
                                     <a class="nav-link" href="{{ route('fieldsDoctor') }}">
                                         <i class="fas fa-cog mr-2"></i>{{ trans('lang.profile') }}
                                     </a>
-                                </li>
+                                </li>  -->
                                 @hasrole('customer')
                                 <div class="ml-auto d-inline-flex">
                                     <li class="nav-item">
@@ -104,3 +137,54 @@
         var dropzoneFields = [];
     </script>
 @endpush
+
+<style>
+    /* Liste des tâches */
+    .task-list {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 15px;
+    }
+
+    .task {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+
+    .task i {
+        font-size: 16px;
+        margin-right: 10px;
+    }
+
+    .task.completed i {
+        color:#5c6bc0; /* mauve */
+    }
+
+    .task.pending i {
+        color: #aaa; /* Gris */
+    }
+
+    /* Barre de progression */
+    .progress-container {
+        margin-top: 10px;
+        width: 100%;
+        margin-bottom: 15px
+    }
+
+    .progress-bar-container {
+        width: 100%;
+        height: 12px;
+        background-color: #ddd;
+        border-radius: 10px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.4s ease-in-out;
+    }
+</style>

@@ -45,6 +45,7 @@ use App\Http\Controllers\NewsLatterController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\DoctorTagController;
 use App\Http\Controllers\ParrainerController;
+use App\Http\Controllers\AddressController;
 
 
 Route::get('/payment-success', function () {
@@ -467,7 +468,10 @@ Route::get('/parrainer2', [ParrainerController::class, 'parrainer'])
 Route::get('/listdoctors', [ParrainerController::class, 'listDoctors'])->name('parrainers.listdoctors');
 
 Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-
+Route::post('/adresse/store', [AddressController::class, 'store']);
+Route::get('editProfil', [DoctorController::class, 'editProfil'])->name('doctors.editProfil');
+Route::post('/edit-info-personnelle', [DoctorController::class, 'editInfoPersonnelle'])->name('editInfoPersonnelle');
+Route::post('/edit-cv', [DoctorController::class, 'editCV'])->name('editCV');
 
 Route::middleware(['auth'])->group(function() {
     Route::get('/messagerie', [MessagerieController::class, 'index'])->name('messagerie.index');

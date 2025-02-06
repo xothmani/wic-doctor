@@ -23,10 +23,11 @@ class TagDataTable extends DataTable
     
         return $dataTable
             ->editColumn('name', function ($tag) {
-                return $tag->name;
+                $name = json_decode($tag->name, true); // Décoder le JSON
+                return $name['fr'] ?? 'Non défini'; // Récupérer 'fr' ou afficher un texte par défaut
             })
             ->editColumn('country', function ($tag) {
-                return $tag->country ;
+                return $tag->country;
             })
             ->addColumn('speciality', function ($tag) {
                 return $tag->speciality ? $tag->speciality->name : 'N/A';
