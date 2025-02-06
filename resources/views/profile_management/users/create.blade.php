@@ -63,26 +63,7 @@
         <div class="row">
             @include('profile_management.users.fields')
 
-            <!-- Start Date Field -->
-            <div class="form-group col-6">
-                {!! Form::label('start_date', trans("lang.start_date"), ['class' => 'control-label']) !!}
-                {!! Form::date('start_date', isset($user->profileManagement) ? $user->profileManagement->start_date : null, ['class' => 'form-control']) !!}
-            </div>
 
-            <!-- End Date Field -->
-            <div class="form-group col-6">
-                {!! Form::label('end_date', trans("lang.end_date"), ['class' => 'control-label']) !!}
-                {!! Form::date('end_date', isset($user->profileManagement) ? $user->profileManagement->end_date : null, ['class' => 'form-control']) !!}
-            </div>
-
-            <!-- Is Active Field -->
-            <div class="form-group col-12">
-                {!! Form::label('is_active', trans("lang.is_active"), ['class' => 'control-label']) !!}
-                <div class="custom-control custom-switch">
-                    {!! Form::checkbox('is_active', 1, isset($profileManagement) ? $profileManagement->is_active : false, ['class' => 'custom-control-input', 'id' => 'is_active']) !!}
-                    <label class="custom-control-label" for="is_active"></label>
-                </div>
-            </div>
 
 
         </div>

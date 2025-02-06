@@ -12,6 +12,14 @@ return [
 
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
+    'user_roles' => 'Rôles des utilisateurs',
+    'edit_user' => 'Modifier l’utilisateur',
+    'edit_user_desc' => 'Modifier les détails d’un utilisateur associé.',
+    'start_date' => 'Date de début',
+    'start_date_help' => 'Saisissez la date de début au format jj/mm/aaaa',
+    'end_date' => 'Date de fin',
+    'end_date_help' => 'Saisissez la date de fin au format jj/mm/aaaa',
+    'is_active' => 'Actif',
     'tele_patient_phone' => 'Téléphone du patient',
     'doctor_user_table' => 'Utilisateurs associés',
     'doctor_user_desc' => 'Gérer les utilisateurs associés au médecin.',
