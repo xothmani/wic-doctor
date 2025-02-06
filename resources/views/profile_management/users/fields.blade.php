@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <!-- Phone Number Fielddd -->
+    <!-- Phone Number Field -->
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('phone_number', trans("lang.user_phone_number"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
