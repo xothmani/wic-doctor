@@ -36,6 +36,12 @@ class DoctorTagController extends Controller
     
         // Récupérer les tags associés à chaque spécialité
         $tags = Tag::whereIn('speciality_id', $specialities->pluck('id'))->get();
+         // Transformer les noms des tags pour afficher uniquement la valeur en français
+        $tags->transform(function ($tag) {
+            $name = json_decode($tag->name, true);
+            $tag->name = $name['fr'] ?? 'Non spécifié';
+            return $tag;
+        });
     
         // Récupérer les tags sélectionnés par le médecin (via la table doctor_tag)
         $doctorTags = DoctorTag::where('doctor_id', $doctor->id)->pluck('tag_id')->toArray();
