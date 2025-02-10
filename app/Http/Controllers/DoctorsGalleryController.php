@@ -51,7 +51,8 @@ class DoctorsGalleryController extends Controller
      */
     public function categories(): JsonResponse
     {
-        $doctorId = auth()->user()->doctor->id(); // Current doctor's ID
+        $doctorId = auth()->user()->doctor->id;
+
         $doctorPath = "doctors/{$doctorId}";
 
         // Check if the doctor-specific directory exists
@@ -117,7 +118,8 @@ class DoctorsGalleryController extends Controller
     {
         $category = trim($request->get('category', 'Default')); // Get or default to "default"
         $uuid = $request->get('uuid');
-        $doctorId = auth()->user()->doctor->id(); // Current doctor's ID
+        $doctorId = auth()->user()->doctor->id;
+
 
         try {
             // Log input data
@@ -208,7 +210,8 @@ class DoctorsGalleryController extends Controller
     public function all(Request $request, $category = null)
     {
         $category = $category ?? 'default'; // Default to 'default' if no category is provided
-        $doctorId = auth()->user()->doctor->id(); // Current doctor's ID
+        $doctorId = auth()->user()->doctor->id;
+
 
         Log::info("Fetching media for doctor: {$doctorId}, category: {$category}");
 
@@ -275,7 +278,8 @@ class DoctorsGalleryController extends Controller
 
     public function storeCabinet(UploadRequest $request): JsonResponse
     {
-        $doctorId = auth()->user()->doctor->id(); // Current doctor's ID
+        $doctorId = auth()->user()->doctor->id;
+
         $uuid = $request->get('uuid');
         $category = 'cabinet';    // Hard-coded folder name
 
@@ -316,7 +320,8 @@ class DoctorsGalleryController extends Controller
 
     public function allCabinet(Request $request): JsonResponse
     {
-        $doctorId = auth()->user()->doctor->id(); // Current doctor's ID
+        $doctorId = auth()->user()->doctor->id;
+
         $category = 'cabinet';
 
         // Physical path in storage
@@ -354,7 +359,7 @@ class DoctorsGalleryController extends Controller
             'request_data' => $request->all()
         ]);
 
-        $doctorId = auth()->user()->doctor->id(); // Current doctor's ID
+        $doctorId = auth()->user()->doctor->id;
         // we rename the variable so it reads the 'uuid' from the request
         $uuid = $request->input('uuid'); // rename it from 'file_name' to 'uuid'
 

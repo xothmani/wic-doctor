@@ -50,174 +50,7 @@
         <div class="card-body">
 
             <!-- *************************GESTION INFOS PERSONNELLES -->
-                @if(session('success'))
-                    <script>
-                        alert("{{ session('success') }}");
-                    </script>
-                @endif
-                @if(session('error'))
-                    <script>
-                        alert("{{ session('error') }}");
-                    </script>
-                @endif
-
-
-                    <!-- Bouton pour afficher/masquer les champs Infos personnelles -->
-                    <button class="btn bg-{{setting('theme_color')}} w-100 text-left mt-3 d-flex justify-content-between align-items-center" type="button" data-toggle="collapse" data-target="#infoPersonnel" aria-expanded="false" aria-controls="infoPersonnel">
-                        <span class="d-flex align-items-center">
-                            <i class="fas fa-user mr-2"></i> Infos personnelles
-                        </span>
-                        <i class="fas fa-angle-down fa-lg" id="arrowIcon"></i>
-                    </button>
-                    <!-- Conteneur des champs Infos personnelles -->
-                    {!! Form::open(['route' => 'editInfoPersonnelle', 'method' => 'POST', 'id' => 'editInfoForm']) !!}
-                    <div class="collapse mt-3" id="infoPersonnel">
-                        <div class="row">
-                            <!-- Colonne Gauche -->
-                                            <div class="col-md-6">
-                                                <!-- Name Field -->
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('name', trans("lang.user_name"), ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                        {!! Form::text('name', $user->lastname, ['class' => 'form-control', 'placeholder' => trans("lang.user_name_placeholder"), 'required' => 'required']) !!}
-                                                    </div>
-                                                </div>
-                                                <!-- LastName Field -->
-
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('lastname', trans("lang.user_lastname"), ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                        {!! Form::text('lastname', $user->name, ['class' => 'form-control', 'placeholder' => trans("lang.user_lastname_placeholder"), 'required' => 'required']) !!}
-                                                    </div>
-                                                </div>
-
-                                                <!-- Email Field -->
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('email', trans("lang.user_email"), ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                    {!! Form::email('email', $user->email, ['class' => 'form-control', 'placeholder' => trans("lang.user_email_placeholder"), 'required' => 'required']) !!}
-                                                    </div>
-                                                </div>
-
-
-                                                <!-- Phone Number Field -->
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('phone_number', trans("lang.user_phone_number"), ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                    {!! Form::text('phone_number', $user->phone_number, [
-                                                        'class' => 'form-control',
-                                                        'placeholder' => trans("lang.user_phone_number_placeholder"),
-                                                        'required' => 'required',
-                                                        'pattern' => '^\+?[0-9]*$',
-                                                        'title' => '+123 12 345 678'
-                                                    ]) !!}
-                                                    </div>
-                                                </div>                            
-                                                <!-- Bio -->
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('bio', 'Biographie', ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                        {!! Form::textarea('bio', $doctor->bio, ['class' => 'form-control', 'placeholder' => 'Écrivez votre bio', 'style' => 'height: 80px;']) !!}
-                                                    </div>
-                                                </div>
-
-
-                                                <!-- Type de consultation -->
-                                                <div class="form-group row">
-                                                    <label class="col-md-3 control-label text-md-right">Types de consultation</label>
-                                                    <div class="col-md-9 d-flex flex-wrap">
-                                                        @php
-                                                            $methods = ['cabinet', 'domicile', 'téléconsultation', 'urgence'];
-                                                        @endphp
-
-                                                        @foreach($methods as $method)
-                                                            <div class="form-check me-3 mr-2">
-                                                                {!! Form::checkbox('consultation_methods[]', $method, in_array($method, $consultationMethods), ['class' => 'form-check-input', 'id' => $method]) !!}
-                                                                <label class="form-check-label" for="{{ $method }}">{{ ucfirst($method) }}</label>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-
-                                            </div>
-
-                                            <!-- Colonne Droite -->
-                                            <div class="col-md-6">
-                                            
-                                                <!-- Numéro de cabinet Field -->
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('cabinet_number', 'N° Cabinet', ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                        {!! Form::text('cabinet_number', $doctor->fixe, [
-                                                            'class' => 'form-control',
-                                                            'placeholder' => trans("lang.user_cabinet_number_placeholder"),
-                                                            'pattern' => '^\+?[0-9]*$',
-                                                            'title' => '+123 12 345 678'
-                                                        ]) !!}
-                                                    </div>
-                                                </div>
-
-                                                <!-- Facebook Field -->
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('facebook', 'Facebook', ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                        {!! Form::text('facebook', $doctor->facebook, ['class' => 'form-control','placeholder' => trans("lang.user_facebook_placeholder")]) !!}
-                                                    </div>
-                                                </div>
-                                                <!-- Instagram Field -->
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('instagram', 'Instagram', ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                        {!! Form::text('instagram', $doctor->instagram, ['class' => 'form-control', 'placeholder' => 'Lien du profil Instagram']) !!}
-                                                    </div>
-                                                </div>
-
-                                                <!-- Website Field -->
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('website', 'Site Web', ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                        {!! Form::text('website', $doctor->site_web, ['class' => 'form-control', 'placeholder' => 'Lien du site web']) !!}
-                                                    </div>
-                                                </div>
-                                                
-                                                <!-- Description -->
-                                                <div class="form-group d-flex align-items-center">
-                                                    {!! Form::label('description', 'Description', ['class' => 'col-md-3 control-label text-md-right']) !!}
-                                                    <div class="col-md-9">
-                                                        {!! Form::textarea('description', $doctor->description, ['class' => 'form-control', 'placeholder' => 'Écrivez une description', 'style' => 'height: 80px;']) !!}
-                                                    </div>
-                                                </div>
-
-
-                                                <!-- Méthodes de paiement -->
-                                                <div class="form-group row">
-                                                    <label class="col-md-3 control-label text-md-right">Méthodes de paiement</label>
-                                                    <div class="col-md-9 d-flex flex-wrap">
-                                                        @php
-                                                            $paymentOptions = ['Espèce', 'Chèque', 'Carte Bancaire', 'D17'];
-                                                        @endphp
-
-                                                        @foreach($paymentOptions as $payment)
-                                                            <div class="form-check me-3 mr-2">
-                                                                {!! Form::checkbox('payment_methods[]', $payment, in_array($payment, $paymentMethods), ['class' => 'form-check-input', 'id' => $payment]) !!}
-                                                                <label class="form-check-label" for="{{ $payment }}">{{ ucfirst($payment) }}</label>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-
-
-                                            </div>
-                        </div>
-                            <!-- Bouton Enregistrer -->
-                            <div class="text-right mt-3">
-                                {!! Form::submit('Enregistrer', ['class' => 'btn bg-' . setting('theme_color') . ' px-4']) !!}
-                            </div>
-                    </div>
-                {!! Form::close() !!}
-
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
+            @if(session('success'))
                 <script>
                     alert("{{ session('success') }}");
                 </script>
@@ -637,9 +470,9 @@
             </script>
 
 
-         
 
-         
+
+
 
             <!-- *************************GESTION CV -->
             @if(session('success'))
@@ -958,12 +791,12 @@
             function loadMedia() {
                 let mediaItems = $('.medias-items');
                 mediaItems.html(`
-                                                                                                            <div class="card loader">
-                                                                                                                <div class="overlay">
-                                                                                                                    <i class="fas fa-redo-alt fa-spin"></i>
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                        `);
+                                                                                                                                                        <div class="card loader">
+                                                                                                                                                            <div class="overlay">
+                                                                                                                                                                <i class="fas fa-redo-alt fa-spin"></i>
+                                                                                                                                                            </div>
+                                                                                                                                                        </div>
+                                                                                                                                                    `);
                 $.ajax({
                     url: "{{ route('doctors_gallery.all_cabinet') }}",
                     method: 'GET',
@@ -973,17 +806,17 @@
                             // Utiliser custom_properties.uuid si disponible, sinon le nom du fichier
                             let theUuid = (item.custom_properties && item.custom_properties.uuid) ? item.custom_properties.uuid : item.file_name;
                             html += `
-                                                                                                                        <div class="media-item m-2">
-                                                                                                                            <div class="card clickble" style="position: relative;">
-                                                                                                                                <button class="btn btn-sm btn-danger delete-media" style="display:none; position:absolute; top:5px; right:5px;" data-uuid="${theUuid}">
-                                                                                                                                    <i class="fas fa-trash-alt"></i>
-                                                                                                                                </button>
-                                                                                                                                <img class="card-img-top" src="${item.thumb}" alt="${item.file_name}">
-                                                                                                                                <div class="card-footer text-center">
-                                                                                                                                    <small>${item.name} (${item.formated_size})</small>
-                                                                                                                                </div>
-                                                                                                                            </div>
-                                                                                                                        </div>`;
+                                                                                                                                                                    <div class="media-item m-2">
+                                                                                                                                                                        <div class="card clickble" style="position: relative;">
+                                                                                                                                                                            <button class="btn btn-sm btn-danger delete-media" style="display:none; position:absolute; top:5px; right:5px;" data-uuid="${theUuid}">
+                                                                                                                                                                                <i class="fas fa-trash-alt"></i>
+                                                                                                                                                                            </button>
+                                                                                                                                                                            <img class="card-img-top" src="${item.thumb}" alt="${item.file_name}">
+                                                                                                                                                                            <div class="card-footer text-center">
+                                                                                                                                                                                <small>${item.name} (${item.formated_size})</small>
+                                                                                                                                                                            </div>
+                                                                                                                                                                        </div>
+                                                                                                                                                                    </div>`;
                         });
                         mediaItems.html(html);
                         initDeleteButtons();
