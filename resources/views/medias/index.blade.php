@@ -7,83 +7,89 @@
     <link rel="stylesheet" href="{{asset('vendor/dropzone/min/dropzone.min.css')}}">
 @endpush
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{!! trans('lang.media_title') !!} <small>{{trans('lang.media_desc')}}</small></h1>
-                </div><!-- /.col -->
-                <div class="col-sm-6">
-                    <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-                        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt"></i> {{trans('lang.dashboard')}}</a></li>
-                        <li class="breadcrumb-item active">{{trans('lang.medias')}}</li>
-                    </ol>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
+<!-- Content Header (Page header) -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">{!! trans('lang.media_title') !!} <small>{{trans('lang.media_desc')}}</small></h1>
+            </div><!-- /.col -->
+            <div class="col-sm-6">
+                <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
+                    <li class="breadcrumb-item"><a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt"></i>
+                            {{trans('lang.dashboard')}}</a></li>
+                    <li class="breadcrumb-item active">{{trans('lang.medias')}}</li>
+                </ol>
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
 
-    <div class="content">
-        <div class="clearfix"></div>
-        @include('flash::message')
-        <div id="mediaModal" class="card shadow-sm">
-            <div class="card-header">
-                <ul class="nav nav-tabs d-flex flex-row align-items-start card-header-tabs">
+<div class="content">
+    <div class="clearfix"></div>
+    @include('flash::message')
+    <div id="mediaModal" class="card shadow-sm">
+        <div class="card-header">
+            <ul class="nav nav-tabs d-flex flex-row align-items-start card-header-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active" href="{!! url()->current() !!}"><i
+                            class="fas fa-list mr-2"></i>{{trans('lang.media_table')}}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="createMedia"><i
+                            class="fas fa-plus mr-2"></i>{{trans('lang.media_create')}}</a>
+                </li>
+                <div class="ml-auto d-inline-flex">
                     <li class="nav-item">
-                        <a class="nav-link active" href="{!! url()->current() !!}"><i class="fas fa-list mr-2"></i>{{trans('lang.media_table')}}</a>
+                        <div style="width: 200px;" id="selectCollection" class="ml-auto pb-2 mx-2">
+                            <select name="collection_name" id="collectionName"
+                                class="form-control-sm form-control select2"> </select>
+                        </div>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="createMedia"><i class="fas fa-plus mr-2"></i>{{trans('lang.media_create')}}</a>
+                        <a class="nav-link pt-1 pb-35" data-size="150" href="#"><i class="fas fa-th"></i></a>
                     </li>
-                    <div class="ml-auto d-inline-flex">
-                        <li class="nav-item">
-                            <div style="width: 200px;" id="selectCollection" class="ml-auto pb-2 mx-2">
-                                <select name="collection_name" id="collectionName" class="form-control-sm form-control select2"> </select>
-                            </div>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link pt-1 pb-35" data-size="150" href="#"><i class="fas fa-th"></i></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link pt-1 pb-35" data-size="200" href="#"><i class="fas fa-th-large"></i></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link pt-1 pb-35" data-size="300" href="#"><i class="fas fa-square"></i></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link pt-1 pb-35" id="refreshMedia" href="#"><i class="fas fa-redo-alt"></i> {{trans('lang.refresh')}}</a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link pt-1 pb-35" data-size="200" href="#"><i class="fas fa-th-large"></i></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pt-1 pb-35" data-size="300" href="#"><i class="fas fa-square"></i></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pt-1 pb-35" id="refreshMedia" href="#"><i class="fas fa-redo-alt"></i>
+                            {{trans('lang.refresh')}}</a>
+                    </li>
 
-                    </div>
-                </ul>
-            </div>
-            <div class="card-body">
-                <!-- Preview Field -->
-                <div id="createMediaField" class="row">
-                    <div class="col-12">
-                        <div style="width: 100%" class="dropzone default" id="default" data-field="default">
-                            <input type="hidden" name="default">
-                        </div>
-                        <a href="#" id="doneMedia" class="btn btn-outline-{{setting('theme_color','primary')}} btn-sm float-right mt-1">{{ trans('lang.done')}}</a>
-                        <div class="form-text text-muted">
-                            {{ trans("lang.media_default_help") }}
-                        </div>
-                    </div>
-                    <div class="clearfix my-5"></div>
                 </div>
-                <div class="row medias-items">
-                    <div class="card loader">
-                        <div class="overlay">
-                            <i class="fas fa-redo-alt fa-spin"></i>
-                        </div>
+            </ul>
+        </div>
+        <div class="card-body">
+            <!-- Preview Field -->
+            <div id="createMediaField" class="row">
+                <div class="col-12">
+                    <div style="width: 100%" class="dropzone default" id="default" data-field="default">
+                        <input type="hidden" name="default">
+                    </div>
+                    <a href="#" id="doneMedia"
+                        class="btn btn-outline-{{setting('theme_color', 'primary')}} btn-sm float-right mt-1">{{ trans('lang.done')}}</a>
+                    <div class="form-text text-muted">
+                        {{ trans("lang.media_default_help") }}
                     </div>
                 </div>
-                <div class="clearfix"></div>
+                <div class="clearfix my-5"></div>
             </div>
+            <div class="row medias-items">
+                <div class="card loader">
+                    <div class="overlay">
+                        <i class="fas fa-redo-alt fa-spin"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="clearfix"></div>
         </div>
     </div>
+</div>
 @endsection
 @push('scripts_lib')
     <!-- select2 -->
@@ -103,89 +109,93 @@
      * when click on createMedia link on card header
      **/
 
-    $('#mediaModal #createMedia').on('click', function (event) {
-        event.preventDefault();
-        $('#mediaModal #createMediaField').css('display', 'block');
-        mediaDropZone[0].dropzone.options.init();
-    });
+        $('#mediaModal #createMedia').on('click', function (event) {
+            event.preventDefault();
+            $('#mediaModal #createMediaField').css('display', 'block');
+            mediaDropZone[0].dropzone.options.init();
+        });
 
-    /**
-     * close DropZone after upload media
-     * when we click on done button
-     **/
-    $('#mediaModal #doneMedia').on('click', function (event) {
-        event.preventDefault();
-        $('#mediaModal #createMediaField').css('display', 'none');
-        mediaDropZone[0].dropzone.options.init();
-        $('#mediaModal #refreshMedia').trigger('click');
-    });
-
-    /**
-     * dropzone to add media to default collection
-     */
-    var mediaDropZone = $(".dropzone.default").dropzone({
-        url: "{!!url('uploads/store')!!}",
-        addRemoveLinks: true,
-        accept: function (file, done) {
-            dzAccept(file, done, this.element, "{!!config('media-library.icons_folder')!!}");
-        },
-        sending: function (file, xhr, formData) {
-            dzSending(this, file, formData, '{!! csrf_token() !!}');
-        },
-        complete: function (file) {
+        /**
+         * close DropZone after upload media
+         * when we click on done button
+         **/
+        $('#mediaModal #doneMedia').on('click', function (event) {
+            event.preventDefault();
+            $('#mediaModal #createMediaField').css('display', 'none');
+            mediaDropZone[0].dropzone.options.init();
             $('#mediaModal #refreshMedia').trigger('click');
-            if (file._removeLink) {
-                file._removeLink.textContent = this.options.dictRemoveFile;
-            }
-            if (file.previewElement) {
-                return file.previewElement.classList.add("dz-complete");
-            }
-        },
-        removedfile: function (file) {
-            var _this = $('.card.clickble').find('button[data-uuid="' + file.upload.uuid + '"]');
-            $.post("{!! url('uploads/clear') !!}",
-                {
-                    _token: '{!! csrf_token() !!}',
-                    uuid: file.upload.uuid,
-                }, function (data) {
-                    if (data && data.data === true) {
-                        _this.parent('.card.clickble').parent('div.media-item').slideUp();
-                        if (file.previewElement != null && file.previewElement.parentNode != null) {
-                            file.previewElement.parentNode.removeChild(file.previewElement);
+        });
+
+        /**
+         * dropzone to add media to default collection
+         */
+        var mediaDropZone = $(".dropzone.default").dropzone({
+            url: "{!!url('uploads/store')!!}",
+            addRemoveLinks: true,
+            accept: function (file, done) {
+                dzAccept(file, done, this.element, "{!!config('media-library.icons_folder')!!}");
+            },
+            sending: function (file, xhr, formData) {
+                dzSending(this, file, formData, '{!! csrf_token() !!}');
+            },
+            complete: function (file) {
+                $('#mediaModal #refreshMedia').trigger('click');
+                if (file._removeLink) {
+                    file._removeLink.textContent = this.options.dictRemoveFile;
+                }
+                if (file.previewElement) {
+                    return file.previewElement.classList.add("dz-complete");
+                }
+            },
+            removedfile: function (file) {
+                var _this = $('.card.clickble').find('button[data-uuid="' + file.upload.uuid + '"]');
+                $.post("{!! url('uploads/clear') !!}",
+                    {
+                        _token: '{!! csrf_token() !!}',
+                        uuid: file.upload.uuid,
+                    }, function (data) {
+                        if (data && data.data === true) {
+                            _this.parent('.card.clickble').parent('div.media-item').slideUp();
+                            if (file.previewElement != null && file.previewElement.parentNode != null) {
+                                file.previewElement.parentNode.removeChild(file.previewElement);
+                            }
+                        } else {
+                            swal({
+                                title: "{{trans('lang.error')}}", confirmButtonText: "{{trans('lang.ok')}}",
+                                text: data.message, type: "error", confirmButtonClass: "btn-danger"
+                            });
                         }
-                    } else {
-                        swal({title: "{{trans('lang.error')}}", confirmButtonText: "{{trans('lang.ok')}}",
-                            text: data.message,type: "error", confirmButtonClass: "btn-danger"});
-                    }
-                }).fail(function () {
-                swal({title: "{{trans('lang.error')}}", confirmButtonText: "{{trans('lang.ok')}}",
-                    text: data.message,type: "error", confirmButtonClass: "btn-danger"});
-            });
-        }
-    });
-</script>
+                    }).fail(function () {
+                        swal({
+                            title: "{{trans('lang.error')}}", confirmButtonText: "{{trans('lang.ok')}}",
+                            text: data.message, type: "error", confirmButtonClass: "btn-danger"
+                        });
+                    });
+            }
+        });
+    </script>
 @endprepend
 
 
 @push('scripts')
     <script type="text/template" data-template="mediaitem">
-        <div class="media-item m-2">
-            <div class="card clickble">
-                <button data-uuid="${uuid}" class="btn btn-sm btn-danger delete-media"><i class="fas fa-remove"></i> Delete
-                </button>
-                <img class="card-img"
-                     src="${src}"
-                     data-name="${file_name}"
-                     data-type="${mime_type}"
-                     data-size="${size}"
-                     data-uuid="${uuid}"
-                     alt="Card image">
-                <div class="card-footer">
-                    <small>${name} (${formated_size})</small><br> <small class="text-muted">${updated_at}</small>
-                </div>
-            </div>
-        </div>
-    </script>
+                                            <div class="media-item m-2">
+                                                <div class="card clickble">
+                                                    <button data-uuid="${uuid}" class="btn btn-sm btn-danger delete-media"><i class="fas fa-remove"></i> Delete
+                                                    </button>
+                                                    <img class="card-img"
+                                                         src="${src}"
+                                                         data-name="${file_name}"
+                                                         data-type="${mime_type}"
+                                                         data-size="${size}"
+                                                         data-uuid="${uuid}"
+                                                         alt="Card image">
+                                                    <div class="card-footer">
+                                                        <small>${name} (${formated_size})</small><br> <small class="text-muted">${updated_at}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </script>
 
     <script type="text/javascript">
 
@@ -211,14 +221,18 @@
                                     }
                                 }
                             })
-                        } else if(data){
-                            swal({title: "{{trans('lang.error')}}", confirmButtonText: "{{trans('lang.ok')}}",
-                                text: data.message,type: "error", confirmButtonClass: "btn-danger"});
+                        } else if (data) {
+                            swal({
+                                title: "{{trans('lang.error')}}", confirmButtonText: "{{trans('lang.ok')}}",
+                                text: data.message, type: "error", confirmButtonClass: "btn-danger"
+                            });
                         }
                     }).fail(function () {
-                    swal({title: "{{trans('lang.error')}}", confirmButtonText: "{{trans('lang.ok')}}",
-                        text: data.message,type: "error", confirmButtonClass: "btn-danger"});
-                });
+                        swal({
+                            title: "{{trans('lang.error')}}", confirmButtonText: "{{trans('lang.ok')}}",
+                            text: data.message, type: "error", confirmButtonClass: "btn-danger"
+                        });
+                    });
             });
             $('#mediaModal .card.clickble').hover(function () {
                 $('#mediaModal .card.clickble .delete-media').css('display', 'none');
@@ -346,4 +360,3 @@
         });
     </script>
 @endpush
-
