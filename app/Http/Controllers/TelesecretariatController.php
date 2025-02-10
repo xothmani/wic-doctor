@@ -73,10 +73,10 @@ class TelesecretariatController extends Controller
                     'password' => bcrypt($password), // Hasher le mot de passe
                 ]);
     
-                // Récupérer l'ID du rôle "telesecretarial"
-                $roleId = Role::where('name', 'telesecretarial')->first()->id;
+                // Récupérer l'ID du rôle "Telesecretary"
+                $roleId = Role::where('name', 'Telesecretary')->first()->id;
     
-                // Insérer le rôle "telesecretarial" pour l'utilisateur
+                // Insérer le rôle "Telesecretary" pour l'utilisateur
                 DB::table('model_has_roles')->insert([
                     'role_id' => $roleId,
                     'model_type' => 'App\Models\User',
@@ -97,7 +97,8 @@ class TelesecretariatController extends Controller
                 } catch (\Exception $e) {
                     Log::error('Erreur lors de l\'insertion dans la table membership : ' . $e->getMessage());
                 }
-
+                // Stocker temporairement le mot de passe en clair
+                $passwordPlainText = $request->password;
                 // Créer le telesecretariat associé à cet utilisateur
                 $telesecretariat = Telesecretariat::create([
                     'nomCentre' => $request->nom_centre,
@@ -105,12 +106,18 @@ class TelesecretariatController extends Controller
                     'etat' => $request->etat,
                     'description' => $request->description,
                     'user_id' => $existingUser->id, // Associer le telesecretariat à l'utilisateur
+                    'host' => $request->host,
+                    'username' => $request->username,
+                    'password' => bcrypt($passwordPlainText), // Cryptage du mot de passe
                 ]);
                      // Envoi de l'email
                 $details = [
                     'name' => $request->prenom_responsable . ' ' . $request->nom_responsable,
                     'email' => $request->email,
                     'password' => $password,
+                    'host' => $request->host,
+                    'username' => $request->username,
+                    'passwordFusion' => $passwordPlainText, 
                 ];
 
                 try {
@@ -137,10 +144,10 @@ class TelesecretariatController extends Controller
             'password' => bcrypt($password), // Hasher le mot de passe
         ]);
     
-        // Récupérer l'ID du rôle "telesecretarial"
-        $roleId = Role::where('name', 'telesecretarial')->first()->id;
+        // Récupérer l'ID du rôle "Telesecretary"
+        $roleId = Role::where('name', 'Telesecretary')->first()->id;
     
-        // Insérer le rôle "telesecretarial" pour l'utilisateur
+        // Insérer le rôle "Telesecretary" pour l'utilisateur
         DB::table('model_has_roles')->insert([
             'role_id' => $roleId,
             'model_type' => 'App\Models\User',
@@ -161,12 +168,17 @@ class TelesecretariatController extends Controller
             Log::error('Erreur lors de l\'insertion dans la table membership : ' . $e->getMessage());
         }
     
+                        // Stocker temporairement le mot de passe en clair
+                        $passwordPlainText = $request->password;
         // Créer le telesecretariat associé à cet utilisateur
         $telesecretariat = Telesecretariat::create([
             'nomCentre' => $request->nom_centre,
             'adresse' => $request->adresse,
             'etat' => $request->etat,
             'description' => $request->description,
+            'host' => $request->host,
+            'username' => $request->username,
+            'password' => bcrypt($passwordPlainText), // Cryptage du mot de passe
             'user_id' => $newUser->id, // Associer le telesecretariat à l'utilisateur
         ]);
             // Envoi de l'email
@@ -174,6 +186,10 @@ class TelesecretariatController extends Controller
             'name' => $request->prenom_responsable . ' ' . $request->nom_responsable,
             'email' => $request->email,
             'password' => $password,
+            'host' => $request->host,
+            'username' => $request->username,
+            'passwordFusion' => $passwordPlainText, 
+
         ];
 
         try {
@@ -252,13 +268,17 @@ public function update(Request $request, string $id)
         'lastname' => $request->nom_responsable,
     ]);
 
-    // Mise à jour du telesecretariat
-    $telesecretariat->update([
-        'nomCentre' => $request->nom_centre,
-        'adresse' => $request->adresse,
-        'etat' => $request->etat,
-        'description' => $request->description,
-    ]);
+// Mise à jour du telesecretariat
+$telesecretariat->update([
+    'nomCentre' => $request->nom_centre,
+    'adresse' => $request->adresse,
+    'etat' => $request->etat,
+    'description' => $request->description,
+    'host' => $request->host,
+    'username' => $request->username,
+    'password' => bcrypt($request->password), // Cryptage du mot de passe
+]);
+
 
     // Retourner à la liste avec un message de succès
     return redirect()->route('telesecretariats.index')->with('success', 'Telesecretariat et utilisateur mis à jour avec succès.');

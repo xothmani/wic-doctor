@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
-
+use App\Models\Upload;
 class DoctorRequestController extends Controller
 {
 
@@ -99,7 +99,7 @@ public function store(Request $request)
         'pays' => $request->pays,
         'type' => $request->type,
         'sexe' => $request->sexe,
-        'status' => 'en cours',
+        'status' => 'accepté',
         'created_at' => now(),
         'updated_at' => now(),
         'code_doctor' => 'WD-' . strtoupper(Str::random(4)) . rand(1000, 9999), // Exemple : WD-A1B2C3
@@ -198,6 +198,7 @@ public function store(Request $request)
                     // Changer le statut de la demande à "accepté"
                     $doctorRequest->status = 'accepté';
                     $doctorRequest->save(); // Sauvegarder la mise à jour
+                    Log::info('Mot de passe du docteur : ' . $doctorPassword);
 
         // Envoi de l'email avec les mots de passe
         Mail::to($doctorRequest->email)->send(new DoctorRequestMail(
@@ -300,6 +301,8 @@ public function createUserFromDoctorRequest($doctorRequestId)
                     $doctorRequest->status = 'accepté';
                     $doctorRequest->save(); // Sauvegarder la mise à jour
 
+        Log::info('Mot de passe du docteur : ' . $doctorPassword);
+
         // Envoi de l'email avec les mots de passe
         Mail::to($doctorRequest->email)->send(new DoctorRequestMail(
             $doctorPassword,
@@ -329,15 +332,47 @@ private function createDoctor($user, $doctorRequest)
 
         $formattedName = ['fr' => $user->lastname . ' ' . $user->name];
 
-        $doctor = Doctor::create([
-            'name' => $formattedName,
-            'user_id' => $user->id,
-            'id_aleatoire' => $randomId,
-            'sexe' => $doctorRequest->sexe,
-            'code_doctor' => $doctorRequest->code_doctor,
+       // Créer le docteur
+       $doctor = Doctor::create([
+        'name' => $formattedName,
+        'user_id' => $user->id,
+        'id_aleatoire' => $randomId,
+        'sexe' => $doctorRequest->sexe,
+        'code_doctor' => $doctorRequest->code_doctor,
+    ]);
 
-        ]);
+    // Définir l'image par défaut selon le sexe
+    $defaultAvatar = $doctorRequest->sexe === 'homme' 
+        ? '/home/support-05/Bureau/wic-doctor-prescription/doctor.way-interactive-convergence.com/public/images/avatarHomme.png' 
+        : '/home/support-05/Bureau/wic-doctor-prescription/doctor.way-interactive-convergence.com/public/images/avatarFemme.png';
 
+    if (!file_exists($defaultAvatar)) {
+        Log::error("L'image par défaut est introuvable", ['path' => $defaultAvatar]);
+        return back()->withErrors(['image' => 'L\'image par défaut est introuvable.']);
+    }
+
+    // 1️⃣ Ajouter l'image au modèle Doctor
+    $doctorMedia = $doctor->addMedia($defaultAvatar)->preservingOriginal()->toMediaCollection('image');
+    Log::info('Image ajoutée au doctor', ['id' => $doctor->id, 'image' => $doctorMedia->getUrl()]);
+
+    // 2️⃣ Ajouter l'image au modèle User
+    $userMedia = $user->addMedia($defaultAvatar)->preservingOriginal()->toMediaCollection('avatar');
+    Log::info('Image ajoutée à l\'utilisateur', ['id' => $user->id, 'image' => $userMedia->getUrl()]);
+
+    // 3️⃣ Ajouter l'image au modèle Upload
+    $upload = Upload::create([
+        'uuid' => Str::uuid(),
+        'user_id' => $user->id,
+        'file_name' => basename($defaultAvatar),
+        'mime_type' => 'image/png',
+        'disk' => 'public',
+        'size' => filesize($defaultAvatar),
+        'model_type' => 'App\Models\Upload',
+        'model_id' => $doctor->id,
+        'collection_name' => 'image',
+    ]);
+    $uploadMedia = $upload->addMedia($defaultAvatar)->preservingOriginal()->toMediaCollection('image');
+    Log::info('Image ajoutée à Upload', ['id' => $upload->id, 'image' => $uploadMedia->getUrl()]);
         if (!DB::table('model_has_roles')->where('model_id', $user->id)->where('role_id', 5)->exists()) {
             DB::table('model_has_roles')->insert([
                 'role_id' => 5,

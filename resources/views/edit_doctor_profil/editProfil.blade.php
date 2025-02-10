@@ -78,7 +78,7 @@
                                                 <div class="form-group d-flex align-items-center">
                                                     {!! Form::label('email', trans("lang.user_email"), ['class' => 'col-md-3 control-label text-md-right']) !!}
                                                     <div class="col-md-9">
-                                                        {!! Form::text('email', $user->email, ['class' => 'form-control', 'placeholder' => trans("lang.user_email_placeholder"), 'required' => 'required']) !!}
+                                                    {!! Form::email('email', $user->email, ['class' => 'form-control', 'placeholder' => trans("lang.user_email_placeholder"), 'required' => 'required']) !!}
                                                     </div>
                                                 </div>
 
@@ -87,7 +87,13 @@
                                                 <div class="form-group d-flex align-items-center">
                                                     {!! Form::label('phone_number', trans("lang.user_phone_number"), ['class' => 'col-md-3 control-label text-md-right']) !!}
                                                     <div class="col-md-9">
-                                                        {!! Form::text('phone_number', $user->phone_number, ['class' => 'form-control', 'placeholder' => trans("lang.user_phone_number_placeholder"), 'required' => 'required']) !!}
+                                                    {!! Form::text('phone_number', $user->phone_number, [
+                                                        'class' => 'form-control',
+                                                        'placeholder' => trans("lang.user_phone_number_placeholder"),
+                                                        'required' => 'required',
+                                                        'pattern' => '^\+?[0-9]*$',
+                                                        'title' => '+123 12 345 678'
+                                                    ]) !!}
                                                     </div>
                                                 </div>                            
                                                 <!-- Bio -->
@@ -125,9 +131,15 @@
                                                 <div class="form-group d-flex align-items-center">
                                                     {!! Form::label('cabinet_number', 'N° Cabinet', ['class' => 'col-md-3 control-label text-md-right']) !!}
                                                     <div class="col-md-9">
-                                                        {!! Form::text('cabinet_number', $doctor->fixe, ['class' => 'form-control', 'placeholder' => trans("lang.user_cabinet_number_placeholder")]) !!}
+                                                        {!! Form::text('cabinet_number', $doctor->fixe, [
+                                                            'class' => 'form-control',
+                                                            'placeholder' => trans("lang.user_cabinet_number_placeholder"),
+                                                            'pattern' => '^\+?[0-9]*$',
+                                                            'title' => '+123 12 345 678'
+                                                        ]) !!}
                                                     </div>
                                                 </div>
+
                                                 <!-- Facebook Field -->
                                                 <div class="form-group d-flex align-items-center">
                                                     {!! Form::label('facebook', 'Facebook', ['class' => 'col-md-3 control-label text-md-right']) !!}
@@ -439,6 +451,8 @@
 
          
 
+         
+
             <!-- *************************GESTION CV -->
             @if(session('success'))
                     <script>
@@ -648,6 +662,8 @@
                         });
                     });
                 </script>
+
+
 
 
             <!-- *************************GESTION PHOTOS, VIDÉOS -->
