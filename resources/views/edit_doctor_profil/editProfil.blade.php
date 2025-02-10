@@ -858,6 +858,7 @@
             </script>
 
 
+
             <!-- ************************* GESTION PHOTOS, VIDÉOS -->
             <!-- Bouton pour afficher/masquer la section du Cabinet -->
             <button
@@ -869,6 +870,11 @@
                 </span>
                 <i class="fas fa-angle-down fa-lg" id="arrowIcon"></i>
             </button>
+
+
+
+            <!-- *************************GESTION PHOTOS, VIDÉOS -->
+
 
             <!-- Section Média -->
             <div class="collapse mt-3" id="mediaSection">
