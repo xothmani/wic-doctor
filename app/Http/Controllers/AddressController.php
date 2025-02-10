@@ -27,6 +27,8 @@ use Prettus\Repository\Exceptions\RepositoryException;
 use Prettus\Validator\Exceptions\ValidatorException;
 use Illuminate\Http\Request;
 use App\Models\Address;
+use App\Models\Doctor;
+use Illuminate\Support\Facades\Log;
 
 class AddressController extends Controller
 {
@@ -239,6 +241,11 @@ class AddressController extends Controller
     
         try {
             $user = auth()->user(); // Récupérer l'utilisateur authentifié
+            $doctor = Doctor::where('user_id', $user->id)->first();
+    
+            if (!$doctor) {
+                return response()->json(['error' => 'Le médecin n\'existe pas.'], 404);
+            }
     
             // Vérifier si l'utilisateur a déjà une adresse
             $address = Address::where('user_id', $user->id)->first();
@@ -269,12 +276,16 @@ class AddressController extends Controller
             if ($address) {
                 // Si l'adresse existe déjà, on la met à jour
                 $address->update($data);
+                $this->executeNodeScript($doctor);
                 $message = 'Adresse mise à jour avec succès';
             } else {
                 // Sinon, on crée une nouvelle adresse
                 $address = Address::create($data);
+                $this->executeNodeScript($doctor);
+
                 $message = 'Adresse enregistrée avec succès';
             }
+
     
             return response()->json([
                 'message' => $message,
@@ -288,6 +299,64 @@ class AddressController extends Controller
             ], 500);
         }
     }
-    
+    private function executeNodeScript($doctor)
+{
+    $user = $doctor->user()->with('address')->first(); // Charger l'adresse avec l'utilisateur
+    $experience = $doctor->experience; // Récupérer l'expérience associée au docteur
+
+    // Vérifier si l'adresse est présente et récupérer la ville
+    $address = $user ? $user->address : null;
+    $ville = $address ? $address->ville : null;
+    $pays = $address ? $address->pays : null;
+    $gouvernorat = $address ? $address->gouvernorat : null;
+    $adresse_exacte = $address ? $address->address : null;
+    // Récupérer le titre de l'expérience, si existante
+    $title = $experience ? $experience->title : null;
+    // Récupérer les spécialités du médecin
+    $specialities = $doctor->specialities;
+    // Récupérer les spécialités et construire le tableau
+    $specialitiesData = $specialities->map(function($speciality) {
+        return [
+            'id' => $speciality->id,
+            'name' => json_encode(['fr' => $speciality->name]), // Exemple pour la langue 'fr'
+        ];
+    })->toArray();
+        $filePath = public_path('script-detail-med/file.json');
+
+        // Données JSON à écrire
+        $data = [
+                'id_doctor' => $doctor->id,
+    'name' => json_encode(['fr' => $doctor->name]),
+    'doctor_photo' => $doctor->doctor_photo, 
+    'enable_online_consultation' => $doctor->enable_online_consultation, 
+    'description' => $doctor->description, 
+    'horaires' => $doctor->horaires, 
+    'cabinet_photo' => $doctor->cabinet_photo, 
+    'created_at' => $doctor->created_at, 
+    'title' => $title, 
+    'phone_number' => $user ? $user->phone_number : null,
+    'ville' => $ville,
+    'pays' => $pays, 
+    'gouvernorat' => $gouvernorat, 
+    'aleatoire' => $doctor->id_aleatoire,
+    'adresse_exacte' => $adresse_exacte, 
+    'specialities' => $specialitiesData, 
+    'type' => "conventionné", 
+        ];
+
+        file_put_contents($filePath, json_encode([$data], JSON_UNESCAPED_UNICODE));
+
+        $command = 'node /var/www/doctor.way-interactive-convergence.com/public/script-detail-med/nodejs.js';
+        exec($command . ' 2>&1', $output, $returnVar);
+
+        if ($returnVar !== 0) {
+            Log::error('Erreur lors de l\'exécution du script Node.js', [
+                'output' => $output,
+                'return_var' => $returnVar,
+            ]);
+        } else {
+            Log::info('Script Node.js exécuté avec succès', ['output' => $output]);
+        }
+}
     
 }

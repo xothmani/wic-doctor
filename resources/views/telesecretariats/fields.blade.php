@@ -4,7 +4,7 @@
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('nom_centre', trans("lang.telesecretariat_nom_centre"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
-            {!! Form::text('nom_centre', $telesecretariat->nomCentre ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_nom_centre_placeholder")]) !!}
+            {!! Form::text('nom_centre', $telesecretariat->nomCentre ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_nom_centre_placeholder"), 'required' => 'required']) !!}
           <!--   <div class="form-text text-muted">
                 {{ trans("lang.telesecretariat_nom_centre_help") }}
             </div> -->
@@ -17,7 +17,7 @@
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('nom_responsable', trans("lang.telesecretariat_nom_responsable"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
-            {!! Form::text('nom_responsable', $telesecretariat->user->lastname ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_nom_responsable_placeholder")]) !!}
+            {!! Form::text('nom_responsable', $telesecretariat->user->lastname ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_nom_responsable_placeholder"), 'required' => 'required']) !!}
         <!--     <div class="form-text text-muted">
                 {{ trans("lang.telesecretariat_nom_responsable_help") }}
             </div> -->
@@ -28,7 +28,7 @@
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('prenom_responsable', trans("lang.telesecretariat_prenom_responsable"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
-            {!! Form::text('prenom_responsable', $telesecretariat->user->name ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_prenom_responsable_placeholder")]) !!}
+            {!! Form::text('prenom_responsable', $telesecretariat->user->name ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_prenom_responsable_placeholder"), 'required' => 'required']) !!}
         <!--     <div class="form-text text-muted">
                 {{ trans("lang.telesecretariat_prenom_responsable_help") }}
             </div> -->
@@ -39,13 +39,47 @@
         <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('phone_number', trans("lang.telesecretariat_phone_number"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
-        {!! Form::text('phone_number', $telesecretariat->user->phone_number ?? '', ['class' => 'form-control', 'placeholder'=> trans("lang.telesecretariat_phone_number_placeholder"), 'id' => 'phone_number']) !!}
+        {!! Form::text('phone_number', $telesecretariat->user->phone_number ?? '', ['class' => 'form-control', 'placeholder'=> trans("lang.telesecretariat_phone_number_placeholder"), 'id' => 'phone_number', 'required' => 'required']) !!}
                     <!--  <div class="form-text text-muted">
                 {{ trans("lang.telesecretariat_phone_number_help") }}
             </div> -->
         </div>
+
     </div>
+
+        <!-- host Field -->
+        <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+        {!! Form::label('host', trans("lang.telesecretariat_host"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        <div class="col-md-9">
+            {!! Form::text('host', $telesecretariat->host ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_host_placeholder"), 'required' => 'required']) !!}
+        <!--     <div class="form-text text-muted">
+                {{ trans("lang.telesecretariat_prenom_responsable_help") }}
+            </div> -->
+        </div>
+    </div>
+    <!-- username Field -->
+    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+        {!! Form::label('username', trans("lang.telesecretariat_username"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        <div class="col-md-9">
+            {!! Form::text('username', $telesecretariat->username ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_username_placeholder"), 'required' => 'required']) !!}
+        <!--     <div class="form-text text-muted">
+                {{ trans("lang.telesecretariat_prenom_responsable_help") }}
+            </div> -->
+        </div>
+    </div>
+    <!-- password Field -->
+    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+        {!! Form::label('password', trans("lang.telesecretariat_password"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        <div class="col-md-9">
+        {!! Form::password('password', ['class' => 'form-control', 'placeholder' => trans("lang.telesecretariat_password_placeholder"), 'required' => 'required']) !!}
+        <!--     <div class="form-text text-muted">
+                {{ trans("lang.telesecretariat_prenom_responsable_help") }}
+            </div> -->
+        </div>
+    </div>
+
 </div>
+
 
 <script>
     // Empêcher la saisie de lettres
@@ -60,7 +94,7 @@
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('email', trans("lang.telesecretariat_email"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
-            {!! Form::email('email', $telesecretariat->user->email ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_email_placeholder")]) !!}
+            {!! Form::email('email', $telesecretariat->user->email ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_email_placeholder"), 'required' => 'required']) !!}
           <!--   <div class="form-text text-muted">
                 {{ trans("lang.telesecretariat_email_help") }}
             </div> -->
@@ -71,7 +105,7 @@
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('adresse', trans("lang.telesecretariat_adresse"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
-            {!! Form::text('adresse', $telesecretariat->adresse ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_adresse_placeholder")]) !!}
+            {!! Form::text('adresse', $telesecretariat->adresse ?? '',  ['class' => 'form-control','placeholder'=>  trans("lang.telesecretariat_adresse_placeholder"), 'required' => 'required']) !!}
            <!--  <div class="form-text text-muted">
                 {{ trans("lang.telesecretariat_adresse_help") }}
             </div> -->

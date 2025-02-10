@@ -232,6 +232,24 @@ class PatientController extends Controller
 
             $shortUrlResponse = $this->genererLink();
 
+	 $user = auth()->user();
+
+             if (!$user) {
+                 return response()->json(['error' => 'Utilisateur non connecté'], 401);
+             }
+             
+             // Récupérer le médecin associé à l'utilisateur connecté
+             $doctor = Doctor::where('user_id', $user->id)->first();
+             
+             if (!$doctor) {
+                 return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
+             }
+             
+             // Récupérer les valeurs dans des variables
+             $numFrance = $doctor->num_france;
+             $api = $doctor->api_key;
+
+
             // Ensure that the response is a valid JsonResponse before accessing it
             if ($shortUrlResponse instanceof \Illuminate\Http\JsonResponse) {
                 $responseData = json_decode($shortUrlResponse->getContent(), true); // Decode the response content into an array
@@ -241,8 +259,8 @@ class PatientController extends Controller
                     $shortUrl = $responseData['short_link'];
 
                     // Continue with the rest of your code
-                    $api_key = 'INS15422525105';
-                    $from = '33743134840'; // Replace with your sender ID or authorized number
+                    $api_key = $api;
+                    $from = $numFrance; // Replace with your sender ID or authorized number
                     $to = $request->phone_number;
                     $alphasender = 'Wic doctor';
 
