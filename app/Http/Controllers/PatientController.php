@@ -232,22 +232,18 @@ class PatientController extends Controller
 
             $shortUrlResponse = $this->genererLink();
 
-	 $user = auth()->user();
 
-             if (!$user) {
-                 return response()->json(['error' => 'Utilisateur non connecté'], 401);
-             }
-             
-             // Récupérer le médecin associé à l'utilisateur connecté
-             $doctor = Doctor::where('user_id', $user->id)->first();
-             
-             if (!$doctor) {
-                 return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
-             }
-             
-             // Récupérer les valeurs dans des variables
-             $numFrance = $doctor->num_france;
-             $api = $doctor->api_key;
+            $doctorId = auth()->user()->getDoctorId();
+
+            $doctor = Doctor::find($doctorId);
+
+            if (!$doctor) {
+                return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
+            }
+
+            // Récupérer les valeurs dans des variables
+            $numFrance = $doctor->num_france;
+            $api = $doctor->api_key;
 
 
             // Ensure that the response is a valid JsonResponse before accessing it
@@ -265,7 +261,7 @@ class PatientController extends Controller
                     $alphasender = 'Wic doctor';
 
                     // SMS message with short link
-                    $message = "Bienvenue " . $user->name . " " . $user->lastname . " chez Wic-Doctor.\n" .
+                    $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name . " chez Wic-Doctor.\n" .
                         "Nom d'utilisateur : " . $request->phone_number . "\n" .
                         "Mot de passe : $generatedPassword\n" .
                         "Lien RDV : $shortUrl\n";
@@ -310,22 +306,21 @@ class PatientController extends Controller
      */
     private function associatePatientToDoctor(\App\Models\Patient $patient): bool
     {
-        if (auth()->user()->hasRole('doctor')) {
-            $doctor = auth()->user()->doctor;
 
-            if ($doctor) {
-                if (!$doctor->patients()->where('patient_id', $patient->id)->exists()) {
-                    $doctor->patients()->attach($patient->id);
-                    Log::info("Patient ID: " . $patient->id . " associated with Doctor ID: " . $doctor->id);
-                    return true;
-                }
+        $doctorId = auth()->user()->getDoctorId();
 
-                Log::info("Patient ID: " . $patient->id . " already associated with Doctor ID: " . $doctor->id);
-            } else {
-                Log::warning("No doctor associated with user ID: " . auth()->id());
+        $doctor = Doctor::find($doctorId);
+
+        if ($doctor) {
+            if (!$doctor->patients()->where('patient_id', $patient->id)->exists()) {
+                $doctor->patients()->attach($patient->id);
+                Log::info("Patient ID: " . $patient->id . " associated with Doctor ID: " . $doctor->id);
+                return true;
             }
+
+            Log::info("Patient ID: " . $patient->id . " already associated with Doctor ID: " . $doctor->id);
         } else {
-            Log::warning("Authenticated user is not a doctor. User ID: " . auth()->id());
+            Log::warning("No doctor associated with user ID: " . auth()->id());
         }
 
         return false;
@@ -620,13 +615,9 @@ class PatientController extends Controller
     }
     public function genererLink()
     {
-        $user = auth()->user();
+        $doctorId = auth()->user()->getDoctorId();
 
-        if (!$user) {
-            return response()->json(['error' => 'Utilisateur non connecté'], 401);
-        }
-
-        $doctor = Doctor::where('user_id', $user->id)->first();
+        $doctor = Doctor::find($doctorId);
 
         if (!$doctor) {
             return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
@@ -669,7 +660,29 @@ class PatientController extends Controller
         }
 
         $randomId = $doctor->id_aleatoire;
-        $doctorName = strtolower(str_replace(' ', '-', $user->name));
+        $doctorName = $doctor->name;
+        if (is_string($doctorName)) {
+            // Attempt to decode the string as JSON.
+            $decoded = json_decode($doctorName, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                // Use the 'fr' locale if available, or the first value if not.
+                $doctorName = isset($decoded['fr'])
+                    ? strtolower($decoded['fr'])
+                    : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : strtolower($doctorName));
+            } else {
+                $doctorName = strtolower($doctorName);
+            }
+        } else {
+            // If it's not a string, try decoding anyway.
+            $decoded = json_decode($doctorName, true);
+            $doctorName = isset($decoded['fr'])
+                ? strtolower($decoded['fr'])
+                : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : '');
+        }
+
+        if ($doctorName) {
+            $doctorName = str_replace(' ', '-', $doctorName);
+        }
 
         $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/dr-{$doctorName}-{$randomId}.html";
 
