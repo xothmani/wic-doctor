@@ -27,6 +27,10 @@ class Telesecretariat extends Model
         'etat',
         'description',
         'user_id',
+        'host',
+        'username',
+        'password',
+
     ];
 
     /**

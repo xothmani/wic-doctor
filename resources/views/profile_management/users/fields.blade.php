@@ -1,3 +1,4 @@
+<!-- LEFT COLUMN -->
 <div class="d-flex flex-column col-sm-12 col-md-6">
     <!-- Name Field -->
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
@@ -42,19 +43,32 @@
             </div>
         </div>
     </div>
+    <!-- Start Date Field -->
+    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+        {!! Form::label('start_date', trans("lang.start_date"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        <div class="col-md-9">
+            {!! Form::date('start_date', $profileManagement->start_date ?? null, ['class' => 'form-control']) !!}
+            <div class="form-text text-muted">
+                {{ trans("lang.start_date_help") ?? '' }}
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- RIGHT COLUMN -->
 <div class="d-flex flex-column col-sm-12 col-md-6">
     <!-- Avatar Field -->
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('avatar', trans("lang.user_avatar"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
-            <div style="width: 100%" class="dropzone avatar" id="avatar" data-field="avatar">
+            <div style="width: 100% ;height: 12.2rem;" class="dropzone avatar" id="avatar" data-field="avatar">
                 <input type="hidden" name="avatar">
             </div>
             @can('Media.create')
                 <a href="#loadMediaModal" data-dropzone="avatar" data-toggle="modal" data-target="#mediaModal"
-                    class="btn btn-outline-{{setting('theme_color', 'primary')}} btn-sm float-right mt-1">{{ trans('lang.media_select')}}</a>
+                    class="btn btn-outline-{{ setting('theme_color', 'primary') }} btn-sm float-right mt-1">
+                    {{ trans('lang.media_select')}}
+                </a>
             @endcan
             <div class="form-text text-muted w-50">
                 {{ trans("lang.user_avatar_help") }}
@@ -62,7 +76,7 @@
         </div>
     </div>
 
-    <!-- Roles Field -->
+    <!-- Role Field -->
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('role', trans("lang.user_role_id"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
@@ -74,12 +88,36 @@
         </div>
     </div>
 
+
+
+    <!-- End Date Field -->
+    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+        {!! Form::label('end_date', trans("lang.end_date"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        <div class="col-md-9">
+            {!! Form::date('end_date', $profileManagement->end_date ?? null, ['class' => 'form-control']) !!}
+
+            <div class="form-text text-muted">
+                {{ trans("lang.end_date_help") ?? '' }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Is Active Field -->
+    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+        {!! Form::label('is_active', trans("lang.is_active"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        <div class="col-md-9 d-flex align-items-center">
+            <div class="custom-control custom-switch">
+                {!! Form::checkbox('is_active', 1, isset($profileManagement) ? $profileManagement->is_active : false, ['class' => 'custom-control-input', 'id' => 'is_active']) !!}
+                <label class="custom-control-label" for="is_active"></label>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Submit Field -->
 <div
     class="form-group col-12 d-flex flex-column flex-md-row justify-content-md-end justify-content-sm-center border-top pt-4">
-    <button type="submit" class="btn bg-{{setting('theme_color')}} mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2">
+    <button type="submit" class="btn bg-{{ setting('theme_color') }} mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2">
         <i class="fas fa-save"></i> {{ trans('lang.save') }} {{ trans('lang.user') }}
     </button>
     <a href="{!! route('Doctors_users.index') !!}" class="btn btn-default">

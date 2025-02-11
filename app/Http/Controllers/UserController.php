@@ -45,9 +45,12 @@ class UserController extends Controller
      */
     private CustomFieldRepository $customFieldRepository;
 
-    public function __construct(UserRepository $userRepo, RoleRepository $roleRepo, UploadRepository $uploadRepo,
-                                CustomFieldRepository $customFieldRepo)
-    {
+    public function __construct(
+        UserRepository $userRepo,
+        RoleRepository $roleRepo,
+        UploadRepository $uploadRepo,
+        CustomFieldRepository $customFieldRepo
+    ) {
         parent::__construct();
         $this->userRepository = $userRepo;
         $this->roleRepository = $roleRepo;
@@ -61,7 +64,7 @@ class UserController extends Controller
      * @param UserDataTable $userDataTable
      * @return mixed
      */
-    public function index(UserDataTable $userDataTable):mixed
+    public function index(UserDataTable $userDataTable): mixed
     {
         return $userDataTable->render('settings.users.index');
     }
@@ -94,7 +97,7 @@ class UserController extends Controller
      *
      * @return View
      */
-    public function create():View
+    public function create(): View
     {
         $role = $this->roleRepository->pluck('name', 'name');
 
@@ -118,7 +121,7 @@ class UserController extends Controller
      *
      * @return RedirectResponse
      */
-    public function store(CreateUserRequest $request):RedirectResponse
+    public function store(CreateUserRequest $request): RedirectResponse
     {
         if (config('installer.demo_app')) {
             Flash::warning('This is only demo app you can\'t change this section ');
@@ -159,7 +162,7 @@ class UserController extends Controller
      *
      * @return RedirectResponse|View
      */
-    public function show(int $id):RedirectResponse|View
+    public function show(int $id): RedirectResponse|View
     {
         $user = $this->userRepository->findWithoutFail($id);
 
@@ -176,47 +179,47 @@ class UserController extends Controller
         // 1. Valider le reCAPTCHA
         $recaptchaResponse = $request->input('g-recaptcha-response');
         $secretKey = env('RECAPTCHA_SECRET'); // Clé secrète définie dans le fichier .env
-        
+
         // Vérifier si le reCAPTCHA est vide (obligatoire)
         if (empty($recaptchaResponse)) {
             Flash::error('Le reCAPTCHA est obligatoire. Veuillez le valider.');
             return redirect()->back()->withInput(); // Rediriger avec les entrées précédentes
         }
-        
+
         // Requête pour vérifier le reCAPTCHA auprès de Google
         $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret' => $secretKey,
             'response' => $recaptchaResponse,
         ]);
         $responseData = $response->json();
-        
+
         // Si le reCAPTCHA échoue
         if (!$responseData['success']) {
             Flash::error('La validation du reCAPTCHA a échoué. Veuillez réessayer.');
             return redirect()->back()->withInput();
         }
-    
+
         // 2. Trouver l'utilisateur cible
         $user = $this->userRepository->findWithoutFail($id);
         if (empty($user)) {
             Flash::error('Utilisateur non trouvé');
             return redirect(route('users.index'));
         }
-    
+
         // 3. Se connecter en tant qu'utilisateur
         auth()->login($user, true);
-    
+
         // 4. Vérification de la connexion
         if (auth()->id() !== $user->id) {
             Flash::error('Échec de la connexion en tant qu\'utilisateur sélectionné.');
             return redirect(route('users.index'));
         }
-    
+
         // 5. Redirection vers le profil
         return redirect(route('users.profile'));
     }
-    
-    
+
+
 
     /**
      * Show the form for editing the specified User.
@@ -225,7 +228,7 @@ class UserController extends Controller
      *
      * @return RedirectResponse|View
      */
-    public function edit(int $id):RedirectResponse|View
+    public function edit(int $id): RedirectResponse|View
     {
         if (!auth()->user()->hasRole('admin') && $id != auth()->id()) {
             Flash::error('Permission denied');
@@ -262,21 +265,21 @@ class UserController extends Controller
      *
      * @return RedirectResponse
      */
-    public function update(int $id, UpdateUserRequest $request):RedirectResponse
+    public function update(int $id, UpdateUserRequest $request): RedirectResponse
     {
         if (config('installer.demo_app')) {
             Flash::warning('This is only demo app you can\'t change this section ');
             return redirect(route('users.profile'));
         }
-	if (!auth()->user()->can('medias.create')) {
-        Log::error('User does not have permission to upload media.', ['user_id' => auth()->id()]);
-        Flash::error('Permission denied for uploading media.');
-        return redirect()->back();
-    }
-         if (!auth()->user()->hasRole('admin') && $id != auth()->id()) {
-        Flash::error('Permission denied');
-        return redirect(route('users.profile'));
-    }
+        if (!auth()->user()->can('medias.create')) {
+            Log::error('User does not have permission to upload media.', ['user_id' => auth()->id()]);
+            Flash::error('Permission denied for uploading media.');
+            return redirect()->back();
+        }
+        if (!auth()->user()->hasRole('admin') && $id != auth()->id()) {
+            Flash::error('Permission denied');
+            return redirect(route('users.profile'));
+        }
 
         $user = $this->userRepository->findWithoutFail($id);
 
@@ -307,7 +310,7 @@ class UserController extends Controller
                 Flash::error('User not found');
                 return redirect(route('users.profile'));
             }
-           if (isset($input['avatar']) && $input['avatar']) {
+            if (isset($input['avatar']) && $input['avatar']) {
                 $cacheUpload = $this->uploadRepository->getByUuid($input['avatar']);
                 $mediaItem = $cacheUpload->getMedia('avatar')->first();
                 $mediaItem->copy($user, 'avatar');
@@ -337,7 +340,7 @@ class UserController extends Controller
      *
      * @return RedirectResponse
      */
-    public function destroy(int $id):RedirectResponse
+    public function destroy(int $id): RedirectResponse
     {
         if (config('installer.demo_app')) {
             Flash::warning('This is only demo app you can\'t change this section ');

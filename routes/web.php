@@ -45,6 +45,9 @@ use App\Http\Controllers\NewsLatterController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\DoctorTagController;
 use App\Http\Controllers\ParrainerController;
+use App\Http\Controllers\AddressController;
+use App\Http\Controllers\DoctorsGalleryController;
+
 
 
 Route::get('/payment-success', function () {
@@ -165,6 +168,25 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         Route::get('medias', 'UploadController@index')->name('medias');
         Route::get('uploads/clear-all', 'UploadController@clearAll');
     });
+    //////////////// doctor gallery
+    Route::group(['prefix' => 'doctors-gallery', 'middleware' => ['auth']], function () {
+        Route::get('/', 'DoctorsGalleryController@index')->name('doctors_gallery.index');
+        //Route::get('/collections', 'DoctorsGalleryController@collections')->name('doctors_gallery.collections');
+        Route::get('/categories', [DoctorsGalleryController::class, 'categories'])->name('doctors_gallery.categories'); // Fetch available categories
+        Route::get('/collections', [DoctorsGalleryController::class, 'collections'])->name('doctors_gallery.collections'); // Fetch collections (old version)
+        Route::get('/all/{category?}', [DoctorsGalleryController::class, 'all'])->name('doctors_gallery.all'); // Fetch images in a specific category
+        Route::post('/store', 'DoctorsGalleryController@store')->name('doctors_gallery.store');
+        //Route::get('/all/{collection?}', 'DoctorsGalleryController@all')->name('doctors_gallery.all');
+        Route::post('/clear', 'DoctorsGalleryController@clear')->name('doctors_gallery.clear');
+        Route::post('/store-cabinet', [DoctorsGalleryController::class, 'storeCabinet'])
+            ->name('doctors_gallery.store_cabinet');
+
+        Route::get('/all-cabinet', [DoctorsGalleryController::class, 'allCabinet'])
+            ->name('doctors_gallery.all_cabinet');
+        Route::post('/clear-file', [DoctorsGalleryController::class, 'clearFile'])
+            ->name('doctors_gallery.clear_file');
+    });
+
 
     Route::group(['middleware' => ['permission:permissions.index']], function () {
         Route::get('permissions/role-has-permission', 'PermissionController@roleHasPermission');
@@ -334,7 +356,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::post('/parrainer', [ParrainerController::class, 'store']);
 
     Route::get('/doctors/index2', [DoctorRequestController::class, 'index2']);
-    
+
     Route::get('patients/{id}/email', [PatientController::class, 'openEmailClient'])->name('patients.email');
     Route::get('patients/{id}/whatsapp', 'PatientController@openWhatsAppClient')->name('patients.whatsapp');
     Route::get('/fiche/{id}', [FicheController::class, 'show'])->name('fiche.show');
@@ -450,30 +472,34 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
 
 
-Route::post('/envoyer-email', [ParrainerController::class, 'envoyerEmail'])
-->name('envoyer-email')
-->middleware('auth');
-Route::get('/doctors/parrainage/{codeParrain}', [DoctorController::class, 'getDoctors'])->name('doctors.parrainage');
-Route::get('/parrainer', [ParrainerController::class, 'index'])
-->name('parrainers.index')
-->middleware('auth');
-Route::get('/messagerie', [MessagerieController::class, 'index'])->name('messagerie.index');
-
-
-Route::get('/parrainer2', [ParrainerController::class, 'parrainer'])
-->name('parrainers.parrainer')
-->middleware('auth');
-
-Route::get('/listdoctors', [ParrainerController::class, 'listDoctors'])->name('parrainers.listdoctors');
-
-Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
-
-
-Route::middleware(['auth'])->group(function() {
+    Route::post('/envoyer-email', [ParrainerController::class, 'envoyerEmail'])
+        ->name('envoyer-email')
+        ->middleware('auth');
+    Route::get('/doctors/parrainage/{codeParrain}', [DoctorController::class, 'getDoctors'])->name('doctors.parrainage');
+    Route::get('/parrainer', [ParrainerController::class, 'index'])
+        ->name('parrainers.index')
+        ->middleware('auth');
     Route::get('/messagerie', [MessagerieController::class, 'index'])->name('messagerie.index');
-    Route::get('/messagerie/create', [MessagerieController::class, 'create'])->name('messagerie.create');
-    Route::post('/messagerie/send', [MessagerieController::class, 'send'])->name('messagerie.send');
-    Route::get('/messagerie/conversation/{id}', [MessagerieController::class, 'showConversation'])->name('messagerie.showConversation');
-});
+
+
+    Route::get('/parrainer2', [ParrainerController::class, 'parrainer'])
+        ->name('parrainers.parrainer')
+        ->middleware('auth');
+
+    Route::get('/listdoctors', [ParrainerController::class, 'listDoctors'])->name('parrainers.listdoctors');
+
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('/adresse/store', [AddressController::class, 'store']);
+    Route::get('editProfil', [DoctorController::class, 'editProfil'])->name('doctors.editProfil');
+    Route::post('/edit-info-personnelle', [DoctorController::class, 'editInfoPersonnelle'])->name('editInfoPersonnelle');
+    Route::post('/edit-cv', [DoctorController::class, 'editCV'])->name('editCV');
+
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/messagerie', [MessagerieController::class, 'index'])->name('messagerie.index');
+        Route::get('/messagerie/create', [MessagerieController::class, 'create'])->name('messagerie.create');
+        Route::post('/messagerie/send', [MessagerieController::class, 'send'])->name('messagerie.send');
+        Route::get('/messagerie/conversation/{id}', [MessagerieController::class, 'showConversation'])->name('messagerie.showConversation');
+    });
+
 });
 
