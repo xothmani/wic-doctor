@@ -51,6 +51,12 @@ return [
     'gestion_agenda' => 'Gestion des agendas',
 
 
+        'telesecretariat_host' => 'Host',
+        'telesecretariat_host_placeholder' => 'Insérer le Host',
+        'telesecretariat_username' => 'Username',
+        'telesecretariat_username_placeholder' => 'Insérer le username',
+        'telesecretariat_password' => 'Mot de passe',
+        'telesecretariat_password_placeholder' => 'Insérer le mot de passe',
     'my_tag_plural' => 'Mes étiquettes',
         'complet_adresse' => 'Complétez votre adresse',
         'import_avatar' => 'Importez votre Avatar',
