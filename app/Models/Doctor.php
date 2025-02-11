@@ -104,8 +104,10 @@ class Doctor extends Model implements HasMedia, Castable
 	'tele_price_eur',
 	'id_aleatoire',
 	'sexe',
-    	'code_parent',  
-   	'code_doctor',
+
+	'code_parent',  
+	'code_doctor',
+
 	'fixe',
         'facebook',
         'instagram',
@@ -116,6 +118,7 @@ class Doctor extends Model implements HasMedia, Castable
         'langues_parlees',
         'num_france',
         'api_key',  
+
     ];
     /**
      * The attributes that should be casted to native types.
@@ -602,5 +605,10 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
     {
         return $this->hasOne(Address::class, 'user_id', 'user_id');
     }
+// Définir la relation avec les diplômes
+public function diplomes()
+{
+    return $this->hasMany(DoctorDiplome::class);
 
+}
 }

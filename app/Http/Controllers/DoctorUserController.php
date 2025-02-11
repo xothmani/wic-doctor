@@ -113,7 +113,7 @@ class DoctorUserController extends Controller
             'name' => 'required|string|max:255', // Ensure name is required
             'email' => 'required|email|unique:users,email', // Ensure email is unique
             'password' => 'required|string', // Ensure password is required and strong
-            'phone_number' => 'nullable|string|max:20', // Optional phone number
+            'phone_number' => 'nullable|numeric|min:8', // Optional phone number
             'role' => 'required|string|exists:roles,name', // Ensure role exists in the roles table
             'start_date' => 'required|date', // Optional start date
             'end_date' => 'required|date|after_or_equal:start_date', // Ensure end_date is after start_date
@@ -263,7 +263,9 @@ class DoctorUserController extends Controller
     public function update($id, UpdateUserRequest $request)
     {
         $request->validate([
+            'name' => 'required|string|max:255', // Ensure name is required
             'email' => 'required|email|unique:users,email,' . $id, // Unique email, excluding current user
+            'phone_number' => 'nullable|numeric|min:8', // Optional phone number
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
         ]);

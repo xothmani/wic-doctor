@@ -24,8 +24,8 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Str;
 use App\Models\Assurance;
-use App\Models\Patient;  
-use App\Models\Doctor;  
+use App\Models\Patient;
+use App\Models\Doctor;
 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AddPatientMail;
@@ -193,7 +193,7 @@ class PatientController extends Controller
             // Créez le patient et associez-le à l'utilisateur
             $patient = $this->patientRepository->create(array_merge($input, [
                 'user_id' => $user->id,
-                'email' => $user->email, 
+                'email' => $user->email,
             ]));
             Log::info("New patient created with ID: " . $patient->id);
     
@@ -207,7 +207,7 @@ class PatientController extends Controller
 
             if ($shortUrlResponse instanceof \Illuminate\Http\JsonResponse) {
                 $responseData = json_decode($shortUrlResponse->getContent(), true);
-                
+
                 if (isset($responseData['short_link'])) {
                     $shortUrl = $responseData['short_link'];
 
@@ -230,68 +230,67 @@ class PatientController extends Controller
                 Log::error("La réponse n'est pas un JsonResponse valide.");
             }
 
-    
+
             // Gestion des pièces jointes
             $this->handleMediaAttachments($input, $patient);
 
 
 
 
-             $shortUrlResponse = $this->genererLink();
-             $user = auth()->user();
 
-             if (!$user) {
-                 return response()->json(['error' => 'Utilisateur non connecté'], 401);
-             }
-             
-             // Récupérer le médecin associé à l'utilisateur connecté
-             $doctor = Doctor::where('user_id', $user->id)->first();
-             
-             if (!$doctor) {
-                 return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
-             }
-             
-             // Récupérer les valeurs dans des variables
-             $numFrance = $doctor->num_france;
-             $api = $doctor->api_key;
-             
+            $shortUrlResponse = $this->genererLink();
 
-             // Ensure that the response is a valid JsonResponse before accessing it
-             if ($shortUrlResponse instanceof \Illuminate\Http\JsonResponse) {
-                 $responseData = json_decode($shortUrlResponse->getContent(), true); // Decode the response content into an array
-                 
-                 // Check if the 'short_link' exists in the response data
-                 if (isset($responseData['short_link'])) {
-                     $shortUrl = $responseData['short_link'];
-             
-                     // Continue with the rest of your code
-                     $api_key = $api;
-                     $from = $numFrance; // Replace with your sender ID or authorized number
-                     $to = $request->phone_number;
-                     $alphasender = 'Wic doctor';
-                     
-                     // SMS message with short link
-                     $message = "Bienvenue " . $user->name . " " . $user->lastname . " chez Wic-Doctor.\n" .
-                     "Nom d'utilisateur : " . $request->phone_number . "\n" .
-                     "Mot de passe : $generatedPassword\n" .
-                     "Lien RDV : $shortUrl\n";
-          
-                     
-                     // Send SMS
-                     $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
-                     
-                     if ($smsResult) {
-                         Log::info("SMS envoyé avec succès à $to : $message from:  $from avec api key:  $api_key ");
-                     } else {
-                         Log::error("Échec de l'envoi du SMS à $to.");
-                     }
-                 } else {
-                     Log::error("Le lien court n'a pas pu être généré.");
-                 }
-             } else {
-                 Log::error("La réponse n'est pas un JsonResponse valide.");
-             }
-             
+
+            $doctorId = auth()->user()->getDoctorId();
+
+            $doctor = Doctor::find($doctorId);
+
+            if (!$doctor) {
+                return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
+            }
+
+            // Récupérer les valeurs dans des variables
+            $numFrance = $doctor->num_france;
+            $api = $doctor->api_key;
+
+
+            // Ensure that the response is a valid JsonResponse before accessing it
+            if ($shortUrlResponse instanceof \Illuminate\Http\JsonResponse) {
+                $responseData = json_decode($shortUrlResponse->getContent(), true); // Decode the response content into an array
+
+                // Check if the 'short_link' exists in the response data
+                if (isset($responseData['short_link'])) {
+                    $shortUrl = $responseData['short_link'];
+
+                    // Continue with the rest of your code
+                    $api_key = $api;
+                    $from = $numFrance; // Replace with your sender ID or authorized number
+                    $to = $request->phone_number;
+                    $alphasender = 'Wic doctor';
+
+                    // SMS message with short link
+                    $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name . " chez Wic-Doctor.\n" .
+                        "Nom d'utilisateur : " . $request->phone_number . "\n" .
+                        "Mot de passe : $generatedPassword\n" .
+                        "Lien RDV : $shortUrl\n";
+
+
+                    // Send SMS
+                    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+
+                    if ($smsResult) {
+                        Log::info("SMS envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS à $to.");
+                    }
+                } else {
+                    Log::error("Le lien court n'a pas pu être généré.");
+                }
+            } else {
+                Log::error("La réponse n'est pas un JsonResponse valide.");
+            }
+
+
 
             // Enregistrez un flag pour afficher le modal
             session()->flash('showModal', true);
@@ -307,42 +306,41 @@ class PatientController extends Controller
     
         return redirect()->route('patients.create');
     }
-    
-    
-     
-     /**
-      * Associe un patient à un médecin connecté s'il ne l'est pas déjà.
-      *
-      * @param Patient $patient
-      * @return bool True si l'association a été effectuée, False sinon.
-      */
-      private function associatePatientToDoctor(\App\Models\Patient $patient): bool
-      {
-         if (auth()->user()->hasRole('doctor')) {
-             $doctor = auth()->user()->doctor;
-     
-             if ($doctor) {
-                 if (!$doctor->patients()->where('patient_id', $patient->id)->exists()) {
-                     $doctor->patients()->attach($patient->id);
-                     Log::info("Patient ID: " . $patient->id . " associated with Doctor ID: " . $doctor->id);
-                     return true;
-                 }
-     
-                 Log::info("Patient ID: " . $patient->id . " already associated with Doctor ID: " . $doctor->id);
-             } else {
-                 Log::warning("No doctor associated with user ID: " . auth()->id());
-             }
-         } else {
-             Log::warning("Authenticated user is not a doctor. User ID: " . auth()->id());
-         }
-     
-         return false;
-     }
-     
-     
-     private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor') {
+
+
+    /**
+     * Associe un patient à un médecin connecté s'il ne l'est pas déjà.
+     *
+     * @param Patient $patient
+     * @return bool True si l'association a été effectuée, False sinon.
+     */
+    private function associatePatientToDoctor(\App\Models\Patient $patient): bool
+    {
+
+        $doctorId = auth()->user()->getDoctorId();
+
+        $doctor = Doctor::find($doctorId);
+
+        if ($doctor) {
+            if (!$doctor->patients()->where('patient_id', $patient->id)->exists()) {
+                $doctor->patients()->attach($patient->id);
+                Log::info("Patient ID: " . $patient->id . " associated with Doctor ID: " . $doctor->id);
+                return true;
+            }
+
+            Log::info("Patient ID: " . $patient->id . " already associated with Doctor ID: " . $doctor->id);
+        } else {
+            Log::warning("No doctor associated with user ID: " . auth()->id());
+        }
+
+        return false;
+    }
+
+
+    private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor')
+    {
         $url = 'https://dashboard.wic-sms.com/apis/smscontact/';
-    
+
         // Supprimer le "+" au début si présent
         if (strpos($to, '+') === 0) {
             $to = substr($to, 1); // Supprime le premier caractère '+'
@@ -522,8 +520,9 @@ class PatientController extends Controller
         }
     
         // Chercher l'ID du médecin connecté
-        $doctorId = auth()->user()->doctor->id;
-    
+
+        $doctorId = auth()->user()->associatedDoctors->pluck('doctor_id')->toArray();
+
         // Chercher l'association du patient avec ce médecin dans la table doctor_patient
         $doctorPatient = \DB::table('doctor_patients')
                             ->where('patient_id', $id)
@@ -628,67 +627,85 @@ public function openEmailClient(int $id): RedirectResponse
 
     public function genererLink()
     {
-        $user = auth()->user();
-    
-        if (!$user) {
-            return response()->json(['error' => 'Utilisateur non connecté'], 401);
-        }
-    
-        $doctor = Doctor::where('user_id', $user->id)->first();
-    
+        $doctorId = auth()->user()->getDoctorId();
+
+        $doctor = Doctor::find($doctorId);
+
         if (!$doctor) {
             return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
         }
-    
+
         $userWithAddress = $doctor->user()->with('address')->first();
         $address = $userWithAddress->address;
-    
+
         $pays = $address && $address->pays ? json_decode($address->pays, true) : null;
         $pays = isset($pays['fr']) ? strtolower($pays['fr']) : (is_array($pays) ? strtolower(reset($pays) ?: '') : ($pays ? strtolower($pays) : null));
-    
+
         $gouvernorat = $address && $address->gouvernorat ? json_decode($address->gouvernorat, true) : null;
         $gouvernorat = isset($gouvernorat['fr']) ? strtolower($gouvernorat['fr']) : (is_array($gouvernorat) ? strtolower(reset($gouvernorat) ?: '') : ($gouvernorat ? strtolower($gouvernorat) : null));
-    
+
         if ($gouvernorat) {
             $gouvernorat = str_replace(' ', '-', $gouvernorat);
         }
-    
+
         if (!$pays || !$gouvernorat) {
             return response()->json(['error' => 'Adresse du médecin incomplète'], 400);
         }
-    
+
         $specialities = $doctor->specialities;
-    
+
         if ($specialities->isEmpty()) {
             return response()->json(['error' => 'Aucune spécialité trouvée pour ce médecin'], 400);
         }
-    
+
         $specialityName = $specialities->first()->name;
-    
+
         if (is_string($specialityName)) {
             $specialityName = strtolower($specialityName);
         } else {
             $specialityName = json_decode($specialityName, true);
             $specialityName = isset($specialityName['fr']) ? strtolower($specialityName['fr']) : (is_array($specialityName) ? strtolower(reset($specialityName) ?: '') : null);
         }
-    
+
         if ($specialityName) {
             $specialityName = str_replace(' ', '-', $specialityName);
         }
-    
+
         $randomId = $doctor->id_aleatoire;
-        $doctorName = strtolower(str_replace(' ', '-', $user->name));
-    
+        $doctorName = $doctor->name;
+        if (is_string($doctorName)) {
+            // Attempt to decode the string as JSON.
+            $decoded = json_decode($doctorName, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                // Use the 'fr' locale if available, or the first value if not.
+                $doctorName = isset($decoded['fr'])
+                    ? strtolower($decoded['fr'])
+                    : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : strtolower($doctorName));
+            } else {
+                $doctorName = strtolower($doctorName);
+            }
+        } else {
+            // If it's not a string, try decoding anyway.
+            $decoded = json_decode($doctorName, true);
+            $doctorName = isset($decoded['fr'])
+                ? strtolower($decoded['fr'])
+                : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : '');
+        }
+
+        if ($doctorName) {
+            $doctorName = str_replace(' ', '-', $doctorName);
+        }
+
         $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/dr-{$doctorName}-{$randomId}.html";
-    
+
         $randomId = rand(100000, 999999);
         $aliasBase = 'dr-' . $randomId;
         $alias = substr($aliasBase . '-' . uniqid(), 0, 10);
-    
+
         $client = new Client();
         $apiUrl = 'https://wic-link.com/api/v1/link';
         $token = '3|XCU8CPfKmf6oKzKWBv2zz9XCiWvyjIfNRLDB4yyxe5c42bcd';
-    
+
         try {
             $response = $client->post($apiUrl, [
                 'headers' => [
@@ -703,13 +720,14 @@ public function openEmailClient(int $id): RedirectResponse
                     'alias' => $alias,
                 ]
             ]);
-    
+
+
             $responseContent = $response->getBody()->getContents();
             \Log::info('Full API response: ' . $responseContent);
             $responseData = json_decode($responseContent, true);
-    
+
             \Log::info('Response Data: ' . print_r($responseData, true));
-    
+
             if (isset($responseData['status']) && $responseData['status'] == 'success') {
                 if (isset($responseData['link']['short_url']) && !empty($responseData['link']['short_url'])) {
                     $shortUrl = $responseData['link']['short_url'];
@@ -723,7 +741,7 @@ public function openEmailClient(int $id): RedirectResponse
                 \Log::error('API response status not success: ' . print_r($responseData, true));
                 return response()->json(['error' => 'Erreur lors du raccourcissement du lien'], 400);
             }
-    
+
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
                 \Log::error('API HTTP error response: ' . $e->getResponse()->getBody()->getContents());
@@ -735,8 +753,5 @@ public function openEmailClient(int $id): RedirectResponse
             return response()->json(['error' => 'Une erreur est survenue lors de l\'appel à l\'API'], 500);
         }
     }
-    
-    
-    
-    
+
 }

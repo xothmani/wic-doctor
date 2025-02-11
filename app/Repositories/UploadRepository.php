@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use InfyOm\Generator\Common\BaseRepository;
-use Illuminate\Support\Facades\Log; 
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class UploadRepository
@@ -62,19 +62,19 @@ class UploadRepository extends BaseRepository
         return Upload::query()->whereIn('uuid', $uuids)->delete();
     }
 
-   /** public function getByUuid($uuid = '')
+    /** public function getByUuid($uuid = '')
+     {
+         $uploadModel = Upload::query()->where('uuid', $uuid)->first();
+         return $uploadModel;
+     }**/
+    public function getByUuid($uuid = '')
     {
         $uploadModel = Upload::query()->where('uuid', $uuid)->first();
+        if (!$uploadModel) {
+            \Log::error("Upload not found for UUID: {$uuid}");
+        }
         return $uploadModel;
-    }**/
-public function getByUuid($uuid = '')
-{
-    $uploadModel = Upload::query()->where('uuid', $uuid)->first();
-    if (!$uploadModel) {
-        \Log::error("Upload not found for UUID: {$uuid}");
     }
-    return $uploadModel;
-}
 
     /**
      * clear all uploaded cache
@@ -97,12 +97,34 @@ public function getByUuid($uuid = '')
         $medias = $medias->orderBy('id', 'desc')->get();
         return $medias;
     }
+    public function allMediacat($collection = null)
+    {
+        // Log the incoming collection for debugging
+        Log::info("Fetching media for collection: " . ($collection ?? 'all collections'));
+
+        // Query the Media model
+        $medias = Media::query()->where('model_type', 'App\Models\Upload');
+
+        // If a collection is specified, filter by it
+        if ($collection) {
+            $medias->where('collection_name', $collection);
+        }
+
+        // Order by descending ID and fetch the results
+        $medias = $medias->orderBy('id', 'desc')->get();
+
+        // Log the fetched results
+        Log::info("Media fetched: ", $medias->toArray());
+
+        return $medias;
+    }
 
 
     public function collectionsNames()
     {
         $medias = Media::all('collection_name')->pluck('collection_name', 'collection_name')->map(function ($c) {
-            return ['value' => $c,
+            return [
+                'value' => $c,
                 'title' => Str::title(preg_replace('/_/', ' ', $c))
             ];
         })->unique();

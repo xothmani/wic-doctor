@@ -2,7 +2,9 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Création de votre compte Télésécrétariat - Wic-Doctor</title>
+
+    <title>Création de vos comptes Télésécrétariat - Wic-Doctor</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -70,17 +72,33 @@
     <div class="container">
         <p class="header">Bienvenue sur Wic-Doctor ! <span class="icon-inline">🚀</span></p>
         <p class="content">Bonjour {{ $details['name'] }},</p>
-        <p class="content">Nous sommes ravis de vous accueillir sur Wic-Doctor ! Profitez dès à présent de votre expérience en télésécrétariat et de tous nos services.</p>
-        <p class="content"><span class="icon-inline">🔗</span>Voici vos identifiants de connexion :</p>
+
         
+        <p class="content">Nous sommes ravis de vous accueillir sur Wic-Doctor ! Voici les détails pour accéder à vos deux comptes :</p>
+        
+        <!-- Compte Wic-Doctor -->
+        <p class="content"><strong>1. Compte Wic-Doctor :</strong></p>
         <div class="credentials">
-            <p><span class="icon-inline">📧</span><strong>Email :</strong> <span class="email-info">{{ $details['email'] }}</span></p>
+            <p><span class="icon-inline">📧</span><strong>Email :</strong> {{ $details['email'] }}</p>
             <p><span class="icon-inline">🔑</span><strong>Mot de passe :</strong> {{ $details['password'] }}</p>
         </div>
-
-        <p class="content">Cliquez sur le bouton ci-dessous pour accéder à votre compte :</p>
+        <p class="content">Pour accéder à votre compte Wic-Doctor, cliquez sur le bouton ci-dessous :</p>
         <p style="text-align: center;">
-            <a href="https://dashboard.wic-doctor.com/login" class="btn" style="color: white;">Accéder à mon compte</a>
+            <a href="https://dashboard.wic-doctor.com/login" class="btn" style="color: white;">Accéder à mon compte Wic-Doctor</a>
+        </p>
+
+        <!-- Compte Fusion -->
+        <p class="content"><strong>2. Compte Fusion :</strong></p>
+        <div class="credentials">
+            <p><span class="icon-inline">🔑</span><strong>Nom d'utilisateur :</strong> {{ $details['username'] }}</p>
+            <p><span class="icon-inline">🔐</span><strong>Mot de passe :</strong> {{ $details['passwordFusion'] }}</p>
+            <p><span class="icon-inline">🔗</span><strong>Hôte :</strong> {{ $details['host'] }}</p>
+        </div>
+        <p class="content">Pour vous connecter à votre compte Fusion, cliquez sur le bouton ci-dessous :</p>
+        <p style="text-align: center;">
+            <!-- Le lien du compte Fusion utilise l'hôte comme URL -->
+            <a href="{{ $details['host'] }}" class="btn" style="color: white;">Accéder à mon compte Fusion</a>
+
         </p>
 
         <p class="footer">Merci, et à bientôt sur Wic-Doctor !<br>L'équipe de Wic-Doctor.</p>
