@@ -63,7 +63,7 @@
 
 
                      <!-- Bouton pour afficher/masquer les champs Infos personnelles -->
-            <button
+           <button
                 class="btn bg-{{setting('theme_color')}} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
                 type="button" data-toggle="collapse" data-target="#infoPersonnel" aria-expanded="false"
                 aria-controls="infoPersonnel">
@@ -474,7 +474,7 @@
 
 
 
-         
+
 
             <!-- *************************GESTION CV -->
             @if(session('success'))
@@ -795,12 +795,12 @@
             function loadMedia() {
                 let mediaItems = $('.medias-items');
                 mediaItems.html(`
-                                                                                                                                                        <div class="card loader">
-                                                                                                                                                            <div class="overlay">
-                                                                                                                                                                <i class="fas fa-redo-alt fa-spin"></i>
-                                                                                                                                                            </div>
-                                                                                                                                                        </div>
-                                                                                                                                                    `);
+                                                                                                                                                                        <div class="card loader">
+                                                                                                                                                                            <div class="overlay">
+                                                                                                                                                                                <i class="fas fa-redo-alt fa-spin"></i>
+                                                                                                                                                                            </div>
+                                                                                                                                                                        </div>
+                                                                                                                                                                    `);
                 $.ajax({
                     url: "{{ route('doctors_gallery.all_cabinet') }}",
                     method: 'GET',
@@ -810,17 +810,17 @@
                             // Utiliser custom_properties.uuid si disponible, sinon le nom du fichier
                             let theUuid = (item.custom_properties && item.custom_properties.uuid) ? item.custom_properties.uuid : item.file_name;
                             html += `
-                                                                                                                                                                    <div class="media-item m-2">
-                                                                                                                                                                        <div class="card clickble" style="position: relative;">
-                                                                                                                                                                            <button class="btn btn-sm btn-danger delete-media" style="display:none; position:absolute; top:5px; right:5px;" data-uuid="${theUuid}">
-                                                                                                                                                                                <i class="fas fa-trash-alt"></i>
-                                                                                                                                                                            </button>
-                                                                                                                                                                            <img class="card-img-top" src="${item.thumb}" alt="${item.file_name}">
-                                                                                                                                                                            <div class="card-footer text-center">
-                                                                                                                                                                                <small>${item.name} (${item.formated_size})</small>
-                                                                                                                                                                            </div>
-                                                                                                                                                                        </div>
-                                                                                                                                                                    </div>`;
+                                                                                                                                                                                    <div class="media-item m-2">
+                                                                                                                                                                                        <div class="card clickble" style="position: relative;">
+                                                                                                                                                                                            <button class="btn btn-sm btn-danger delete-media" style="display:none; position:absolute; top:5px; right:5px;" data-uuid="${theUuid}">
+                                                                                                                                                                                                <i class="fas fa-trash-alt"></i>
+                                                                                                                                                                                            </button>
+                                                                                                                                                                                            <img class="card-img-top" src="${item.thumb}" alt="${item.file_name}">
+                                                                                                                                                                                            <div class="card-footer text-center">
+                                                                                                                                                                                                <small>${item.name} (${item.formated_size})</small>
+                                                                                                                                                                                            </div>
+                                                                                                                                                                                        </div>
+                                                                                                                                                                                    </div>`;
                         });
                         mediaItems.html(html);
                         initDeleteButtons();
