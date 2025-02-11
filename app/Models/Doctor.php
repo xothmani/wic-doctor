@@ -104,8 +104,18 @@ class Doctor extends Model implements HasMedia, Castable
 	'tele_price_eur',
 	'id_aleatoire',
 	'sexe',
-    'code_parent',  
-    'code_doctor',  
+    	'code_parent',  
+   	'code_doctor',
+	'fixe',
+        'facebook',
+        'instagram',
+        'site_web',
+        'bio',
+        'type_consultation',
+        'payment_methods',
+        'langues_parlees',
+        'num_france',
+        'api_key',  
     ];
     /**
      * The attributes that should be casted to native types.

@@ -38,6 +38,12 @@ return [
     'gestion_agenda' => 'Gestion des agendas',
 
 
+        'telesecretariat_host' => 'Host',
+        'telesecretariat_host_placeholder' => 'Insérer le Host',
+        'telesecretariat_username' => 'Username',
+        'telesecretariat_username_placeholder' => 'Insérer le username',
+        'telesecretariat_password' => 'Mot de passe',
+        'telesecretariat_password_placeholder' => 'Insérer le mot de passe',
     'my_tag_plural' => 'Mes étiquettes',
 
 
@@ -1673,9 +1679,9 @@ return [
     'patient_weigh' => 'Peser',
     'patient_weigh_help' => 'Insérer le poids',
     'patient_weigh_placeholder' => 'Insérer le poids',
-    'patient_height' => 'Hauteur',
-    'patient_height_help' => 'Insérer la hauteur',
-    'patient_height_placeholder' => 'Insérer la hauteur',
+    'patient_height' => 'Taille',
+    'patient_height_help' => 'Insérer la taille',
+    'patient_height_placeholder' => 'Insérer la taille',
     'patient_image' => 'Image',
     'patient_image_help' => 'Insérer une image',
     'patient_image_placeholder' => 'Insérer une image',
@@ -1697,7 +1703,7 @@ return [
     'patient_female' => 'Femelle',
     'patient_gender_help' => 'Insérer le sexe',
     'patient_gender_placeholder' => 'Insérer le sexe',
-    'patient_weight' => 'Masse',
+    'patient_weight' => 'Poids',
     'patient_weight_help' => 'Insérez le poids',
     'patient_weight_placeholder' => 'Insérez le poids',
     'patient_first_name' => 'Prénom',
