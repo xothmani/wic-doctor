@@ -343,8 +343,10 @@ private function createDoctor($user, $doctorRequest)
 
     // Définir l'image par défaut selon le sexe
     $defaultAvatar = $doctorRequest->sexe === 'homme' 
-        ? '/home/support-05/Bureau/wic-doctor-prescription/doctor.way-interactive-convergence.com/public/images/avatarHomme.png' 
-        : '/home/support-05/Bureau/wic-doctor-prescription/doctor.way-interactive-convergence.com/public/images/avatarFemme.png';
+
+        ? '/var/www/doctor.way-interactive-convergence.com/public/images/avatarHomme.png' 
+        : '/var/www/doctor.way-interactive-convergence.com/public/images/avatarFemme.png';
+
 
     if (!file_exists($defaultAvatar)) {
         Log::error("L'image par défaut est introuvable", ['path' => $defaultAvatar]);

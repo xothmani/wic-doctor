@@ -2,7 +2,9 @@
 <html>
 <head>
     <meta charset="UTF-8">
+
     <title>Création de vos comptes Télésécrétariat - Wic-Doctor</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -70,6 +72,7 @@
     <div class="container">
         <p class="header">Bienvenue sur Wic-Doctor ! <span class="icon-inline">🚀</span></p>
         <p class="content">Bonjour {{ $details['name'] }},</p>
+
         
         <p class="content">Nous sommes ravis de vous accueillir sur Wic-Doctor ! Voici les détails pour accéder à vos deux comptes :</p>
         
@@ -95,6 +98,7 @@
         <p style="text-align: center;">
             <!-- Le lien du compte Fusion utilise l'hôte comme URL -->
             <a href="{{ $details['host'] }}" class="btn" style="color: white;">Accéder à mon compte Fusion</a>
+
         </p>
 
         <p class="footer">Merci, et à bientôt sur Wic-Doctor !<br>L'équipe de Wic-Doctor.</p>
