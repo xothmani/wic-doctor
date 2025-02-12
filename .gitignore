@@ -13,6 +13,7 @@ public/storage
 public/hot
 public_html/storage
 public_html/hot
+public/
 
 # Ignore sensitive and environment-specific files
 storage/*.key
