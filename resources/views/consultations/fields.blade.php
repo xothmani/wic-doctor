@@ -445,7 +445,11 @@
         
         fetch('https://wicdialer.com/report', {
             method: 'POST',
-            body: formData
+            body: formData,
+            headers: {
+                'Accept' : 'application/json'
+            },
+            mode: 'cors'
         }).then(response => response.json())
         .then(data => {
             // alert("Rapport de consultation envoyé avec succès !");
@@ -461,5 +465,6 @@
     });
 </script>
 @endpush
+
 
 
