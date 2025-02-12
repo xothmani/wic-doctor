@@ -510,6 +510,7 @@ class PatientController extends Controller
      */
     public function destroy(int $id): RedirectResponse
     {
+        
         // Trouver le patient par ID
         $patient = $this->patientRepository->findWithoutFail($id);
     
@@ -520,8 +521,7 @@ class PatientController extends Controller
         }
     
         // Chercher l'ID du médecin connecté
-
-        $doctorId = auth()->user()->associatedDoctors->pluck('doctor_id')->toArray();
+         $doctorId = auth()->user()->getDoctorId();
 
         // Chercher l'association du patient avec ce médecin dans la table doctor_patient
         $doctorPatient = \DB::table('doctor_patients')

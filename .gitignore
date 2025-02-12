@@ -29,6 +29,8 @@ auth.json
 storage/framework/cache/
 storage/framework/views/
 storage/framework/sessions/
+public/script-detail-med/html-content-2.html
+public/script-detail-med/html-content.html
 
 # Ignore logs and temporary files
 storage/logs/
