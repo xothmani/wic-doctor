@@ -51,11 +51,14 @@ class Address extends Model implements Castable
         'longitude',
         'default',
         'user_id',
-	'pays',
+	    'pays',
         'ville',
-	'gouvernorat',
+	    'gouvernorat',
         'Département',
-        'Région'
+        'Région',
+        'accessibilité',
+        'stationnement',
+
     ];
     /**
      * The attributes that should be casted to native types.

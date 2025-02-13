@@ -73,7 +73,7 @@
                 @endif
         var dz_user_avatar = $(".dropzone.avatar").dropzone({
                 url: "{!!url('uploads/store')!!}",
-                addRemoveLinks: true,
+                addRemoveLinks: false,
                 maxFiles: 1,
                 init: function () {
                     @if(isset($user) && $user->hasMedia('avatar'))

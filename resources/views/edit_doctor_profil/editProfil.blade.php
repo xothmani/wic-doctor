@@ -253,11 +253,11 @@
                                 {!! Form::label('pays', 'Pays', ['class' => 'col-md-3 control-label text-md-right']) !!}
                                 <div class="col-md-9">
                                     {!! Form::select(
-    'pays',
-    ['' => 'Sélectionnez un pays'] + ['tunisie' => 'Tunisie', 'france' => 'France'],
-    isset($address->pays) ? json_decode($address->pays)->fr : null,
-    ['class' => 'form-control', 'id' => 'pays']
-) !!}
+                                        'pays',
+                                        ['' => 'Sélectionnez un pays'] + ['tunisie' => 'Tunisie', 'france' => 'France'],
+                                        isset($address->pays) ? json_decode($address->pays)->fr : null,
+                                        ['class' => 'form-control', 'id' => 'pays']
+                                    ) !!}
                                 </div>
                             </div>
                         </div>
@@ -268,11 +268,11 @@
                                 {!! Form::label('ville', 'Ville/Région', ['class' => 'col-md-3 control-label text-md-right']) !!}
                                 <div class="col-md-9">
                                     {!! Form::select(
-    'ville',
-    ['' => 'Sélectionnez une ville'],
-    isset($address->ville) ? json_decode($address->ville)->fr : null,
-    ['class' => 'form-control', 'id' => 'ville', 'disabled', 'required' => 'required']
-) !!}
+                                        'ville',
+                                        ['' => 'Sélectionnez une ville'],
+                                        isset($address->ville) ? json_decode($address->ville)->fr : null,
+                                        ['class' => 'form-control', 'id' => 'ville', 'disabled', 'required' => 'required']
+                                    ) !!}
                                 </div>
                             </div>
                         </div>
@@ -283,11 +283,11 @@
                                 {!! Form::label('gouvernorat', 'Gouvernorat/Département', ['class' => 'col-md-3 control-label text-md-right']) !!}
                                 <div class="col-md-9">
                                     {!! Form::select(
-    'gouvernorat',
-    ['' => 'Sélectionnez un gouvernorat'],
-    isset($address->gouvernorat) ? json_decode($address->gouvernorat)->fr : null,
-    ['class' => 'form-control', 'id' => 'gouvernorat', 'disabled', 'required' => 'required']
-) !!}
+                                        'gouvernorat',
+                                        ['' => 'Sélectionnez un gouvernorat'],
+                                        isset($address->gouvernorat) ? json_decode($address->gouvernorat)->fr : null,
+                                        ['class' => 'form-control', 'id' => 'gouvernorat', 'disabled', 'required' => 'required']
+                                    ) !!}
                                 </div>
                             </div>
                         </div>
@@ -503,15 +503,37 @@
             <!-- Conteneur des champs Diplômes et Langues -->
             <div class="collapse mt-3" id="curriculumVitae">
                 <div class="row">
-                    <!-- Specialities Field -->
-                    <div class="col-md-6">
-                        <div class="form-group d-flex align-items-center">
-                            {!! Form::label('specialities', trans("lang.doctor_specialities"), ['class' => 'col-md-3 control-label text-md-right']) !!}
-                            <div class="col-md-9">
-                                {!! Form::select('specialities', $specialities, $specialitiesSelected, ['class' => 'form-control select2', 'data-empty' => trans('lang.doctor_specialities_placeholder'), 'disabled']) !!}
-                            </div>
-                        </div>
-                    </div>
+<!-- Champ Sélection de la Spécialité -->
+<div class="col-md-6">
+    <div class="form-group d-flex align-items-center">
+        {!! Form::label('speciality_id', trans("lang.Speciality"), ['class' => 'col-md-3 control-label text-md-right']) !!}
+        <div class="col-md-9">
+            <!-- Select désactivé pour affichage uniquement -->
+            <select name="speciality_id_display" class="form-control select2" disabled>
+                @foreach($specialities as $id => $name)
+                    <option value="{{ $id }}" {{ $specialitySelected && $specialitySelected->id == $id ? 'selected' : '' }}>
+                        {{ $name }}
+                    </option>
+                @endforeach
+            </select>
+            <!-- Champ caché pour envoyer l'ID de la spécialité -->
+            <input type="hidden" name="speciality_id" value="{{ $specialitySelected ? $specialitySelected->id : '' }}">
+        </div>
+    </div>
+</div>
+
+<!-- Description Field -->
+<div class="col-md-6">
+    <div class="form-group d-flex align-items-center">
+        {!! Form::label('description', 'Description spécialité', ['class' => 'col-md-3 control-label text-md-right']) !!}
+        <div class="col-md-9">
+            <textarea name="description" class="form-control" placeholder="Écrivez la description de votre spécialité" style="height: 80px;">{{ $descriptionSpecialite ?? '' }}</textarea>
+        </div>
+    </div>
+</div>
+
+
+
 
 
 
@@ -578,7 +600,7 @@
                             </div>
                         </div>
                     </div>
-
+                    
 
                     <!-- Diplômes -->
                     <div class="col-md-6">
@@ -673,23 +695,23 @@
             {!! Form::close() !!}
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
             <script>
-                $(document).ready(function () {
-                    $('#editCV').submit(function (event) {
-                        event.preventDefault(); // Empêche le rechargement de la page
+               $(document).ready(function () {
+    $('#editCV').submit(function (event) {
+        event.preventDefault(); // Empêche le rechargement de la page
 
-                        $.ajax({
-                            url: "{{ route('editCV') }}",
-                            method: "POST",
-                            data: $(this).serialize(),
-                            success: function (response) {
-                                alert(response.success); // Afficher un message de succès
-                            },
-                            error: function (xhr) {
-                                alert("Erreur : " + xhr.responseJSON.error);
-                            }
-                        });
-                    });
-                });
+        $.ajax({
+            url: "{{ route('editCV') }}",
+            method: "POST",
+            data: $(this).serialize(),
+            success: function (response) {
+                alert(response.success); // Afficher un message de succès
+            },
+            error: function (xhr) {
+                alert("Erreur : " + xhr.responseJSON.error);
+            }
+        });
+    });
+});
             </script>
 
 

@@ -35,6 +35,7 @@ use App\Repositories\RoleRepository;
 use App\Models\Address;
 use App\Models\Doctor;
 use App\Models\Speciality;
+use Illuminate\Support\Facades\DB;
 
 class DoctorController extends Controller
 {
@@ -368,11 +369,18 @@ class DoctorController extends Controller
         $languesParlees = explode(',', $doctor->langues_parlees ?? '');
 
 
-        // Récupérer toutes les spécialités disponibles
-        $specialities = Speciality::pluck('name', 'id');  // Assurez-vous d'utiliser le bon nom de champ pour la spécialité
+// Récupérer la spécialité du médecin via la table d'association
+$doctorSpeciality = $doctor->doctorSpeciality;
 
-        // Récupérer les spécialités sélectionnées pour ce médecin
-        $specialitiesSelected = $doctor->specialities->pluck('id')->toArray();
+// Récupérer la description de la table d'association
+$descriptionSpecialite = $doctorSpeciality->description ?? '';
+
+// Récupérer la spécialité sélectionnée
+$specialitySelected = $doctorSpeciality->speciality ?? null;
+
+// Récupérer toutes les spécialités disponibles
+$specialities = Speciality::pluck('name', 'id');
+
         // Récupérer les diplômes associés au médecin
         $diplomes = $doctor->diplomes;
 
@@ -388,17 +396,17 @@ class DoctorController extends Controller
                 // Récupérer la région, le département et la ville pour la France
                 $Région = $address->Région['fr'] ?? null;
                 $Département = $address->Département['fr'] ?? null;
-                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'Région', 'Département', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitiesSelected', 'languesParlees', 'diplomes'));
+                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'Région', 'Département', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitySelected', 'descriptionSpecialite' ,'languesParlees', 'diplomes'));
             } elseif ($pays == 'tunisie') {
                 // Récupérer la ville et le gouvernorat pour la Tunisie
                 $ville = $address->ville['fr'] ?? null;
                 $gouvernorat = $address->gouvernorat['fr'] ?? null;
-                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'ville', 'gouvernorat', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitiesSelected', 'languesParlees', 'diplomes'));
+                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'ville', 'gouvernorat', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitySelected','descriptionSpecialite' , 'languesParlees', 'diplomes'));
             }
         }
     
         // Si aucun pays n'est trouvé ou la structure est incorrecte, retourner la vue sans informations spécifiques
-        return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitiesSelected', 'languesParlees', 'diplomes'));
+        return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitySelected','descriptionSpecialite' , 'languesParlees', 'diplomes'));
     }
 
     public function editInfoPersonnelle(Request $request)
@@ -475,7 +483,18 @@ class DoctorController extends Controller
                 ]);
             }
         }
-        
+
+      // Mettre à jour la description de la spécialité
+      $description = $request->input('description');
+      $specialityId = $request->input('speciality_id'); // Assurez-vous d'envoyer l'ID de la spécialité
+  
+      if ($specialityId) {
+          DB::table('doctor_specialities')
+              ->where('doctor_id', $doctor->id)
+              ->where('speciality_id', $specialityId)
+              ->update(['description' => $description]);
+      }
+
         return response()->json(['success' => 'Informations mises à jour avec succès.']);
     }    
     
