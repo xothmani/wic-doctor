@@ -302,71 +302,71 @@
                                 </div>
                             </div>
                         </div>
-<!-- Stationnement -->
-<div class="col-md-6">
-    <div class="form-group d-flex align-items-center">
-        <label class="col-md-3 control-label text-md-right">Stationnement et Accès</label>
-        <div class="col-md-9">
-            <div class="form-check">
-                {!! Form::checkbox('stationnement[]', 'parking_gratuit', in_array('parking_gratuit', $stationnement), ['class' => 'form-check-input']) !!}
-                {!! Form::label('stationnement', 'Parking gratuit', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('stationnement[]', 'parking_payant', in_array('parking_payant', $stationnement), ['class' => 'form-check-input']) !!}
-                {!! Form::label('stationnement', 'Parking payant à proximité', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('stationnement[]', 'bornes_recharge', in_array('bornes_recharge', $stationnement), ['class' => 'form-check-input']) !!}
-                {!! Form::label('stationnement', 'Bornes de recharge pour véhicules électriques', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('stationnement[]', 'parking_motos_velos', in_array('parking_motos_velos', $stationnement), ['class' => 'form-check-input']) !!}
-                {!! Form::label('stationnement', 'Parking pour motos et vélos', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('stationnement[]', 'acces_facile_rue', in_array('acces_facile_rue', $stationnement), ['class' => 'form-check-input']) !!}
-                {!! Form::label('stationnement', 'Accès facile depuis la rue principale', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('stationnement[]', 'proche_transports', in_array('proche_transports', $stationnement), ['class' => 'form-check-input']) !!}
-                {!! Form::label('stationnement', 'Proche des transports en commun (métro, bus, tramway)', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('stationnement[]', 'station_taxis', in_array('station_taxis', $stationnement), ['class' => 'form-check-input']) !!}
-                {!! Form::label('stationnement', 'Station de taxis à proximité', ['class' => 'form-check-label']) !!}
-            </div>
-        </div>
-    </div>
-</div>
+                    <!-- Stationnement -->
+                    <div class="col-md-6">
+                        <div class="form-group d-flex align-items-center">
+                            <label class="col-md-3 control-label text-md-right">Stationnement et Accès</label>
+                            <div class="col-md-9">
+                                <div class="form-check">
+                                    {!! Form::checkbox('stationnement[]', 'Parking gratuit', in_array('Parking gratuit', $stationnement), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('stationnement', 'Parking gratuit', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('stationnement[]', 'Parking payant à proximité', in_array('Parking payant à proximité', $stationnement), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('stationnement', 'Parking payant à proximité', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('stationnement[]', 'Bornes de recharge pour véhicules électriques', in_array('Bornes de recharge pour véhicules électriques', $stationnement), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('stationnement', 'Bornes de recharge pour véhicules électriques', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('stationnement[]', 'Parking pour motos et vélos', in_array('Parking pour motos et vélos', $stationnement), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('stationnement', 'Parking pour motos et vélos', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('stationnement[]', 'Accès facile depuis la rue principale', in_array('Accès facile depuis la rue principale', $stationnement), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('stationnement', 'Accès facile depuis la rue principale', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('stationnement[]', 'Proche des transports en commun', in_array('Proche des transports en commun', $stationnement), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('stationnement', 'Proche des transports en commun', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('stationnement[]', 'Station de taxis à proximité', in_array('Station de taxis à proximité', $stationnement), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('stationnement', 'Station de taxis à proximité', ['class' => 'form-check-label']) !!}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-<!-- Accessibilité -->
-<div class="col-md-6">
-    <div class="form-group d-flex align-items-center">
-        <label class="col-md-3 control-label text-md-right">Accessibilité</label>
-        <div class="col-md-9">
-            <div class="form-check">
-                {!! Form::checkbox('accessibilite[]', 'acces_fauteuil_roulant', in_array('acces_fauteuil_roulant', $accessibilite), ['class' => 'form-check-input']) !!}
-                {!! Form::label('accessibilite', 'Entrée large pour fauteuils roulants', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('accessibilite[]', 'acces_direct', in_array('acces_direct', $accessibilite), ['class' => 'form-check-input']) !!}
-                {!! Form::label('accessibilite', 'Accès direct au cabinet (sans escalier / ascenseur disponible)', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('accessibilite[]', 'rampe_fauteuil_roulant', in_array('rampe_fauteuil_roulant', $accessibilite), ['class' => 'form-check-input']) !!}
-                {!! Form::label('accessibilite', 'Rampe d’accès pour fauteuils roulants', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('accessibilite[]', 'ascenseur_disponible', in_array('ascenseur_disponible', $accessibilite), ['class' => 'form-check-input']) !!}
-                {!! Form::label('accessibilite', 'Ascenseur disponible', ['class' => 'form-check-label']) !!}
-            </div>
-            <div class="form-check">
-                {!! Form::checkbox('accessibilite[]', 'toilettes_adaptees', in_array('toilettes_adaptees', $accessibilite), ['class' => 'form-check-input']) !!}
-                {!! Form::label('accessibilite', 'Toilettes adaptées aux personnes à mobilité réduite', ['class' => 'form-check-label']) !!}
-            </div>
-        </div>
-    </div>
-</div>
+                    <!-- Accessibilité -->
+                    <div class="col-md-6">
+                        <div class="form-group d-flex align-items-center">
+                            <label class="col-md-3 control-label text-md-right">Accessibilité</label>
+                            <div class="col-md-9">
+                                <div class="form-check">
+                                    {!! Form::checkbox('accessibilite[]', 'Entrée large pour fauteuils roulants', in_array('Entrée large pour fauteuils roulants', $accessibilite), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('accessibilite', 'Entrée large pour fauteuils roulants', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('accessibilite[]', 'Accès direct au cabinet (sans escalier / ascenseur disponible)', in_array('Accès direct au cabinet (sans escalier / ascenseur disponible)', $accessibilite), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('accessibilite', 'Accès direct au cabinet (sans escalier / ascenseur disponible)', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('accessibilite[]', 'Rampe d’accès pour fauteuils roulants', in_array('Rampe d’accès pour fauteuils roulants', $accessibilite), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('accessibilite', 'Rampe d’accès pour fauteuils roulants', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('accessibilite[]', 'Ascenseur disponible', in_array('Ascenseur disponible', $accessibilite), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('accessibilite', 'Ascenseur disponible', ['class' => 'form-check-label']) !!}
+                                </div>
+                                <div class="form-check">
+                                    {!! Form::checkbox('accessibilite[]', 'Toilettes adaptées aux personnes à mobilité réduite', in_array('Toilettes adaptées aux personnes à mobilité réduite', $accessibilite), ['class' => 'form-check-input']) !!}
+                                    {!! Form::label('accessibilite', 'Toilettes adaptées aux personnes à mobilité réduite', ['class' => 'form-check-label']) !!}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     </div>
 
@@ -565,23 +565,18 @@
             <div class="collapse mt-3" id="curriculumVitae">
                 <div class="row">
 <!-- Champ Sélection de la Spécialité -->
+<!-- Champ Affichage de la Spécialité -->
 <div class="col-md-6">
     <div class="form-group d-flex align-items-center">
-        {!! Form::label('speciality_id', trans("lang.Speciality"), ['class' => 'col-md-3 control-label text-md-right']) !!}
+        {!! Form::label('speciality', trans("lang.Speciality"), ['class' => 'col-md-3 control-label text-md-right']) !!}
         <div class="col-md-9">
-            <!-- Select désactivé pour affichage uniquement -->
-            <select name="speciality_id_display" class="form-control select2" disabled>
-                @foreach($specialities as $id => $name)
-                    <option value="{{ $id }}" {{ $specialitySelected && $specialitySelected->id == $id ? 'selected' : '' }}>
-                        {{ $name }}
-                    </option>
-                @endforeach
-            </select>
-            <!-- Champ caché pour envoyer l'ID de la spécialité -->
+            <input type="text" class="form-control" value="{{ $specialitySelected ? $specialitySelected->name : 'Non défini' }}" readonly>
+            <!-- Champ caché pour envoyer l'ID de la spécialité si nécessaire -->
             <input type="hidden" name="speciality_id" value="{{ $specialitySelected ? $specialitySelected->id : '' }}">
         </div>
     </div>
 </div>
+
 
 <!-- Description Field -->
 <div class="col-md-6">
