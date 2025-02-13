@@ -376,7 +376,7 @@ class DoctorController extends Controller
         $descriptionSpecialite = $doctorSpeciality->description ?? '';
 
         // Récupérer la spécialité sélectionnée
-        $specialitySelected = $doctorSpeciality->speciality ?? null;
+        $specialitySelected = $doctor->specialities->first() ?? null;
 
         // Récupérer toutes les spécialités disponibles
         $specialities = Speciality::pluck('name', 'id');
