@@ -324,15 +324,13 @@ class AddressController extends Controller
      $specialities = $doctor->specialities;
 
      // Check if specialities are available and then process them
-     $specialitiesData = [];
-     if ($specialities && $specialities->isNotEmpty()) {
-         $specialitiesData = $specialities->map(function($speciality) {
-             return [
-                 'id' => $speciality->id,
-                 'name' => json_encode(['fr' => $speciality->name]), // Example for the 'fr' language
-             ];
-         })->toArray();
-     }
+     $specialitiesData = $doctor->specialities->map(function($speciality) {
+        return [
+            'id' => $speciality->id,
+            'name' => json_encode(['fr' => $speciality->name]), // Exemple pour la langue 'fr'
+        ];
+    })->toArray();
+    
         $filePath = public_path('script-detail-med/file.json');
 
         // Données JSON à écrire

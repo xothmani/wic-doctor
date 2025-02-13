@@ -182,8 +182,9 @@ class Speciality extends Model implements HasMedia
      **/
     public function doctors()
     {
-        return $this->hasMany(Doctor::class, 'speciality_id'); // Relation one-to-many
+        return $this->belongsToMany(Doctor::class, 'doctor_specialities', 'speciality_id', 'doctor_id');
     }
+    
     /**
      * @return BelongsToMany
      **/
