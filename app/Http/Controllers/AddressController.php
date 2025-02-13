@@ -237,6 +237,8 @@ class AddressController extends Controller
             'gouvernorat' => 'nullable|string',
             'Région' => 'nullable|string', 
             'Département' => 'nullable|string', 
+            'stationnement' => 'nullable|array',
+            'accessibilite' => 'nullable|array', 
         ]);
     
         try {
@@ -249,6 +251,10 @@ class AddressController extends Controller
     
             // Vérifier si l'utilisateur a déjà une adresse
             $address = Address::where('user_id', $user->id)->first();
+             // Prepare stationnement and accessibilité data as comma-separated string
+        $stationnement = $request->input('stationnement') ? implode(',', $request->input('stationnement')) : null;
+        $accessibilite = $request->input('accessibilite') ? implode(',', $request->input('accessibilite')) : null;
+
     
             // Définir les données de mise à jour
             $data = [
@@ -256,6 +262,8 @@ class AddressController extends Controller
                 'pays' => json_encode(['fr' => $validatedData['pays']], JSON_UNESCAPED_UNICODE), // Ne pas échapper les caractères spéciaux
                 'user_id' => $user->id,
                 'updated_at' => now(), // Mettre à jour la date
+                'stationnement' => $stationnement,  // Save as comma-separated string
+                'accessibilite' => $accessibilite,  // Save as comma-separated string
             ];
     
             // Vérifier le pays et remplir les champs correspondants
@@ -312,20 +320,24 @@ class AddressController extends Controller
     $adresse_exacte = $address ? $address->address : null;
     // Récupérer le titre de l'expérience, si existante
     $title = $experience ? $experience->title : null;
-    // Récupérer les spécialités du médecin
-    $specialities = $doctor->specialities;
-    // Récupérer les spécialités et construire le tableau
-    $specialitiesData = $specialities->map(function($speciality) {
-        return [
-            'id' => $speciality->id,
-            'name' => json_encode(['fr' => $speciality->name]), // Exemple pour la langue 'fr'
-        ];
-    })->toArray();
+     // Get the specialities of the doctor
+     $specialities = $doctor->specialities;
+
+     // Check if specialities are available and then process them
+     $specialitiesData = [];
+     if ($specialities && $specialities->isNotEmpty()) {
+         $specialitiesData = $specialities->map(function($speciality) {
+             return [
+                 'id' => $speciality->id,
+                 'name' => json_encode(['fr' => $speciality->name]), // Example for the 'fr' language
+             ];
+         })->toArray();
+     }
         $filePath = public_path('script-detail-med/file.json');
 
         // Données JSON à écrire
         $data = [
-                'id_doctor' => $doctor->id,
+    'id_doctor' => $doctor->id,
     'name' => json_encode(['fr' => $doctor->name]),
     'doctor_photo' => $doctor->doctor_photo, 
     'enable_online_consultation' => $doctor->enable_online_consultation, 

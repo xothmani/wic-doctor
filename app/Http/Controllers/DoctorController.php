@@ -369,20 +369,25 @@ class DoctorController extends Controller
         $languesParlees = explode(',', $doctor->langues_parlees ?? '');
 
 
-// Récupérer la spécialité du médecin via la table d'association
-$doctorSpeciality = $doctor->doctorSpeciality;
+        // Récupérer la spécialité du médecin via la table d'association
+        $doctorSpeciality = $doctor->doctorSpeciality;
 
-// Récupérer la description de la table d'association
-$descriptionSpecialite = $doctorSpeciality->description ?? '';
+        // Récupérer la description de la table d'association
+        $descriptionSpecialite = $doctorSpeciality->description ?? '';
 
-// Récupérer la spécialité sélectionnée
-$specialitySelected = $doctorSpeciality->speciality ?? null;
+        // Récupérer la spécialité sélectionnée
+        $specialitySelected = $doctorSpeciality->speciality ?? null;
 
-// Récupérer toutes les spécialités disponibles
-$specialities = Speciality::pluck('name', 'id');
+        // Récupérer toutes les spécialités disponibles
+        $specialities = Speciality::pluck('name', 'id');
 
         // Récupérer les diplômes associés au médecin
         $diplomes = $doctor->diplomes;
+
+         // Récupérer les informations de stationnement et accessibilité associées
+            $stationnement = explode(',', $address->stationnement ?? '');
+            $accessibilite = explode(',', $address->accessibilite ?? '');
+
 
 
 
@@ -396,17 +401,17 @@ $specialities = Speciality::pluck('name', 'id');
                 // Récupérer la région, le département et la ville pour la France
                 $Région = $address->Région['fr'] ?? null;
                 $Département = $address->Département['fr'] ?? null;
-                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'Région', 'Département', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitySelected', 'descriptionSpecialite' ,'languesParlees', 'diplomes'));
+                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'Région', 'Département','stationnement','accessibilite', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitySelected', 'descriptionSpecialite' ,'languesParlees', 'diplomes'));
             } elseif ($pays == 'tunisie') {
                 // Récupérer la ville et le gouvernorat pour la Tunisie
                 $ville = $address->ville['fr'] ?? null;
                 $gouvernorat = $address->gouvernorat['fr'] ?? null;
-                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'ville', 'gouvernorat', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitySelected','descriptionSpecialite' , 'languesParlees', 'diplomes'));
+                return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'ville', 'gouvernorat', 'stationnement','accessibilite','consultationMethods', 'paymentMethods', 'specialities', 'specialitySelected','descriptionSpecialite' , 'languesParlees', 'diplomes'));
             }
         }
     
         // Si aucun pays n'est trouvé ou la structure est incorrecte, retourner la vue sans informations spécifiques
-        return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitySelected','descriptionSpecialite' , 'languesParlees', 'diplomes'));
+        return view('edit_doctor_profil.editProfil', compact('user', 'doctor', 'address','stationnement','accessibilite', 'consultationMethods', 'paymentMethods', 'specialities', 'specialitySelected','descriptionSpecialite' , 'languesParlees', 'diplomes'));
     }
 
     public function editInfoPersonnelle(Request $request)

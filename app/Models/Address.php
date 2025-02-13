@@ -56,7 +56,7 @@ class Address extends Model implements Castable
 	    'gouvernorat',
         'Département',
         'Région',
-        'accessibilité',
+        'accessibilite',
         'stationnement',
 
     ];
