@@ -2007,6 +2007,28 @@ return [
 
 
 
+    'my_blog_plural' => 'Mes blogs',
+    'my_blog' => 'blog',
+
+    'blog_desc' => 'Gestion de mes blogs',
+    'blog_table' => 'Liste des blogs',
+    'blog_title' => 'Titre du blog',
+    'blog_short_title' => 'Titre abrégé',
+    'blog_content' => 'Contenu',
+    'my_blog_content' => 'Contenu du blog',
+    'blog_status' => 'Status',
+    'blog_updated_at' => 'Date modification',
+    'blog_created_at' => 'Date création',
+    'blog_create' => 'Créer un blog',
+    'blog_content_placeholder' => 'Insérer le contenu du blog',
+    'blog_content_help' => 'Insérer le contenu du blog',
+    'blog_title_placeholder' => 'Insérer le titre du blog',
+    'blog_title_help' => 'Insérer le titre du blog',
+    'blog_short_title_placeholder' => 'Insérer le titre abrégé du blog',
+
+
+
+
 
 
 ];

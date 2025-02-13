@@ -47,6 +47,7 @@ use App\Http\Controllers\DoctorTagController;
 use App\Http\Controllers\ParrainerController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\DoctorsGalleryController;
+use App\Http\Controllers\DoctorBlogController;
 
 
 
@@ -500,6 +501,14 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         Route::post('/messagerie/send', [MessagerieController::class, 'send'])->name('messagerie.send');
         Route::get('/messagerie/conversation/{id}', [MessagerieController::class, 'showConversation'])->name('messagerie.showConversation');
     });
+
+
+
+    Route::get('/doctor-blog', [DoctorBlogController::class, 'index'])->name('doctor_blog.index');
+    Route::get('/doctor-blog/create', [DoctorBlogController::class, 'create'])->name('doctor_blog.create');
+    Route::post('/doctor-blog', [DoctorBlogController::class, 'store'])->name('doctor_blog.store');
+
+
 
 });
 

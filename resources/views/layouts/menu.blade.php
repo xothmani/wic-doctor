@@ -387,6 +387,16 @@
         </a>
     </li>
 @endcan
+
+@can('doctor_blog.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor_blog') ? 'active' : '' }}" href="{!! route('doctor_blog.index') !!}">
+        @if($icons)
+            <i class="nav-icon fas fa-blog"></i> <!-- Icône de blog -->
+        @endif
+        <p>{{ trans('lang.my_blog_plural') }}</p></a>
+    </li>
+@endcan
 @can('coupons.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('coupons*') ? 'active' : '' }}" href="{!! route('coupons.index') !!}">@if($icons)
