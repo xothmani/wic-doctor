@@ -369,18 +369,15 @@ class DoctorController extends Controller
         $languesParlees = explode(',', $doctor->langues_parlees ?? '');
 
 
-        // Récupérer la spécialité du médecin via la table d'association
-        $doctorSpeciality = $doctor->doctorSpeciality;
+ // Récupérer les spécialités du médecin (table pivot doctor_specialities)
+ $doctorSpecialities = $doctor->specialities;  // Ce sera une collection des spécialités liées
 
-        // Récupérer la description de la table d'association
-        $descriptionSpecialite = $doctorSpeciality->description ?? '';
+ // Si le médecin a une spécialité, récupérer la première spécialité
+ $specialitySelected = $doctorSpecialities->first(); // Prend la première spécialité
+ $descriptionSpecialite = $specialitySelected ? $specialitySelected->pivot->description : '';  // Récupérer la description de la table pivot
 
-        // Récupérer la spécialité sélectionnée
-        $specialitySelected = $doctor->specialities->first() ?? null;
-
-        // Récupérer toutes les spécialités disponibles
-        $specialities = Speciality::pluck('name', 'id');
-
+ // Récupérer toutes les spécialités disponibles
+ $specialities = Speciality::pluck('name', 'id');
         // Récupérer les diplômes associés au médecin
         $diplomes = $doctor->diplomes;
 
