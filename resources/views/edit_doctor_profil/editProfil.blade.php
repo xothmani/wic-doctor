@@ -579,6 +579,7 @@
 
 
 <!-- Description Field -->
+<!-- Description Field -->
 <div class="col-md-6">
     <div class="form-group d-flex align-items-center">
         {!! Form::label('description', 'Description spécialité', ['class' => 'col-md-3 control-label text-md-right']) !!}
