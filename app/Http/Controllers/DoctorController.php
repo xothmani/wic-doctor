@@ -518,13 +518,13 @@ private function executeNodeScript($doctor)
     $title = $experience ? $experience->title : null;
     // Récupérer les spécialités du médecin
     $specialities = $doctor->specialities;
-    // Récupérer les spécialités et construire le tableau
-    $specialitiesData = $specialities->map(function($speciality) {
+    $specialitiesData = $doctor->specialities->map(function($speciality) {
         return [
             'id' => $speciality->id,
             'name' => json_encode(['fr' => $speciality->name]), // Exemple pour la langue 'fr'
         ];
     })->toArray();
+    
         $filePath = public_path('script-detail-med/file.json');
 
         // Données JSON à écrire
