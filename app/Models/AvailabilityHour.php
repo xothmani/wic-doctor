@@ -58,8 +58,8 @@ class AvailabilityHour extends Model
         'is_available',
         'session_duration',
         'pause_from',
-        'pause_to'
- 
+        'pause_to',
+        'mode'
     ];
     /**
      * The attributes that should be casted to native types.

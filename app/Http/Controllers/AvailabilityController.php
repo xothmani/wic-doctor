@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Doctor;
+use App\Models\Pattern;
 use App\Models\AvailabilityHour;
 use Carbon\Carbon;
 
@@ -20,44 +21,46 @@ class AvailabilityController extends Controller
         Log::info("Retrieving doctor ID: {$doctorId}");
 
         if (!$doctorId) {
-            return redirect()->route('users.profile'); // Redirect if no doctor found
+            return redirect()->route('users.profile');
         }
 
+        $doctor = auth()->user()->doctor;
+        $currentMode = $doctor->availability_mode ?? 'open';
 
-        // Récupérer les horaires de disponibilité du médecin où online = 0
-        $availability = AvailabilityHour::where('doctor_id', $doctorId)
-            ->where('onligne', 0) // Ajouter cette condition
-            ->get()->map(function ($dayData) {
-                return [
-                    'day' => $dayData->day,
-                    'is_available' => $dayData->is_available,
-                    'start_at' => $dayData->start_at ? Carbon::parse($dayData->start_at)->format('H:i') : '09:00',
-                    'end_at' => $dayData->end_at ? Carbon::parse($dayData->end_at)->format('H:i') : '17:00',
-                ];
-            });
+        if ($currentMode === 'open') {
+            // Retrieve the one open record per day (if it exists)
+            $availability = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('onligne', 0)
+                ->where('mode', 'open')
+                ->get()
+                ->keyBy('day');
+        } else {
+            // For precise mode, group multiple slots per day
+            $availability = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('onligne', 0)
+                ->where('mode', 'precise')
+                ->get()
+                ->groupBy('day');
+        }
 
-        // Récupérer session_duration depuis une ligne d'AvailabilityHour où online = 0
+        // Retrieve session_duration (if needed)
         $sessionDuration = AvailabilityHour::where('doctor_id', $doctorId)
-            ->where('onligne', 0) // Ajouter cette condition
-            ->value('session_duration') ?? 15; // Par défaut : 15 minutes
-
-        // Convertir session_duration en format hh:mm
+            ->where('onligne', 0)
+            ->value('session_duration') ?? 15;
         $hours = intdiv($sessionDuration, 60);
         $minutes = $sessionDuration % 60;
         $sessionDurationFormatted = sprintf('%02d:%02d', $hours, $minutes);
 
-        // Récupérer les pauses où online = 0
         $pauseFrom = AvailabilityHour::where('doctor_id', $doctorId)
-            ->where('onligne', 0) // Ajouter cette condition
+            ->where('onligne', 0)
             ->value('pause_from');
         $pauseTo = AvailabilityHour::where('doctor_id', $doctorId)
-            ->where('onligne', 0) // Ajouter cette condition
+            ->where('onligne', 0)
             ->value('pause_to');
-
         $pauseFrom = $pauseFrom ? Carbon::parse($pauseFrom)->format('H:i') : null;
         $pauseTo = $pauseTo ? Carbon::parse($pauseTo)->format('H:i') : null;
 
-        return view('availability.index', compact('availability', 'sessionDurationFormatted', 'pauseFrom', 'pauseTo'));
+        return view('availability.index', compact('availability', 'sessionDurationFormatted', 'pauseFrom', 'pauseTo', 'currentMode'));
     }
 
 
@@ -118,142 +121,67 @@ class AvailabilityController extends Controller
         Log::info("Retrieving doctor ID: {$doctorId}");
 
         if (!$doctorId) {
-            return redirect()->route('users.profile'); // Redirect if no doctor found
+            return redirect()->route('users.profile');
         }
 
         try {
             Log::info('Form Data Before Processing:', $request->all());
 
-            // Valider les données
             $validated = $request->validate([
+                'mode' => 'required|string|in:open,precise',
                 'availability' => 'required|array',
                 'availability.*.day' => 'required|string',
+                'availability.*.is_available' => 'nullable|boolean',
                 'availability.*.from' => 'nullable|date_format:H:i',
                 'availability.*.to' => 'nullable|date_format:H:i|after:availability.*.from',
-                'availability.*.is_available' => 'nullable|boolean',
-                'session_duration' => ['required', 'regex:/^\d{1,2}:\d{2}$/'], // Valide hh:mm
-                'pause_from' => 'nullable|date_format:H:i',
-                'pause_to' => 'nullable|date_format:H:i|after:pause_from',
+                // For precise mode, expect arrays of slots with a dynamic pattern id
+                'availability.*.slots.start' => 'array',
+                'availability.*.slots.end' => 'array',
+                'availability.*.slots.pattern' => 'array',
+                'availability.*.slots.duration' => 'array',
             ]);
 
-            // Convertir la durée de session de hh:mm à minutes
-            [$hours, $minutes] = explode(':', $validated['session_duration']);
-            $sessionDuration = ($hours * 60) + $minutes;
+            $mode = $validated['mode'];
 
-            // Si les pauses sont définies, les convertir également en format horaire
-            $pauseFrom = $validated['pause_from'] ? Carbon::createFromFormat('H:i', $validated['pause_from'])->toTimeString() : null;
-            $pauseTo = $validated['pause_to'] ? Carbon::createFromFormat('H:i', $validated['pause_to'])->toTimeString() : null;
-
-            foreach ($validated['availability'] as $availability) {
-                $day = ucfirst($availability['day']);
+            foreach ($validated['availability'] as $index => $availability) {
+                $day = $availability['day'];
                 $isAvailable = $availability['is_available'] ?? 0;
 
-                $startTime = $availability['from'] ? Carbon::createFromFormat('H:i', $availability['from'])->toTimeString() : null;
-                $endTime = $availability['to'] ? Carbon::createFromFormat('H:i', $availability['to'])->toTimeString() : null;
-
-                // Vérifier les conflits uniquement si `is_available = 1`
-                if ($isAvailable == 1) {
-                    $conflicts = DB::table('availability_hours')
-                        ->where('doctor_id', $doctorId)
+                if ($mode === 'open') {
+                    AvailabilityHour::updateOrCreate(
+                        [
+                            'doctor_id' => $doctorId,
+                            'day' => $day,
+                            'mode' => 'open'
+                        ],
+                        [
+                            'start_at' => !empty($availability['from']) ? Carbon::createFromFormat('H:i', $availability['from'])->toTimeString() : null,
+                            'end_at' => !empty($availability['to']) ? Carbon::createFromFormat('H:i', $availability['to'])->toTimeString() : null,
+                            'is_available' => $isAvailable,
+                            'mode' => 'open'
+                        ]
+                    );
+                } elseif ($mode === 'precise' && isset($availability['slots']['start'])) {
+                    // Remove any existing precise slots for this day
+                    AvailabilityHour::where('doctor_id', $doctorId)
                         ->where('day', $day)
-                        ->where('onligne', 1)
-                        ->where('is_available', 1)
-                        ->where(function ($query) use ($startTime, $endTime) {
-                            $query->where(function ($q) use ($startTime, $endTime) {
-                                $q->where('start_at', '<', $endTime)
-                                    ->where('end_at', '>', $startTime);
-                            });
-                        })
-                        ->exists();
+                        ->where('mode', 'precise')
+                        ->delete();
 
-                    if ($conflicts) {
-                        return redirect()->back()->withErrors([
-                            'error' => "Conflit détecté pour le jour {$day} entre {$startTime} et {$endTime}. Veuillez ajuster les horaires."
+                    foreach ($availability['slots']['start'] as $index => $start) {
+                        // Use the posted pattern id from the select dropdown
+                        $patternId = $availability['slots']['pattern'][$index];
+                        AvailabilityHour::create([
+                            'doctor_id' => $doctorId,
+                            'day' => $day,
+                            'start_at' => Carbon::createFromFormat('H:i', $start)->toTimeString(),
+                            'end_at' => Carbon::createFromFormat('H:i', $availability['slots']['end'][$index])->toTimeString(),
+                            'patern_id' => $patternId,
+                            'session_duration' => $availability['slots']['duration'][$index],
+                            'is_available' => 1,
+                            'mode' => 'precise'
                         ]);
                     }
-                }
-
-                $data = [
-                    'doctor_id' => $doctorId,
-                    'day' => $day,
-                    'start_at' => $startTime,
-                    'end_at' => $endTime,
-                    'is_available' => $isAvailable,
-                    'session_duration' => $sessionDuration,
-                    'pause_from' => $pauseFrom,
-                    'pause_to' => $pauseTo,
-                    'onligne' => 0, // Ajouter la colonne 'online' avec la valeur 0
-                ];
-
-                $existing = DB::table('availability_hours')
-                    ->where('doctor_id', $doctorId)
-                    ->where('day', $day)
-                    ->where('onligne', 0) // Vérification de `onligne = 0`
-                    ->first();
-
-                $dayMap = [
-                    'Dimanche' => 1,
-                    'Lundi' => 2,
-                    'Mardi' => 3,
-                    'Mercredi' => 4,
-                    'Jeudi' => 5,
-                    'Vendredi' => 6,
-                    'Samedi' => 7,
-                ];
-
-                if ($existing) {
-                    DB::table('availability_hours')->where('id', $existing->id)->update($data);
-                    // Get the numeric value for the day.
-                    $dayNumber = $dayMap[$day] ?? null;
-                    if ($dayNumber === null) {
-                        \Log::warning("Day {$day} is not mapped to a numeric value.");
-                    } else {
-                        // Fetch appointments for this doctor on the given day,
-                        // for upcoming appointments (appointment_at >= today)
-                        // and excluding canceled appointments (assuming canceled status is 7)
-                        $appointments = DB::table('appointments')
-                            ->where('doctor_id', $doctorId)
-                            ->whereRaw("DAYOFWEEK(appointment_at) = ?", [$dayNumber])
-                            ->where('appointment_at', '>=', Carbon::today()->toDateString())
-                            ->where('appointment_status_id', '!=', 7)
-                            ->orderBy('start_at', 'asc')
-                            ->get();
-
-                        \Log::info("Appointments to update for doctor {$doctorId} on {$day} (Day Number: {$dayNumber}):", $appointments->toArray());
-
-                        // Re-schedule appointments consecutively
-                        $prevEnd = null;
-                        $rows_updated = 0;
-                        foreach ($appointments as $appointment) {
-                            if ($prevEnd === null) {
-                                // For the first appointment, keep its original start_at.
-                                $newStart = $appointment->start_at;
-                            } else {
-                                // Subsequent appointments start immediately after the previous one ends.
-                                $newStart = $prevEnd;
-                            }
-                            // Calculate new end time based on the new session duration.
-                            $newEnd = Carbon::parse($newStart)
-                                ->addMinutes($sessionDuration)
-                                ->format('Y-m-d H:i:s');
-                            // Update this appointment.
-                            $updateCount = DB::table('appointments')
-                                ->where('id', $appointment->id)
-                                ->update([
-                                    'start_at' => $newStart,
-                                    'ends_at' => $newEnd,
-                                ]);
-                            $rows_updated += $updateCount;
-                            // The new appointment’s end time becomes the starting point for the next.
-                            $prevEnd = $newEnd;
-                        }
-                        \Log::info("Updated appointments for doctor {$doctorId} on {$day} contiguously.", [
-                            'sessionDuration' => $sessionDuration,
-                            'rows_updated' => $rows_updated,
-                        ]);
-                    }
-                } else {
-                    DB::table('availability_hours')->insert($data);
                 }
             }
 
