@@ -13,6 +13,7 @@ public/storage
 public/hot
 public_html/storage
 public_html/hot
+public/
 
 # Ignore sensitive and environment-specific files
 storage/*.key
@@ -44,4 +45,11 @@ WicDoctor/
 WicDoctor
 public/Back-WIc-Doctors
 public/Back-NodeJS/Back-WIc-Doctors
+public/script-detail-med/file.json
+public/script-detail-med/html-content-2.html
+public/script-detail-med/html-content.html
+bootstrap/
+public/
 
+public/Back-NodeJS/Back-WIc-Doctors
+public/Back-NodeJS/Back-WIc-Doctors

@@ -253,11 +253,11 @@
                                 {!! Form::label('pays', 'Pays', ['class' => 'col-md-3 control-label text-md-right']) !!}
                                 <div class="col-md-9">
                                     {!! Form::select(
-    'pays',
-    ['' => 'Sélectionnez un pays'] + ['tunisie' => 'Tunisie', 'france' => 'France'],
-    isset($address->pays) ? json_decode($address->pays)->fr : null,
-    ['class' => 'form-control', 'id' => 'pays']
-) !!}
+                                        'pays',
+                                        ['' => 'Sélectionnez un pays'] + ['tunisie' => 'Tunisie', 'france' => 'France'],
+                                        isset($address->pays) ? json_decode($address->pays)->fr : null,
+                                        ['class' => 'form-control', 'id' => 'pays']
+                                    ) !!}
                                 </div>
                             </div>
                         </div>
@@ -268,11 +268,11 @@
                                 {!! Form::label('ville', 'Ville/Région', ['class' => 'col-md-3 control-label text-md-right']) !!}
                                 <div class="col-md-9">
                                     {!! Form::select(
-    'ville',
-    ['' => 'Sélectionnez une ville'],
-    isset($address->ville) ? json_decode($address->ville)->fr : null,
-    ['class' => 'form-control', 'id' => 'ville', 'disabled', 'required' => 'required']
-) !!}
+                                        'ville',
+                                        ['' => 'Sélectionnez une ville'],
+                                        isset($address->ville) ? json_decode($address->ville)->fr : null,
+                                        ['class' => 'form-control', 'id' => 'ville', 'disabled', 'required' => 'required']
+                                    ) !!}
                                 </div>
                             </div>
                         </div>
@@ -283,14 +283,15 @@
                                 {!! Form::label('gouvernorat', 'Gouvernorat/Département', ['class' => 'col-md-3 control-label text-md-right']) !!}
                                 <div class="col-md-9">
                                     {!! Form::select(
-    'gouvernorat',
-    ['' => 'Sélectionnez un gouvernorat'],
-    isset($address->gouvernorat) ? json_decode($address->gouvernorat)->fr : null,
-    ['class' => 'form-control', 'id' => 'gouvernorat', 'disabled', 'required' => 'required']
-) !!}
+                                        'gouvernorat',
+                                        ['' => 'Sélectionnez un gouvernorat'],
+                                        isset($address->gouvernorat) ? json_decode($address->gouvernorat)->fr : null,
+                                        ['class' => 'form-control', 'id' => 'gouvernorat', 'disabled', 'required' => 'required']
+                                    ) !!}
                                 </div>
                             </div>
                         </div>
+                        
 
                         <!-- Adresse -->
                         <div class="col-md-6">
@@ -301,6 +302,72 @@
                                 </div>
                             </div>
                         </div>
+<!-- Stationnement -->
+<div class="col-md-6">
+    <div class="form-group d-flex align-items-center">
+        <label class="col-md-3 control-label text-md-right">Stationnement et Accès</label>
+        <div class="col-md-9">
+            <div class="form-check">
+                {!! Form::checkbox('stationnement[]', 'parking_gratuit', in_array('parking_gratuit', $stationnement), ['class' => 'form-check-input']) !!}
+                {!! Form::label('stationnement', 'Parking gratuit', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('stationnement[]', 'parking_payant', in_array('parking_payant', $stationnement), ['class' => 'form-check-input']) !!}
+                {!! Form::label('stationnement', 'Parking payant à proximité', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('stationnement[]', 'bornes_recharge', in_array('bornes_recharge', $stationnement), ['class' => 'form-check-input']) !!}
+                {!! Form::label('stationnement', 'Bornes de recharge pour véhicules électriques', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('stationnement[]', 'parking_motos_velos', in_array('parking_motos_velos', $stationnement), ['class' => 'form-check-input']) !!}
+                {!! Form::label('stationnement', 'Parking pour motos et vélos', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('stationnement[]', 'acces_facile_rue', in_array('acces_facile_rue', $stationnement), ['class' => 'form-check-input']) !!}
+                {!! Form::label('stationnement', 'Accès facile depuis la rue principale', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('stationnement[]', 'proche_transports', in_array('proche_transports', $stationnement), ['class' => 'form-check-input']) !!}
+                {!! Form::label('stationnement', 'Proche des transports en commun (métro, bus, tramway)', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('stationnement[]', 'station_taxis', in_array('station_taxis', $stationnement), ['class' => 'form-check-input']) !!}
+                {!! Form::label('stationnement', 'Station de taxis à proximité', ['class' => 'form-check-label']) !!}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accessibilité -->
+<div class="col-md-6">
+    <div class="form-group d-flex align-items-center">
+        <label class="col-md-3 control-label text-md-right">Accessibilité</label>
+        <div class="col-md-9">
+            <div class="form-check">
+                {!! Form::checkbox('accessibilite[]', 'acces_fauteuil_roulant', in_array('acces_fauteuil_roulant', $accessibilite), ['class' => 'form-check-input']) !!}
+                {!! Form::label('accessibilite', 'Entrée large pour fauteuils roulants', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('accessibilite[]', 'acces_direct', in_array('acces_direct', $accessibilite), ['class' => 'form-check-input']) !!}
+                {!! Form::label('accessibilite', 'Accès direct au cabinet (sans escalier / ascenseur disponible)', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('accessibilite[]', 'rampe_fauteuil_roulant', in_array('rampe_fauteuil_roulant', $accessibilite), ['class' => 'form-check-input']) !!}
+                {!! Form::label('accessibilite', 'Rampe d’accès pour fauteuils roulants', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('accessibilite[]', 'ascenseur_disponible', in_array('ascenseur_disponible', $accessibilite), ['class' => 'form-check-input']) !!}
+                {!! Form::label('accessibilite', 'Ascenseur disponible', ['class' => 'form-check-label']) !!}
+            </div>
+            <div class="form-check">
+                {!! Form::checkbox('accessibilite[]', 'toilettes_adaptees', in_array('toilettes_adaptees', $accessibilite), ['class' => 'form-check-input']) !!}
+                {!! Form::label('accessibilite', 'Toilettes adaptées aux personnes à mobilité réduite', ['class' => 'form-check-label']) !!}
+            </div>
+        </div>
+    </div>
+</div>
+
                     </div>
 
                     <!-- Bouton Enregistrer -->
@@ -437,36 +504,30 @@
             <!-- submit du formulaire adresse -->
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
-                    const form = document.getElementById('adresseForm');
-                    const submitButton = form.querySelector('[type="submit"]');
+    const form = document.getElementById('adresseForm');
+    form.addEventListener('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+        
+        const formData = new FormData(form);
+        fetch('/adresse/store', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message); // Show success message
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Une erreur est survenue. Veuillez réessayer.');
+        });
+    });
+});
 
-                    form.addEventListener('submit', function (event) {
-                        event.preventDefault(); // Empêche l'envoi classique du formulaire
-
-                        // Récupération des données du formulaire
-                        const formData = new FormData(form);
-
-                        // Envoi de la requête AJAX avec Fetch
-                        fetch('/adresse/store', {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            },
-                            body: formData
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                // Afficher un message de succès
-                                alert(data.message);
-                            })
-                            .catch(error => {
-                                // Gérer les erreurs
-                                console.error('Erreur:', error);
-                                alert('Une erreur est survenue. Veuillez réessayer.');
-                            });
-                    });
-                });
             </script>
 
 
@@ -503,15 +564,37 @@
             <!-- Conteneur des champs Diplômes et Langues -->
             <div class="collapse mt-3" id="curriculumVitae">
                 <div class="row">
-                    <!-- Specialities Field -->
-                    <div class="col-md-6">
-                        <div class="form-group d-flex align-items-center">
-                            {!! Form::label('specialities', trans("lang.doctor_specialities"), ['class' => 'col-md-3 control-label text-md-right']) !!}
-                            <div class="col-md-9">
-                                {!! Form::select('specialities', $specialities, $specialitiesSelected, ['class' => 'form-control select2', 'data-empty' => trans('lang.doctor_specialities_placeholder'), 'disabled']) !!}
-                            </div>
-                        </div>
-                    </div>
+<!-- Champ Sélection de la Spécialité -->
+<div class="col-md-6">
+    <div class="form-group d-flex align-items-center">
+        {!! Form::label('speciality_id', trans("lang.Speciality"), ['class' => 'col-md-3 control-label text-md-right']) !!}
+        <div class="col-md-9">
+            <!-- Select désactivé pour affichage uniquement -->
+            <select name="speciality_id_display" class="form-control select2" disabled>
+                @foreach($specialities as $id => $name)
+                    <option value="{{ $id }}" {{ $specialitySelected && $specialitySelected->id == $id ? 'selected' : '' }}>
+                        {{ $name }}
+                    </option>
+                @endforeach
+            </select>
+            <!-- Champ caché pour envoyer l'ID de la spécialité -->
+            <input type="hidden" name="speciality_id" value="{{ $specialitySelected ? $specialitySelected->id : '' }}">
+        </div>
+    </div>
+</div>
+
+<!-- Description Field -->
+<div class="col-md-6">
+    <div class="form-group d-flex align-items-center">
+        {!! Form::label('description', 'Description spécialité', ['class' => 'col-md-3 control-label text-md-right']) !!}
+        <div class="col-md-9">
+            <textarea name="description" class="form-control" placeholder="Écrivez la description de votre spécialité" style="height: 80px;">{{ $descriptionSpecialite ?? '' }}</textarea>
+        </div>
+    </div>
+</div>
+
+
+
 
 
 
@@ -578,7 +661,7 @@
                             </div>
                         </div>
                     </div>
-
+                    
 
                     <!-- Diplômes -->
                     <div class="col-md-6">
@@ -673,23 +756,23 @@
             {!! Form::close() !!}
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
             <script>
-                $(document).ready(function () {
-                    $('#editCV').submit(function (event) {
-                        event.preventDefault(); // Empêche le rechargement de la page
+               $(document).ready(function () {
+    $('#editCV').submit(function (event) {
+        event.preventDefault(); // Empêche le rechargement de la page
 
-                        $.ajax({
-                            url: "{{ route('editCV') }}",
-                            method: "POST",
-                            data: $(this).serialize(),
-                            success: function (response) {
-                                alert(response.success); // Afficher un message de succès
-                            },
-                            error: function (xhr) {
-                                alert("Erreur : " + xhr.responseJSON.error);
-                            }
-                        });
-                    });
-                });
+        $.ajax({
+            url: "{{ route('editCV') }}",
+            method: "POST",
+            data: $(this).serialize(),
+            success: function (response) {
+                alert(response.success); // Afficher un message de succès
+            },
+            error: function (xhr) {
+                alert("Erreur : " + xhr.responseJSON.error);
+            }
+        });
+    });
+});
             </script>
 
 

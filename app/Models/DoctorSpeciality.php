@@ -16,4 +16,20 @@ class DoctorSpeciality extends Model
     use HasFactory;
     public $timestamps = false;
     protected $table = 'doctor_specialities';
+    protected $fillable = [
+     'description',
+     'doctor_id',
+     'speciality_id'
+
+    ];
+
+    public function doctor()
+{
+    return $this->belongsTo(Doctor::class, 'doctor_id');
+}
+
+public function speciality()
+{
+    return $this->belongsTo(Speciality::class, 'speciality_id');
+}
 }

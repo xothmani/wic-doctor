@@ -559,9 +559,14 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
     /**
      * @return BelongsToMany
      **/
-    public function specialities(): BelongsToMany
+    public function speciality()
     {
-        return $this->belongsToMany(Speciality::class, 'doctor_specialities');
+        return $this->belongsTo(Speciality::class, 'speciality_id'); // Relation many-to-one
+    }
+    
+    public function doctorSpeciality()
+    {
+        return $this->hasOne(DoctorSpeciality::class, 'doctor_id'); // Relation vers la table pivot
     }
 
     /**

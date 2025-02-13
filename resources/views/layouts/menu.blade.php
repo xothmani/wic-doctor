@@ -370,13 +370,13 @@
         </a>
     </li>
 @endcan
-@can('addresses.index')
+<!-- @can('addresses.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"
             href="{!! route('addresses.index') !!}">@if($icons)
             <i class="nav-icon fas fa-map-marked-alt"></i>@endif<p>{{trans('lang.address_plural')}}</p></a>
     </li>
-@endcan
+@endcan -->
 @can('seo.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('visibiliteSeo*') ? 'active' : '' }}" href="{!! route('seo.index') !!}">
@@ -385,6 +385,16 @@
             @endif
             <p>{{ trans('lang.Visibilité_SEO') }}</p>
         </a>
+    </li>
+@endcan
+
+@can('doctor_blog.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor_blog') ? 'active' : '' }}" href="{!! route('doctor_blog.index') !!}">
+        @if($icons)
+            <i class="nav-icon fas fa-blog"></i> <!-- Icône de blog -->
+        @endif
+        <p>{{ trans('lang.my_blog_plural') }}</p></a>
     </li>
 @endcan
 @can('coupons.index')
