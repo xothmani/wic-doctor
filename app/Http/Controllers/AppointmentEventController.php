@@ -26,13 +26,29 @@ class AppointmentEventController extends Controller
         $availabilityDays = collect();
         $vacations = collect();
 
-        $doctorId = auth()->user()->getDoctorId(); // Retrieve doctor ID using user relationship
+        $doctorId = auth()->user()->getDoctorId();
+
+        $doctor = Doctor::find($doctorId);
 
         if (!$doctorId) {
             //Log::warning("Doctor ID not found for logged-in user.");
             return response()->json(['error' => 'Doctor not found for the logged-in user'], 404);
         }
-
+        $currentMode = $doctor->availability_mode ?? 'open';
+        if ($currentMode === 'open') {
+            $availability = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('onligne', 0)
+                ->where('mode', 'open')
+                ->get()
+                ->keyBy('day');
+        } else { // precise mode: load each slot with its pattern
+            $availability = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('onligne', 0)
+                ->where('mode', 'precise')
+                ->with('pattern') // eager load related pattern (make sure your AvailabilityHour model defines a pattern() relationship)
+                ->get()
+                ->groupBy('day');
+        }
         // Retrieve distinct availability days for the logged-in doctor
         $availabilityDays = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
@@ -74,7 +90,8 @@ class AppointmentEventController extends Controller
                     'patient.email as patient_email',
                     'patient.phone_number as patient_phone_number',
                     'patient.mobile_number as patient_mobile_number',
-                    'pattern.nom as motif_name'
+                    'pattern.nom as motif_name',
+                    'pattern.color as motif_color'
                 )
                 ->join('users as user', 'appointments.user_id', '=', 'user.id')
                 ->join('appointment_statuses as appointment_status', 'appointments.appointment_status_id', '=', 'appointment_status.id')
@@ -88,7 +105,7 @@ class AppointmentEventController extends Controller
                 $decodedFirstName = json_decode($appointment->patient_first_name, true);
                 $decodedLastName = json_decode($appointment->patient_last_name, true);
                 $decodedMotifName = json_decode($appointment->motif_name, true);
-
+                $color = $appointment->motif_color;
                 return [
                     'id' => $appointment->id,
                     'start_at' => $appointment->start_at,
@@ -103,6 +120,8 @@ class AppointmentEventController extends Controller
                     'patient_last_name' => ($decodedLastName['fr'] ?? $decodedLastName),
                     'motif_name' => $decodedMotifName['fr'] ?? $decodedMotifName,
                     'online' => $appointment->online,
+                    'backgroundColor' => $color,
+                    'borderColor' => $color,
                 ];
             }));
         }
@@ -125,7 +144,7 @@ class AppointmentEventController extends Controller
         //Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
 
         // Pass availabilityDays and vacations to the view
-        return view('appointment_events.appointmentEvent', compact('patients', 'availabilityDays', 'patterns', 'vacations'));
+        return view('appointment_events.appointmentEvent', compact('availability', 'currentMode', 'patients', 'availabilityDays', 'patterns', 'vacations'));
     }
 
 
@@ -713,7 +732,7 @@ class AppointmentEventController extends Controller
             'taken_slots' => $takenSlots,
         ]);
     }*/
-    public function getAvailableTimeSlots(Request $request)
+    /*public function getAvailableTimeSlots(Request $request)
     {
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
@@ -828,7 +847,84 @@ class AppointmentEventController extends Controller
         \Log::info('Final response', ['response' => $response]);
 
         return response()->json($response);
+    }*/
+    public function getAvailableTimeSlots(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+        $selectedDate = $request->input('date');
+
+        if (!$doctorId || !$selectedDate) {
+            return response()->json(['error' => 'Doctor or date not found'], 404);
+        }
+
+        // Get the Monday of the current week based on the selected date
+        $weekStart = Carbon::parse($selectedDate)->startOfWeek(); // Get Monday of that week
+
+        // Fetch all availability for the entire week
+        $availability = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('onligne', 0)
+            ->get();
+
+        \Log::info('Availability fetched', ['availability' => $availability]);
+
+        if ($availability->isEmpty()) {
+            \Log::warning('No availability found', ['doctor_id' => $doctorId]);
+            return response()->json(['error' => 'No availability found'], 404);
+        }
+
+        $allSlots = [];
+
+        foreach ($availability as $slot) {
+            $startTime = Carbon::parse($slot->start_at);
+            $endTime = Carbon::parse($slot->end_at);
+            $sessionDuration = $slot->session_duration;
+
+            // Correctly map weekday names to the actual date in the current week
+            $dayMapping = [
+                'Monday' => 0, 'Tuesday' => 1, 'Wednesday' => 2,
+                'Thursday' => 3, 'Friday' => 4, 'Saturday' => 5, 'Sunday' => 6
+            ];
+
+            if (!isset($dayMapping[$slot->day])) {
+                \Log::warning("Invalid day name found in DB: " . $slot->day);
+                continue;
+            }
+
+            // Calculate actual date for the slot's day
+            $slotDate = $weekStart->copy()->addDays($dayMapping[$slot->day]);
+
+            while ($startTime->lessThan($endTime)) {
+                $allSlots[] = [
+                    'time' => $startTime->format('H:i'),
+                    'color' => $this->getPatternColor($slot->patern_id),
+                    'day' => $slotDate->format('Y-m-d'), // Store exact date
+                    'session_duration' => $sessionDuration,
+                ];
+                $startTime->addMinutes($sessionDuration);
+            }
+        }
+
+        \Log::info('Generated precise slots:', ['allSlots' => $allSlots]);
+
+        return response()->json([
+            'all_slots' => $allSlots,
+            'taken_slots' => [] // Keep it for compatibility
+        ]);
     }
+
+
+    /**
+     * Retrieve the color from the `patterns` table using pattern_id
+     */
+    private function getPatternColor($patternId)
+    {
+        return DB::table('pattern')
+            ->where('id', $patternId)
+            ->value('color') ?? '#C6E7FF'; // Default if color not found
+    }
+
 
     public function getTeleconsultationTimeSlots(Request $request)
     {

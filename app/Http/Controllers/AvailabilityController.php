@@ -26,6 +26,15 @@ class AvailabilityController extends Controller
 
         $doctor = auth()->user()->doctor;
         $currentMode = $doctor->availability_mode ?? 'open';
+        $days = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+        ];
 
         if ($currentMode === 'open') {
             // Retrieve the one open record per day (if it exists)
@@ -39,6 +48,7 @@ class AvailabilityController extends Controller
             $availability = AvailabilityHour::where('doctor_id', $doctorId)
                 ->where('onligne', 0)
                 ->where('mode', 'precise')
+                ->with('pattern') // eager-load pattern to get its color and name
                 ->get()
                 ->groupBy('day');
         }
@@ -60,7 +70,7 @@ class AvailabilityController extends Controller
         $pauseFrom = $pauseFrom ? Carbon::parse($pauseFrom)->format('H:i') : null;
         $pauseTo = $pauseTo ? Carbon::parse($pauseTo)->format('H:i') : null;
 
-        return view('availability.index', compact('availability', 'sessionDurationFormatted', 'pauseFrom', 'pauseTo', 'currentMode'));
+        return view('availability.index', compact('availability', 'sessionDurationFormatted', 'pauseFrom', 'pauseTo', 'currentMode', 'days'));
     }
 
 

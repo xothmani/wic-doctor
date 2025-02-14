@@ -4,22 +4,11 @@
     @php
         $doctorId = auth()->user()->getDoctorId();
         $permissionKey = 'availability.index';
-        $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)->with('readable')->first();
+        $permission = \Spatie\Permission\Models\Permission::where('name', $permissionKey)->with('readable')->first();
         $readablePermission = $permission ? $permission->display_name : $permissionKey;
         $doctor = auth()->user()->doctor;
-        // $currentMode now comes from the controller
-        // Define days to be used in the table (ensure the keys match the day names in your DB)
-        $days = [
-            trans("lang.lundi"),
-            trans("lang.mardi"),
-            trans("lang.mercredi"),
-            trans("lang.jeudi"),
-            trans("lang.vendredi"),
-            trans("lang.samedi"),
-            trans("lang.dimanche")
-        ];
-
-        // Get doctor's patterns for precise mode (dynamic list)
+        // $currentMode and $days are passed from the controller.
+        // $days is an array of English day names: ["Monday", "Tuesday", ...]
         $doctorPatterns = \App\Models\Pattern::where('doctor_id', $doctorId)->get();
     @endphp
 
@@ -86,7 +75,6 @@
                              aria-labelledby="availability-tab">
                             <form action="{{ route('availability.store') }}" method="POST">
                                 @csrf
-                                <!-- Hidden input to pass the current mode -->
                                 <input type="hidden" name="mode" value="{{ $currentMode }}">
 
                                 @if($currentMode === 'open')
@@ -95,7 +83,7 @@
                                         <thead>
                                         <tr>
                                             <th>{{ trans("lang.availability") }}</th>
-                                            <th>{{ trans("lang.jourDispo") }}</th>
+                                            <th>Day</th>
                                             <th>{{ trans("lang.from") }}</th>
                                             <th>{{ trans("lang.to") }}</th>
                                         </tr>
@@ -106,7 +94,6 @@
                                                 <td>
                                                     <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]" value="1"
                                                            @if(isset($availability[$day]) && $availability[$day]->is_available) checked @endif>
-                                                    <!-- Save the day -->
                                                     <input type="hidden" name="availability[{{ $dayIndex }}][day]" value="{{ $day }}">
                                                 </td>
                                                 <td>{{ $day }}</td>
@@ -122,14 +109,13 @@
                                         @endforeach
                                         </tbody>
                                     </table>
-
                                 @elseif($currentMode === 'precise')
                                     <!-- Precise Availability UI -->
                                     <table class="table table-bordered">
                                         <thead>
                                         <tr>
                                             <th>{{ trans("lang.availability") }}</th>
-                                            <th>{{ trans("lang.jourDispo") }}</th>
+                                            <th>Day</th>
                                             <th>{{ trans("lang.timeSlots") }}</th>
                                             <th>{{ trans("lang.actions") }}</th>
                                         </tr>
@@ -140,7 +126,6 @@
                                                 <td>
                                                     <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]" value="1"
                                                            @if(isset($availability[$day]) && $availability[$day]->first()->is_available) checked @endif>
-                                                    <!-- Save the day -->
                                                     <input type="hidden" name="availability[{{ $dayIndex }}][day]" value="{{ $day }}">
                                                 </td>
                                                 <td>{{ $day }}</td>
@@ -198,7 +183,7 @@
 
 @section('scripts')
     <script>
-        // Pass the doctor's patterns to JavaScript as JSON
+        // Pass doctor's patterns to JavaScript as JSON
         const doctorPatterns = @json($doctorPatterns);
 
         function addSlot(dayIndex) {
@@ -206,7 +191,6 @@
             const div = document.createElement('div');
             div.classList.add('slot-entry', 'd-flex', 'align-items-center', 'mb-2');
 
-            // Build the select options from doctorPatterns dynamically
             let options = '';
             doctorPatterns.forEach(function(pattern) {
                 options += `<option value="${pattern.id}">${pattern.nom}</option>`;
@@ -227,8 +211,6 @@
         function removeSlot(button) {
             button.parentElement.remove();
         }
-
-        // (The other JavaScript functions remain unchanged)
     </script>
 @endsection
 

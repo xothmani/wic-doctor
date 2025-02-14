@@ -15,28 +15,7 @@
 
 @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
 
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-md-6">
-                    <h1 class="m-0 text-bold">{{ trans('lang.appointment_plural') }}
-                        <small class="mx-3">|</small><small>{{ trans('lang.appointment_desc') }}</small>
-                    </h1>
-                </div>
-                <div class="col-md-6">
-                    <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-                        <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i
-                                    class="fas fa-tachometer-alt mx-1"></i> {{ trans('lang.dashboard') }}</a></li>
-                        <li class="breadcrumb-item">
-                            <a href="{!! route('appointments.index') !!}">{{ trans('lang.appointment_plural') }}</a>
-                        </li>
-                        <li class="breadcrumb-item active">{{ trans('lang.calendar_view') }}</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
+
     <!-- Second Modal -->
     <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
         aria-hidden="true">
@@ -250,47 +229,6 @@
                 <div class="clearfix"></div>
             </div>
         </div>
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <!-- Left Section (Legend Boxes) -->
-            <div class="d-flex align-items-center">
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #9FCDA8;"></span>
-                    <span class="ms-1">Accepté&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #7DC2A5;"></span>
-                    <span class="ms-1">Terminé&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #9EDF9C;"></span>
-                    <span class="ms-1">Prêt&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #F5DF4D;"></span>
-                    <span class="ms-1">En cours&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center me-4">
-                    <span class="legend-box" style="background-color: #F38071;"></span>
-                    <span class="ms-1">Annulé&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="legend-box" style="background-color: #A594F9;"></span>
-                    <span class="ms-1">Reçu</span>
-                </div>
-            </div>
-
-            <!-- Right Section (Circles) -->
-            <div class="d-flex align-items-center">
-                <div class="d-flex align-items-center me-4">
-                    <span class="circle-indicator" style="background-color: #28a745;"></span>
-                    <span class="ms-2">Disponible&nbsp;&nbsp;</span>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="circle-indicator" style="background-color: #dc3545;"></span>
-                    <span class="ms-2">Non Disponible</span>
-                </div>
-            </div>
-        </div>
 
     </div>
 @else
@@ -357,7 +295,7 @@
             }
 
             // Set interval to refresh calendar every 30 seconds
-            setInterval(refreshCalendarEvents, 10000);
+            //setInterval(refreshCalendarEvents, 10000);
 
             //const timeSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
             const timeSlotsContainer = document.getElementById('time-slots');
@@ -588,7 +526,7 @@
 
                             const events = data.map(event => {
                                 let color = '';
-                                let translatedStatus = statusTranslation[event.status] || event.status; // Default to original if no translation
+                                let translatedStatus = statusTranslation[event.status] || event.status;
 
                                 switch (translatedStatus) {
                                     case 'Accepté':
@@ -617,7 +555,7 @@
                                     id: event.id,
                                     online: event.online,
                                     title: `${event.patient_name} - ${event.motif_name}`,
-                                    start: moment(event.start_at).format(), // Adjust for timezone here
+                                    start: moment(event.start_at).format(),
                                     end: moment(event.ends_at).format(),
                                     patient_phone_number: event.patient_phone_number,
                                     email: event.patient_email,
@@ -628,15 +566,55 @@
                                     borderColor: color,
                                     description: `Patient: ${event.patient_name}\nStatus: ${translatedStatus}\nDetails: ${event.motif_name || 'N/A'}`,
                                     patient_name: event.patient_name,
-                                    status: translatedStatus,              // Add status here
+                                    status: translatedStatus,
                                     details: event.motif_name || 'N/A',
-                                    motif_name: event.motif_name // motif_name is passed here
+                                    motif_name: event.motif_name
                                 };
                             });
-                            callback(events);
+
+                            // Fetch precise mode availability
+                            $.ajax({
+                                url: "/get-available-time-slots",
+                                type: "GET",
+                                data: { date: start.format("YYYY-MM-DD") },
+                                success: function (availabilityResponse) {
+                                    //console.log("📌 Availability Data:", availabilityResponse);
+
+                                    if (!availabilityResponse.all_slots.length) {
+                                        console.log("⚠️ No precise mode slots found.");
+                                    } else {
+                                        availabilityResponse.all_slots.forEach(slot => {
+                                            if (slot.color) {
+                                                const slotStart = moment(`${slot.day} ${slot.time}`, "YYYY-MM-DD HH:mm", true).format("YYYY-MM-DDTHH:mm:ss");
+                                                const slotEnd = moment(slotStart).add(slot.session_duration, 'minutes').format("YYYY-MM-DDTHH:mm");
+
+                                                //console.log(`🟢 Adding precise slot: ${slotStart} -> ${slotEnd}, Color: ${slot.color}`);
+                                                //console.log(`🔍 Raw slot data:`, slot);
+                                                //console.log(`📌 Parsed Start: ${moment(`${slot.day} ${slot.time}`, "YYYY-MM-DD HH:mm", true).format()}`);
+                                                //console.log(`🌍 Local Time: ${moment(`${slot.day} ${slot.time}`, "YYYY-MM-DD HH:mm", true).local().format()}`);
+                                                //console.log(`🕰️ UTC Time: ${moment(`${slot.day} ${slot.time}`, "YYYY-MM-DD HH:mm", true).utc().format()}`);
+                                                events.push({
+                                                    id: `background-${slot.time}`,
+                                                    start: slotStart,
+                                                    end: slotEnd,
+                                                    rendering: 'background',
+                                                    color: slot.color
+                                                });
+                                            }
+                                        });
+                                    }
+
+                                    callback(events);
+                                },
+                                error: function (xhr) {
+                                    console.error("❌ Error fetching availability slots:", xhr);
+                                    callback(events);
+                                }
+                            });
                         }
                     });
                 },
+
                 eventRender: function (event, element) {
 
                     // Adding title attribute for simple tooltip

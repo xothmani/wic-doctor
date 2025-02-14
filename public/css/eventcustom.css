@@ -237,7 +237,7 @@
 }
 @media (max-width: 768px) {
     #calendar {
-        height: 600px; /* Adjust as needed */
+        height: 100% !important;
     }
 }
 .time-slot {
