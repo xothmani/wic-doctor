@@ -1052,7 +1052,7 @@ return [
     'user_api_token_help' => 'Insérer un jeton API',
     'user_api_token_placeholder' => 'Insérer un jeton API',
     'user_avatar' => 'Avatar',
-    'user_avatar_help' => 'Téléchargez une image d\'avatar ou sélectionnez-la dans les médias',
+    'user_avatar_help' => 'Téléchargez une image professionnelle pour votre photo de profil',
     'user_bio' => 'Courte biographie',
     'user_bio_help' => 'Insérer la biographie',
     'user_bio_placeholder' => 'Courte biographie ici',
@@ -2007,10 +2007,10 @@ return [
 
 
 
-    'my_blog_plural' => 'Mes blogs',
+    'my_blog_plural' => 'Blogs',
     'my_blog' => 'blog',
 
-    'blog_desc' => 'Gestion de mes blogs',
+    'blog_desc' => 'Gestion des blogs',
     'blog_table' => 'Liste des blogs',
     'blog_title' => 'Titre du blog',
     'blog_short_title' => 'Titre abrégé',
@@ -2025,7 +2025,9 @@ return [
     'blog_title_placeholder' => 'Insérer le titre du blog',
     'blog_title_help' => 'Insérer le titre du blog',
     'blog_short_title_placeholder' => 'Insérer le titre abrégé du blog',
-
+    'doctor_blog_edit' => 'Modifier blog',
+    'blog_doctor' => 'Docteur',
+    'validate' => 'Publier le blog',
 
 
 

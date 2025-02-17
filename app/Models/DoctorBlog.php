@@ -19,6 +19,9 @@ class DoctorBlog extends Model
         'doctor_id',
         'media_id',
     ];
+    // Désactiver la mise à jour automatique de created_at
+    const created_at = null;  // Désactiver created_at
+    const updated_at = 'updated_at';  // Conserver updated_at
 
     public $timestamps = true; // Laravel gère automatiquement created_at et updated_at
 
