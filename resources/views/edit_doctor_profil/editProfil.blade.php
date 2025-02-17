@@ -143,7 +143,7 @@
 
                         <!-- Numéro de cabinet Field -->
                         <div class="form-group d-flex align-items-center">
-                            {!! Form::label('cabinet_number', 'N° Cabinet', ['class' => 'col-md-3 control-label text-md-right']) !!}
+                            {!! Form::label('cabinet_number', 'Fixe Cabinet', ['class' => 'col-md-3 control-label text-md-right']) !!}
                             <div class="col-md-9">
                                 {!! Form::text('cabinet_number', $doctor->fixe, ['class' => 'form-control', 'placeholder' => trans("lang.user_cabinet_number_placeholder")]) !!}
                             </div>
