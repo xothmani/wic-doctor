@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use App\DataTables\DoctorBlogDataTable;
 use App\Models\Media;
 use Illuminate\Support\Str;
+use Illuminate\Http\JsonResponse;
+
+
 class DoctorBlogController extends Controller
 {
     /**
@@ -18,7 +21,11 @@ class DoctorBlogController extends Controller
     {
         return $dataTable->render('doctor_blog.index'); // Vue à personnaliser
     }
-
+    public function acceptedBlogs(DoctorBlogDataTable $dataTable)
+    {
+        return $dataTable->render('doctor_blog.accepted'); // Vue spécifique aux blogs acceptés
+    }
+    
     /**
      * Show the form for creating a new resource.
      */
@@ -33,124 +40,82 @@ class DoctorBlogController extends Controller
      */
     public function store(Request $request)
     {
-        // ✅ Vérifier si l'utilisateur est connecté
+        // Vérifier si l'utilisateur est connecté
         $user = auth()->user();
         if (!$user) {
+            Log::error('Utilisateur non connecté');
             return response()->json(['error' => 'Utilisateur non connecté'], 401);
         }
     
-        // ✅ Vérifier si l'utilisateur est un médecin
+        // Vérifier si l'utilisateur est un médecin
         $doctor = Doctor::where('user_id', $user->id)->first();
         if (!$doctor) {
+            Log::error('Médecin non trouvé pour cet utilisateur', ['user_id' => $user->id]);
             return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
         }
     
-        // ✅ Valider les données du formulaire
+        // Valider les données du formulaire
         $request->validate([
             'titre_court' => 'required|string|max:255',
             'titre' => 'required|string',
             'contenu' => 'required|string',
-            'image' => 'required', // Validation de l'image
+            'media_id' => 'required|integer', // Validation pour l'ID du média
         ]);
     
-        // ✅ Créer un nouveau blog pour le médecin
+        Log::info('Validation réussie pour les champs', $request->all());
+    
+        // Créer un nouveau blog pour le médecin
         $doctorBlog = new DoctorBlog();
         $doctorBlog->titre_court = $request->titre_court;
         $doctorBlog->titre = $request->titre;
         $doctorBlog->contenu = $request->contenu;
         $doctorBlog->status = 'en cours';  // Statut "en cours"
         $doctorBlog->doctor_id = $doctor->id;  // ID du médecin connecté
+        $doctorBlog->media_id = $request->media_id;  // ID du média
+        $doctorBlog->created_at = now();  // Date et heure actuelle pour created_at
+        $doctorBlog->updated_at = null;  // Laisser vide ou null pour la première création
     
-        // ✅ Sauvegarder le blog dans la base de données
+        // Sauvegarder le blog dans la base de données
         $doctorBlog->save();
+        Log::info('Blog enregistré', ['blog_id' => $doctorBlog->id]);
     
-        // ✅ Sauvegarder l'image dans la table `media`
-        if ($request->hasFile('image')) {
-            // Créer un uuid pour l'image
-            $uuid = (string) Str::uuid();
-    
-            // Obtenir les informations de l'image
-            $image = $request->file('image');
-            $imageName = $image->getClientOriginalName();
-            $mimeType = $image->getMimeType();
-            $size = $image->getSize();
-    
-            // Déplacer l'image dans le dossier public (optionnel si vous utilisez un système de stockage)
-            $image->storeAs('public/images', $imageName);
-    
-            // Insertion de l'image dans la table `media`
-            DB::table('media')->insert([
-                'uuid' => $uuid,
-                'model_type' => 'doctor',
-                'model_id' => $doctor->id,
-                'collection_name' => 'image',
-                'name' => $imageName,
-                'file_name' => $imageName,
-                'mime_type' => $mimeType,
-                'disk' => 'public',
-                'size' => $size,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-    
-            // Récupérer l'ID du media inséré
-            $mediaId = DB::getPdo()->lastInsertId();
-    
-            // Associer l'ID du media au blog
-            $doctorBlog->media_id = $mediaId;
-            $doctorBlog->save();
-        }
-    
-        // ✅ Retourner une réponse de succès
+        // Retourner une réponse de succès
         return redirect()->route('doctor_blog.index')->with('success', 'Blog créé avec succès');
     }
-    
-    public function storeImage(Request $request)
+    public function storeImage(Request $request): JsonResponse
     {
-        // Vérifier si l'utilisateur est connecté et s'il est médecin
-        $user = auth()->user();
-        $doctor = Doctor::where('user_id', $user->id)->first();
-        if (!$user || !$doctor) {
-            return response()->json(['error' => 'Utilisateur ou médecin non trouvé'], 404);
-        }
+        $input = $request->all();
     
-        // Valider le fichier image
+        // Valider les entrées
         $request->validate([
-            'image' => 'required|image|max:2048', // Validation de l'image
+            'file' => 'required|image', // Valider le fichier image
+            'uuid' => 'required|string', // Validation pour UUID (si nécessaire)
+            'field' => 'required|string' // Le champ pour la collection de médias
         ]);
     
-        // Enregistrement de l'image dans la table 'media'
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
+        try {
+            // Récupérer le médecin connecté
+            $doctor = Doctor::where('user_id', auth()->id())->first();
+            if (!$doctor) {
+                return response()->json(['success' => false, 'message' => "Médecin non trouvé."]);
+            }
     
-            // Créer un nouvel enregistrement dans la table media
-            $media = new Media();
-            $media->uuid = (string) Str::uuid(); // Générer un UUID pour l'image
-            $media->model_type = 'doctor'; // Type du modèle
-            $media->model_id = $doctor->id; // ID du médecin
-            $media->collection_name = 'image'; // Nom de la collection
-            $media->name = $image->getClientOriginalName(); // Nom original de l'image
-            $media->file_name = $image->hashName(); // Nom unique de l'image
-            $media->mime_type = $image->getMimeType(); // Type MIME
-            $media->disk = 'public'; // Disque pour le stockage
-            $media->size = $image->getSize(); // Taille de l'image
-            $media->save();
+            // Ajouter l'image au modèle 'Doctor'
+            $media = $doctor->addMedia($input['file'])
+                ->withCustomProperties(['uuid' => $input['uuid'], 'user_id' => auth()->id()])
+                ->toMediaCollection($input['field']);  // Ici, 'field' est le nom de la collection
     
-            // Déplacer l'image dans le dossier public
-            $image->storeAs('public/doctor_images', $media->file_name);
-    
-            // Retourner une réponse avec les informations de l'image
+            // Retourner une réponse de succès avec l'ID du média
             return response()->json([
                 'success' => true,
-                'media' => $media
+                'media_id' => $media->id,
+                'message' => "Image téléchargée avec succès"
             ]);
+    
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
         }
-    
-        // Retourner une erreur si aucune image n'est envoyée
-        return response()->json(['error' => 'Aucune image reçue'], 400);
     }
-    
-     
      
      
     /**
@@ -158,30 +123,124 @@ class DoctorBlogController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // Récupérer le blog
+        $blog = DoctorBlog::findOrFail($id);
+    
+        // Récupérer l'image depuis la table media (si elle existe)
+        $media = Media::where('id', $blog->media_id)->first();
+    
+        // Construire le chemin de l'image
+        $imagePath = $media ? asset('storage/' . $blog->media_id . '/' . $media->file_name) : null;
+    
+        return view('doctor_blog.show', compact('blog', 'imagePath'));
     }
+    
+    
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
     {
-        //
+        // Récupérer le blog du médecin avec l'id
+        $doctorBlog = DoctorBlog::findOrFail($id);
+    
+        // Récupérer l'image associée au blog
+        $media = Media::find($doctorBlog->media_id);
+    
+        // Retourner la vue d'édition avec les données du blog et l'image
+        return view('doctor_blog.edit', compact('doctorBlog', 'media'));
     }
+    
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+    public function update(Request $request, $id)
+{
+    // Valider les données
+    $request->validate([
+        'titre_court' => 'required|string|max:255',
+        'titre' => 'required|string',
+        'contenu' => 'required|string',
+        'media_id' => 'required|integer', // Validation pour l'ID du média
+    ]);
+
+    // Récupérer le blog du médecin
+    $doctor_blog = DoctorBlog::findOrFail($id);
+
+    // Mettre à jour le blog
+    $doctor_blog->titre_court = $request->titre_court;
+    $doctor_blog->titre = $request->titre;
+    $doctor_blog->contenu = $request->contenu;
+    $doctor_blog->media_id = $request->media_id;
+    $doctor_blog->status = 'en cours';  
+    $doctor_blog->updated_at = now();
+    $doctor_blog->save();
+
+    // Retourner une réponse de succès
+    return redirect()->route('doctor_blog.index')->with('success', 'Blog mis à jour avec succès');
+}
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
-    {
-        //
+  
+    
+     public function destroy(string $id)
+     {
+         // Récupérer le blog à partir de son ID
+         $blog = DoctorBlog::findOrFail($id);
+     
+         // Vérifier si le blog a un media_id associé
+         if ($blog->media_id) {
+             // Récupérer le média à partir de son ID
+             $media = Media::findOrFail($blog->media_id);
+     
+             // Construire le chemin du dossier dans storage/app/public/ correspondant à l'ID du média
+             $folderPath = $media->id;
+     
+             // Vérifier si le dossier existe et supprimer le dossier avec tout son contenu
+             if (Storage::exists('public/' . $folderPath)) {
+                 Storage::deleteDirectory('public/' . $folderPath); // Supprimer le dossier et son contenu
+             }
+     
+             // Supprimer le média de la base de données
+             $media->delete();
+         }
+     
+         // Supprimer le blog
+         $blog->delete();
+     
+         // Retourner à la liste des blogs avec un message de succès
+         return redirect()->route('doctor_blog.index')->with('success', 'Blog et son média supprimés avec succès.');
+     }
+    
+     public function deleteImage(Request $request)
+{
+    $mediaId = $request->input('media_id');
+    $media = Media::find($mediaId);
+
+    if ($media) {
+        // Supprimer le fichier du stockage
+        $filePath = 'public/' . $media->id . '/' . $media->file_name;
+        if (Storage::exists($filePath)) {
+            Storage::delete($filePath);
+        }
+
+        // Supprimer le dossier associé au média
+        $folderPath = 'public/' . $media->id;
+        if (Storage::exists($folderPath)) {
+            Storage::deleteDirectory($folderPath);
+        }
+
+        // Supprimer l'enregistrement de la base de données
+        $media->delete();
+
+        return response()->json(['success' => true]);
     }
+
+    return response()->json(['success' => false, 'message' => 'Média non trouvé']);
+}
 }

@@ -2,9 +2,6 @@
 
 @section('content')
 <!-- Content Header (Page header) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -98,20 +95,18 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Contenu complet</h5>
+                <h5 class="modal-title" id="modalTitle">Lire la suite</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body" id="modalContent">
-                <!-- Le contenu sera inséré ici dynamiquement -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                <!-- Le contenu sera ajouté ici dynamiquement -->
             </div>
         </div>
     </div>
 </div>
+
 <style>
  /* Modal carré */
 .modal-dialog {
@@ -135,8 +130,8 @@
 
 </style>
 <script>
-function showModal(content) {
-    document.getElementById('modalContent').innerHTML = content; // Insérer le contenu dans la modale
-    $('#contentModal').modal('show'); // Ouvrir la modale Bootstrap
-}
+    function showModal(content) {
+        $('#modalContent').html(content); // Insère le contenu HTML dans la modale
+        $('#contentModal').modal('show'); // Affiche la modale
+    }
 </script>

@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Models\Doctor;
 
 class UserController extends Controller
 {
@@ -77,21 +78,44 @@ class UserController extends Controller
      */
     public function profile()
     {
-        $user = $this->userRepository->findWithoutFail(auth()->id());
+        $user = auth()->user();
         unset($user->password);
+    
         $customFields = false;
         $role = $this->roleRepository->pluck('name', 'name');
         $rolesSelected = $user->getRoleNames()->toArray();
         $customFieldsValues = $user->customFieldsValues()->with('customField')->get();
-        //dd($customFieldsValues);
+    
         $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
         if ($hasCustomField) {
             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
             $customFields = generateCustomField($customFields, $customFieldsValues);
         }
-        return view('settings.users.profile', compact(['user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues']));
+    
+        // Vérifier si l'utilisateur est un médecin
+        $doctor = null;
+        if ($user->hasRole('doctor')) {
+            $doctor = Doctor::where('user_id', $user->id)->first();
+        }
+    
+        // Liste des champs à vérifier
+        $fieldsToCheck = [
+            $user->name, $user->lastname, $user->email, $user->phone_number,
+            optional($doctor)->bio, optional($doctor)->type_consultation, optional($doctor)->fixe,
+            optional($doctor)->facebook, optional($doctor)->instagram, optional($doctor)->site_web,
+            optional($doctor)->description, optional($doctor)->payment_methods
+        ];
+    
+        // Calcul du pourcentage de complétion
+        $filledFields = count(array_filter($fieldsToCheck, function ($field) {
+            return !empty($field);
+        }));
+        $totalFields = count($fieldsToCheck);
+        $progressPercentage = $totalFields > 0 ? ($filledFields / $totalFields) * 100 : 0;
+    
+        return view('settings.users.profile', compact('user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues', 'doctor', 'progressPercentage'));
     }
-
+    
     /**
      * Show the form for creating a new User.
      *

@@ -70,6 +70,7 @@ class User extends Authenticatable implements HasMedia
         'phone_number',
         'phone_verified_at',
         'password',
+        'passwordpatient',
         'api_token',
         'lastname',
         'device_token',

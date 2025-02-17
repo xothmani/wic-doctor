@@ -507,6 +507,15 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/doctor-blog', [DoctorBlogController::class, 'index'])->name('doctor_blog.index');
     Route::get('/doctor-blog/create', [DoctorBlogController::class, 'create'])->name('doctor_blog.create');
     Route::post('/doctor-blog', [DoctorBlogController::class, 'store'])->name('doctor_blog.store');
+    Route::post('uploads/storeImage', [DoctorBlogController::class, 'storeImage'])->name('uploads.storeImage');
+    Route::get('doctor_blog/{id}', [DoctorBlogController::class, 'show'])->name('doctor_blog.show');
+    Route::delete('/doctor_blog/{id}', [DoctorBlogController::class, 'destroy'])->name('doctor_blog.destroy');
+    Route::get('doctor_blog/{id}/edit', [DoctorBlogController::class, 'edit'])->name('doctor_blog.edit');
+    Route::patch('doctor_blog/{id}', [DoctorBlogController::class, 'update'])->name('doctor_blog.update');
+    Route::post('uploads/deleteImage', [DoctorBlogController::class, 'deleteImage'])->name('uploads.deleteImage');
+    Route::get('doctor_blogs/accepted', [DoctorBlogController::class, 'acceptedBlogs'])->name('doctor_blog.accepted');
+
+
 
 
 
