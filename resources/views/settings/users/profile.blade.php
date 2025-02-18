@@ -44,8 +44,14 @@
                             </div>
                             <h3 class="profile-username text-center">{{auth()->user()->name}}</h3>
                             <p class="text-muted text-center">{{implode(', ',$rolesSelected)}}</p>
-                            <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="mailto:{{auth()->user()->email}}"><i class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}
-                            </a>
+                            <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="mailto:{{auth()->user()->email}}"><i class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}</a>
+                            <a class="btn btn-outline-{{ setting('theme_color') }} btn-block" href="{{ asset('storage/pdf/Guide modification photo de profil.pdf') }}" target="_blank">
+    <i class="fas fa-info-circle mr-2"></i> Guide pour modifier et compléter votre profil 
+    <span class="badge badge-danger ml-2">Nouveau</span>
+</a>
+
+
+
                         </div>
                     
                         <!-- /.card-body -->

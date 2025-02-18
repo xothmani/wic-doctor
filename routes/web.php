@@ -78,8 +78,11 @@ Route::prefix('profile_management')->group(function () {
 
 
 Auth::routes();
-Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
-Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
+Route::middleware('auth')->group(function () {
+    Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
+    Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
+});
+
 Route::post('/availability/store', [AvailabilityController::class, 'store'])->name('availability.store');
 Route::get('/doctor/vacance', [DoctorVacationController::class, 'index'])->name('vacance.index');
 
@@ -514,6 +517,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::patch('doctor_blog/{id}', [DoctorBlogController::class, 'update'])->name('doctor_blog.update');
     Route::post('uploads/deleteImage', [DoctorBlogController::class, 'deleteImage'])->name('uploads.deleteImage');
     Route::get('doctor_blogs/accepted', [DoctorBlogController::class, 'acceptedBlogs'])->name('doctor_blog.accepted');
+    Route::get('/doctor_blog/accept/{id}', [DoctorBlogController::class, 'accepterBlog'])
+    ->name('doctor_blog.accept');
 
 
 

@@ -62,8 +62,12 @@ class DoctorBlogDataTable extends DataTable
      * @return \Illuminate\Database\Eloquent\Builder
      */
 
-     public function query(DoctorBlog $model, $status = null): \Illuminate\Database\Eloquent\Builder
+     public function query(DoctorBlog $model): \Illuminate\Database\Eloquent\Builder
      {
+         // Récupérer le statut passé par le contrôleur
+         $status = $this->request->input('status', $this->status);
+         Log::info('Statut récupéré dans la requête : ' . $status); // Ajouter un log
+     
          $user = auth()->user();
      
          if (!$user) {
@@ -72,7 +76,7 @@ class DoctorBlogDataTable extends DataTable
      
          $query = $model->newQuery();
      
-         // Si l'utilisateur est commercial, afficher tous les blogs "en cours" ou "acceptés"
+         // Si l'utilisateur est commercial, afficher les blogs en fonction du statut
          if ($user->hasRole('commercial')) {
              $query->select('doctor_blogs.*', 'doctors.name as doctor_name')
                    ->leftJoin('doctors', 'doctors.id', '=', 'doctor_blogs.doctor_id');
@@ -81,6 +85,11 @@ class DoctorBlogDataTable extends DataTable
                  $query->where('doctor_blogs.status', $status);
              } else {
                  $query->whereIn('doctor_blogs.status', ['en cours', 'accepté']);
+             }
+     
+             // Si le statut est 'en cours', trier par date de création (created_at)
+             if ($status == 'en cours') {
+                 $query->orderBy('doctor_blogs.created_at', 'asc'); // Ou 'desc' selon l'ordre voulu
              }
      
              return $query;
@@ -96,38 +105,53 @@ class DoctorBlogDataTable extends DataTable
          $query->select('doctor_blogs.*')
                ->where('doctor_blogs.doctor_id', '=', $doctor->id);
      
-         if ($status) {
+         if (!empty($status)) {
              $query->where('doctor_blogs.status', $status);
          } else {
              $query->whereIn('doctor_blogs.status', ['en cours', 'accepté']);
          }
      
+            // Si le statut est 'en cours', trier par date de création (created_at)
+            if ($status == 'en cours') {
+                $query->orderBy('doctor_blogs.created_at', 'desc'); // Ordre décroissant pour les plus récents
+            }
+
+            // Si le statut est 'accepté', trier par date de mise à jour (updated_at)
+            if ($status == 'accepté') {
+                $query->orderBy('doctor_blogs.updated_at', 'desc'); // Ordre décroissant pour les plus récents
+            }
+
+     
          return $query;
      }
      
-     
-    
     
     /**
      * Optional method if you want to use html builder.
      *
      * @return Builder
      */
+
     public function html(): Builder
-    {
-        return $this->builder()
-            ->columns($this->getColumns())
-            ->minifiedAjax()
-            ->addAction(['width' => '80px', 'printable' => false, 'responsivePriority' => '100'])
-            ->parameters(array_merge(
-                config('datatables-buttons.parameters'), [
-                    'language' => json_decode(
-                        file_get_contents(base_path('resources/lang/' . app()->getLocale() . '/datatable.json')
-                        ), true),
-                    'fixedColumns' => [],
-                ]
-            ));
-    }
+{
+    return $this->builder()
+        ->columns($this->getColumns())
+        ->minifiedAjax()
+        ->addAction(['width' => '80px', 'printable' => false, 'responsivePriority' => '100'])
+        ->parameters(array_merge(
+            config('datatables-buttons.parameters'), [
+                'language' => json_decode(
+                    file_get_contents(base_path('resources/lang/' . app()->getLocale() . '/datatable.json')
+                    ), true),
+                'fixedColumns' => [],
+                'ajax' => [
+    'url' => route('doctor_blog.index'),
+    'data' => 'function(d) { d.status = "' . $this->status . '"; }'
+],
+
+            ]
+        ));
+}
     /**
      * Get columns.
      *

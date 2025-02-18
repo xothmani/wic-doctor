@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <div class="container py-5">
         <div class="row justify-content-center">
             <!-- Carte blanche pour le contenu du blog -->
@@ -34,16 +37,43 @@
 
                        <!-- Bouton de retour en bas à droite de la carte -->
                         <div class="text-end mt-3">
-                            <a href="{{ route('doctor_blog.index') }}" class="btn btn-default">
-                                <i class="fa fa-undo"></i> {{ trans('lang.back') }}
-                            </a>
+                        @if($blog->status == 'en cours')
+    <a href="{{ route('doctor_blog.index') }}" class="btn btn-default">
+        <i class="fa fa-undo"></i> {{ trans('lang.back') }}
+    </a>
+@elseif($blog->status == 'accepté')
+    <a href="{{ route('doctor_blog.accepted') }}" class="btn btn-default">
+        <i class="fa fa-undo"></i> {{ trans('lang.back') }}
+    </a>
+@endif
 
-                            <!-- Vérifier si l'utilisateur est connecté et s'il a le rôle commercial -->
-                            @if(Auth::check() && Auth::user()->hasRole('commercial'))
-                                <a class="btn btn-success">
-                                    <i class="fa fa-check"></i> {{ trans('lang.validate') }}
-                                </a>
-                            @endif
+                            @if(Auth::check() && Auth::user()->hasRole('commercial') && $blog->status == 'en cours')
+    <!-- Bouton pour ouvrir le modal -->
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmModal{{ $blog->id }}">
+        <i class="fa fa-check"></i> {{ trans('lang.validate') }}
+    </button>
+
+    <!-- Modal de confirmation -->
+    <div class="modal fade" id="confirmModal{{ $blog->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">Voulez-vous vraiment accepter la publication de ce blog!
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <a href="{{ route('doctor_blog.accept', $blog->id) }}" class="btn btn-success">Accepter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
+
+
                         </div>
 
                     </div>
