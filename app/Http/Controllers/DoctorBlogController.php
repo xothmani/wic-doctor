@@ -19,13 +19,15 @@ class DoctorBlogController extends Controller
      */
     public function index(DoctorBlogDataTable $dataTable)
     {
-        return $dataTable->render('doctor_blog.index'); // Vue à personnaliser
-    }
-    public function acceptedBlogs(DoctorBlogDataTable $dataTable)
-    {
-        return $dataTable->render('doctor_blog.accepted'); // Vue spécifique aux blogs acceptés
+        // Passer le statut "en cours" à la méthode query
+        return $dataTable->render('doctor_blog.index', ['status' => 'en cours']);
     }
     
+    public function acceptedBlogs(DoctorBlogDataTable $dataTable)
+    {
+        // Passer le statut "accepté" à la méthode query
+        return $dataTable->render('doctor_blog.accepted', ['status' => 'accepté']);
+    }
     /**
      * Show the form for creating a new resource.
      */

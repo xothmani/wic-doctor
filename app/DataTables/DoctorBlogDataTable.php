@@ -62,7 +62,7 @@ class DoctorBlogDataTable extends DataTable
      * @return \Illuminate\Database\Eloquent\Builder
      */
 
-     public function query(DoctorBlog $model): \Illuminate\Database\Eloquent\Builder
+     public function query(DoctorBlog $model, $status = null): \Illuminate\Database\Eloquent\Builder
      {
          $user = auth()->user();
      
@@ -70,22 +70,39 @@ class DoctorBlogDataTable extends DataTable
              return $model->newQuery()->whereRaw('1 = 0');
          }
      
-         if ($user->hasRole('commercial')) { 
-             return $model->newQuery()
-                 ->select('doctor_blogs.*', 'doctors.name as doctor_name')
-                 ->leftJoin('doctors', 'doctors.id', '=', 'doctor_blogs.doctor_id')
-                 ->where('doctor_blogs.status', '=', 'accepté'); // Filtre pour les blogs acceptés
+         $query = $model->newQuery();
+     
+         // Si l'utilisateur est commercial, afficher tous les blogs "en cours" ou "acceptés"
+         if ($user->hasRole('commercial')) {
+             $query->select('doctor_blogs.*', 'doctors.name as doctor_name')
+                   ->leftJoin('doctors', 'doctors.id', '=', 'doctor_blogs.doctor_id');
+     
+             if ($status) {
+                 $query->where('doctor_blogs.status', $status);
+             } else {
+                 $query->whereIn('doctor_blogs.status', ['en cours', 'accepté']);
+             }
+     
+             return $query;
          }
      
+         // Si l'utilisateur est médecin, afficher uniquement les blogs qui lui sont associés
          $doctor = Doctor::where('user_id', $user->id)->first();
      
          if (!$doctor) {
              return $model->newQuery()->whereRaw('1 = 0');
          }
      
-         return $model->newQuery()
-             ->select('doctor_blogs.*')
-             ->where('doctor_blogs.doctor_id', '=', $doctor->id);
+         $query->select('doctor_blogs.*')
+               ->where('doctor_blogs.doctor_id', '=', $doctor->id);
+     
+         if ($status) {
+             $query->where('doctor_blogs.status', $status);
+         } else {
+             $query->whereIn('doctor_blogs.status', ['en cours', 'accepté']);
+         }
+     
+         return $query;
      }
      
      
