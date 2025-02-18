@@ -2011,7 +2011,7 @@ return [
     'my_blog' => 'blog',
 
     'blog_desc' => 'Gestion des blogs',
-    'blog_table' => 'Liste des blogs',
+    'blog_table' => 'Liste des blogs en cours',
     'blog_title' => 'Titre du blog',
     'blog_short_title' => 'Titre abrégé',
     'blog_content' => 'Contenu',
@@ -2028,6 +2028,7 @@ return [
     'doctor_blog_edit' => 'Modifier blog',
     'blog_doctor' => 'Docteur',
     'validate' => 'Publier le blog',
+    'blog_accepted' => 'Liste des blogs acceptés',
 
 
 

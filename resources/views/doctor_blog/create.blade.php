@@ -78,6 +78,13 @@
                             <a class="nav-link" href="{!! route('doctor_blog.index') !!}"><i class="fa fa-list mr-2"></i>{{ trans('lang.blog_table') }}</a>
                         </li>
                     @endcan
+                    @can('doctor_blog.accepted')
+                    <li class="nav-item">
+                        <a class="nav-link" href="{!! route('doctor_blog.accepted') !!}">
+                        <i class="fa fa-list mr-2"></i>{{trans('lang.blog_accepted')}}
+                        </a>
+                    </li>
+                    @endcan
                     <li class="nav-item">
                         <a class="nav-link active" href="{!! url()->current() !!}"><i class="fa fa-plus mr-2"></i>{{ trans('lang.blog_create') }}</a>
                     </li>

@@ -19,15 +19,14 @@ class DoctorBlogController extends Controller
      */
     public function index(DoctorBlogDataTable $dataTable)
     {
-        // Passer le statut "en cours" à la méthode query
-        return $dataTable->render('doctor_blog.index', ['status' => 'en cours']);
+        return $dataTable->with(['status' => 'en cours'])->render('doctor_blog.index');
     }
     
     public function acceptedBlogs(DoctorBlogDataTable $dataTable)
     {
-        // Passer le statut "accepté" à la méthode query
-        return $dataTable->render('doctor_blog.accepted', ['status' => 'accepté']);
+        return $dataTable->with(['status' => 'accepté'])->render('doctor_blog.accepted');
     }
+    
     /**
      * Show the form for creating a new resource.
      */
@@ -245,4 +244,27 @@ class DoctorBlogController extends Controller
 
     return response()->json(['success' => false, 'message' => 'Média non trouvé']);
 }
+public function accepterBlog($id)
+{
+    // Trouver le blog par son ID
+    $blog = DoctorBlog::find($id);
+
+    // Vérifier si le blog existe
+    if (!$blog) {
+        return redirect()->back()->with('error', 'Blog non trouvé.');
+    }
+
+
+    // Changer le statut à "accepté"
+    $blog->status = 'accepté';
+    $blog->save();
+
+
+
+    // Redirection vers la page 'doctor_blog.accepted' avec message de succès
+    return redirect()->route('doctor_blog.accepted')->with('success', 'Le blog a été accepté avec succès.');
+}
+
+
+
 }

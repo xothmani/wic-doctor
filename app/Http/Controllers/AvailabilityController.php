@@ -16,14 +16,20 @@ class AvailabilityController extends Controller
 {
     public function index()
     {
+        // Vérifier si l'utilisateur est connecté
+        if (!auth()->check()) {
+            return redirect()->route('login'); // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
+        }
+    
+        // Récupérer l'ID du médecin lié à l'utilisateur connecté
         $doctorId = auth()->user()->getDoctorId();
         Log::info("Retrieving doctor ID: {$doctorId}");
-
+    
+        // Vérifier si l'ID du médecin est trouvé
         if (!$doctorId) {
-            return redirect()->route('users.profile'); // Redirect if no doctor found
+            return redirect()->route('users.profile'); // Rediriger si aucun médecin n'est trouvé
         }
-
-
+    
         // Récupérer les horaires de disponibilité du médecin où online = 0
         $availability = AvailabilityHour::where('doctor_id', $doctorId)
             ->where('onligne', 0) // Ajouter cette condition

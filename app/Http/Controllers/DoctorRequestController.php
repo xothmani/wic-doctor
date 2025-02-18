@@ -201,11 +201,20 @@ public function store(Request $request)
                     Log::info('Mot de passe du docteur : ' . $doctorPassword);
 
         // Envoi de l'email avec les mots de passe
+        $doctor = Doctor::where('user_id', function ($query) use ($doctorRequest) {
+            $query->select('id')->from('users')->where('email', $doctorRequest->email);
+        })->first();
+        
+        if (!$doctor) {
+            return redirect()->back()->with('error', 'Le docteur n\'existe pas.');
+        }
+        
         Mail::to($doctorRequest->email)->send(new DoctorRequestMail(
             $doctorPassword,
             $patientPassword,
             $doctor
         ));
+        
 
 
 
@@ -304,12 +313,20 @@ public function createUserFromDoctorRequest($doctorRequestId)
         Log::info('Mot de passe du docteur : ' . $doctorPassword);
 
         // Envoi de l'email avec les mots de passe
+        $doctor = Doctor::where('user_id', function ($query) use ($doctorRequest) {
+            $query->select('id')->from('users')->where('email', $doctorRequest->email);
+        })->first();
+        
+        if (!$doctor) {
+            return redirect()->back()->with('error', 'Le docteur n\'existe pas.');
+        }
+        
         Mail::to($doctorRequest->email)->send(new DoctorRequestMail(
             $doctorPassword,
             $patientPassword,
             $doctor
         ));
-
+        
 
 
         return redirect()->route('doctor_requests.index')->with('success', 'Utilisateur, docteur et patient créés avec succès. Les informations ont été envoyées par e-mail.');
