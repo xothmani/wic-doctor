@@ -93,3 +93,49 @@
     </div>
 </div>
 @endsection
+!-- Modale Bootstrap -->
+<!-- Modale Bootstrap -->
+<div class="modal fade" id="contentModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Lire la suite</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalContent">
+                <!-- Le contenu sera ajouté ici dynamiquement -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+ /* Modal carré */
+.modal-dialog {
+    width: 80vh; /* Largeur égale à la hauteur de l'écran */
+    height: 80vh; /* Hauteur égale à la largeur */
+    margin: 30px auto; /* Espacement autour du modal */
+}
+
+.modal-content {
+    height: 100%; /* Prendre toute la hauteur du modal */
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body {
+    overflow-y: auto; /* Activer le défilement vertical */
+    flex-grow: 1; /* Prendre l'espace restant */
+    max-height: calc(80vh - 150px); /* Ajuster la hauteur en fonction de la taille de l'écran et de l'en-tête/pied */
+}
+
+
+</style>
+<script>
+    function showModal(content) {
+        $('#modalContent').html(content); // Insère le contenu HTML dans la modale
+        $('#contentModal').modal('show'); // Affiche la modale
+    }
+</script>

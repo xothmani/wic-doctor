@@ -2029,7 +2029,11 @@ return [
     'blog_doctor' => 'Docteur',
     'validate' => 'Publier le blog',
     'blog_accepted' => 'Liste des blogs acceptés',
+    'photos_cabinet' => 'Galerie des médecins',
+    'management_photos_cabinet' => 'Gestion des galeries',
+    'photos_cabinet_table' => 'Liste des médecins',
 
+    
 
 
 
