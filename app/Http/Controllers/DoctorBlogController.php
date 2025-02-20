@@ -26,6 +26,10 @@ class DoctorBlogController extends Controller
     {
         return $dataTable->with(['status' => 'accepté'])->render('doctor_blog.accepted');
     }
+    public function rejectedBlogs(DoctorBlogDataTable $dataTable)
+    {
+        return $dataTable->with(['status' => 'rejeté'])->render('doctor_blog.rejected');
+    }
     
     /**
      * Show the form for creating a new resource.

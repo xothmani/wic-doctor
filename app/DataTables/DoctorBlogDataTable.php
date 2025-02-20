@@ -89,7 +89,7 @@ class DoctorBlogDataTable extends DataTable
      
              // Si le statut est 'en cours', trier par date de création (created_at)
              if ($status == 'en cours') {
-                 $query->orderBy('doctor_blogs.created_at', 'asc'); // Ou 'desc' selon l'ordre voulu
+                 $query->orderBy('doctor_blogs.created_at', 'desc'); // Ou 'desc' selon l'ordre voulu
              }
      
              return $query;
