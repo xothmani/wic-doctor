@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Models\Doctor;
 
 class DoctorsGalleryController extends Controller
 {
@@ -279,114 +280,156 @@ class DoctorsGalleryController extends Controller
     public function storeCabinet(UploadRequest $request): JsonResponse
     {
         $doctorId = auth()->user()->doctor->id;
-
         $uuid = $request->get('uuid');
-        $category = 'cabinet';    // Hard-coded folder name
-
+        $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
+    
         try {
-            // Create "doctors/{doctorId}/cabinet" if it doesn't exist
+            // Créer le dossier "doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
             $storagePath = "doctors/{$doctorId}/{$category}";
             if (!Storage::exists($storagePath)) {
                 Storage::makeDirectory($storagePath);
             }
-
-            // Get the file from the request
+    
+            // Récupérer le fichier et l'enregistrer sous "en_attente"
             $file = $request->file('file');
-
-            // Save with the original file name inside the "cabinet" folder
             $filePath = $file->storeAs($storagePath, $file->getClientOriginalName(), 'public');
-
-            // Create a record in the database 
+    
+            // Enregistrer dans la base de données avec statut "en attente"
             $upload = $this->uploadRepository->create([
                 'name' => $file->getClientOriginalName(),
                 'file_name' => basename($filePath),
-                'collection_name' => $category,
+                'collection_name' => 'cabinet',
                 'uuid' => $uuid,
                 'disk' => 'public',
                 'size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
+                'status' => 'en attente', // Nouveau champ pour gérer l'état
                 'custom_properties' => [
                     'uuid' => $uuid,
                     'user_id' => $doctorId,
                 ],
             ]);
-
-            return $this->sendResponse($uuid, "Uploaded to 'cabinet' Successfully");
+    
+            return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
         } catch (ValidatorException $e) {
             return $this->sendResponse(false, $e->getMessage());
         }
     }
-
-
+    
     public function allCabinet(Request $request): JsonResponse
     {
         $doctorId = auth()->user()->doctor->id;
-
-        $category = 'cabinet';
-
-        // Physical path in storage
-        $directoryPath = storage_path("app/public/doctors/{$doctorId}/{$category}");
-
-        // If the folder doesn't exist, return an empty array
-        if (!is_dir($directoryPath)) {
-            return response()->json([]);
-        }
-
-        // Get all files (exclude . and ..)
-        $files = array_diff(scandir($directoryPath), ['.', '..']);
+        
+        $baseCategory = 'cabinet';
+        $statuses = ['en_attente', 'accepte', 'refuse']; // Ajout du statut 'refuse'
         $mediaFiles = [];
-
-        foreach ($files as $file) {
-            $fullPath = $directoryPath . '/' . $file;
-            if (is_file($fullPath)) {
-                $fileUrl = asset("storage/doctors/{$doctorId}/{$category}/{$file}");
-                $mediaFiles[] = [
-                    'name' => pathinfo($file, PATHINFO_FILENAME),
-                    'file_name' => $file,
-                    'url' => $fileUrl,
-                    'thumb' => $fileUrl,  // Adjust if you create real thumbnails
-                    'icon' => $fileUrl,  // Adjust if you create icons
-                    'formated_size' => round(filesize($fullPath) / 1024, 2) . ' KB',
-                ];
+        
+        foreach ($statuses as $status) {
+            // Construire le chemin vers chaque dossier (en_attente, accepte, refuse)
+            $directoryPath = storage_path("app/public/doctors/{$doctorId}/{$baseCategory}/{$status}");
+        
+            // Vérifier si le dossier existe
+            if (!is_dir($directoryPath)) {
+                continue;
+            }
+        
+            // Récupérer les fichiers du dossier (exclure . et ..)
+            $files = array_diff(scandir($directoryPath), ['.', '..']);
+        
+            foreach ($files as $file) {
+                $fullPath = $directoryPath . '/' . $file;
+                if (is_file($fullPath)) {
+                    $fileUrl = asset("storage/doctors/{$doctorId}/{$baseCategory}/{$status}/{$file}");
+        
+                    $mediaFiles[] = [
+                        'name' => pathinfo($file, PATHINFO_FILENAME),
+                        'file_name' => $file,
+                        'url' => $fileUrl,
+                        'thumb' => $fileUrl,  // Adapter si vous générez des miniatures
+                        'icon' => $fileUrl,  // Adapter si vous générez des icônes
+                        'formated_size' => round(filesize($fullPath) / 1024, 2) . ' KB',
+                        'status' => $status,  // Ajouter le statut pour faciliter le tri
+                    ];
+                }
             }
         }
-
+        
         return response()->json($mediaFiles);
     }
+    
     public function clearFile(Request $request): JsonResponse
     {
         Log::info("clearFile() invoked", [
             'request_data' => $request->all()
         ]);
-
+        
+        // Validation des entrées
+        $request->validate([
+            'uuid' => 'required|string',
+            'status' => 'required|string|in:accepte,en_attente,refuse',
+        ]);
+        
         $doctorId = auth()->user()->doctor->id;
-        // we rename the variable so it reads the 'uuid' from the request
-        $uuid = $request->input('uuid'); // rename it from 'file_name' to 'uuid'
-
-        // Then you need to figure out the actual file name from the DB or from the
-        // storage if the 'uuid' is somehow the file's name
-        // If you are storing "uuid" as the actual physical filename, then do something like:
-        // $fileName = $uuid;
-        // or look up the DB to find the file_name by that uuid
-
-        $fileName = $uuid; // Or do a DB query to find the real file_name
-        $folder = 'cabinet';
-        $directoryPath = storage_path("app/public/doctors/{$doctorId}/{$folder}");
-        $fullPath = $directoryPath . '/' . $fileName;
-
+        
+        // Récupère les données de la requête
+        $uuid = urldecode($request->input('uuid'));  // Décoder le uuid si nécessaire
+        $status = $request->input('status');  // Le statut du fichier (accepte, en_attente, refuse)
+        
+        // Définir le dossier en fonction du statut
+        $folder = $status === 'accepte' ? 'accepte' :
+                  ($status === 'refuse' ? 'refuse' : 'en_attente');
+        
+        // Construire le chemin complet du fichier
+        $directoryPath = storage_path("app/public/doctors/{$doctorId}/cabinet/{$folder}");
+        $fullPath = $directoryPath . '/' . $uuid;
+        
+        Log::info("Full file path: " . $fullPath);
+        
+        // Vérifier si le fichier existe et le supprimer
         if (file_exists($fullPath)) {
-            @unlink($fullPath);
-            return response()->json([
-                'success' => true,
-                'message' => 'File deleted successfully'
-            ]);
+            // Supprimer le fichier
+            if (@unlink($fullPath)) {
+                Log::info("File deleted successfully", ['path' => $fullPath]);
+    
+                // Si le fichier supprimé est dans le dossier "accepte", mettre à jour la base de données
+                if ($status === 'accepte') {
+                    $doctor = Doctor::find($doctorId);
+    
+                    if ($doctor) {
+                        // Récupérer les images dans la colonne cabinet_photo, séparées par /
+                        $images = explode('/', $doctor->cabinet_photo);
+    
+                        // Supprimer le nom du fichier de la liste
+                        $images = array_filter($images, function ($image) use ($uuid) {
+                            return trim($image) !== $uuid;  // Ne pas inclure l'image supprimée
+                        });
+    
+                        // Réindexer le tableau et mettre à jour la colonne cabinet_photo
+                        $doctor->cabinet_photo = implode('/', array_values($images));
+                        $doctor->save();
+    
+                        Log::info("Updated cabinet_photo column", ['cabinet_photo' => $doctor->cabinet_photo]);
+                    }
+                }
+    
+                return response()->json([
+                    'success' => true,
+                    'message' => 'File deleted successfully'
+                ]);
+            } else {
+                Log::error("Error deleting file", ['path' => $fullPath]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error deleting the file'
+                ], 500);
+            }
         } else {
+            // Fichier non trouvé
+            Log::error("File not found", ['path' => $fullPath]);
             return response()->json([
                 'success' => false,
                 'message' => 'File not found!'
             ], 404);
         }
-    }
-
-
+    }   
 }

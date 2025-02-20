@@ -397,6 +397,18 @@
         <p>{{ trans('lang.my_blog_plural') }}</p></a>
     </li>
 @endcan
+@can('photos_cabinet.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('photos_cabinet') ? 'active' : '' }}" href="{!! route('photos_cabinet.index') !!}">
+        @if($icons)
+        <i class="nav-icon fas fa-images"></i> <!-- Icône de galerie -->
+        @endif
+        <p>{{ trans('lang.photos_cabinet') }}</p></a>
+    </li>
+@endcan
+
+
+
 @can('coupons.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('coupons*') ? 'active' : '' }}" href="{!! route('coupons.index') !!}">@if($icons)
