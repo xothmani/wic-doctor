@@ -23,7 +23,7 @@
                     <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
                         <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i class="fas fa-tachometer-alt"></i> {{ trans('lang.dashboard') }}</a></li>
                         <li class="breadcrumb-item">
-                            <a href="{!! route('doctor_blog.index') !!}">{{ trans('lang.blog_plural') }}</a>
+                            <a href="{!! route('doctor_blog.index') !!}">{{ trans('lang.my_blog_plural') }}</a>
                         </li>
                         <li class="breadcrumb-item active">{{ trans('lang.blog_create') }}</li>
                     </ol>
