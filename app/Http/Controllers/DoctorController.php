@@ -369,21 +369,21 @@ class DoctorController extends Controller
         $languesParlees = explode(',', $doctor->langues_parlees ?? '');
 
 
- // Récupérer les spécialités du médecin (table pivot doctor_specialities)
- $doctorSpecialities = $doctor->specialities;  // Ce sera une collection des spécialités liées
+        // Récupérer les spécialités du médecin (table pivot doctor_specialities)
+        $doctorSpecialities = $doctor->specialities;  // Ce sera une collection des spécialités liées
 
- // Si le médecin a une spécialité, récupérer la première spécialité
- $specialitySelected = $doctorSpecialities->first(); // Prend la première spécialité
- $descriptionSpecialite = $specialitySelected ? $specialitySelected->pivot->description : '';  // Récupérer la description de la table pivot
+        // Si le médecin a une spécialité, récupérer la première spécialité
+        $specialitySelected = $doctorSpecialities->first(); // Prend la première spécialité
+        $descriptionSpecialite = $specialitySelected ? $specialitySelected->pivot->description : '';  // Récupérer la description de la table pivot
 
- // Récupérer toutes les spécialités disponibles
- $specialities = Speciality::pluck('name', 'id');
-        // Récupérer les diplômes associés au médecin
-        $diplomes = $doctor->diplomes;
+        // Récupérer toutes les spécialités disponibles
+        $specialities = Speciality::pluck('name', 'id');
+                // Récupérer les diplômes associés au médecin
+                $diplomes = $doctor->diplomes;
 
-         // Récupérer les informations de stationnement et accessibilité associées
-            $stationnement = explode(',', $address->stationnement ?? '');
-            $accessibilite = explode(',', $address->accessibilite ?? '');
+                // Récupérer les informations de stationnement et accessibilité associées
+                    $stationnement = explode(',', $address->stationnement ?? '');
+                    $accessibilite = explode(',', $address->accessibilite ?? '');
 
 
 

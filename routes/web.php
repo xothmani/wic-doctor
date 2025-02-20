@@ -48,6 +48,7 @@ use App\Http\Controllers\ParrainerController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\DoctorsGalleryController;
 use App\Http\Controllers\DoctorBlogController;
+use App\Http\Controllers\PhotosCabinetController;
 
 
 
@@ -520,6 +521,11 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/doctor_blog/accept/{id}', [DoctorBlogController::class, 'accepterBlog'])
     ->name('doctor_blog.accept');
 
+    Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
+    Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
+Route::post('/photos_cabinet/reject/{id}/{imageName}', [PhotosCabinetController::class, 'reject'])->name('photos_cabinet.reject');
+Route::post('/photos_cabinet/accept/{id}/{imageName}', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
+    
 
 
 

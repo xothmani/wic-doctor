@@ -45,10 +45,12 @@
                             <h3 class="profile-username text-center">{{auth()->user()->name}}</h3>
                             <p class="text-muted text-center">{{implode(', ',$rolesSelected)}}</p>
                             <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="mailto:{{auth()->user()->email}}"><i class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}</a>
+                            @can('doctors.editProfil')
                             <a class="btn btn-outline-{{ setting('theme_color') }} btn-block" href="{{ asset('storage/pdf/Guide modification photo de profil.pdf') }}" target="_blank">
-    <i class="fas fa-info-circle mr-2"></i> Guide pour modifier et compléter votre profil 
-    <span class="badge badge-danger ml-2">Nouveau</span>
-</a>
+                                <i class="fas fa-info-circle mr-2"></i> Guide pour modifier et compléter votre profil 
+                                <span class="badge badge-danger ml-2">Nouveau</span>
+                            </a>
+                            @endcan
 
 
 
@@ -56,42 +58,42 @@
                     
                         <!-- /.card-body -->
                     </div>
-
+                @can('doctors.editProfil')
                     <!-- Profile Edit -->
-<!-- Profile Edit -->
-<div class="card shadow-sm">
-    <div class="card-header">
-        <h3 class="card-title"><i class="fas fa-user mr-2"></i> {{ trans('lang.edit_profil') }}</h3>
-    </div>
-    <div class="card-body box-profile">
-        <!-- Liste des étapes -->
-        <ul class="task-list">
-            <li class="task completed"><i class="fas fa-check-circle"></i> {{ trans('lang.import_avatar') }}</li>
-            <li class="task completed"><i class="fas fa-check-circle"></i> {{ trans('lang.complet_adresse') }}</li>
-            <li class="task {{ $progressPercentage >= 20 ? 'completed' : 'pending' }}">
-                <i class="{{ $progressPercentage >= 20 ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
-                {{ trans('lang.complet_cv') }}
-            </li>
-            <li class="task completed"><i class="fas fa-check-circle"></i> {{ trans('lang.import_photos') }}</li>
-            <li class="task {{ $progressPercentage >= 100 ? 'completed' : 'pending' }}">
-                <i class="{{ $progressPercentage >= 100 ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
-                {{ trans('lang.final_profil') }}
-            </li>
-        </ul>
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-user mr-2"></i> {{ trans('lang.edit_profil') }}</h3>
+                        </div>
+                        <div class="card-body box-profile">
+                            <!-- Liste des étapes -->
+                            <ul class="task-list">
+                                <li class="task completed"><i class="fas fa-check-circle"></i> {{ trans('lang.import_avatar') }}</li>
+                                <li class="task completed"><i class="fas fa-check-circle"></i> {{ trans('lang.complet_adresse') }}</li>
+                                <li class="task {{ $progressPercentage >= 20 ? 'completed' : 'pending' }}">
+                                    <i class="{{ $progressPercentage >= 20 ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+                                    {{ trans('lang.complet_cv') }}
+                                </li>
+                                <li class="task completed"><i class="fas fa-check-circle"></i> {{ trans('lang.import_photos') }}</li>
+                                <li class="task {{ $progressPercentage >= 100 ? 'completed' : 'pending' }}">
+                                    <i class="{{ $progressPercentage >= 100 ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+                                    {{ trans('lang.final_profil') }}
+                                </li>
+                            </ul>
 
-        <!-- Progress Bar -->
-        <div class="progress-container">
-            <div class="progress-bar-container">
-                <div class="progress-bar" style="width: {{ $progressPercentage }}%; background-color: #5c6bc0;"></div>
-            </div>
-        </div>
+                            <!-- Progress Bar -->
+                            <div class="progress-container">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: {{ $progressPercentage }}%; background-color: #5c6bc0;"></div>
+                                </div>
+                            </div>
 
-        <a class="btn btn-outline-{{ setting('theme_color') }} btn-block" href="{{ route('doctors.editProfil') }}">
-            <i class="fas fa-edit mr-2"></i> {{ trans('lang.edit_profil') }}
-        </a>
-    </div>
-</div>
+                            <a class="btn btn-outline-{{ setting('theme_color') }} btn-block" href="{{ route('doctors.editProfil') }}">
+                                <i class="fas fa-edit mr-2"></i> {{ trans('lang.edit_profil') }}
+                            </a>
+                        </div>
+                    </div>
 
+                @endcan
 
 
 
