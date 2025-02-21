@@ -34,52 +34,6 @@
                         @endforelse
                     </div>
 
-                    <!-- Modal de confirmation pour Rejeter -->
-                    <div class="modal fade" id="confirmRejectModal" tabindex="-1" aria-labelledby="confirmRejectModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="confirmRejectModalLabel">Confirmer le rejet</h5>
-                                </div>
-                                <div class="modal-body">
-                                    <p>Êtes-vous sûr de vouloir rejeter cette photo ? Cette action est irréversible.</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-light border cancel-btn" data-dismiss="modal">
-                                        <i class="fas fa-times mr-2"></i> {{ __('lang.cancel') }}
-                                    </button>    
-                                    <form id="rejectForm" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger">Rejeter</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Modal de confirmation pour Accepter -->
-                    <div class="modal fade" id="confirmAcceptModal" tabindex="-1" aria-labelledby="confirmAcceptModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="confirmAcceptModalLabel">Confirmer l'acceptation</h5>
-                                </div>
-                                <div class="modal-body">
-                                    <p>Êtes-vous sûr de vouloir accepter cette photo ?</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-light border cancel-btn" data-dismiss="modal">
-                                        <i class="fas fa-times mr-2"></i> {{ __('lang.cancel') }}
-                                    </button>           
-                                    <form id="acceptForm" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success">Accepter</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Bouton de retour -->
                     <div class="text-end mt-3">
                         <a href="{{ route('photos_cabinet.index') }}" class="btn btn-secondary">Retour à la liste</a>
@@ -93,89 +47,116 @@
 
 <script>
     // Gestion du clic sur le bouton de rejet
-    document.querySelectorAll('.reject-btn').forEach(function(button) {
-        button.addEventListener('click', function() {
-            var imageName = this.getAttribute('data-image');
-            var doctorId = this.getAttribute('data-id');
-            
-            console.log('Rejet: doctorId =', doctorId, ', imageName =', imageName); // Vérifier si les bonnes valeurs sont extraites
+document.querySelectorAll('.reject-btn').forEach(function(button) {
+    button.addEventListener('click', function(event) {
+        event.preventDefault(); // Empêcher le comportement par défaut du bouton
 
-            // Mettre à jour le formulaire de rejet avec l'ID du docteur et le nom de l'image
-            var form = document.getElementById('rejectForm');
-            form.action = '/photoscabinet/reject/' + doctorId + '/' + imageName;
-
-
-            console.log('Form action set to:', form.action); // Vérifier si l'action du formulaire est bien mise à jour
-            // Afficher la fenêtre modale de rejet
-            var modal = new bootstrap.Modal(document.getElementById('confirmRejectModal'));
-            modal.show();
-        });
-    });
-
-    // Gestion du clic sur le bouton d'acceptation
-    /* document.querySelectorAll('.accept-btn').forEach(function(button) {
-    button.addEventListener('click', function() {
+        // Récupérer les données de l'image et du docteur
         var imageName = this.getAttribute('data-image');
         var doctorId = this.getAttribute('data-id');
 
-        console.log('Acceptation: doctorId =', doctorId, ', imageName =', imageName); // Vérifier les valeurs extraites
-        
-        // Construire l'URL avec les paramètres doctorId et imageName
-        var url = '/phoCabinet/accept/' + doctorId + '/' + imageName; // Inclure doctorId et imageName
+        // Afficher le modal de confirmation pour le rejet
+        var rejectModal = new bootstrap.Modal(document.getElementById('confirmRejectModal'));
+        rejectModal.show();
 
-        console.log('URL appelée:', url); // Vérifier l'URL générée
+        // Gestion du clic sur le bouton "Rejeter" dans le modal
+        document.getElementById('confirmRejectModal').querySelector('form#rejectForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêcher la soumission du formulaire
 
-        // Effectuer la redirection vers la route accept
-        window.location.href = url;
-
-        // Afficher la fenêtre modale d'acceptation
-        var modal = new bootstrap.Modal(document.getElementById('confirmAcceptModal'));
-        modal.show();
-    });
-}); */
-document.querySelectorAll('.accept-btn').forEach(function(button) {
-    button.addEventListener('click', function() {
-        // Get the imageName and doctorId from the button attributes
-        var imageName = this.getAttribute('data-image');
-        var doctorId = this.getAttribute('data-id');
-
-        // Log the values to the console (for debugging purposes)
-        console.log('Acceptation: doctorId =', doctorId, ', imageName =', imageName);
-
-        // Send an AJAX request to the server
-        fetch('/photos-cabinet/accept', { // Use the route URL
-            method: 'POST', // Use POST method
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Include CSRF token
-            },
-            body: JSON.stringify({ // Send data as JSON
-                doctorId: doctorId,
-                imageName: imageName
+            // Envoyer la requête AJAX pour rejeter l'image
+            fetch('/photos-cabinet/rejet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    doctorId: doctorId,
+                    imageName: imageName
+                })
             })
-        })
-        .then(response => response.json()) // Parse the JSON response
-        .then(data => {
-            // Handle the response from the server
-            console.log('Server Response:', data);
-            alert(data.message); // Show a success message
-        })
-        .catch(error => {
-            // Handle any errors
-            console.error('Error:', error);
-            alert('An error occurred while processing your request.');
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server Response:', data);
+                if (data.error) {
+                    alert(data.error); // Afficher un message d'erreur
+                } else {
+                    alert(data.message); // Afficher un message de succès
+                    // Rediriger vers la page "photos_cabinet.show" après la réussite
+                    window.location.href = `/photos-cabinet/${doctorId}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing your request.');
+            });
+
+            // Fermer le modal après la soumission
+            rejectModal.hide();
         });
     });
 });
-    // Code pour fermer les modals avec le bouton "Annuler" ou "Fermer" (croix)
-    document.querySelectorAll('.btn-close, .btn-secondary').forEach(function(button) {
-        button.addEventListener('click', function() {
-            // Cibler le modal parent et fermer en utilisant bootstrap.Modal
-            var modalElement = this.closest('.modal');
-            var modal = new bootstrap.Modal(modalElement);
-            modal.hide(); // Fermer le modal
+
+// Gestion du clic sur le bouton d'acceptation
+document.querySelectorAll('.accept-btn').forEach(function(button) {
+    button.addEventListener('click', function(event) {
+        event.preventDefault(); // Empêcher le comportement par défaut du bouton
+
+        // Récupérer les données de l'image et du docteur
+        var imageName = this.getAttribute('data-image');
+        var doctorId = this.getAttribute('data-id');
+
+        // Afficher le modal de confirmation pour l'acceptation
+        var acceptModal = new bootstrap.Modal(document.getElementById('confirmAcceptModal'));
+        acceptModal.show();
+
+        // Gestion du clic sur le bouton "Accepter" dans le modal
+        document.getElementById('confirmAcceptModal').querySelector('form#acceptForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêcher la soumission du formulaire
+
+            // Envoyer la requête AJAX pour accepter l'image
+            fetch('/photos-cabinet/accept', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    doctorId: doctorId,
+                    imageName: imageName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server Response:', data);
+                if (data.error) {
+                    alert(data.error); // Afficher un message d'erreur
+                } else {
+                    alert(data.message); // Afficher un message de succès
+                    // Rediriger vers la page "photos_cabinet.show" après la réussite
+                    window.location.href = `/photos-cabinet/${doctorId}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing your request.');
+            });
+
+            // Fermer le modal après la soumission
+            acceptModal.hide();
         });
     });
+});
+
+// Gestion du clic sur le bouton "Annuler" ou "Fermer" dans les modals
+document.querySelectorAll('.btn-close, .btn-secondary').forEach(function(button) {
+    button.addEventListener('click', function() {
+        // Fermer le modal parent
+        var modalElement = this.closest('.modal');
+        var modal = new bootstrap.Modal(modalElement);
+        modal.hide();
+    });
+});
 </script>
 
 <style>
@@ -185,5 +166,46 @@ document.querySelectorAll('.accept-btn').forEach(function(button) {
         object-fit: cover; /* Assurer que l'image conserve son aspect tout en remplissant l'espace */
     }
 </style>
-
+<div class="modal fade" id="confirmAcceptModal" tabindex="-1" aria-labelledby="confirmAcceptModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmAcceptModalLabel">Confirmer l'acceptation</h5>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir accepter cette photo ?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border cancel-btn" data-dismiss="modal">
+                    <i class="fas fa-times mr-2"></i> Annuler
+                </button>
+                <form id="acceptForm" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-success">Accepter</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="confirmRejectModal" tabindex="-1" aria-labelledby="confirmRejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmRejectModalLabel">Confirmer le rejet</h5>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir rejeter cette photo ? Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border cancel-btn" data-dismiss="modal">
+                    <i class="fas fa-times mr-2"></i> Annuler
+                </button>
+                <form id="rejectForm" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-danger">Rejeter</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
