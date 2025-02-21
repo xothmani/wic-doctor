@@ -2032,6 +2032,10 @@ return [
     'photos_cabinet' => 'Galerie des médecins',
     'management_photos_cabinet' => 'Gestion des galeries',
     'photos_cabinet_table' => 'Liste des médecins',
+    'photos_cabinet_table' => 'Liste des médecins',
+    'blog_rejected' => 'Liste des blogs ajournés',
+    'blog_rejeter' => 'Rejeter le blog',
+    'blog_reason' => 'Raison',
 
     
 

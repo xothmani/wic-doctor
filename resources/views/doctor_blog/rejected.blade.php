@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('content')
 <!-- Content Header (Page header) -->
 <div class="content-header">
@@ -20,7 +19,7 @@
                     <li class="breadcrumb-item">
                         <a href="{!! route('doctor_blog.index') !!}">{{trans('lang.my_blog_plural')}}</a>
                     </li>
-                    <li class="breadcrumb-item active">{{trans('lang.blog_table')}}</li>
+                    <li class="breadcrumb-item active">{{trans('lang.blog_rejected')}}</li>
                 </ol>
             </div><!-- /.col -->
         </div><!-- /.row -->
@@ -57,26 +56,23 @@
             }
         }, 5000); // 5 secondes
     });
-</script>
-<div class="content">
+</script><div class="content">
     <div class="clearfix"></div>
     @include('flash::message')
     <div class="card shadow-sm">
         <div class="card-header">
-        <div class="alert" style="background-color: #FFF3CD; color: #856404; border-color: #FFEEBA;">
+        <div class="alert" style="background-color: #F8D7DA; color: #842029; border-color: #F5C2C7;">
     <strong>
-      <i class="fas fa-info-circle mr-2"></i>
-      Ces blogs sont en cours et seront validés par la communauté.
-    </strong> 
-</div>
-
+      <i class="fas fa-exclamation-triangle mr-2"></i>
+      Ces blogs pourraient être révisés et soumis à nouveau    </strong> 
+  </div>
             <ul class="nav nav-tabs d-flex flex-md-row flex-column-reverse align-items-start card-header-tabs">
                 <div class="d-flex flex-row">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{!! url()->current() !!}">
-                            <i class="fa fa-list mr-2"></i>{{trans('lang.blog_table')}}
-                        </a>
-                    </li>
+                @can('doctor_blog.index')
+                        <li class="nav-item">
+                            <a class="nav-link" href="{!! route('doctor_blog.index') !!}"><i class="fa fa-list mr-2"></i>{{ trans('lang.blog_table') }}</a>
+                        </li>
+                    @endcan
                     @can('doctor_blog.accepted')
                     <li class="nav-item">
                         <a class="nav-link" href="{!! route('doctor_blog.accepted') !!}">
@@ -84,13 +80,11 @@
                         </a>
                     </li>
                     @endcan
-                    @can('doctor_blog.rejected')
                     <li class="nav-item">
-                        <a class="nav-link" href="{!! route('doctor_blog.rejected') !!}">
-                        <i class="fa fa-list mr-2"></i>{{trans('lang.blog_rejected')}}
+                        <a class="nav-link active" href="{!! url()->current() !!}">
+                            <i class="fa fa-list mr-2"></i>{{trans('lang.blog_rejected')}}
                         </a>
                     </li>
-                    @endcan
                     @can('doctor_blog.create')
                     <li class="nav-item">
                         <a class="nav-link" href="{!! route('doctor_blog.create') !!}">
@@ -98,18 +92,19 @@
                         </a>
                     </li>
                     @endcan
+
                 </div>
                 @include('layouts.right_toolbar', compact('dataTable'))
             </ul>
         </div>
         <div class="card-body">
-            @include('doctor_blog.table')
+            @include('doctor_blog.table') <!-- Inclure la même table que pour l'index -->
             <div class="clearfix"></div>
         </div>
     </div>
 </div>
 @endsection
-<!-- Modale Bootstrap -->
+!-- Modale Bootstrap -->
 <!-- Modale Bootstrap -->
 <div class="modal fade" id="contentModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
     <div class="modal-dialog" role="document">
