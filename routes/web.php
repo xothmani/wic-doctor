@@ -17,8 +17,8 @@
 |
 */
 use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\PharmacyController;
-use App\Http\Controllers\PharmacyTypeController;
+//use App\Http\Controllers\PharmacyController;
+//use App\Http\Controllers\PharmacyTypeController;
 use App\Http\Controllers\MessagerieController;
 
 use App\Http\Controllers\ConsultationController;
@@ -49,6 +49,8 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\DoctorsGalleryController;
 use App\Http\Controllers\DoctorBlogController;
 use App\Http\Controllers\PhotosCabinetController;
+use App\Http\Controllers\DoctorUserController;
+//use App\Http\Controllers\MailController;
 
 
 
@@ -366,8 +368,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('patients/{id}/whatsapp', 'PatientController@openWhatsAppClient')->name('patients.whatsapp');
     Route::get('/fiche/{id}', [FicheController::class, 'show'])->name('fiche.show');
     //route pour rayen
-    Route::resource('pharmacies', PharmacyController::class);
-    Route::resource('pharmacyTypes', PharmacyTypeController::class);
+    //Route::resource('pharmacies', PharmacyController::class);
+    //Route::resource('pharmacyTypes', PharmacyTypeController::class);
     Route::get('paypal', [PayPalController::class, 'index'])->name('paypal');
     Route::get('appointment-event', [AppointmentEventController::class, 'index'])->name('appointment-events.index');
     Route::post('appointment-event/action', [AppointmentEventController::class, 'action']);
@@ -395,7 +397,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/prescriptions/{prescription}/pdf', [PrescriptionController::class, 'generatePrescriptionPdf'])->name('prescriptions.pdf');
     Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
 
-    Route::get('send-mail', [MailController::class, 'index']);
+   // Route::get('send-mail', [MailController::class, 'index']);
 
     Route::get('/appointments/today/completed', [AppointmentController::class, 'getTodayCompletedAppointments'])
         ->name('appointments.today.completed');
@@ -493,7 +495,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     Route::get('/listdoctors', [ParrainerController::class, 'listDoctors'])->name('parrainers.listdoctors');
 
-    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    //Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::post('/adresse/store', [AddressController::class, 'store']);
     Route::get('editProfil', [DoctorController::class, 'editProfil'])->name('doctors.editProfil');
     Route::post('/edit-info-personnelle', [DoctorController::class, 'editInfoPersonnelle'])->name('editInfoPersonnelle');
@@ -527,8 +529,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
     Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
-    Route::post('/photos_cabinet/reject/{id}/{imageName}', [PhotosCabinetController::class, 'reject'])->name('photos_cabinet.reject');
-    Route::post('/photos_cabinet/accept/{id}/{imageName}', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
+    Route::post('/photos-cabinet/reject/{id}/{imageName}', [PhotosCabinetController::class, 'reject'])->name('photos_cabinet.reject');
+    Route::post('/photos-cabinet/accept/{id}/{imageName}', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
     
 
 
