@@ -527,15 +527,25 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::post('/doctor_blog/rejet/{id}', [DoctorBlogController::class, 'rejeterBlog'])
     ->name('doctor_blog.rejet');
 
-    Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
-    Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
+    //Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
+//Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
     //Route::post('/photos-cabinet/reject/{id}/{imageName}', [PhotosCabinetController::class, 'reject'])->name('photos_cabinet.reject');
     //Route::post('/photos-cabinet/accept/{id}/{imageName}', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
     //Route::get('/photocabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
-    Route::post('/photos-cabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
+   // Route::post('/phoCabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
 
+   //Route::post('/phoCabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
+/*    Route::post('/phoCabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
+   Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
+   Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show'); */
 
+// Define the POST route first
+//Route::post('/phoCabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
 
+// Define the GET routes afterward
+Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
+Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
+Route::post('photos-cabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
 
 });
 
