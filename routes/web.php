@@ -518,13 +518,17 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::patch('doctor_blog/{id}', [DoctorBlogController::class, 'update'])->name('doctor_blog.update');
     Route::post('uploads/deleteImage', [DoctorBlogController::class, 'deleteImage'])->name('uploads.deleteImage');
     Route::get('doctor_blogs/accepted', [DoctorBlogController::class, 'acceptedBlogs'])->name('doctor_blog.accepted');
+    Route::get('doctor_blogs/rejected', [DoctorBlogController::class, 'rejectedBlogs'])->name('doctor_blog.rejected');
+
     Route::get('/doctor_blog/accept/{id}', [DoctorBlogController::class, 'accepterBlog'])
     ->name('doctor_blog.accept');
+    Route::post('/doctor_blog/rejet/{id}', [DoctorBlogController::class, 'rejeterBlog'])
+    ->name('doctor_blog.rejet');
 
     Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
     Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
-Route::post('/photos_cabinet/reject/{id}/{imageName}', [PhotosCabinetController::class, 'reject'])->name('photos_cabinet.reject');
-Route::post('/photos_cabinet/accept/{id}/{imageName}', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
+    Route::post('/photos_cabinet/reject/{id}/{imageName}', [PhotosCabinetController::class, 'reject'])->name('photos_cabinet.reject');
+    Route::post('/photos_cabinet/accept/{id}/{imageName}', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
     
 
 

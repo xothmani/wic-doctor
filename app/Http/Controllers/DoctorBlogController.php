@@ -28,7 +28,7 @@ class DoctorBlogController extends Controller
     }
     public function rejectedBlogs(DoctorBlogDataTable $dataTable)
     {
-        return $dataTable->with(['status' => 'rejeté'])->render('doctor_blog.rejected');
+        return $dataTable->with(['status' => 'ajourné'])->render('doctor_blog.rejected');
     }
     
     /**
@@ -268,7 +268,29 @@ public function accepterBlog($id)
     // Redirection vers la page 'doctor_blog.accepted' avec message de succès
     return redirect()->route('doctor_blog.accepted')->with('success', 'Le blog a été accepté avec succès.');
 }
+public function rejeterBlog(Request $request, $id)
+{
+    // Trouver le blog par son ID
+    $blog = DoctorBlog::find($id);
 
+    // Vérifier si le blog existe
+    if (!$blog) {
+        return redirect()->back()->with('error', 'Blog non trouvé.');
+    }
+
+    // Valider la raison du rejet
+    $request->validate([
+        'raisonRejet' => 'required|string',  // Assurez-vous que la raison est bien fournie
+    ]);
+
+    // Changer le statut à "ajourné" et ajouter la raison de rejet
+    $blog->status = 'ajourné';
+    $blog->raison = $request->input('raisonRejet');  // Enregistrer la raison dans la colonne 'raison'
+    $blog->save();
+
+    // Redirection vers la page 'doctor_blog.rejected' avec message de succès
+    return redirect()->route('doctor_blog.rejected')->with('success', 'Le blog a été ajourné avec succès.');
+}
 
 
 }

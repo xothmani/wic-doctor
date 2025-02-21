@@ -40,14 +40,18 @@ class DoctorBlogDataTable extends DataTable
             }
             return $content;
         })
-        
-        
-        ->editColumn('status', function ($blog) {
-            return $blog->status;
+        ->addColumn('raison', function ($blog) {
+            // Afficher la raison si le statut est "ajourné"
+            return $blog->status == 'ajourné' ? $blog->raison : null;
         })
+        
+        
+        
+ 
         ->addColumn('doctor', function ($blog) {
             return optional($blog->doctor)->name; // Affiche le nom du médecin
         })
+
         ->addColumn('action', 'doctor_blog.datatables_actions')
         ->rawColumns(['contenu', 'titre', 'action']);
 }
@@ -105,21 +109,23 @@ class DoctorBlogDataTable extends DataTable
          $query->select('doctor_blogs.*')
                ->where('doctor_blogs.doctor_id', '=', $doctor->id);
      
-         if (!empty($status)) {
-             $query->where('doctor_blogs.status', $status);
-         } else {
-             $query->whereIn('doctor_blogs.status', ['en cours', 'accepté']);
-         }
-     
-            // Si le statut est 'en cours', trier par date de création (created_at)
+               if (!empty($status)) {
+                $query->where('doctor_blogs.status', $status);
+            } else {
+                $query->whereIn('doctor_blogs.status', ['en cours', 'accepté', 'ajourné']);
+            }
+            
+            // Tri en fonction du statut
             if ($status == 'en cours') {
-                $query->orderBy('doctor_blogs.created_at', 'desc'); // Ordre décroissant pour les plus récents
+                $query->orderBy('doctor_blogs.created_at', 'desc');
             }
-
-            // Si le statut est 'accepté', trier par date de mise à jour (updated_at)
             if ($status == 'accepté') {
-                $query->orderBy('doctor_blogs.updated_at', 'desc'); // Ordre décroissant pour les plus récents
+                $query->orderBy('doctor_blogs.updated_at', 'desc');
             }
+            if ($status == 'ajourné') {
+                $query->orderBy('doctor_blogs.updated_at', 'desc'); // Tri par date de mise à jour
+            }
+            
 
      
          return $query;
@@ -172,10 +178,6 @@ class DoctorBlogDataTable extends DataTable
                 'data' => 'contenu',
                 'title' => trans('lang.blog_content'),
             ],
-            [
-                'data' => 'status',
-                'title' => trans('lang.blog_status'),
-            ],
         ];
     
         // Ajouter la colonne "doctor" uniquement si l'utilisateur est un commercial
@@ -186,8 +188,18 @@ class DoctorBlogDataTable extends DataTable
             ];
         }
     
+        // Ajouter la colonne "raison" uniquement si le statut est "ajourné"
+        $status = $this->request->input('status', $this->status);
+        if ($status == 'ajourné') {
+            $columns[] = [
+                'data' => 'raison',
+                'title' => trans('lang.blog_reason'),
+            ];
+        }
+    
         return $columns;
     }
+    
     
     /**
      * Get filename for export.
