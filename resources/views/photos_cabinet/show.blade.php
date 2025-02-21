@@ -5,6 +5,38 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <div class="container py-5">
+@if(session('success'))
+    <div id="success-alert" class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if(session('error'))
+    <div id="error-alert" class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(function() {
+            const errorAlert = document.getElementById('error-alert');
+            const successAlert = document.getElementById('success-alert');
+
+            if (errorAlert) {
+                errorAlert.style.transition = "opacity 1s";
+                errorAlert.style.opacity = "0";
+                setTimeout(() => errorAlert.remove(), 1000); // Supprime l'élément après l'animation
+            }
+
+            if (successAlert) {
+                successAlert.style.transition = "opacity 1s";
+                successAlert.style.opacity = "0";
+                setTimeout(() => successAlert.remove(), 1000); // Supprime l'élément après l'animation
+            }
+        }, 5000); // 5 secondes
+    });
+</script>
     <div class="row justify-content-center">
         <div class="col-md-10">
             <div class="card shadow-lg">
@@ -46,58 +78,7 @@
 </div>
 
 <script>
-    // Gestion du clic sur le bouton de rejet
-document.querySelectorAll('.reject-btn').forEach(function(button) {
-    button.addEventListener('click', function(event) {
-        event.preventDefault(); // Empêcher le comportement par défaut du bouton
 
-        // Récupérer les données de l'image et du docteur
-        var imageName = this.getAttribute('data-image');
-        var doctorId = this.getAttribute('data-id');
-
-        // Afficher le modal de confirmation pour le rejet
-        var rejectModal = new bootstrap.Modal(document.getElementById('confirmRejectModal'));
-        rejectModal.show();
-
-        // Gestion du clic sur le bouton "Rejeter" dans le modal
-        document.getElementById('confirmRejectModal').querySelector('form#rejectForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Empêcher la soumission du formulaire
-
-            // Envoyer la requête AJAX pour rejeter l'image
-            fetch('/photos-cabinet/rejet', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    doctorId: doctorId,
-                    imageName: imageName
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Server Response:', data);
-                if (data.error) {
-                    alert(data.error); // Afficher un message d'erreur
-                } else {
-                    alert(data.message); // Afficher un message de succès
-                    // Rediriger vers la page "photos_cabinet.show" après la réussite
-                    window.location.href = `/photos-cabinet/${doctorId}`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while processing your request.');
-            });
-
-            // Fermer le modal après la soumission
-            rejectModal.hide();
-        });
-    });
-});
-
-// Gestion du clic sur le bouton d'acceptation
 document.querySelectorAll('.accept-btn').forEach(function(button) {
     button.addEventListener('click', function(event) {
         event.preventDefault(); // Empêcher le comportement par défaut du bouton
@@ -106,45 +87,31 @@ document.querySelectorAll('.accept-btn').forEach(function(button) {
         var imageName = this.getAttribute('data-image');
         var doctorId = this.getAttribute('data-id');
 
-        // Afficher le modal de confirmation pour l'acceptation
+        // Remplir les champs cachés du formulaire
+        document.getElementById('doctorIdInput').value = doctorId;
+        document.getElementById('imageNameInput').value = imageName;
+
+        // Afficher le modal de confirmation pour le rejet
         var acceptModal = new bootstrap.Modal(document.getElementById('confirmAcceptModal'));
         acceptModal.show();
+    });
+});
 
-        // Gestion du clic sur le bouton "Accepter" dans le modal
-        document.getElementById('confirmAcceptModal').querySelector('form#acceptForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Empêcher la soumission du formulaire
+document.querySelectorAll('.reject-btn').forEach(function(button) {
+    button.addEventListener('click', function(event) {
+        event.preventDefault(); // Empêcher le comportement par défaut du bouton
 
-            // Envoyer la requête AJAX pour accepter l'image
-            fetch('/photos-cabinet/accept', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    doctorId: doctorId,
-                    imageName: imageName
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Server Response:', data);
-                if (data.error) {
-                    alert(data.error); // Afficher un message d'erreur
-                } else {
-                    alert(data.message); // Afficher un message de succès
-                    // Rediriger vers la page "photos_cabinet.show" après la réussite
-                    window.location.href = `/photos-cabinet/${doctorId}`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while processing your request.');
-            });
+        // Récupérer les données de l'image et du docteur
+        var imageName = this.getAttribute('data-image');
+        var doctorId = this.getAttribute('data-id');
 
-            // Fermer le modal après la soumission
-            acceptModal.hide();
-        });
+        // Remplir les champs cachés du formulaire
+        document.getElementById('doctorIdInput1').value = doctorId;
+        document.getElementById('imageNameInput1').value = imageName;
+
+        // Afficher le modal de confirmation pour le rejet
+        var rejectModal = new bootstrap.Modal(document.getElementById('confirmRejectModal'));
+        rejectModal.show();
     });
 });
 
@@ -179,14 +146,18 @@ document.querySelectorAll('.btn-close, .btn-secondary').forEach(function(button)
                 <button type="button" class="btn btn-light border cancel-btn" data-dismiss="modal">
                     <i class="fas fa-times mr-2"></i> Annuler
                 </button>
-                <form id="acceptForm" method="POST" class="d-inline">
+                <form id="acceptForm" method="POST" action="{{ route('photos_cabinet.accept') }}" class="d-inline">
                     @csrf
+                    <input type="hidden" name="doctorId" id="doctorIdInput">
+                    <input type="hidden" name="imageName" id="imageNameInput">
                     <button type="submit" class="btn btn-success">Accepter</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+
 <div class="modal fade" id="confirmRejectModal" tabindex="-1" aria-labelledby="confirmRejectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -194,18 +165,21 @@ document.querySelectorAll('.btn-close, .btn-secondary').forEach(function(button)
                 <h5 class="modal-title" id="confirmRejectModalLabel">Confirmer le rejet</h5>
             </div>
             <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir rejeter cette photo ? Cette action est irréversible.</p>
+                <p>Êtes-vous sûr de vouloir rejeter cette photo ?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light border cancel-btn" data-dismiss="modal">
                     <i class="fas fa-times mr-2"></i> Annuler
                 </button>
-                <form id="rejectForm" method="POST" class="d-inline">
+                <form id="acceptForm" method="POST" action="{{ route('photos_cabinet.rejet') }}" class="d-inline">
                     @csrf
+                    <input type="hidden" name="doctorId" id="doctorIdInput1">
+                    <input type="hidden" name="imageName" id="imageNameInput1">
                     <button type="submit" class="btn btn-danger">Rejeter</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
 @endsection
