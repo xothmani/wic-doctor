@@ -135,43 +135,38 @@
 }); */
 document.querySelectorAll('.accept-btn').forEach(function(button) {
     button.addEventListener('click', function() {
+        // Get the imageName and doctorId from the button attributes
         var imageName = this.getAttribute('data-image');
         var doctorId = this.getAttribute('data-id');
 
-        console.log('Acceptation: doctorId =', doctorId, ', imageName =', imageName); // Vérifier les valeurs extraites
-        
-        // Créer l'objet JSON avec doctorId et imageName
-        var data = {
-            doctorId: 135,
-            imageName: 'doctor-F.png'
-        };
+        // Log the values to the console (for debugging purposes)
+        console.log('Acceptation: doctorId =', doctorId, ', imageName =', imageName);
 
-        // Récupérer le token CSRF
-        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        // Effectuer la requête AJAX pour envoyer les données en JSON
-        fetch('/photos-cabinet/accept', {
-            method: 'POST',
+        // Send an AJAX request to the server
+        fetch('/photos-cabinet/accept', { // Use the route URL
+            method: 'POST', // Use POST method
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken // Ajouter le token CSRF ici
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Include CSRF token
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify({ // Send data as JSON
+                doctorId: doctorId,
+                imageName: imageName
+            })
         })
-        .then(response => response.json()) // Si tu veux gérer la réponse JSON
+        .then(response => response.json()) // Parse the JSON response
         .then(data => {
-            console.log('Réponse du serveur:', data);
-            // Afficher la fenêtre modale d'acceptation
-            var modal = new bootstrap.Modal(document.getElementById('confirmAcceptModal'));
-            modal.show();
+            // Handle the response from the server
+            console.log('Server Response:', data);
+            alert(data.message); // Show a success message
         })
         .catch(error => {
-            console.error('Erreur:', error);
+            // Handle any errors
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
         });
     });
 });
-
-
     // Code pour fermer les modals avec le bouton "Annuler" ou "Fermer" (croix)
     document.querySelectorAll('.btn-close, .btn-secondary').forEach(function(button) {
         button.addEventListener('click', function() {
