@@ -46,7 +46,7 @@ class PhotosCabinetController extends Controller
      }
      
     
-     public function accept($id, $imageName)
+    /*  public function accept($id, $imageName)
      {
          // Définir les chemins des dossiers
          $doctorId = $id; // Récupérer l'ID du docteur
@@ -86,9 +86,12 @@ class PhotosCabinetController extends Controller
              return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
                               ->with('error', 'L\'image n\'a pas été trouvée.');
          }
-     }
+     } */
      
-
+     public function accept($id, $imageName)
+     {
+         dd("Route accept appelée avec ID: $id et Image: $imageName");
+     }
 
 public function reject($id, $imageName)
 {
