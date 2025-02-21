@@ -102,7 +102,7 @@
 
             // Mettre à jour le formulaire de rejet avec l'ID du docteur et le nom de l'image
             var form = document.getElementById('rejectForm');
-            form.action = '/photos_cabinet/reject/' + doctorId + '/' + imageName;
+            form.action = '/photos-cabinet/reject/' + doctorId + '/' + imageName;
 
 
             console.log('Form action set to:', form.action); // Vérifier si l'action du formulaire est bien mise à jour
@@ -122,7 +122,7 @@
             
             // Mettre à jour le formulaire d'acceptation avec l'ID du docteur et le nom de l'image
             var form = document.getElementById('acceptForm');
-            form.action = '/photos_cabinet/accept/' + doctorId + '/' + imageName;
+            form.action = '/photos-cabinet/accept/' + doctorId + '/' + imageName;
 
 
             console.log('Form action set to:', form.action); // Vérifier l'action du formulaire
