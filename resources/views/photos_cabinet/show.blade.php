@@ -114,25 +114,25 @@
 
     // Gestion du clic sur le bouton d'acceptation
     document.querySelectorAll('.accept-btn').forEach(function(button) {
-        button.addEventListener('click', function() {
-            var imageName = this.getAttribute('data-image');
-            var doctorId = this.getAttribute('data-id');
+    button.addEventListener('click', function() {
+        var imageName = this.getAttribute('data-image');
+        var doctorId = this.getAttribute('data-id');
 
-            console.log('Acceptation: doctorId =', doctorId, ', imageName =', imageName); // Vérifier les valeurs extraites
-            var url = '/photocabinet/accept'; 
-            
-            // Mettre à jour le formulaire d'acceptation avec l'ID du docteur et le nom de l'image
-            var form = document.getElementById('acceptForm');
-            window.location.href = url;
+        console.log('Acceptation: doctorId =', doctorId, ', imageName =', imageName); // Vérifier les valeurs extraites
+        
+        // Construire l'URL avec les paramètres doctorId et imageName
+        var url = '/phoCabinet/accept/' + doctorId + '/' + imageName; // Inclure doctorId et imageName
 
+        console.log('URL appelée:', url); // Vérifier l'URL générée
 
-            console.log('Form action set to:', form.action); // Vérifier l'action du formulaire
+        // Effectuer la redirection vers la route accept
+        window.location.href = url;
 
-            // Afficher la fenêtre modale d'acceptation
-            var modal = new bootstrap.Modal(document.getElementById('confirmAcceptModal'));
-            modal.show();
-        });
+        // Afficher la fenêtre modale d'acceptation
+        var modal = new bootstrap.Modal(document.getElementById('confirmAcceptModal'));
+        modal.show();
     });
+});
 
     // Code pour fermer les modals avec le bouton "Annuler" ou "Fermer" (croix)
     document.querySelectorAll('.btn-close, .btn-secondary').forEach(function(button) {
