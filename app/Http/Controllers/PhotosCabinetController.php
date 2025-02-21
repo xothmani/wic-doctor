@@ -7,7 +7,6 @@ use App\DataTables\PhotosCabinetDataTable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use App\Models\Doctor;
-use Illuminate\Support\Facades\Log;
 
 class PhotosCabinetController extends Controller
 {
@@ -41,9 +40,7 @@ class PhotosCabinetController extends Controller
          // Récupérer les informations du docteur (ici, on suppose que vous avez un modèle 'Doctor')
          $doctor = Doctor::find($id); // Assurez-vous que vous avez une table 'doctors' ou une table appropriée
          $doctorName = $doctor ? $doctor->name : 'Docteur Inconnu'; // Utilisation d'une valeur par défaut si le docteur n'est pas trouvé
-         Log::info("Afficher l'image ou les infos pour l'ID: $id");
          
-
          // Retourner la vue avec les images et le nom du docteur
          return view('photos_cabinet.show', compact('imageUrls', 'id', 'doctorName'));
      }
@@ -51,10 +48,6 @@ class PhotosCabinetController extends Controller
     
      public function accept($id, $imageName)
      {
-        Log::info(route('photos_cabinet.accept', ['id' => 135, 'imageName' => 'doctor-F.png']));
-        //dd(route('photos_cabinet.accept', ['id' => 135, 'imageName' => 'doctor-F.png']));
-        Log::info('entree a la fonction accept *******');
-
          // Définir les chemins des dossiers
          $doctorId = $id; // Récupérer l'ID du docteur
          $sourcePath = "public/doctors/{$doctorId}/cabinet/en_attente/{$imageName}";
@@ -86,9 +79,8 @@ class PhotosCabinetController extends Controller
              }
      
              // Retourner une réponse ou rediriger avec un message de succès
-             return redirect(url("/photos-cabinet/{$doctorId}"))
-             ->with('success', 'Image déplacée vers le dossier "Acceptée".');
-
+             return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
+                              ->with('success', 'Image déplacée vers le dossier "Acceptée" et enregistrée.');
          } else {
              // Retourner une erreur si l'image n'existe pas
              return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
@@ -111,9 +103,8 @@ public function reject($id, $imageName)
         Storage::move($sourcePath, $destinationPath);
 
         // Retourner une réponse ou rediriger avec un message de succès
-        return redirect(url("/photos-cabinet/{$doctorId}"))
-        ->with('success', 'Image déplacée vers le dossier "Refusée".');
-
+        return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
+                         ->with('success', 'Image déplacée vers le dossier "Refusée".');
     } else {
         // Retourner une erreur si l'image n'existe pas
         return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
