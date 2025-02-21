@@ -113,7 +113,7 @@
     });
 
     // Gestion du clic sur le bouton d'acceptation
-    document.querySelectorAll('.accept-btn').forEach(function(button) {
+    /* document.querySelectorAll('.accept-btn').forEach(function(button) {
     button.addEventListener('click', function() {
         var imageName = this.getAttribute('data-image');
         var doctorId = this.getAttribute('data-id');
@@ -132,7 +132,45 @@
         var modal = new bootstrap.Modal(document.getElementById('confirmAcceptModal'));
         modal.show();
     });
+}); */
+document.querySelectorAll('.accept-btn').forEach(function(button) {
+    button.addEventListener('click', function() {
+        var imageName = this.getAttribute('data-image');
+        var doctorId = this.getAttribute('data-id');
+
+        console.log('Acceptation: doctorId =', doctorId, ', imageName =', imageName); // Vérifier les valeurs extraites
+        
+        // Créer l'objet JSON avec doctorId et imageName
+        var data = {
+            doctorId: 135,
+            imageName: 'doctor-F.png'
+        };
+
+        // Récupérer le token CSRF
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        // Effectuer la requête AJAX pour envoyer les données en JSON
+        fetch('/photos-cabinet/accept', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken // Ajouter le token CSRF ici
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json()) // Si tu veux gérer la réponse JSON
+        .then(data => {
+            console.log('Réponse du serveur:', data);
+            // Afficher la fenêtre modale d'acceptation
+            var modal = new bootstrap.Modal(document.getElementById('confirmAcceptModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+        });
+    });
 });
+
 
     // Code pour fermer les modals avec le bouton "Annuler" ou "Fermer" (croix)
     document.querySelectorAll('.btn-close, .btn-secondary').forEach(function(button) {
