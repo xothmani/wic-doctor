@@ -41,7 +41,10 @@ class PhotosCabinetController extends Controller
          // Récupérer les informations du docteur (ici, on suppose que vous avez un modèle 'Doctor')
          $doctor = Doctor::find($id); // Assurez-vous que vous avez une table 'doctors' ou une table appropriée
          $doctorName = $doctor ? $doctor->name : 'Docteur Inconnu'; // Utilisation d'une valeur par défaut si le docteur n'est pas trouvé
-         
+         Log::info("Afficher l'image ou les infos pour l'ID: $id");
+         Log::info(route('photos_cabinet.accept', ['id' => 135, 'imageName' => 'doctor-F.png']));
+        dd(route('photos_cabinet.accept', ['id' => 135, 'imageName' => 'doctor-F.png']));
+
          // Retourner la vue avec les images et le nom du docteur
          return view('photos_cabinet.show', compact('imageUrls', 'id', 'doctorName'));
      }
