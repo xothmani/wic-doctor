@@ -48,6 +48,8 @@ class PhotosCabinetController extends Controller
     
      public function accept($id, $imageName)
      {
+        Log::info('entree a la fonction accept *******');
+
          // Définir les chemins des dossiers
          $doctorId = $id; // Récupérer l'ID du docteur
          $sourcePath = "public/doctors/{$doctorId}/cabinet/en_attente/{$imageName}";
