@@ -79,8 +79,9 @@ class PhotosCabinetController extends Controller
              }
      
              // Retourner une réponse ou rediriger avec un message de succès
-             return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
-                              ->with('success', 'Image déplacée vers le dossier "Acceptée" et enregistrée.');
+             return redirect(url("/photos-cabinet/{$doctorId}"))
+             ->with('success', 'Image déplacée vers le dossier "Acceptée".');
+
          } else {
              // Retourner une erreur si l'image n'existe pas
              return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
@@ -103,8 +104,9 @@ public function reject($id, $imageName)
         Storage::move($sourcePath, $destinationPath);
 
         // Retourner une réponse ou rediriger avec un message de succès
-        return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
-                         ->with('success', 'Image déplacée vers le dossier "Refusée".');
+        return redirect(url("/photos-cabinet/{$doctorId}"))
+        ->with('success', 'Image déplacée vers le dossier "Refusée".');
+
     } else {
         // Retourner une erreur si l'image n'existe pas
         return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
