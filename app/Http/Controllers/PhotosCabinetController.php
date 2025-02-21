@@ -89,58 +89,49 @@ class PhotosCabinetController extends Controller
                  $doctor->save();
              }
      
-             // Return a success JSON response
-             return response()->json([
-                 'message' => 'Image déplacée vers le dossier "Acceptée" et enregistrée avec succès.',
-                 'doctorId' => $doctorId,
-                 'imageName' => $imageName
-             ]);
-         } else {
-             // Return an error JSON response if the image doesn't exist
-             return response()->json([
-                 'error' => 'L\'image n\'a pas été trouvée dans le dossier "en_attente".'
-             ], 404);
-         }
-     }
-     
-     public function rejet(Request $request)
-     {
-         // Log the incoming request data
-         \Log::info('Incoming request:', $request->all());
-         
-         // Validate the incoming data
-         $validatedData = $request->validate([
-             'doctorId' => 'required|integer', // Ensure doctorId is an integer
-             'imageName' => 'required|string'  // Ensure imageName is a string
-         ]);
-     
-         // Log the validated data
-         \Log::info('Doctor ID: ' . $request->input('doctorId') . ', Image Name: ' . $request->input('imageName'));
-         
-         $doctorId = $request->input('doctorId');
-         $imageName = $request->input('imageName');
-         $sourcePath = "public/doctors/{$doctorId}/cabinet/en_attente/{$imageName}";
-         $destinationPath = "public/doctors/{$doctorId}/cabinet/refuse/{$imageName}";
-         
-         // Vérifier si l'image existe dans le dossier 'en_attente'
-         if (Storage::exists($sourcePath)) {
-             // Déplacer l'image vers le dossier 'accepte'
-             Storage::move($sourcePath, $destinationPath);
-     
-          
-     
-             // Return a success JSON response
-             return response()->json([
-                 'message' => 'Image déplacée vers le dossier "refuse" et enregistrée avec succès.',
-                 'doctorId' => $doctorId,
-                 'imageName' => $imageName
-             ]);
-         } else {
-             // Return an error JSON response if the image doesn't exist
-             return response()->json([
-                 'error' => 'L\'image n\'a pas été trouvée dans le dossier "en_attente".'
-             ], 404);
-         }
-     }
+     // Stocker un message de succès dans la session
+     return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
+     ->with('success', 'Image déplacée vers le dossier "accepte" et enregistrée avec succès.');
+} else {
+// Stocker un message d'erreur dans la session
+return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
+     ->with('error', 'L\'image n\'a pas été trouvée dans le dossier "en_attente".');
+}
+}
+public function rejet(Request $request)
+{
+    // Log the incoming request data
+    \Log::info('Incoming request:', $request->all());
+    
+    // Validate the incoming data
+    $validatedData = $request->validate([
+        'doctorId' => 'required|integer', // Ensure doctorId is an integer
+        'imageName' => 'required|string'  // Ensure imageName is a string
+    ]);
+
+    // Log the validated data
+    \Log::info('Doctor ID: ' . $request->input('doctorId') . ', Image Name: ' . $request->input('imageName'));
+    
+    $doctorId = $request->input('doctorId');
+    $imageName = $request->input('imageName');
+    $sourcePath = "public/doctors/{$doctorId}/cabinet/en_attente/{$imageName}";
+    $destinationPath = "public/doctors/{$doctorId}/cabinet/refuse/{$imageName}";
+    
+    // Vérifier si l'image existe dans le dossier 'en_attente'
+    if (Storage::exists($sourcePath)) {
+        // Déplacer l'image vers le dossier 'refuse'
+        Storage::move($sourcePath, $destinationPath);
+
+        
+// Stocker un message de succès dans la session
+return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
+->with('success', 'Image déplacée vers le dossier "refuse" et enregistrée avec succès.');
+} else {
+// Stocker un message d'erreur dans la session
+return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
+->with('error', 'L\'image n\'a pas été trouvée dans le dossier "en_attente".');
+}
+}
+  
     
 }
