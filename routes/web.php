@@ -530,8 +530,11 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
     Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
     Route::post('/photos-cabinet/reject/{id}/{imageName}', [PhotosCabinetController::class, 'reject'])->name('photos_cabinet.reject');
-    Route::post('/photos-cabinet/accept/{id}/{imageName}', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
-    
+    //Route::post('/photos-cabinet/accept/{id}/{imageName}', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
+    Route::post('/photos-cabinet/accept/{id}/{imageName}', function () {
+        Log::info("✅ Test URL appelée !");
+        return response()->json(['message' => '🚀 La route fonctionne !'], 200);
+    });
 
 
 
