@@ -52,7 +52,7 @@ class PhotosCabinetController extends Controller
      public function accept($id, $imageName)
      {
         Log::info(route('photos_cabinet.accept', ['id' => 135, 'imageName' => 'doctor-F.png']));
-        dd(route('photos_cabinet.accept', ['id' => 135, 'imageName' => 'doctor-F.png']));
+        //dd(route('photos_cabinet.accept', ['id' => 135, 'imageName' => 'doctor-F.png']));
         Log::info('entree a la fonction accept *******');
 
          // Définir les chemins des dossiers
