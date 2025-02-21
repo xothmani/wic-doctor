@@ -88,10 +88,11 @@ class PhotosCabinetController extends Controller
          }
      } */
      
-     public function accept($id, $imageName)
+     public function accept()
      {
-         dd("Route accept appelée avec ID: $id et Image: $imageName");
+         dd('Route accept appelée');
      }
+     
 
 public function reject($id, $imageName)
 {
