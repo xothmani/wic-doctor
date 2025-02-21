@@ -7,6 +7,7 @@ use App\DataTables\PhotosCabinetDataTable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use App\Models\Doctor;
+use Illuminate\Support\Facades\Log;
 
 class PhotosCabinetController extends Controller
 {
