@@ -36,18 +36,61 @@
                         </div>
 
                        <!-- Bouton de retour en bas à droite de la carte -->
-                        <div class="text-end mt-3">
-                        @if($blog->status == 'en cours')
-    <a href="{{ route('doctor_blog.index') }}" class="btn btn-default">
+<div class="text-end mt-3">
+@if($blog->status == 'en cours')
+    <a href="{{ route('doctor_blog.index') }}" class="btn btn-secondary">
         <i class="fa fa-undo"></i> {{ trans('lang.back') }}
     </a>
 @elseif($blog->status == 'accepté')
-    <a href="{{ route('doctor_blog.accepted') }}" class="btn btn-default">
+    <a href="{{ route('doctor_blog.accepted') }}" class="btn btn-secondary">
+        <i class="fa fa-undo"></i> {{ trans('lang.back') }}
+    </a>
+@elseif($blog->status == 'ajourné')
+    <a href="{{ route('doctor_blog.rejected') }}" class="btn btn-secondary">
         <i class="fa fa-undo"></i> {{ trans('lang.back') }}
     </a>
 @endif
+@if(Auth::check() && Auth::user()->hasRole('commercial') && $blog->status == 'en cours')
+    <!-- Bouton pour ouvrir le modal -->
+    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejetModal{{ $blog->id }}">
+    <i class="fa fa-times"></i> {{ trans('lang.blog_rejeter') }}
+</button>
+   <!-- Modal de confirmation -->
+<div class="modal fade" id="rejetModal{{ $blog->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rejet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Voulez-vous vraiment rejeter la publication de ce blog?
+                
+                <!-- Liste déroulante des raisons -->
+                <form action="{{ route('doctor_blog.rejet', $blog->id) }}" method="POST" id="rejetForm">
+                    @csrf
+                    <div class="mb-3 mt-2">
+                        <select id="raisonRejet" name="raisonRejet" class="form-select" required>
+                            <option value="" disabled selected>Sélectionnez une raison</option>
+                            <option value="Contenu Sensible ou Inapproprié">Contenu Sensible ou Inapproprié</option>
+                            <option value="Publicité ou Promotion Inappropriée">Publicité ou Promotion Inappropriée</option>
+                            <option value="Critiques Non Constructives">Critiques Non Constructives</option>
+                            <option value="Informations Erronées ou Non Fondées">Informations Erronées ou Non Fondées</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" form="rejetForm" class="btn btn-danger">Rejeter</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-                            @if(Auth::check() && Auth::user()->hasRole('commercial') && $blog->status == 'en cours')
+@endif
+
+@if(Auth::check() && Auth::user()->hasRole('commercial') && $blog->status == 'en cours')
     <!-- Bouton pour ouvrir le modal -->
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmModal{{ $blog->id }}">
         <i class="fa fa-check"></i> {{ trans('lang.validate') }}
@@ -71,6 +114,7 @@
         </div>
     </div>
 @endif
+
 
 
 

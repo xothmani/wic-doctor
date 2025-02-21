@@ -51,6 +51,13 @@
                         </a>
                     </li>
                     @endcan
+                    @can('doctor_blog.rejected')
+                    <li class="nav-item">
+                        <a class="nav-link" href="{!! route('doctor_blog.rejected') !!}">
+                        <i class="fa fa-list mr-2"></i>{{trans('lang.blog_rejected')}}
+                        </a>
+                    </li>
+                    @endcan
                 @can('doctor_blog.create')
                 <li class="nav-item">
                     <a class="nav-link" href="{!! route('doctor_blog.create') !!}"><i class="fas fa-plus mr-2"></i>{{trans('lang.blog_create')}}</a>

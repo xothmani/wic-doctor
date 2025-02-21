@@ -1,4 +1,9 @@
+<div>
+        <i class="fas fa-shield-alt" style="color: #ff9800; margin-right: 8px;"></i>
+        <strong style="font-size: 18px; color: #333;">Chaque blog soumis sera relu et validé par notre comité éditorial. Vous recevrez une réponse dans un délai de 7 jours ouvrés.</strong>
+    </div><br>
 <div class="row">
+    
     <!-- Colonne gauche -->
     <div class="col-md-6">
     <p style="font-weight: bold; color: red;">* Tous les champs sont obligatoires</p>

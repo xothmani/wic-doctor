@@ -18,6 +18,7 @@ class DoctorBlog extends Model
         'status',
         'doctor_id',
         'media_id',
+        'raison'
     ];
     // Désactiver la mise à jour automatique de created_at
     const created_at = null;  // Désactiver created_at
