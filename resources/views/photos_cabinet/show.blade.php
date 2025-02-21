@@ -98,10 +98,14 @@
             var imageName = this.getAttribute('data-image');
             var doctorId = this.getAttribute('data-id');
             
+            console.log('Rejet: doctorId =', doctorId, ', imageName =', imageName); // Vérifier si les bonnes valeurs sont extraites
+
             // Mettre à jour le formulaire de rejet avec l'ID du docteur et le nom de l'image
             var form = document.getElementById('rejectForm');
             form.action = '/photos_cabinet/reject/' + doctorId + '/' + imageName;
 
+
+            console.log('Form action set to:', form.action); // Vérifier si l'action du formulaire est bien mise à jour
             // Afficher la fenêtre modale de rejet
             var modal = new bootstrap.Modal(document.getElementById('confirmRejectModal'));
             modal.show();
@@ -113,10 +117,15 @@
         button.addEventListener('click', function() {
             var imageName = this.getAttribute('data-image');
             var doctorId = this.getAttribute('data-id');
+
+            console.log('Acceptation: doctorId =', doctorId, ', imageName =', imageName); // Vérifier les valeurs extraites
             
             // Mettre à jour le formulaire d'acceptation avec l'ID du docteur et le nom de l'image
             var form = document.getElementById('acceptForm');
             form.action = '/photos_cabinet/accept/' + doctorId + '/' + imageName;
+
+
+            console.log('Form action set to:', form.action); // Vérifier l'action du formulaire
 
             // Afficher la fenêtre modale d'acceptation
             var modal = new bootstrap.Modal(document.getElementById('confirmAcceptModal'));
