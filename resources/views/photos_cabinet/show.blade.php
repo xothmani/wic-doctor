@@ -165,7 +165,7 @@ document.querySelectorAll('.btn-close, .btn-secondary').forEach(function(button)
                 <h5 class="modal-title" id="confirmRejectModalLabel">Confirmer le rejet</h5>
             </div>
             <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir rejeter cette photo ?</p>
+            <p>Êtes-vous sûr de vouloir rejeter cette photo ? Cette action est irréversible.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light border cancel-btn" data-dismiss="modal">
