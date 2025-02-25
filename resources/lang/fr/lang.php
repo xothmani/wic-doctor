@@ -2042,6 +2042,9 @@ return [
     'management_suivi_doctors' => 'Suivi et gestion des médecins',
     'suivi_doctors' => 'Suivi des médecins',
     'pourcentage' => 'Pourcentage profil',
+    'last_login_at' => 'Dernière connexion',
+    'verif_chart' => 'Vérification Charte',
+    'my_profile' => 'Mon profil',
 
     
 
