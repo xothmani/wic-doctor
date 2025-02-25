@@ -544,7 +544,7 @@
 
 
 
-            <!-- *************************GESTION CV -->
+<!-- *************************GESTION CV -->
             @if(session('success'))
                 <script>
                     alert("{{ session('success') }}");
@@ -571,30 +571,28 @@
             <!-- Conteneur des champs Diplômes et Langues -->
             <div class="collapse mt-3" id="curriculumVitae">
                 <div class="row">
-<!-- Champ Sélection de la Spécialité -->
-<!-- Champ Affichage de la Spécialité -->
-<div class="col-md-6">
-    <div class="form-group d-flex align-items-center">
-        {!! Form::label('speciality', trans("lang.Speciality"), ['class' => 'col-md-3 control-label text-md-right']) !!}
-        <div class="col-md-9">
-            <input type="text" class="form-control" value="{{ $specialitySelected ? $specialitySelected->name : 'Non défini' }}" readonly>
-            <!-- Champ caché pour envoyer l'ID de la spécialité si nécessaire -->
-            <input type="hidden" name="speciality_id" value="{{ $specialitySelected ? $specialitySelected->id : '' }}">
+        <!-- Champ Affichage de la Spécialité -->
+        <div class="col-md-6">
+            <div class="form-group d-flex align-items-center">
+                {!! Form::label('speciality', trans("lang.Speciality"), ['class' => 'col-md-3 control-label text-md-right']) !!}
+                <div class="col-md-9">
+                    <input type="text" class="form-control" value="{{ $specialitySelected ? $specialitySelected->name : 'Non défini' }}" readonly>
+                    <!-- Champ caché pour envoyer l'ID de la spécialité si nécessaire -->
+                    <input type="hidden" name="speciality_id" value="{{ $specialitySelected ? $specialitySelected->id : '' }}">
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
 
-<!-- Description Field -->
-<!-- Description Field -->
-<div class="col-md-6">
-    <div class="form-group d-flex align-items-center">
-        {!! Form::label('description', 'Description spécialité', ['class' => 'col-md-3 control-label text-md-right']) !!}
-        <div class="col-md-9">
-            <textarea name="description" class="form-control" placeholder="Écrivez la description de votre spécialité" style="height: 80px;">{{ $descriptionSpecialite ?? '' }}</textarea>
+        <!-- Description Field -->
+        <div class="col-md-6">
+            <div class="form-group d-flex align-items-center">
+                {!! Form::label('description', 'Description spécialité', ['class' => 'col-md-3 control-label text-md-right']) !!}
+                <div class="col-md-9">
+                    <textarea name="description" class="form-control" placeholder="Écrivez la description de votre spécialité" style="height: 80px;">{{ $descriptionSpecialite ?? '' }}</textarea>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
 
 
@@ -775,7 +773,7 @@
             }
         });
     });
-});
+    });
             </script>
 
 
@@ -817,7 +815,7 @@
         <i class="fas fa-check-circle" style="color: #4caf50; margin-right: 8px;"></i>
         <span>Une fois vos images envoyées, elles seront examinées par l’administrateur. Si elles sont acceptées, elles seront publiées sur votre profil.</span>
     </div>
-</div>
+    </div>
 
 
     <!-- Section d'importation via Dropzone -->
@@ -844,20 +842,32 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
 
             </div>
+            <button
+    class="btn bg-{{setting('theme_color')}} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
+    type="button" onclick="window.location.href='/doctor_tag';">
+    <span class="d-flex align-items-center">
+        <!-- Icône de tag (remplacer l'icône actuelle) -->
+        <i class="fas fa-tag mr-2"></i> Expertises et actes 
+    </span>
+</button>
+
         </div>
+
+        </div>
+
     </div>
-</div>
-@endsection
 
-@push('scripts_lib')
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <script src="{{ asset('vendor/dropzone/min/dropzone.min.js') }}"></script>
-@endpush
+    @endsection
 
-@push('scripts')
+    @push('scripts_lib')
+        <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+        <script src="{{ asset('vendor/dropzone/min/dropzone.min.js') }}"></script>
+    @endpush
+
+    @push('scripts')
     <script type="text/javascript">
         // Désactive autoDiscover pour initialiser Dropzone manuellement
         Dropzone.autoDiscover = false;
@@ -924,7 +934,7 @@
             data.forEach(item => {
                 let theUuid = item.file_name;
                 let mediaCard = `
-<div class="col-md-3 col-sm-6 col-12 media-item m-2"><div class="card clickble" style="position: relative;">
+    <div class="col-md-3 col-sm-6 col-12 media-item m-2"><div class="card clickble" style="position: relative;">
                             <button class="btn btn-sm btn-danger delete-media" 
                                 style="display:none; position:absolute; top:5px; right:5px;" 
                                 data-uuid="${theUuid}"
@@ -982,7 +992,7 @@
             mediaContainer.html('<p class="text-danger">Erreur lors du chargement des médias.</p>');
         }
     });
-}
+    }
 
             // Initialiser les boutons de suppression avec confirmation
             function initDeleteButtons() {
@@ -1043,4 +1053,4 @@
             });
         });
     </script>
-@endpush
+    @endpush

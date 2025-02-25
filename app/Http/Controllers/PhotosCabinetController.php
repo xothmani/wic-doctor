@@ -84,19 +84,23 @@ class PhotosCabinetController extends Controller
                      // Si la colonne est vide, on l'initialise avec le nom de l'image
                      $doctor->cabinet_photo = $imageName;
                  }
+                 // Mettre à jour purcentage_cabinet si ce n'est pas déjà 10
+            if ($doctor->pourcentage_cabinet !== 10) {
+                $doctor->pourcentage_cabinet = 10;
+            }
      
                  // Sauvegarder les modifications dans la base de données
                  $doctor->save();
              }
      
-     // Stocker un message de succès dans la session
-     return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
-     ->with('success', 'Image déplacée vers le dossier "accepte" et enregistrée avec succès.');
-} else {
-// Stocker un message d'erreur dans la session
-return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
-     ->with('error', 'L\'image n\'a pas été trouvée dans le dossier "en_attente".');
-}
+                    // Stocker un message de succès dans la session
+                    return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
+                    ->with('success', 'Image déplacée vers le dossier "accepte" et enregistrée avec succès.');
+                } else {
+                // Stocker un message d'erreur dans la session
+                return redirect()->route('photos_cabinet.show', ['id' => $doctorId])
+                    ->with('error', 'L\'image n\'a pas été trouvée dans le dossier "en_attente".');
+                }
 }
 public function rejet(Request $request)
 {

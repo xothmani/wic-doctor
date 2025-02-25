@@ -61,8 +61,7 @@
       <table class="table table-bordered table-striped">
       <thead>
       <tr>
-        <th>{{ trans('lang.appointment_patient_first_name') }}</th>
-        <th>{{ trans('lang.appointment_patient_last_name') }}</th>
+        <th>{{ trans('lang.appointment_patient') }}</th>
         <th>{{ trans('lang.appointment_motif') }}</th>
         <th>{{ trans('lang.appointment_start_time') }}</th>
         <th>{{ trans('lang.appointment_end_time') }}</th>
@@ -73,12 +72,11 @@
       <tbody>
       @forelse($appointments as $appointment)
       <tr>
-      <td>{{ json_decode($appointment->first_name)->fr ?? $appointment->first_name }}</td>
-      <td>{{ json_decode($appointment->last_name)->fr ?? $appointment->last_name }}</td>
+      <td>{{ json_decode($appointment->first_name)->fr ?? $appointment->first_name }} {{ json_decode($appointment->last_name)->fr ?? $appointment->last_name }}</td>
       <td>{{ json_decode($appointment->motif_name)->fr ?? trans('lang.no_motif') }}</td>
       <td>{{ \Carbon\Carbon::parse($appointment->start_at)->format('H:i') }}</td>
       <td>{{ \Carbon\Carbon::parse($appointment->ends_at)->format('H:i') }}</td>
-      <td>{{ $appointment->appointment_status }}</td>
+      <td> Prêt</td>
       <td>
       @if(auth()->user()->hasPermissionInContext('consultations.create', $doctorId))
       <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.add_consultation') }}"
