@@ -1,10 +1,12 @@
 <div class='btn-group btn-group-sm'>
-    <!-- Bouton d'icône pour afficher les détails -->
+
     @can('photos_cabinet.show')
-        <a href="{{ route('photos_cabinet.show', $id) }}" class="btn btn-link">
-            <i class="fas fa-eye"></i>
+        <!-- Rediriger vers l'URL générée avec l'ID du médecin -->
+        <a href="{{ route('generateDoctorUrl', ['doctorId' => $doctor->id]) }}" class="btn btn-link" target="_blank">
+            <i class="fas fa-globe"></i> <!-- Icône de site web -->
         </a>
     @endcan
+
     
 
 

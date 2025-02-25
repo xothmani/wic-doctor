@@ -214,50 +214,44 @@ class UserController extends Controller
         return view('settings.users.profile')->with('user', $user);
     }
     public function loginAsUser(Request $request, $id)
-    {
-        // 1. Valider le reCAPTCHA
-        $recaptchaResponse = $request->input('g-recaptcha-response');
-        $secretKey = env('RECAPTCHA_SECRET'); // Clé secrète définie dans le fichier .env
+{
+    // 1. Valider le reCAPTCHA
+    $recaptchaResponse = $request->input('g-recaptcha-response');
+    $secretKey = env('RECAPTCHA_SECRET');
 
-        // Vérifier si le reCAPTCHA est vide (obligatoire)
-        if (empty($recaptchaResponse)) {
-            Flash::error('Le reCAPTCHA est obligatoire. Veuillez le valider.');
-            return redirect()->back()->withInput(); // Rediriger avec les entrées précédentes
-        }
-
-        // Requête pour vérifier le reCAPTCHA auprès de Google
-        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => $secretKey,
-            'response' => $recaptchaResponse,
-        ]);
-        $responseData = $response->json();
-
-        // Si le reCAPTCHA échoue
-        if (!$responseData['success']) {
-            Flash::error('La validation du reCAPTCHA a échoué. Veuillez réessayer.');
-            return redirect()->back()->withInput();
-        }
-
-        // 2. Trouver l'utilisateur cible
-        $user = $this->userRepository->findWithoutFail($id);
-        if (empty($user)) {
-            Flash::error('Utilisateur non trouvé');
-            return redirect(route('users.index'));
-        }
-
-        // 3. Se connecter en tant qu'utilisateur
-        auth()->login($user, true);
-
-        // 4. Vérification de la connexion
-        if (auth()->id() !== $user->id) {
-            Flash::error('Échec de la connexion en tant qu\'utilisateur sélectionné.');
-            return redirect(route('users.index'));
-        }
-
-        // 5. Redirection vers le profil
-        return redirect(route('users.profile'));
+    if (empty($recaptchaResponse)) {
+        Flash::error('Le reCAPTCHA est obligatoire.');
+        return redirect()->back()->withInput();
     }
 
+    // Vérification du reCAPTCHA
+    $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+        'secret' => $secretKey,
+        'response' => $recaptchaResponse,
+    ]);
+    $responseData = $response->json();
+    if (!$responseData['success']) {
+        Flash::error('La validation du reCAPTCHA a échoué.');
+        return redirect()->back()->withInput();
+    }
+
+    // 2. Trouver l'utilisateur
+    $user = $this->userRepository->findWithoutFail($id);
+    if (empty($user)) {
+        Flash::error('Utilisateur non trouvé');
+        return redirect(route('users.index'));
+    }
+
+    // 3. Se connecter en tant qu'utilisateur
+    auth()->login($user, true);
+
+    // 4. Mettre à jour last_login_at
+    $user->last_login_at = now();
+    $user->save();
+
+    // 5. Rediriger vers le profil
+    return redirect(route('users.profile'));
+}
 
 
     /**
