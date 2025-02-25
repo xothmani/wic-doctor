@@ -385,32 +385,39 @@ class DoctorsGalleryController extends Controller
         
         Log::info("Full file path: " . $fullPath);
         
-        // Vérifier si le fichier existe et le supprimer
+        // Vérifier si le fichier existe
         if (file_exists($fullPath)) {
-            // Supprimer le fichier
-            if (@unlink($fullPath)) {
-                Log::info("File deleted successfully", ['path' => $fullPath]);
+            // Supprimer le nom du fichier de la colonne cabinet_photo
+            if ($status === 'accepte') {
+                $doctor = Doctor::find($doctorId);
     
-                // Si le fichier supprimé est dans le dossier "accepte", mettre à jour la base de données
-                if ($status === 'accepte') {
-                    $doctor = Doctor::find($doctorId);
+                if ($doctor) {
+                    // Récupérer les images dans la colonne cabinet_photo, séparées par /
+                    $images = explode('/', $doctor->cabinet_photo);
     
-                    if ($doctor) {
-                        // Récupérer les images dans la colonne cabinet_photo, séparées par /
-                        $images = explode('/', $doctor->cabinet_photo);
+                    // Supprimer le nom du fichier de la liste
+                    $images = array_filter($images, function ($image) use ($uuid) {
+                        return trim($image) !== $uuid;  // Ne pas inclure l'image supprimée
+                    });
     
-                        // Supprimer le nom du fichier de la liste
-                        $images = array_filter($images, function ($image) use ($uuid) {
-                            return trim($image) !== $uuid;  // Ne pas inclure l'image supprimée
-                        });
+                    // Réindexer le tableau et mettre à jour la colonne cabinet_photo
+                    $doctor->cabinet_photo = implode('/', array_values($images));
+                    $doctor->save();
     
-                        // Réindexer le tableau et mettre à jour la colonne cabinet_photo
-                        $doctor->cabinet_photo = implode('/', array_values($images));
+                    Log::info("Updated cabinet_photo column", ['cabinet_photo' => $doctor->cabinet_photo]);
+                    
+                    // Si cabinet_photo est vide ou null, mettre à jour pourcentage_cabinet à 0
+                    if (empty($doctor->cabinet_photo)) {
+                        $doctor->pourcentage_cabinet = 0;
                         $doctor->save();
-    
-                        Log::info("Updated cabinet_photo column", ['cabinet_photo' => $doctor->cabinet_photo]);
+                        Log::info("Updated pourcentage_cabinet to 0 because cabinet_photo is empty");
                     }
                 }
+            }
+            
+            // Supprimer le fichier après avoir mis à jour la base de données
+            if (@unlink($fullPath)) {
+                Log::info("File deleted successfully", ['path' => $fullPath]);
     
                 return response()->json([
                     'success' => true,
@@ -431,5 +438,6 @@ class DoctorsGalleryController extends Controller
                 'message' => 'File not found!'
             ], 404);
         }
-    }   
+    }
+    
 }

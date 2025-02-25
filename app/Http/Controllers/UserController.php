@@ -106,15 +106,30 @@ class UserController extends Controller
             optional($doctor)->description, optional($doctor)->payment_methods
         ];
     
-        // Calcul du pourcentage de complétion
+        // Calcul du pourcentage de complétion global
         $filledFields = count(array_filter($fieldsToCheck, function ($field) {
             return !empty($field);
         }));
         $totalFields = count($fieldsToCheck);
         $progressPercentage = $totalFields > 0 ? ($filledFields / $totalFields) * 100 : 0;
     
-        return view('settings.users.profile', compact('user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues', 'doctor', 'progressPercentage'));
+        // Calcul des pourcentages spécifiques
+        $progressAvatar = !empty($doctor->pourcentage_avatar) ? 10 : 0;
+        $progressAdresse = !empty($doctor->pourcentage_adresse) ? 20 : 0;
+        $progressCV = !empty($doctor->pourcentage_cv) ? 20 : 0;
+        $progressCabinet = !empty($doctor->pourcentage_cabinet) ? 10 : 0;
+        $progressProfil = !empty($doctor->pourcentage_profil) ? 20 : 0;
+        $progressTags = !empty($doctor->pourcentage_tags) ? 20 : 0;
+   
+        // Calcul du pourcentage total
+        $progressBar = $progressAvatar + $progressAdresse + $progressCV + $progressCabinet + $progressProfil +$progressTags;
+    
+        return view('settings.users.profile', compact(
+            'user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues', 'doctor',
+            'progressPercentage', 'progressAvatar', 'progressAdresse', 'progressCV', 'progressCabinet', 'progressProfil', 'progressBar', 'progressTags'
+        ));
     }
+    
     
     /**
      * Show the form for creating a new User.
