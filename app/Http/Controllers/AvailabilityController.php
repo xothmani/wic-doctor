@@ -23,66 +23,133 @@ class AvailabilityController extends Controller
         }
 
         $doctor = auth()->user()->doctor;
-        $currentMode = $doctor->availability_mode ?? 'open';
-        $days = [
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
-            "sunday"
-        ];
+        $currentMode = $doctor->availability_mode;
 
-        // Get availability for all types
-        $availabilities = [
-            'cabinet' => [],
-            'Téléconsultation' => [],
-            'home_visit' => []
-        ];
+        if ($currentMode == 'open') {
+            // Get availability for all three types
+            $availabilityTypes = ['cabinet', 'teleconsultation', 'home_visit'];
+            $availabilities = [];
 
-        // Debug log to check what's being retrieved
-        \Log::info("Fetching availabilities for doctor: " . $doctorId);
+            foreach ($availabilityTypes as $type) {
+                $availabilities[$type] = AvailabilityHour::where('doctor_id', $doctorId)
+                    ->where('type', $type)
+                    ->get()
+                    ->map(function ($dayData) {
+                        return [
+                            'day' => $dayData->day,
+                            'is_available' => $dayData->is_available,
+                            'start_at' => $dayData->start_at ? Carbon::parse($dayData->start_at)->format('H:i') : '09:00',
+                            'end_at' => $dayData->end_at ? Carbon::parse($dayData->end_at)->format('H:i') : '17:00',
+                            'pause_from' => $dayData->pause_from ? Carbon::parse($dayData->pause_from)->format('H:i') : null,
+                            'pause_to' => $dayData->pause_to ? Carbon::parse($dayData->pause_to)->format('H:i') : null,
+                        ];
+                    });
+            }
 
-        // Retrieve availabilities for each type
-        foreach ($availabilities as $type => &$typeAvailability) {
-            $slots = AvailabilityHour::where('doctor_id', $doctorId)
-                ->where('type', $type)
+            // Get session duration (using cabinet as default type)
+            $sessionDuration = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('type', 'cabinet')
+                ->value('session_duration') ?? 15;
+
+            // Convert session_duration to hh:mm format
+            $hours = intdiv($sessionDuration, 60);
+            $minutes = $sessionDuration % 60;
+            $sessionDurationFormatted = sprintf('%02d:%02d', $hours, $minutes);
+
+            // Get doctor's patterns
+            $doctorPatterns = Pattern::where('doctor_id', $doctorId)
+                ->get()
+                ->map(function ($pattern) {
+                    $decodedNom = json_decode($pattern->nom, true);
+                    if (is_array($decodedNom) && isset($decodedNom['fr'])) {
+                        $pattern->nom = $decodedNom['fr'];
+                    }
+                    return $pattern;
+                });
+
+            // Get breaks data
+            $breakTime = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('mode', 'open')
+                ->select('pause_from', 'pause_to')
+                ->first();
+
+            // Get vacations
+            $vacations = DB::table('vacance')
+                ->where('doctor_id', $doctorId)
+                ->orderBy('start_date', 'desc')
                 ->get();
 
-            // Group by day
-            $typeAvailability = $slots->groupBy('day');
+            return view('availability.index', compact(
+                'availabilities',
+                'sessionDurationFormatted',
+                'currentMode',
+                'doctorPatterns',
+                'breakTime',
+                'vacations'
+            ));
+        } elseif ($currentMode == 'precise') {
 
-            // Debug log
-            \Log::info("Retrieved for type {$type}:", ['count' => $slots->count(), 'data' => $typeAvailability->toArray()]);
+            $days = [
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday",
+                "sunday"
+            ];
+
+            // Get availability for all types
+            $availabilities = [
+                'cabinet' => [],
+                'Téléconsultation' => [],
+                'home_visit' => []
+            ];
+
+            // Debug log to check what's being retrieved
+            \Log::info("Fetching precise mode availabilities for doctor: " . $doctorId);
+
+            // Retrieve availabilities for each type with mode filter
+            foreach ($availabilities as $type => &$typeAvailability) {
+                $slots = AvailabilityHour::where('doctor_id', $doctorId)
+                    ->where('type', $type)
+                    ->where('mode', 'precise') // Add mode filter
+                    ->get();
+
+                // Group by day
+                $typeAvailability = $slots->groupBy('day');
+
+                // Debug log
+                \Log::info("Retrieved precise mode for type {$type}:", ['count' => $slots->count()]);
+            }
+
+            // Get vacations
+            $vacations = DB::table('vacance')
+                ->where('doctor_id', $doctorId)
+                ->orderBy('start_date', 'desc')
+                ->get();
+
+            // Get doctor's patterns and decode JSON names
+            $doctorPatterns = Pattern::where('doctor_id', $doctorId)
+                ->get()
+                ->map(function ($pattern) {
+                    $decodedNom = json_decode($pattern->nom, true);
+                    if (is_array($decodedNom) && isset($decodedNom['fr'])) {
+                        $pattern->nom = $decodedNom['fr'];
+                    }
+                    return $pattern;
+                });
+
+            // For debugging
+            \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
+            return view('availability.index', compact(
+                'availabilities',
+                'currentMode',
+                'days',
+                'vacations',
+                'doctorPatterns'
+            ));
         }
-
-        // Get vacations
-        $vacations = DB::table('vacance')
-            ->where('doctor_id', $doctorId)
-            ->orderBy('start_date', 'desc')
-            ->get();
-
-        // Get doctor's patterns and decode JSON names
-        $doctorPatterns = Pattern::where('doctor_id', $doctorId)
-            ->get()
-            ->map(function ($pattern) {
-                $decodedNom = json_decode($pattern->nom, true);
-                if (is_array($decodedNom) && isset($decodedNom['fr'])) {
-                    $pattern->nom = $decodedNom['fr'];
-                }
-                return $pattern;
-            });
-
-        // For debugging
-        \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
-        return view('availability.index', compact(
-            'availabilities',
-            'currentMode',
-            'days',
-            'vacations',
-            'doctorPatterns'
-        ));
     }
 
 
@@ -157,9 +224,10 @@ class AvailabilityController extends Controller
             \Log::info('Validated Data:', ['validated' => $validated]);
             DB::beginTransaction();
 
-            // Delete existing slots for this type
+            // Delete existing slots for this type and mode
             AvailabilityHour::where('doctor_id', $doctorId)
                 ->where('type', $type)
+                ->where('mode', 'precise')  // Add mode filter
                 ->delete();
 
             foreach ($validated['availability'] as $dayData) {
@@ -181,7 +249,7 @@ class AvailabilityController extends Controller
                             'patern_id' => $dayData['slots']['pattern'][$index] ?? null,
                             'session_duration' => $dayData['slots']['duration'][$index] ?? 30,
                             'is_available' => true,
-                            'mode' => 'open'
+                            'mode' => 'precise'
                         ]);
                     }
                 }
@@ -192,6 +260,106 @@ class AvailabilityController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error saving availability:', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function storeOpen(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+        $type = $request->input('type', 'cabinet');
+
+        try {
+            // Create day name mapping
+            $dayMapping = [
+                'Lundi' => 'monday',
+                'Mardi' => 'tuesday',
+                'Mercredi' => 'wednesday',
+                'Jeudi' => 'thursday',
+                'Vendredi' => 'friday',
+                'Samedi' => 'saturday',
+                'Dimanche' => 'sunday'
+            ];
+
+            // Pre-process the availability data to convert French day names to English
+            $processedData = collect($request->input('availability'))->map(function ($item) use ($dayMapping) {
+                if (isset($item['day']) && isset($dayMapping[$item['day']])) {
+                    $item['day'] = $dayMapping[$item['day']];
+                }
+                return $item;
+            })->toArray();
+
+            // Replace the original availability data with processed data
+            $request->merge(['availability' => $processedData]);
+
+            $validated = $request->validate([
+                'type' => 'required|in:cabinet,teleconsultation,home_visit',
+                'session_duration' => ['required', 'regex:/^\d{1,2}:\d{2}$/'],
+                'availability' => 'required|array',
+                'availability.*.day' => ['required', 'string', 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday'],
+                'availability.*.from' => 'required_with:availability.*.is_available|date_format:H:i',
+                'availability.*.to' => 'required_with:availability.*.is_available|date_format:H:i|after:availability.*.from',
+                'availability.*.pause_from' => 'nullable|required_with:availability.*.pause_to|date_format:H:i',
+                'availability.*.pause_to' => 'nullable|required_with:availability.*.pause_from|date_format:H:i|after:availability.*.pause_from',
+                'availability.*.is_available' => 'nullable|boolean',
+            ], [
+                'availability.*.pause_from.required_with' => 'L\'heure de début de pause est requise si l\'heure de fin est remplie',
+                'availability.*.pause_to.required_with' => 'L\'heure de fin de pause est requise si l\'heure de début est remplie',
+                'availability.*.pause_to.after' => 'L\'heure de fin de pause doit être après l\'heure de début'
+            ]);
+
+            Log::info('Validated Open Mode Data with breaks:', ['validated' => $validated]);
+
+            DB::beginTransaction();
+
+            // Delete existing slots for this type and mode only
+            AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('type', $type)
+                ->where('mode', 'open')  // Add this line to filter by mode
+                ->delete();
+
+            // Convert session duration from hh:mm to minutes
+            [$hours, $minutes] = explode(':', $validated['session_duration']);
+            $sessionDuration = ($hours * 60) + $minutes;
+
+            foreach ($validated['availability'] as $data) {
+                if (isset($data['is_available']) && $data['is_available']) {
+                    // Ensure pause times are processed correctly
+                    $pauseFrom = !empty($data['pause_from']) ? $data['pause_from'] : null;
+                    $pauseTo = !empty($data['pause_to']) ? $data['pause_to'] : null;
+
+                    // Validate that pause_to is after pause_from if both are set
+                    if ($pauseFrom && $pauseTo && $pauseFrom >= $pauseTo) {
+                        throw new \Exception("L'heure de fin de pause doit être après l'heure de début de pause pour {$data['day']}");
+                    }
+
+                    // Create or update with both type and mode conditions
+                    AvailabilityHour::create([
+                        'doctor_id' => $doctorId,
+                        'day' => ucfirst($data['day']),
+                        'type' => $type,
+                        'mode' => 'open',
+                        'start_at' => $data['from'],
+                        'end_at' => $data['to'],
+                        'pause_from' => $pauseFrom,
+                        'pause_to' => $pauseTo,
+                        'session_duration' => $sessionDuration,
+                        'is_available' => true
+                    ]);
+
+                    Log::info("Created availability with breaks", [
+                        'day' => $data['day'],
+                        'pause_from' => $pauseFrom,
+                        'pause_to' => $pauseTo
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Disponibilité et pauses sauvegardées avec succès !');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error saving open mode availability:', ['error' => $e->getMessage()]);
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
     }
@@ -596,11 +764,29 @@ class AvailabilityController extends Controller
         }
     }
 
+    public function storeBreaks(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
 
+        try {
+            $validated = $request->validate([
+                'pause_from' => 'required|date_format:H:i',
+                'pause_to' => 'required|date_format:H:i|after:pause_from',
+            ]);
 
+            // Update breaks for all availabilities of this doctor in open mode
+            AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('mode', 'open')
+                ->update([
+                    'pause_from' => $validated['pause_from'],
+                    'pause_to' => $validated['pause_to']
+                ]);
 
-
-
-
+            return redirect()->back()->with('success', 'Pauses sauvegardées avec succès!');
+        } catch (\Exception $e) {
+            Log::error('Error saving breaks:', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
 
 }

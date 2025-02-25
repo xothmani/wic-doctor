@@ -57,6 +57,9 @@ class AvailabilityHour extends Model
         'patern_id',
         'session_duration',
         'is_available',
+        'pause_from',
+        'pause_to',
+        'data',
         'mode'
     ];
     /**
