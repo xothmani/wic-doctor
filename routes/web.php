@@ -507,8 +507,17 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/doctor-blog', [DoctorBlogController::class, 'index'])->name('doctor_blog.index');
     Route::get('/doctor-blog/create', [DoctorBlogController::class, 'create'])->name('doctor_blog.create');
     Route::post('/doctor-blog', [DoctorBlogController::class, 'store'])->name('doctor_blog.store');
+    Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
+    Route::post('/appointmentsEvent/store', [AppointmentEventController::class, 'store'])
+        ->name('appointmentsEvent.store');
+    Route::get('/get-pattern-for-time-slot-without-type', [AppointmentEventController::class, 'getPatternForTimeSlotWithoutType'])->name('get.slot.no.type');
+    Route::post('/appointmentsEvent/storeForced', [AppointmentEventController::class, 'storeForced'])
+        ->name('appointmentsEvent.storeForced');
 
-
+    Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
+    Route::post('/availability/store', [AvailabilityController::class, 'store'])->name('availability.store');
+    Route::post('/availability/vacation/store', [AvailabilityController::class, 'storeVacation'])->name('holidays.store');
+    Route::delete('/availability/vacation/{id}', [AvailabilityController::class, 'deleteVacation'])->name('vacances.destroy');
 
 });
 

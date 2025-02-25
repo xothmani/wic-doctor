@@ -18,8 +18,6 @@ class AvailabilityController extends Controller
     public function index()
     {
         $doctorId = auth()->user()->getDoctorId();
-        Log::info("Retrieving doctor ID: {$doctorId}");
-
         if (!$doctorId) {
             return redirect()->route('users.profile');
         }
@@ -27,50 +25,64 @@ class AvailabilityController extends Controller
         $doctor = auth()->user()->doctor;
         $currentMode = $doctor->availability_mode ?? 'open';
         $days = [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday"
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday"
         ];
 
-        if ($currentMode === 'open') {
-            // Retrieve the one open record per day (if it exists)
-            $availability = AvailabilityHour::where('doctor_id', $doctorId)
-                ->where('onligne', 0)
-                ->where('mode', 'open')
-                ->get()
-                ->keyBy('day');
-        } else {
-            // For precise mode, group multiple slots per day
-            $availability = AvailabilityHour::where('doctor_id', $doctorId)
-                ->where('onligne', 0)
-                ->where('mode', 'precise')
-                ->with('pattern') // eager-load pattern to get its color and name
-                ->get()
-                ->groupBy('day');
+        // Get availability for all types
+        $availabilities = [
+            'cabinet' => [],
+            'Téléconsultation' => [],
+            'home_visit' => []
+        ];
+
+        // Debug log to check what's being retrieved
+        \Log::info("Fetching availabilities for doctor: " . $doctorId);
+
+        // Retrieve availabilities for each type
+        foreach ($availabilities as $type => &$typeAvailability) {
+            $slots = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('type', $type)
+                ->get();
+
+            // Group by day
+            $typeAvailability = $slots->groupBy('day');
+
+            // Debug log
+            \Log::info("Retrieved for type {$type}:", ['count' => $slots->count(), 'data' => $typeAvailability->toArray()]);
         }
 
-        // Retrieve session_duration (if needed)
-        $sessionDuration = AvailabilityHour::where('doctor_id', $doctorId)
-            ->where('onligne', 0)
-            ->value('session_duration') ?? 15;
-        $hours = intdiv($sessionDuration, 60);
-        $minutes = $sessionDuration % 60;
-        $sessionDurationFormatted = sprintf('%02d:%02d', $hours, $minutes);
+        // Get vacations
+        $vacations = DB::table('vacance')
+            ->where('doctor_id', $doctorId)
+            ->orderBy('start_date', 'desc')
+            ->get();
 
-        $pauseFrom = AvailabilityHour::where('doctor_id', $doctorId)
-            ->where('onligne', 0)
-            ->value('pause_from');
-        $pauseTo = AvailabilityHour::where('doctor_id', $doctorId)
-            ->where('onligne', 0)
-            ->value('pause_to');
-        $pauseFrom = $pauseFrom ? Carbon::parse($pauseFrom)->format('H:i') : null;
-        $pauseTo = $pauseTo ? Carbon::parse($pauseTo)->format('H:i') : null;
+        // Get doctor's patterns and decode JSON names
+        $doctorPatterns = Pattern::where('doctor_id', $doctorId)
+            ->get()
+            ->map(function ($pattern) {
+                $decodedNom = json_decode($pattern->nom, true);
+                if (is_array($decodedNom) && isset($decodedNom['fr'])) {
+                    $pattern->nom = $decodedNom['fr'];
+                }
+                return $pattern;
+            });
 
-        return view('availability.index', compact('availability', 'sessionDurationFormatted', 'pauseFrom', 'pauseTo', 'currentMode', 'days'));
+        // For debugging
+        \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
+        return view('availability.index', compact(
+            'availabilities',
+            'currentMode',
+            'days',
+            'vacations',
+            'doctorPatterns'
+        ));
     }
 
 
@@ -128,75 +140,57 @@ class AvailabilityController extends Controller
     public function store(Request $request)
     {
         $doctorId = auth()->user()->getDoctorId();
-        Log::info("Retrieving doctor ID: {$doctorId}");
-
-        if (!$doctorId) {
-            return redirect()->route('users.profile');
-        }
+        $type = $request->input('type', 'cabinet');
 
         try {
-            Log::info('Form Data Before Processing:', $request->all());
-
             $validated = $request->validate([
-                'mode' => 'required|string|in:open,precise',
+                'type' => 'required|in:cabinet,Téléconsultation,home_visit',
                 'availability' => 'required|array',
                 'availability.*.day' => 'required|string',
                 'availability.*.is_available' => 'nullable|boolean',
-                'availability.*.from' => 'nullable|date_format:H:i',
-                'availability.*.to' => 'nullable|date_format:H:i|after:availability.*.from',
-                // For precise mode, expect arrays of slots with a dynamic pattern id
-                'availability.*.slots.start' => 'array',
-                'availability.*.slots.end' => 'array',
-                'availability.*.slots.pattern' => 'array',
-                'availability.*.slots.duration' => 'array',
+                'availability.*.slots' => 'nullable|array',
+                'availability.*.slots.start' => 'nullable|array',
+                'availability.*.slots.end' => 'nullable|array',
+                'availability.*.slots.pattern' => 'nullable|array',
+                'availability.*.slots.duration' => 'nullable|array',
             ]);
+            \Log::info('Validated Data:', ['validated' => $validated]);
+            DB::beginTransaction();
 
-            $mode = $validated['mode'];
+            // Delete existing slots for this type
+            AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('type', $type)
+                ->delete();
 
-            foreach ($validated['availability'] as $index => $availability) {
-                $day = $availability['day'];
-                $isAvailable = $availability['is_available'] ?? 0;
+            foreach ($validated['availability'] as $dayData) {
+                $day = $dayData['day'];
+                $isAvailable = $dayData['is_available'] ?? false;
 
-                if ($mode === 'open') {
-                    AvailabilityHour::updateOrCreate(
-                        [
-                            'doctor_id' => $doctorId,
-                            'day' => $day,
-                            'mode' => 'open'
-                        ],
-                        [
-                            'start_at' => !empty($availability['from']) ? Carbon::createFromFormat('H:i', $availability['from'])->toTimeString() : null,
-                            'end_at' => !empty($availability['to']) ? Carbon::createFromFormat('H:i', $availability['to'])->toTimeString() : null,
-                            'is_available' => $isAvailable,
-                            'mode' => 'open'
-                        ]
-                    );
-                } elseif ($mode === 'precise' && isset($availability['slots']['start'])) {
-                    // Remove any existing precise slots for this day
-                    AvailabilityHour::where('doctor_id', $doctorId)
-                        ->where('day', $day)
-                        ->where('mode', 'precise')
-                        ->delete();
+                if ($isAvailable && isset($dayData['slots'])) {
+                    foreach ($dayData['slots']['start'] as $index => $startTime) {
+                        if (empty($startTime) || empty($dayData['slots']['end'][$index])) {
+                            continue;
+                        }
 
-                    foreach ($availability['slots']['start'] as $index => $start) {
-                        // Use the posted pattern id from the select dropdown
-                        $patternId = $availability['slots']['pattern'][$index];
                         AvailabilityHour::create([
                             'doctor_id' => $doctorId,
                             'day' => $day,
-                            'start_at' => Carbon::createFromFormat('H:i', $start)->toTimeString(),
-                            'end_at' => Carbon::createFromFormat('H:i', $availability['slots']['end'][$index])->toTimeString(),
-                            'patern_id' => $patternId,
-                            'session_duration' => $availability['slots']['duration'][$index],
-                            'is_available' => 1,
-                            'mode' => 'precise'
+                            'type' => $type,
+                            'start_at' => $startTime,
+                            'end_at' => $dayData['slots']['end'][$index],
+                            'patern_id' => $dayData['slots']['pattern'][$index] ?? null,
+                            'session_duration' => $dayData['slots']['duration'][$index] ?? 30,
+                            'is_available' => true,
+                            'mode' => 'open'
                         ]);
                     }
                 }
             }
 
-            return redirect()->route('availability.index')->with('success', 'Disponibilité sauvegardée avec succès !');
+            DB::commit();
+            return redirect()->back()->with('success', 'Disponibilité sauvegardée avec succès !');
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Error saving availability:', ['error' => $e->getMessage()]);
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -559,6 +553,48 @@ class AvailabilityController extends Controller
             }
         }
          */
+
+    public function storeVacation(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+
+        try {
+            $validated = $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'reason' => 'nullable|string|max:255'
+            ]);
+
+            DB::table('vacance')->insert([
+                'doctor_id' => $doctorId,
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'reason' => $validated['reason'],
+            ]);
+
+            return redirect()->back()->with('success', 'Vacances ajoutées avec succès!');
+        } catch (\Exception $e) {
+            Log::error('Error saving vacation:', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function deleteVacation($id)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+
+        try {
+            DB::table('vacance')
+                ->where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->delete();
+
+            return redirect()->back()->with('success', 'Vacances supprimées avec succès!');
+        } catch (\Exception $e) {
+            Log::error('Error deleting vacation:', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
 
 
 

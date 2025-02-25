@@ -509,7 +509,7 @@ class MeetController extends Controller
             ]);
 
             $payload = [
-                "receiverWalletId" => "67596157bf9f84ccec7e554f",
+                "receiverWalletId" => "67a3615faa2cfe4786549b0e",
                 "token" => "TND",
                 "amount" => (int) $request->input('tele_price_tnd') * 1000,
                 "type" => "immediate",
