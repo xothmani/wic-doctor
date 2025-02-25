@@ -28,15 +28,35 @@ class SuiviDoctorsDataTable extends DataTable
                 $speciality = json_decode($doctor->speciality_name, true);
                 return $speciality['fr'] ?? 'N/A';
             })
-            ->editColumn('email', function ($doctor) {
-                return $doctor->email ?? 'Non renseigné';
-            })
+     
             ->editColumn('phone_number', function ($doctor) {
                 return $doctor->phone_number ?? 'Non renseigné';
             })
-            ->editColumn('created_at', function ($doctor) {
-                return $doctor->created_at ? $doctor->created_at->format('d/m/Y') : 'N/A';
+            ->editColumn('verif_chart', function ($doctor) {
+                $icon = '';
+                if (is_null($doctor->verif_chart) || $doctor->verif_chart == 0) {
+                    // Icône petite taille pour "non vérifié"
+                    $icon = '<i class="fa fa-times" style="color: red; font-size: 16px; display: block; text-align: center;"></i>'; // Icône "x" rouge
+                } else {
+                    // Icône petite taille pour "vérifié"
+                    $icon = '<i class="fa fa-check" style="color: green; font-size: 16px; display: block; text-align: center;"></i>'; // Icône "check" verte
+                }
+            
+                // Centrer l'icône
+                return '<div style="text-align: center;">' . $icon . '</div>';
             })
+            
+            
+            ->editColumn('created_at', function ($doctor) {
+                return $doctor->created_at ? $doctor->created_at->format('d-m-Y') : 'N/A';
+            })
+            ->editColumn('last_login_at', function ($doctor) {
+                return $doctor->user && $doctor->user->last_login_at 
+                    ? \Carbon\Carbon::parse($doctor->user->last_login_at)->format('d-m-Y H:i:s') 
+                    : 'Non renseigné';
+            })
+            
+            
             ->addColumn('pourcentage', function ($doctor) {
                 $total = $doctor->getTotalPourcentage();
                 
@@ -51,12 +71,14 @@ class SuiviDoctorsDataTable extends DataTable
                     $badgeClass = 'badge bg-danger'; // Rouge si < 50%
                 }
             
-                return '<span class="'.$badgeClass.'">'.$total.'%</span>';
+                // Centrer le badge
+                return '<div style="text-align: center;"><span class="'.$badgeClass.'">'.$total.'%</span></div>';
             })
             
             
-            ->addColumn('action', 'photos_cabinet.datatables_actions')
-            ->rawColumns(['action','pourcentage']);
+            
+            ->addColumn('action', 'suivi_doctors.datatables_actions')
+            ->rawColumns(['action','pourcentage','verif_chart']);
     }
 
     /**
@@ -125,21 +147,26 @@ class SuiviDoctorsDataTable extends DataTable
             'title' => trans('lang.speciality'),
         ],
         [
-            'data' => 'email',
-            'title' => trans('lang.email'),
-        ],
-        [
             'data' => 'phone_number',
             'title' => trans('lang.phone_number'),
         ],
+        
         [
             'data' => 'created_at',
             'title' => trans('lang.user_created_at'),
         ],
         [
+            'data' => 'last_login_at',
+            'title' => trans('lang.last_login_at'),
+        ],
+        [
             'data' => 'pourcentage',
             'title' => trans('lang.pourcentage'),
             'orderable' => true, // Permettre le tri sur cette colonne
+        ],
+        [
+            'data' => 'verif_chart',
+            'title' => trans('lang.verif_chart'),
         ],
     ];
 }

@@ -634,6 +634,93 @@ public function updateChartStatus(Request $request)
 }
 
 
+public function generateDoctorUrl($doctorId)
+{
+    // Trouver le médecin avec l'ID fourni
+    $doctor = Doctor::find($doctorId);
+
+    if (!$doctor) {
+        return response()->json(['error' => 'Médecin non trouvé'], 404);
+    }
+
+    // Récupérer l'utilisateur associé au médecin avec l'adresse
+    $userWithAddress = $doctor->user()->with('address')->first();
+    $address = $userWithAddress->address;
+
+    // Extraire le pays et le gouvernorat de l'adresse
+    $pays = $address && $address->pays ? json_decode($address->pays, true) : null;
+    $pays = isset($pays['fr']) ? strtolower($pays['fr']) : (is_array($pays) ? strtolower(reset($pays) ?: '') : ($pays ? strtolower($pays) : null));
+
+    $gouvernorat = $address && $address->gouvernorat ? json_decode($address->gouvernorat, true) : null;
+    $gouvernorat = isset($gouvernorat['fr']) ? strtolower($gouvernorat['fr']) : (is_array($gouvernorat) ? strtolower(reset($gouvernorat) ?: '') : ($gouvernorat ? strtolower($gouvernorat) : null));
+
+    // Remplacer les espaces par des tirets dans le gouvernorat
+    if ($gouvernorat) {
+        $gouvernorat = str_replace(' ', '-', $gouvernorat);
+    }
+
+    // Vérifier que l'adresse du médecin est complète
+    if (!$pays || !$gouvernorat) {
+        return response()->json(['error' => 'Adresse du médecin incomplète'], 400);
+    }
+
+    // Vérifier les spécialités du médecin
+    $specialities = $doctor->specialities;
+
+    if ($specialities->isEmpty()) {
+        return response()->json(['error' => 'Aucune spécialité trouvée pour ce médecin'], 400);
+    }
+
+    // Récupérer le nom de la spécialité
+    $specialityName = $specialities->first()->name;
+
+    if (is_string($specialityName)) {
+        $specialityName = strtolower($specialityName);
+    } else {
+        $specialityName = json_decode($specialityName, true);
+        $specialityName = isset($specialityName['fr']) ? strtolower($specialityName['fr']) : (is_array($specialityName) ? strtolower(reset($specialityName) ?: '') : null);
+    }
+
+    // Remplacer les espaces par des tirets dans le nom de la spécialité
+    if ($specialityName) {
+        $specialityName = str_replace(' ', '-', $specialityName);
+    }
+
+    // Récupérer l'ID aléatoire du médecin
+    $randomId = $doctor->id_aleatoire;
+
+    // Récupérer et traiter le nom du médecin
+    $doctorName = $doctor->name;
+    if (is_string($doctorName)) {
+        // Décoder le nom si nécessaire
+        $decoded = json_decode($doctorName, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            $doctorName = isset($decoded['fr'])
+                ? strtolower($decoded['fr'])
+                : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : strtolower($doctorName));
+        } else {
+            $doctorName = strtolower($doctorName);
+        }
+    } else {
+        $decoded = json_decode($doctorName, true);
+        $doctorName = isset($decoded['fr'])
+            ? strtolower($decoded['fr'])
+            : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : '');
+    }
+
+    // Remplacer les espaces par des tirets dans le nom du médecin
+    if ($doctorName) {
+        $doctorName = str_replace(' ', '-', $doctorName);
+    }
+
+    // Générer l'URL du médecin
+    $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/dr-{$doctorName}-{$randomId}.html";
+
+    // Rediriger l'utilisateur vers l'URL générée
+    return redirect()->away($link);
+}
+
+
 
         
 }
