@@ -294,6 +294,18 @@ class AddressController extends Controller
                 $message = 'Adresse enregistrée avec succès';
             }
 
+            // Vérifier si tous les champs de l'adresse sont remplis
+        $isComplete = !empty($validatedData['address']) &&
+        !empty($validatedData['pays']) &&
+        ($validatedData['pays'] === 'france' ? (!empty($validatedData['Région']) && !empty($validatedData['Département'])) : (!empty($validatedData['ville']) && !empty($validatedData['gouvernorat']))) &&
+        !empty($stationnement) &&
+        !empty($accessibilite);
+
+        // Définir le pourcentage d'adresse
+        $pourcentage_adresse = $isComplete ? 20 : 0;
+        // Mettre à jour le pourcentage d'adresse du médecin
+        $doctor->update(['pourcentage_adresse' => $pourcentage_adresse]);
+
     
             return response()->json([
                 'message' => $message,

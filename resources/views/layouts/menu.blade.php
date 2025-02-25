@@ -406,6 +406,17 @@
         <p>{{ trans('lang.photos_cabinet') }}</p></a>
     </li>
 @endcan
+@can('suivi_doctors.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('suivi_doctors') ? 'active' : '' }}" href="{!! route('suivi_doctors.index') !!}">
+            @if($icons)
+                <!-- Remplacer l'icône de la galerie par une icône de suivi des médecins -->
+                <i class="nav-icon fas fa-user-md"></i> <!-- Icône représentant un médecin -->
+            @endif
+            <p>{{ trans('lang.suivi_doctors') }}</p>
+        </a>
+    </li>
+@endcan
 
 
 

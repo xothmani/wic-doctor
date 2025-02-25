@@ -11,6 +11,7 @@ namespace App\Http\Controllers;
 use App\Criteria\Clinics\ClinicsOfUserCriteria;
 use App\Criteria\Doctors\DoctorsOfUserCriteria;
 use App\DataTables\DoctorDataTable;
+use App\DataTables\SuiviDoctorsDataTable;
 use App\Http\Requests\CreateDoctorRequest;
 use App\Http\Requests\UpdateDoctorRequest;
 use App\Repositories\SpecialityRepository;
@@ -441,6 +442,26 @@ class DoctorController extends Controller
                 'description' => $request->input('description'),
                 'payment_methods' => $payment_methods,
             ]);
+
+                // Vérifier si tous les champs sont remplis pour mettre à jour le pourcentage de profil
+                $allFieldsFilled = $request->input('name') && 
+                $request->input('lastname') && 
+                $request->input('email') && 
+                $request->input('phone_number') && 
+                $request->input('bio') && 
+                $request->input('consultation_methods') && 
+                $request->input('payment_methods') && 
+                $request->input('cabinet_number') && 
+                $request->input('facebook') && 
+                $request->input('instagram') && 
+                $request->input('website') && 
+                $request->input('description');
+
+            // Mise à jour du pourcentage de profil en fonction de la condition
+            $doctor->pourcentage_profil = $allFieldsFilled ? 20 : 0;
+
+            // Sauvegarder les modifications du médecin
+            $doctor->save();
             $this->executeNodeScript($doctor);
 
         
@@ -496,6 +517,12 @@ class DoctorController extends Controller
               ->where('speciality_id', $specialityId)
               ->update(['description' => $description]);
       }
+
+        // Vérifier si tous les champs sont remplis
+        $pourcentage_cv = (!empty($langues) && !empty($diplome) && !empty($description) && !empty($specialityId)) ? 20 : 0;
+
+        // Mettre à jour le pourcentage du CV
+        $doctor->update(['pourcentage_cv' => $pourcentage_cv]);
 
         return response()->json(['success' => 'Informations mises à jour avec succès.']);
     }    
@@ -559,6 +586,54 @@ private function executeNodeScript($doctor)
             Log::info('Script Node.js exécuté avec succès', ['output' => $output]);
         }
 }
+ 
+
+// Dans le contrôleur DoctorController.php
+
+public function updateChartStatus(Request $request)
+{
+    $doctor = auth()->user()->doctor; // Récupérer le doctor associé à l'utilisateur connecté
+
+    if ($doctor) {
+        // Mettre à jour l'attribut verif_chart
+        $doctor->verif_chart = $request->accepted;  // 1 si accepté, 0 si non accepté
+        $doctor->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    return response()->json(['success' => false, 'message' => 'Doctor not found'], 404);
+}
+    /**
+     * Display a listing of the Doctor for commercial.
+     *
+     * @param SuiviDoctorsDataTable $suiviDoctorsDataTable
+     * @return mixed
+     */
+    public function SuiviDoctorsIndex(SuiviDoctorsDataTable $suiviDoctorsDataTable): mixed
+    {
+        return $suiviDoctorsDataTable->render('suivi_doctors.index');
+    }
+    public function getTotalPourcentage()
+{
+    $doctor = auth()->user()->doctor;
+
+    if (!$doctor) {
+        return response()->json(['message' => 'Aucun doctor trouvé'], 404);
+    }
+
+    $total = $doctor->pourcentage_avatar +
+             $doctor->pourcentage_adresse +
+             $doctor->pourcentage_cv +
+             $doctor->pourcentage_cabinet +
+             $doctor->pourcentage_tags +
+
+             $doctor->pourcentage_profil;
+
+    return response()->json(['total_pourcentage' => $total]);
+}
+
+
 
         
 }

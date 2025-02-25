@@ -65,10 +65,12 @@
 
         <h4>Comment soumettre votre article ?</h4>
         <p>
-          Rédigez votre article en respectant les consignes ci-dessus. Envoyez-le à l’adresse : 
-          <strong>departement.sem@way-interactive-convergence.com</strong><br>
-          Notre comité éditorial vous donnera un retour sous 7 jours ouvrés.
-        </p>
+    Rédigez votre article en respectant les consignes ci-dessus. Envoyez-le directement via ce formulaire : 
+    <a href="/doctor-blog/create">Formulaire d'envoi</a><br>
+    Notre comité éditorial vous donnera un retour sous 7 jours ouvrés.
+</p>
+
+
       </div>
     </div>
   </div>

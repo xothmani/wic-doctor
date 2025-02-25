@@ -531,6 +531,10 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
     Route::post('photos-cabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
     Route::post('photos-cabinet/rejet', [PhotosCabinetController::class, 'rejet'])->name('photos_cabinet.rejet');
-
+    Route::post('/doctor/update-chart-status', [DoctorController::class, 'updateChartStatus'])->name('doctor.updateChartStatus');
+    Route::get('/suivi-doctors', [DoctorController::class, 'SuiviDoctorsIndex'])->name('suivi_doctors.index');
+    Route::get('/doctor/total-pourcentage', [DoctorController::class, 'getTotalPourcentage'])
+        ->name('doctor.total-pourcentage');
+    
 });
 
