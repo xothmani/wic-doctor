@@ -13,6 +13,8 @@
 <!-- JS de Slick -->
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+
 
     <!-- ADD THIS STYLE to reveal delete-media on hover -->
     <style>
@@ -178,13 +180,35 @@
                             </div>
                         </div>
 
-                        <!-- Description -->
-                        <div class="form-group d-flex align-items-center">
-                            {!! Form::label('description', 'Description', ['class' => 'col-md-3 control-label text-md-right']) !!}
-                            <div class="col-md-9">
-                                {!! Form::textarea('description', $doctor->description, ['class' => 'form-control', 'placeholder' => 'Écrivez une description', 'style' => 'height: 80px;']) !!}
-                            </div>
-                        </div>
+<!-- Description -->
+<!-- Description -->
+<div class="form-group d-flex align-items-center">
+    {!! Form::label('description', 'Description', ['class' => 'col-md-3 control-label text-md-right']) !!}
+    <div class="col-md-9">
+        {!! Form::textarea('description', $doctor->description, [
+            'id' => 'description', 
+            'class' => 'form-control', 
+            'placeholder' => 'Écrivez une description'
+        ]) !!}
+    </div>
+</div>
+
+<script>
+    tinymce.init({
+        selector: '#description', // Cible le textarea
+        height: 200,
+        plugins: 'advlist autolink lists link charmap preview anchor',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
+        menubar: false,
+        branding: false,
+        entity_encoding: "raw",  // 🔹 Permet de lire les caractères spéciaux
+        valid_elements: "*[*]",  // 🔹 Accepte tous les éléments HTML
+        content_css: false,      // 🔹 Empêche TinyMCE de forcer son propre style
+    });
+</script>
+
+
+
 
 
                         <!-- Méthodes de paiement -->
