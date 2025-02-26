@@ -33,9 +33,10 @@ class DoctorBlogDataTable extends DataTable
             return $title;
         })
         ->editColumn('contenu', function ($blog) {
-            $content = strip_tags($blog->contenu, '<p><br><strong><em><ul><li><ol>'); // Conserver certaines balises HTML            
+            $content = strip_tags($blog->contenu);          
             if (strlen($content) > 50) {
-                $shortContent = substr($content, 0, 50);
+                $shortContent = substr($content, 0, strrpos(substr($content, 0, 50), ' '));
+
                 return $shortContent . ' <a href="#" onclick="showModal(`' . addslashes($content) . '`)" style="color: blue; text-decoration: none;">...lire la suite</a>';
             }
             return $content;
