@@ -4,6 +4,8 @@
     <!-- select2 -->
     <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
     <!-- dropzone (same version as old code) -->
     <link rel="stylesheet" href="{{ asset('vendor/dropzone/min/dropzone.min.css') }}">
 <!-- CSS de Slick -->
@@ -928,7 +930,7 @@
                 $('#createMediaField').hide();
                 cabinetDropzone.removeAllFiles(true);
             });
-            function loadMedia() {
+function loadMedia() {
     let mediaContainer = $('.medias-items');
     mediaContainer.html(`
         <div class="card loader">
@@ -942,17 +944,17 @@
         url: "{{ route('doctors_gallery.all_cabinet') }}",
         method: 'GET',
         success: function (data) {
-            let enAttenteHtml = '<div class="section"><h5 class="mt-4">📌 En Attente</h5><div class="row">';
-            let accepteHtml = '<div class="section"><h5 class="mt-4">✅ Accepté</h5><div class="row">';
-            let refuseHtml = '<div class="section"><h5 class="mt-4">❌ Refusé</h5>';  
+            let enAttenteHtml = '<div class="section"><h5 class="mt-4">📌 En Attente</h5><div class="row d-flex flex-wrap justify-content-start row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">';
+let accepteHtml = '<div class="section"><h5 class="mt-4">✅ Accepté</h5><div class="row d-flex flex-wrap justify-content-start row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">';
+let refuseHtml = '<div class="section"><h5 class="mt-4">❌ Refusé</h5>';
 
             let enAttenteFound = false;
             let accepteFound = false;
             let refuseFound = false;
 
-            // Ajouter le message sous le titre "Refusé" et avant les images
-            refuseHtml += '<p class="text-muted mt-2">Ces photos ne respectent pas les critères de confidentialité et de qualité. Merci de télécharger des photos professionnelles de votre cabinet, sans patients ni contenu sensible, pour valider votre profil.</p>';
-            refuseHtml += '<div class="row">'; // Ouvrir la ligne pour les images
+// Ajouter le message d'avertissement avant les images
+refuseHtml += '<p class="text-muted mt-2">Ces photos ne respectent pas les critères de confidentialité et de qualité. Merci de télécharger des photos professionnelles de votre cabinet, sans patients ni contenu sensible, pour valider votre profil.</p>';
+refuseHtml += '<div class="row d-flex flex-wrap justify-content-start row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">';
 
             // Parcourir les données et organiser par statut
             data.forEach(item => {
@@ -1016,7 +1018,7 @@
             mediaContainer.html('<p class="text-danger">Erreur lors du chargement des médias.</p>');
         }
     });
-    }
+}
 
             // Initialiser les boutons de suppression avec confirmation
             function initDeleteButtons() {

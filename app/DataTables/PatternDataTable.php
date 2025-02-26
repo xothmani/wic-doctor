@@ -6,7 +6,7 @@ use App\Models\Pattern;
 use App\Models\Doctor;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Yajra\DataTables\EloquentDataTable;
-use Yajra\DataTables\Html\Builder as HtmlBuilder;
+use Yajra\DataTables\Html\Builder;
 use Yajra\DataTables\Html\Column;
 use Yajra\DataTables\Services\DataTable;
 
@@ -72,20 +72,29 @@ class PatternDataTable extends DataTable
         return $query->where('doctor_id', -1); // Return empty if unauthorized
     }
 
-    /**
-     * Optional method for HTML builder.
+     /**
+     * Optional method if you want to use html builder.
      *
-     * @return \Yajra\DataTables\Html\Builder
+     * @return Builder
      */
-    public function html()
+    public function html(): Builder
     {
         return $this->builder()
             ->columns($this->getColumns())
             ->minifiedAjax()
-            ->addAction(['width' => '80px', 'printable' => false])
-            ->parameters(config('datatables-buttons.parameters'));
+            ->addAction(['width' => '80px', 'printable' => false, 'responsivePriority' => '100'])
+            ->parameters(array_merge(
+                config('datatables-buttons.parameters'),
+                [
+                    'language' => json_decode(
+                        file_get_contents(
+                            base_path('resources/lang/' . app()->getLocale() . '/datatable.json')
+                        ),
+                        true
+                    )
+                ]
+            ));
     }
-
     /**
      * Get the columns.
      *

@@ -2046,9 +2046,12 @@ return [
     'verif_chart' => 'Vérification Charte',
     'my_profile' => 'Mon profil',
     'voir_profil' => 'Voir mon profil sur WIC Dr.',
+    'patient_notes' => 'Notes',
+    'noUrgenciesFound' => 'Aucune cas d\'urgence trouvée',
+    'noVacationFound' => 'Aucune vacance trouvée',
 
     
-
+    
 
 
 
