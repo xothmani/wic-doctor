@@ -45,48 +45,59 @@ class DoctorBlogController extends Controller
      */
     public function store(Request $request)
     {
-        // Vérifier si l'utilisateur est connecté
-        $user = auth()->user();
-        if (!$user) {
-            Log::error('Utilisateur non connecté');
-            return response()->json(['error' => 'Utilisateur non connecté'], 401);
+        try {
+            // Vérifier si l'utilisateur est connecté
+            $user = auth()->user();
+            if (!$user) {
+                Log::error('Utilisateur non connecté');
+                return redirect()->back()->with('error', 'Utilisateur non connecté');
+            }
+    
+            // Vérifier si l'utilisateur est un médecin
+            $doctor = Doctor::where('user_id', $user->id)->first();
+            if (!$doctor) {
+                Log::error('Médecin non trouvé pour cet utilisateur', ['user_id' => $user->id]);
+                return redirect()->back()->with('error', 'Médecin non trouvé pour cet utilisateur');
+            }
+    
+            // Valider les données du formulaire
+            $validatedData = $request->validate([
+                'titre_court' => 'required|string|max:255',
+                'titre' => 'required|string',
+                'contenu' => 'required|string',
+                'media_id' => 'required|integer|exists:media,id',
+            ], [
+                'media_id.required' => 'Le champ image est obligatoire.', 
+                'media_id.exists' => 'L\'image sélectionnée est invalide.'
+            ]);
+            
+    
+            Log::info('Validation réussie pour les champs', $validatedData);
+    
+            // Créer et sauvegarder un nouveau blog
+            $doctorBlog = DoctorBlog::create([
+                'titre_court' => $validatedData['titre_court'],
+                'titre' => $validatedData['titre'],
+                'contenu' => $validatedData['contenu'],
+                'status' => 'en cours',
+                'doctor_id' => $doctor->id,
+                'media_id' => $validatedData['media_id'],
+                'created_at' => now(),
+                'updated_at' => null
+            ]);
+    
+            Log::info('Blog enregistré', ['blog_id' => $doctorBlog->id]);
+    
+            return redirect()->route('doctor_blog.index')->with('success', 'Blog créé avec succès');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Gestion des erreurs de validation
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la création du blog', ['message' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Une erreur est survenue. Veuillez réessayer.');
         }
-    
-        // Vérifier si l'utilisateur est un médecin
-        $doctor = Doctor::where('user_id', $user->id)->first();
-        if (!$doctor) {
-            Log::error('Médecin non trouvé pour cet utilisateur', ['user_id' => $user->id]);
-            return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
-        }
-    
-        // Valider les données du formulaire
-        $request->validate([
-            'titre_court' => 'required|string|max:255',
-            'titre' => 'required|string',
-            'contenu' => 'required|string',
-            'media_id' => 'required|integer', // Validation pour l'ID du média
-        ]);
-    
-        Log::info('Validation réussie pour les champs', $request->all());
-    
-        // Créer un nouveau blog pour le médecin
-        $doctorBlog = new DoctorBlog();
-        $doctorBlog->titre_court = $request->titre_court;
-        $doctorBlog->titre = $request->titre;
-        $doctorBlog->contenu = $request->contenu;
-        $doctorBlog->status = 'en cours';  // Statut "en cours"
-        $doctorBlog->doctor_id = $doctor->id;  // ID du médecin connecté
-        $doctorBlog->media_id = $request->media_id;  // ID du média
-        $doctorBlog->created_at = now();  // Date et heure actuelle pour created_at
-        $doctorBlog->updated_at = null;  // Laisser vide ou null pour la première création
-    
-        // Sauvegarder le blog dans la base de données
-        $doctorBlog->save();
-        Log::info('Blog enregistré', ['blog_id' => $doctorBlog->id]);
-    
-        // Retourner une réponse de succès
-        return redirect()->route('doctor_blog.index')->with('success', 'Blog créé avec succès');
     }
+    
     public function storeImage(Request $request): JsonResponse
     {
         $input = $request->all();

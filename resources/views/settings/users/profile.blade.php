@@ -103,6 +103,16 @@
             <a class="btn btn-outline-{{ setting('theme_color') }} btn-block" href="{{ route('doctors.editProfil') }}">
                 <i class="fas fa-edit mr-2"></i> {{ trans('lang.edit_profil') }}
             </a>
+            <a class="btn btn-block" 
+   style="background-color: #da029c; color: #ffffff; border-color: #da029c;" 
+   href="{{ route('doctors.generateUrl') }}" 
+   target="_blank" 
+   rel="noopener noreferrer">
+    <i class="fas fa-globe mr-2"></i> {{ trans('lang.voir_profil') }}
+</a>
+
+
+
         </div>
     </div>
 @endcan

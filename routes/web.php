@@ -536,6 +536,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/doctor/total-pourcentage', [DoctorController::class, 'getTotalPourcentage'])
         ->name('doctor.total-pourcentage');
         Route::get('/generate-doctor-url/{doctorId}', [DoctorController::class, 'generateDoctorUrl'])->name('generateDoctorUrl');
+        Route::get('/medecin/generer-url', [DoctorController::class, 'generateConnectedDoctorUrl'])->name('doctors.generateUrl');
+
 
     
 });

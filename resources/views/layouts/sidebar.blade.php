@@ -20,10 +20,14 @@
         <div class="sidebar-footer mt-auto">
             <ul class="nav nav-pills nav-sidebar flex-column nav-flat">
             <li class="nav-item">
-    <a class="nav-link {{ Request::is('users.profile') ? 'active' : '' }}" href="{!! route('users.profile') !!}">
-        <i class="nav-icon fas fa-user"></i> <!-- Icône de profil -->
-        <p>{{ trans('lang.my_profile') }}</p>
-    </a>
+            @unless(auth()->user()->hasRole('admin'))
+                <a class="nav-link {{ Request::is('users.profile') ? 'active' : '' }}" href="{!! route('users.profile') !!}">
+                    <i class="nav-icon fas fa-user"></i> <!-- Icône de profil -->
+                    <p>{{ trans('lang.my_profile') }}</p>
+                </a>
+            @endunless
+
+
 </li>
 
             </ul>

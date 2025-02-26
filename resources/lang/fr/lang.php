@@ -2045,6 +2045,7 @@ return [
     'last_login_at' => 'Dernière connexion',
     'verif_chart' => 'Vérification Charte',
     'my_profile' => 'Mon profil',
+    'voir_profil' => 'Voir mon profil sur WIC Dr.',
 
     
 
