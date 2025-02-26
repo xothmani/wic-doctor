@@ -168,7 +168,7 @@
                  
                     @empty
                         <tr>
-                            <td colspan="4">{{ trans('lang.noUrgenciesFound') }}</td>
+                            <td colspan="4">{{ trans('lang.noVacationFound') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
