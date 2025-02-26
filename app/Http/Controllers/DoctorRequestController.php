@@ -178,11 +178,6 @@ public function store(Request $request)
         // Vérifier si l'utilisateur est déjà associé à un docteur
         $existingDoctor = Doctor::where('user_id', $user->id)->first();
         if ($existingDoctor) {
-            // Logguer une tentative de doublon
-            Log::warning('Tentative de conventionnement pour un utilisateur déjà existant.', [
-                'user_id' => $user->id,
-                'doctorRequestId' => $doctorRequestId,
-            ]);
             return redirect()->back()->with('error', 'Docteur déjà conventionné pour cet utilisateur.');
         }
 
@@ -433,8 +428,13 @@ private function createDoctor($user, $doctorRequest)
     }
 
         DB::table('addresses')->insert($addressData);
+        // Modifier les permissions avant d'exécuter le script Node.js
+        shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
+        shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/WicDoctor/medecin/');
 
+        // Exécuter le script Node.js
         $this->executeNodeScript($doctor);
+
 
         return $doctor;
 }

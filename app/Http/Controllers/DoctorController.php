@@ -37,6 +37,7 @@ use App\Models\Address;
 use App\Models\Doctor;
 use App\Models\Speciality;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DoctorController extends Controller
 {
@@ -718,6 +719,28 @@ public function generateDoctorUrl($doctorId)
 
     // Rediriger l'utilisateur vers l'URL générée
     return redirect()->away($link);
+}
+
+public function generateConnectedDoctorUrl()
+{
+    // Vérifier si l'utilisateur est connecté
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Veuillez vous connecter pour voir votre profil.');
+    }
+
+    // Récupérer le médecin connecté
+    $user = Auth::user();
+    $doctor = Doctor::where('user_id', $user->id)->first();
+
+    if (!$doctor) {
+        return redirect()->back()->with('error', 'Aucun profil de médecin associé à cet utilisateur.');
+    }
+
+    // Générer l'URL du médecin connecté
+    $url = $this->generateDoctorUrl($doctor->id); 
+
+    // Rediriger vers l'URL générée
+    return $url;
 }
 
 
