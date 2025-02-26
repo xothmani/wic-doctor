@@ -284,7 +284,7 @@ class AvailabilityController extends Controller
             // Pre-process the availability data to convert French day names to English
             $processedData = collect($request->input('availability'))->map(function ($item) use ($dayMapping) {
                 if (isset($item['day']) && isset($dayMapping[$item['day']])) {
-                    $item['day'] = $dayMapping[$item['day']];
+                    $item['day'] = strtolower($dayMapping[$item['day']]); // Store in lowercase
                 }
                 return $item;
             })->toArray();
@@ -336,7 +336,7 @@ class AvailabilityController extends Controller
                     // Create or update with both type and mode conditions
                     AvailabilityHour::create([
                         'doctor_id' => $doctorId,
-                        'day' => ucfirst($data['day']),
+                        'day' => $data['day'],
                         'type' => $type,
                         'mode' => 'open',
                         'start_at' => $data['from'],
@@ -461,267 +461,6 @@ class AvailabilityController extends Controller
 
 
 
-
-    /* 
-    protected function processAllDaysAvailability($validated)
-        {
-            DB::transaction(function () use ($validated) {
-                $doctorId = 64; // Replace with dynamic doctor ID if needed
-                $perPatientTime = $validated['per_patient_time'];
-                $perPatientMinutes = Carbon::createFromFormat('H:i', $perPatientTime)->hour * 60 +
-                    Carbon::createFromFormat('H:i', $perPatientTime)->minute;
-        
-                foreach ($validated['availability'] as $availability) {
-                    $dayName = ucfirst($availability['day']);
-                    $isAvailable = $availability['is_available'] ?? 0;
-        
-                    // Delete existing slots for this day
-                    DB::table('availability_hours')
-                        ->where('doctor_id', $doctorId)
-                        ->where('day', $dayName)
-                        ->delete();
-        
-                    if (!$isAvailable) {
-                        Log::info("Day {$dayName} marked as unavailable.");
-                        continue;
-                    }
-        
-                    $start = Carbon::createFromTimeString($availability['from']);
-                    $end = Carbon::createFromTimeString($availability['to']);
-        
-                    while ($start->lt($end)) {
-                        $slotEnd = $start->copy()->addMinutes($perPatientMinutes);
-        
-                        if ($slotEnd->gt($end)) {
-                            $slotEnd = $end;
-                        }
-        
-                        DB::table('availability_hours')->insert([
-                            'day' => $dayName,
-                            'data' => json_encode(['status' => 'Disponible']),
-                            'doctor_id' => $doctorId,
-                            'start_at' => $start->toDateTimeString(),
-                            'end_at' => $slotEnd->toDateTimeString(),
-                            'patern_id' => 8,
-                            'is_available' => $isAvailable,
-                        ]);
-        
-                        Log::info('Inserted new availability:', [
-                            'day' => $dayName,
-                            'start_at' => $start->toDateTimeString(),
-                            'end_at' => $slotEnd->toDateTimeString(),
-                        ]);
-        
-                        $start = $slotEnd; // Move to the next slot
-                    }
-                }
-            });
-    }
-         */
-
-
-    /* protected function processSpecificDayAvailability($validated)
-    {
-        DB::transaction(function () use ($validated) {
-            // Logic to handle availability for a specific day
-            $doctorId = 64; // Replace with actual doctor ID
-            $start = Carbon::createFromFormat('Y-m-d H:i', $validated['specific_date'] . ' ' . $validated['specific_from']);
-            $end = Carbon::createFromFormat('Y-m-d H:i', $validated['specific_date'] . ' ' . $validated['specific_to']);
-
-            // Update or insert for the specific day
-            DB::table('availability_hours')->updateOrInsert(
-                [
-                    'doctor_id' => $doctorId,
-                    'start_at' => $start->toDateTimeString(),
-                    'end_at' => $end->toDateTimeString(),
-                ],
-                [
-                    'day' => ucfirst($start->format('l')),
-                    'data' => json_encode(['status' => 'Disponible']),
-                    'patern_id' => 8,
-                ]
-            );
-        });
-    }
-     */
-
-
-
-    /*     public function storeBreaks(Request $request)
-        {
-            try {
-                Log::info('Form Data for Breaks:', $request->all());
-        
-                // Validate input
-                if ($request->break_type === 'single_day') {
-                    // Validation for Single Day
-                    $validated = $request->validate([
-                        'break_type' => 'required|string|in:single_day,every_day',
-                        'break_date' => 'required|date|after_or_equal:today', // Specific date
-                        'breaks.from' => 'required|date_format:H:i',
-                        'breaks.to' => 'required|date_format:H:i|after:breaks.from',
-                    ]);
-        
-                    $breakDate = $validated['break_date'];
-                    $from = $validated['breaks']['from'];
-                    $to = $validated['breaks']['to'];
-        
-                    DB::transaction(function () use ($breakDate, $from, $to) {
-                        $availabilityHours = DB::table('availability_hours')
-                            ->where('doctor_id', 64) // Replace with dynamic doctor ID if necessary
-                            ->whereDate('start_at', $breakDate)
-                            ->get();
-        
-                        foreach ($availabilityHours as $availability) {
-                            // Check if a break already exists for this day and time range
-                            $exists = DB::table('availability_breaks')
-                                ->where('doctor_id', $availability->doctor_id)
-                                ->where('day', $availability->day)
-                                ->where('start_at', $breakDate . ' ' . $from . ':00')
-                                ->where('end_at', $breakDate . ' ' . $to . ':00')
-                                ->exists();
-        
-                            if (!$exists) {
-                                DB::table('availability_breaks')->insert([
-                                    'availability_id' => $availability->id,
-                                    'doctor_id' => $availability->doctor_id,
-                                    'day' => $availability->day,
-                                    'start_at' => $breakDate . ' ' . $from . ':00',
-                                    'end_at' => $breakDate . ' ' . $to . ':00',
-                                    'created_at' => now(),
-                                    'updated_at' => now(),
-                                ]);
-                            }
-                        }
-                    });
-        
-                    Log::info('Single Day Breaks saved successfully.');
-                } elseif ($request->break_type === 'every_day') {
-                    // Validation for Every Day
-                    $validated = $request->validate([
-                        'break_type' => 'required|string|in:single_day,every_day',
-                        'breaks.from' => 'required|date_format:H:i',
-                        'breaks.to' => 'required|date_format:H:i|after:breaks.from',
-                    ]);
-        
-                    $from = $validated['breaks']['from'];
-                    $to = $validated['breaks']['to'];
-        
-                    DB::transaction(function () use ($from, $to) {
-                        $availabilityHours = DB::table('availability_hours')
-                            ->where('doctor_id', 64) // Replace with dynamic doctor ID if necessary
-                            ->get();
-        
-                        $processedDays = []; // Track processed days to prevent duplicate breaks
-        
-                        foreach ($availabilityHours as $availability) {
-                            $day = $availability->day;
-        
-                            if (!in_array($day, $processedDays)) {
-                                $availabilityDate = Carbon::createFromFormat('Y-m-d H:i:s', $availability->start_at)->format('Y-m-d');
-                                $breakStart = $availabilityDate . ' ' . $from . ':00';
-                                $breakEnd = $availabilityDate . ' ' . $to . ':00';
-        
-                                // Check if a break already exists for this day
-                                $exists = DB::table('availability_breaks')
-                                    ->where('doctor_id', $availability->doctor_id)
-                                    ->where('day', $day)
-                                    ->where('start_at', $breakStart)
-                                    ->where('end_at', $breakEnd)
-                                    ->exists();
-        
-                                if (!$exists) {
-                                    DB::table('availability_breaks')->insert([
-                                        'availability_id' => $availability->id,
-                                        'doctor_id' => $availability->doctor_id,
-                                        'day' => $day,
-                                        'start_at' => $breakStart,
-                                        'end_at' => $breakEnd,
-                                        'created_at' => now(),
-                                        'updated_at' => now(),
-                                    ]);
-        
-                                    $processedDays[] = $day; // Mark this day as processed
-                                }
-                            }
-                        }
-                    });
-        
-                    Log::info('Every Day Breaks saved successfully.');
-                }
-        
-                return redirect()->route('availability.index')->with('success', 'Breaks saved successfully!');
-            } catch (\Exception $e) {
-                Log::error('Error saving breaks:', ['error' => $e->getMessage()]);
-                return back()->with('error', 'An error occurred. Please try again.')->withInput();
-            }
-        } */
-
-
-
-    /* 
-        public function storeHolidays(Request $request)
-        {
-            try {
-                Log::info('Form Data for Holidays:', $request->all());
-        
-                // Validate the input
-                $validated = $request->validate([
-                    'holiday.date' => 'required|date|after_or_equal:today',
-                    'holiday.reason' => 'nullable|string|max:255',
-                ]);
-        
-                Log::info('Validated Holiday Data:', $validated);
-        
-                DB::transaction(function () use ($validated) {
-                    $holidayDate = $validated['holiday']['date'];
-                    $reason = $validated['holiday']['reason'] ?? null;
-                    $doctorId = auth()->user()->id; // Replace with dynamic doctor ID if necessary
-        
-                    // Step 1: Insert the holiday into the `doctor_holidays` table
-                    DB::table('doctor_holidays')->insert([
-                        'doctor_id' => 64,
-                        'date' => $holidayDate,
-                        'reason' => $reason,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-        
-                    Log::info('Holiday saved successfully for date:', ['date' => $holidayDate]);
-        
-                    // Step 2: Retrieve all availability IDs for the holiday date
-                    $availabilityIds = DB::table('availability_hours')
-                        ->where('doctor_id', 64)
-                        ->whereDate('start_at', $holidayDate)
-                        ->pluck('id');
-        
-                    Log::info('Availability IDs to be deleted:', ['ids' => $availabilityIds]);
-        
-                    // Step 3: Delete breaks first (to satisfy foreign key constraints)
-                    if ($availabilityIds->isNotEmpty()) {
-                        $deletedBreaksCount = DB::table('availability_breaks')
-                            ->whereIn('availability_id', $availabilityIds)
-                            ->delete();
-        
-                        Log::info('Deleted Breaks Count:', ['count' => $deletedBreaksCount]);
-                    }
-        
-                    // Step 4: Delete availabilities for the holiday date
-                    $deletedAvailabilitiesCount = DB::table('availability_hours')
-                        ->whereIn('id', $availabilityIds)
-                        ->delete();
-        
-                    Log::info('Deleted Availabilities Count:', ['count' => $deletedAvailabilitiesCount]);
-                });
-        
-                return redirect()->route('availability.index')->with('success', 'Holiday added and associated availabilities and breaks deleted successfully!');
-            } catch (\Exception $e) {
-                Log::error('Error saving holiday and deleting availabilities:', ['error' => $e->getMessage()]);
-                return back()->with('error', 'An error occurred. Please try again.')->withInput();
-            }
-        }
-         */
-
     public function storeVacation(Request $request)
     {
         $doctorId = auth()->user()->getDoctorId();
@@ -787,6 +526,31 @@ class AvailabilityController extends Controller
             Log::error('Error saving breaks:', ['error' => $e->getMessage()]);
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
+    }
+
+    public function getAvailableTimeSlotsForOpen(Request $request)
+    {
+        \Log::info('Request received-2', ['request' => $request->all()]);
+        $doctorId = auth()->user()->getDoctorId();
+        $selectedDate = $request->input('date');
+        $type = $request->input('type', 'cabinet'); // Default to cabinet if not specified
+
+        if (!$doctorId || !$selectedDate) {
+            return response()->json(['error' => 'Doctor or date not found'], 404);
+        }
+
+        $dayName = Carbon::parse($selectedDate)->locale('en')->dayName;
+
+        // Fetch availability hours for the selected day, doctor, and type
+        $availability = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('day', $dayName)
+            ->where('is_available', 1)
+            ->where('mode', 'open')
+            ->where('type', $type) // Add type filter
+            ->first();
+
+        // ...rest of your existing code...
     }
 
 }

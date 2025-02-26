@@ -654,18 +654,17 @@ class AppointmentEventController extends Controller
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
 
-        if (!$doctorId || !$selectedDate) {
-            return response()->json(['error' => 'Doctor or date not found'], 404);
-        }
-
         // Get the Monday of the current week based on the selected date
         $weekStart = Carbon::parse($selectedDate)->startOfWeek(); // Get Monday of that week
+        \Log::info('Week start date', ['weekStart' => $weekStart]);
 
         // Fetch all availability for the entire week
         $availability = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
             ->where('is_available', 1)
-            ->get();
+            ->where('mode', 'open')
+            ->distinct()
+            ->pluck('day');
 
         \Log::info('Availability fetched', ['availability' => $availability]);
 
@@ -674,85 +673,51 @@ class AppointmentEventController extends Controller
             return response()->json(['error' => 'No availability found'], 404);
         }
 
-        $allSlots = [];
-
-        foreach ($availability as $slot) {
-            $startTime = Carbon::parse($slot->start_at);
-            $endTime = Carbon::parse($slot->end_at);
-            $sessionDuration = $slot->session_duration;
-
-            // Correctly map weekday names to the actual date in the current week
-            $dayMapping = [
-                'monday' => 0,
-                'tuesday' => 1,
-                'wednesday' => 2,
-                'thursday' => 3,
-                'friday' => 4,
-                'saturday' => 5,
-                'sunday' => 6
-            ];
-
-            if (!isset($dayMapping[$slot->day])) {
-                \Log::warning("Invalid day name found in DB: " . $slot->day);
-                continue;
-            }
-
-            // Calculate actual date for the slot's day
-            $slotDate = $weekStart->copy()->addDays($dayMapping[$slot->day]);
-
-            while ($startTime->lessThan($endTime)) {
-                $allSlots[] = [
-                    'time' => $startTime->format('H:i'),
-                    'color' => $this->getPatternColor($slot->patern_id),
-                    'day' => $slotDate->format('Y-m-d'), // Store exact date
-                    'session_duration' => $sessionDuration,
-                ];
-                $startTime->addMinutes($sessionDuration);
-            }
-        }
-
-        \Log::info('Generated precise slots:', ['allSlots' => $allSlots]);
-
+        // Return only the available days
         return response()->json([
-            'all_slots' => $allSlots,
-            'taken_slots' => [] // Keep it for compatibility
+            'available_days' => $availability
         ]);
     }
 
     public function getAvailableTimeSlotsForOpen(Request $request)
     {
+        \Log::info('Request received-2', ['request' => $request->all()]);
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
+        $selectedType = $request->input('type', 'cabinet'); // Default to cabinet if not specified
 
         if (!$doctorId || !$selectedDate) {
             return response()->json(['error' => 'Doctor or date not found'], 404);
         }
-        // Get the day name for the selected date
-        $dayName = Carbon::parse($selectedDate)->locale('fr')->dayName; // Example: "Lundi", "Mardi"
 
-        // Fetch availability hours for the selected day and doctor
+        // Get the day name for the selected date
+        $dayName = strtolower(Carbon::parse($selectedDate)->locale('en')->dayName);
+        \Log::info('Day name fetched', ['dayName' => $dayName]);
+
+
+
+
+        // Fetch availability hours for the selected day, doctor, and type
         $availability = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
             ->where('day', $dayName)
-            ->where('is_available', 1) // Ensure availability is enabled
-            ->where('onligne', 0)
+            ->where('is_available', 1)
+            ->where('mode', 'open')
+            ->where('type', $selectedType)
             ->first();
 
         \Log::info('Availability fetched', ['availability' => $availability]);
 
         if (!$availability) {
-            \Log::warning('No availability found', ['doctor_id' => $doctorId, 'dayName' => $dayName]);
-            return response()->json(['error' => 'No availability found for this date'], 404);
-        }
-
-        if (!$availability) {
-            \Log::warning('No availability found', ['doctor_id' => $doctorId, 'dayName' => $dayName]);
+            \Log::warning('No availability found', ['doctor_id' => $doctorId, 'dayName' => $dayName, 'type' => $selectedType]);
             return response()->json([
                 'vacation' => false,
                 'all_slots' => [],
                 'taken_slots' => [],
+                'type' => $selectedType
             ]);
         }
+
         // Calculate all available time slots
         $startTime = Carbon::parse($availability->start_at);
         $endTime = Carbon::parse($availability->end_at);
@@ -811,8 +776,8 @@ class AppointmentEventController extends Controller
         // Check for vacations
         $vacations = DB::table('vacance')
             ->where('doctor_id', $doctorId)
-            ->whereDate('dateDebut', '<=', $selectedDate)
-            ->whereDate('dateFin', '>=', $selectedDate)
+            ->whereDate('start_date', '<=', $selectedDate)
+            ->whereDate('end_date', '>=', $selectedDate)
             ->exists();
 
         \Log::info('Vacation status', ['vacations' => $vacations]);
@@ -829,6 +794,7 @@ class AppointmentEventController extends Controller
             'vacation' => false, // Doctor is not on vacation
             'all_slots' => array_values($allSlots),
             'taken_slots' => $takenSlots,
+            'type' => $selectedType
         ];
 
         \Log::info('Final response', ['response' => $response]);
@@ -1427,6 +1393,33 @@ class AppointmentEventController extends Controller
         }
     }
 
+    public function getAvailableDays()
+    {
+        $doctorId = auth()->user()->getDoctorId();
 
+        // Get all available days with their types from availability_hours
+        $availableDays = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('mode', 'open')
+            ->select('day', 'type')
+            ->distinct()
+            ->get()
+            ->groupBy('day')
+            ->map(function ($dayTypes) {
+                return $dayTypes->pluck('type')->toArray();
+            });
+
+        // Get vacations
+        $vacations = DB::table('vacance')
+            ->where('doctor_id', $doctorId)
+            ->select('start_date', 'end_date')
+            ->get();
+
+        return response()->json([
+            'availableDays' => $availableDays,
+            'vacations' => $vacations
+        ]);
+    }
 
 }

@@ -386,7 +386,10 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
     Route::resource('patterns', PatternController::class);
     Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name('appointments.getAvailableTimeSlots');
+    Route::get('/get-available-For-open', [AppointmentEventController::class, 'getAvailableForOpen'])->name('appointments.getAvailableForOpen');
+    Route::get('/get-available-time-slots-open', [AppointmentEventController::class, 'getAvailableTimeSlotsForOpen'])->name('appointments.getAvailableTimeSlotsForOpen');
     Route::get('/get-teleconsultation-time-slots', [AppointmentEventController::class, 'getTeleconsultationTimeSlots'])->name('get.teleconsultation.slots');
+    Route::get('/get-available-days', [AppointmentEventController::class, 'getAvailableDays'])->name('get.available.days');
 
     // Route pour afficher toutes les prescriptions liées à une consultation
     Route::get('/consultation/{consultation}/prescriptions', [ConsultationController::class, 'showPrescriptions'])->name('consultation.prescriptions');
