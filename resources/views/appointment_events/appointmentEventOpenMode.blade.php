@@ -223,6 +223,34 @@
             </div>
         </div>
 
+        <!-- Add this after your existing modals -->
+        <div class="modal fade" id="cancelReasonModal" tabindex="-1" role="dialog" aria-labelledby="cancelReasonModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cancelReasonModalLabel">{{ trans('lang.cancel_reason') }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="cancelReasonForm">
+                            <div class="form-group">
+                                <label for="cancelReason">{{ trans('lang.reason') }}</label>
+                                <textarea class="form-control" id="cancelReason" rows="3"
+                                    placeholder="{{ trans('lang.enter_cancel_reason') }}"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.close') }}</button>
+                        <button type="button" class="btn btn-danger"
+                            id="confirmCancel">{{ trans('lang.confirm_cancel') }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Content -->
         <div class="content">
@@ -369,20 +397,20 @@
                 // Handle vacation case
                 if (response.vacation) {
                     timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
                     return;
                 }
 
                 // If no slots available for this type
                 if (!all_slots || all_slots.length === 0) {
                     timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible pour ${getTypeLabel(type)}.
-                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucun créneau disponible pour ${getTypeLabel(type)}.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
                     return;
                 }
 
@@ -526,10 +554,10 @@
                         if (!response.all_slots || response.all_slots.length === 0) {
                             // No available slots → Show a message inside the modal
                             $("#time-slots").html(`
-                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                            Aucune disponibilité pour ce type de rendez-vous à cette date.
-                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                    `);
+                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                Aucune disponibilité pour ce type de rendez-vous à cette date.
+                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                        `);
                             return;
                         }
 
@@ -553,10 +581,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
             }
             //    ////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
@@ -591,13 +619,13 @@
                     minTime: "08:00:00",
                     eventLimit: true, // Allow "more" link for overflow events
                     dayRender: function (date, cell) {
-                        console.log("Day Rendered:", date.format());
-                        // Format date as YYYY-MM-DD for comparison
-                        const formattedDayName = date.locale('en').format('dddd').toLowerCase(); // Normalize to lowercase
-                        const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase()); // Normalize backend days to lowercase
-                        const today = moment().startOf('day'); // Get today's date
+                        const formattedDayName = date.locale('en').format('dddd').toLowerCase();
+                        const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase());
+                        const today = moment().startOf('day');
                         const currentDay = date.startOf('day');
-                        // Check if the doctor is on vacation
+                        const formattedDate = currentDay.format('YYYY-MM-DD');
+
+                        // Check vacation days first
                         const isVacationDay = vacations.some(vacation => {
                             const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
                             const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
@@ -605,27 +633,57 @@
                         });
 
                         if (currentDay.isBefore(today)) {
-                            // Mark as past day
-                            cell.css('background-color', '#e9ecef'); // Light red for past days
+                            cell.css('background-color', '#e9ecef');
                             cell.css('cursor', 'not-allowed');
-                            cell.css('color', '#721c24'); // Dark red for text
+                            cell.css('color', '#721c24');
                             cell.css('position', 'relative');
-                            cell.append('<span class="dot past-dot"></span>'); // Add a dot for past day
-                            cell.attr('title', 'Ce jour est dans le passé.'); // Tooltip for past days
+                            cell.append('<span class="dot past-dot"></span>');
+                            cell.attr('title', 'Ce jour est dans le passé.');
                         } else if (isVacationDay) {
-                            cell.addClass('cell-with-background'); // Apply custom background for vacation days
+                            cell.addClass('cell-with-background');
                             cell.attr('title', 'Le docteur est en vacances ce jour.');
                         } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
-                            // Mark as available day
-                            cell.css('background-color', ''); // Green for available days
-                            cell.css('cursor', 'pointer');
-                            cell.css('position', 'relative');
-                            cell.append('<span class="dot available-dot"></span>'); // Green dot
+                            // Check availability for all appointment types
+                            $.ajax({
+                                url: "/get-available-time-slots",
+                                type: "GET",
+                                data: {
+                                    date: formattedDate,
+                                    checkAllTypes: true // Add a flag to check all types
+                                },
+                                success: function (response) {
+                                    const allSlots = response.all_slots || [];
+                                    const takenSlots = response.taken_slots || [];
+
+                                    if (allSlots.length > 0 && allSlots.length === takenSlots.length) {
+                                        // All slots are taken
+                                        cell.css('position', 'relative');
+                                        cell.find('.dot').remove(); // Remove any existing dots
+                                        cell.append('<span class="dot unavailable-dot"></span>');
+                                        cell.attr('title', 'Tous les créneaux sont pris pour ce jour');
+                                    } else if (allSlots.length > 0) {
+                                        // Some slots are available
+                                        cell.css('position', 'relative');
+                                        cell.find('.dot').remove(); // Remove any existing dots
+                                        cell.append('<span class="dot available-dot"></span>');
+                                        cell.attr('title', 'Créneaux disponibles');
+                                    } else {
+                                        // No slots configured
+                                        cell.css('position', 'relative');
+                                        cell.find('.dot').remove(); // Remove any existing dots
+                                        cell.append('<span class="dot unavailable-dot"></span>');
+                                        cell.attr('title', 'Aucun créneau configuré');
+                                    }
+                                },
+                                error: function () {
+                                    cell.css('position', 'relative');
+                                    cell.append('<span class="dot unavailable-dot"></span>');
+                                }
+                            });
                         } else {
-                            // Mark as unavailable day
-                            cell.css('background-color', '#e9ecef'); // Gray for unavailable days
                             cell.css('position', 'relative');
-                            cell.append('<span class="dot unavailable-dot"></span>'); // Red dot
+                            cell.append('<span class="dot unavailable-dot"></span>');
+                            cell.attr('title', 'Jour non disponible');
                         }
                     },
                     events: function (start, end, timezone, callback) {
@@ -903,12 +961,18 @@
 
                         // Event handler for "Mark as Failed"
                         $('#markAsFailed').off('click').on('click', function () {
-                            updateAppointmentStatus(event.id, 7, "Failed");
+                            $('#appointmentDetailsModal').modal('hide');
+                            $('#cancelReasonModal').modal('show');
+
+                            $('#confirmCancel').off('click').on('click', function () {
+                                const reason = $('#cancelReason').val() || "Aucune raison fournie";
+                                updateAppointmentStatus(appointment.appointment_id, 7, reason); // 7 is the Failed/Canceled status
+                            });
                         });
 
                         // Event handler for "Mark as Done"
                         $('#markAsDone').off('click').on('click', function () {
-                            updateAppointmentStatus(event.id, 5, "Done");
+                            updateAppointmentStatus(event.id, 5); // 5 is the Done status
                         });
                     }
                 });
@@ -999,25 +1063,46 @@
                 e.preventDefault();
             });
 
-            function updateAppointmentStatus(appointmentId, statusId) {
+            function updateAppointmentStatus(appointmentId, statusId, reason = null) {
+                const data = {
+                    id: appointmentId,
+                    appointment_status_id: statusId,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                };
+
+                if (reason) {
+                    data.cancel_reason = reason;
+                }
+
                 $.ajax({
-                    url: "/appointment-event/status", // Route URL
+                    url: "/appointment-event/status",
                     method: "POST",
-                    data: {
-                        id: appointmentId,
-                        appointment_status_id: statusId,
-                        _token: $('meta[name="csrf-token"]').attr('content') // CSRF Token
-                    },
+                    data: data,
                     success: function (response) {
-                        alert(response.message); // Optional: Show a success message
-                        $('#appointmentDetailsModal').modal('hide'); // Close the modal
-                        $('#calendar').fullCalendar('refetchEvents'); // Refresh the calendar
+                        Swal.fire({
+                            title: "Succès",
+                            text: response.message,
+                            icon: "success",
+                            confirmButtonText: "OK"
+                        }).then(() => {
+                            $('#cancelReasonModal').modal('hide');
+                            $('#appointmentDetailsModal').modal('hide');
+                            $('#calendar').fullCalendar('refetchEvents');
+                            console.log("Appointment status updated successfully.");
+
+                        });
                     },
                     error: function (xhr) {
-                        alert(xhr.responseJSON.error || "An error occurred while updating the status.");
+                        Swal.fire({
+                            title: "Erreur",
+                            text: xhr.responseJSON.error || "Une erreur s'est produite lors de la mise à jour du statut.",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
                     }
                 });
             }
+
             $('#saveAppointmentPass').click(function () {
                 // Gather form data from "Patient de passage" fields
                 let formData = {

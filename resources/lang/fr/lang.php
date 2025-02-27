@@ -2083,9 +2083,11 @@ return [
     'success_save' => 'Disponibilité sauvegardée avec succès !',
     'close' => 'Fermer',
 
-
-
-
-
+    // Cancel Reason Modal
+    'cancel_reason' => 'Raison d\'annulation',
+    'reason' => 'Raison',
+    'enter_cancel_reason' => 'Entrez la raison de l\'annulation',
+    'close' => 'Fermer',
+    'confirm_cancel' => 'Confirmer l\'annulation',
 
 ];

@@ -498,11 +498,63 @@ class AppointmentEventController extends Controller
         \Log::info('Request received-1', ['request' => $request->all()]);
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
+        $checkAllTypes = $request->boolean('checkAllTypes', false);
 
         // Get the Monday of the current week based on the selected date
-        $weekStart = Carbon::parse($selectedDate)->startOfWeek(); // Get Monday of that week
-        \Log::info('Week start date', ['weekStart' => $weekStart]);
+        $dayName = strtolower(Carbon::parse($selectedDate)->locale('en')->dayName);
+        if ($checkAllTypes) {
+            \Log::info('Checking all appointment types.');
 
+            $allSlots = [];
+            $takenSlots = [];
+
+            // Check availability for all types: cabinet, teleconsultation, home_visit
+            foreach (['cabinet', 'teleconsultation', 'home_visit'] as $type) {
+                \Log::info("Checking availability for type: $type");
+
+                // Fetch availability for this type
+                $availability = DB::table('availability_hours')
+                    ->where('doctor_id', $doctorId)
+                    ->where('day', $dayName)
+                    ->where('is_available', 1)
+                    ->where('mode', 'open')
+                    ->where('type', $type)
+                    ->first();
+
+                if ($availability) {
+                    \Log::info("Availability found for $type", ['availability' => $availability]);
+
+                    // Generate time slots for this type
+                    $startTime = Carbon::parse($availability->start_at);
+                    $endTime = Carbon::parse($availability->end_at);
+                    $sessionDuration = $availability->session_duration;
+
+                    while ($startTime->lessThan($endTime)) {
+                        $allSlots[] = $startTime->format('H:i');
+                        $startTime->addMinutes($sessionDuration);
+                    }
+                }
+
+                // Fetch taken slots for this type
+                $taken = Appointment::where('doctor_id', $doctorId)
+                    ->whereDate('start_at', $selectedDate)
+                    ->where('appointment_status_id', '!=', 7) // Exclude failed appointments
+                    ->pluck(DB::raw("DATE_FORMAT(start_at, '%H:%i')"))
+                    ->toArray();
+
+                $takenSlots = array_merge($takenSlots, $taken);
+            }
+
+            // Remove duplicate slots
+            $allSlots = array_unique($allSlots);
+            $takenSlots = array_unique($takenSlots);
+
+            return response()->json([
+                'all_slots' => array_values($allSlots),
+                'taken_slots' => array_values($takenSlots),
+                'checkAllTypes' => true,
+            ]);
+        }
         // Fetch all availability for the entire week
         $availability = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
