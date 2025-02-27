@@ -108,60 +108,67 @@
                                             </thead>
                                             <tbody>
                                                 @foreach(['Lundi' => 'monday', 'Mardi' => 'tuesday', 'Mercredi' => 'wednesday', 'Jeudi' => 'thursday', 'Vendredi' => 'friday', 'Samedi' => 'saturday', 'Dimanche' => 'sunday'] as $frenchDay => $englishDay)
-                                                                    @php
-                                                                        $dayData = $availabilities[$type]->firstWhere('day', ucfirst($englishDay));
-                                                                        $isAvailable = $dayData['is_available'] ?? 0;
-                                                                        $startAt = $dayData['start_at'] ?? '09:00';
-                                                                        $endAt = $dayData['end_at'] ?? '17:00';
-                                                                        $pauseFrom = $dayData['pause_from'] ?? '';
-                                                                        $pauseTo = $dayData['pause_to'] ?? '';
-                                                                    @endphp
-                                                                    <tr>
-                                                                        <td class="text-center align-middle">
-                                                                            <label class="switch">
-                                                                                <input type="checkbox" name="availability[{{ $loop->index }}][is_available]"
-                                                                                    value="1" {{ $isAvailable ? 'checked' : '' }}>
-                                                                                <span class="slider round"></span>
-                                                                            </label>
-                                                                        </td>
-                                                                        <td class="align-middle">
-                                                                            <input type="hidden" name="availability[{{ $loop->index }}][day]"
-                                                                                value="{{ $frenchDay }}">
-                                                                            {{ $frenchDay }}
-                                                                        </td>
-                                                                        <td>
-                                                                            <input type="time" 
-                                                                                class="form-control timepicker"
-                                                                                name="availability[{{ $loop->index }}][from]" 
-                                                                                value="{{ $startAt }}"
-                                                                                data-required="required"
-                                                                                required>
-                                                                        </td>
-                                                                        <td>
-                                                                            <input type="time" 
-                                                                                class="form-control timepicker"
-                                                                                name="availability[{{ $loop->index }}][to]" 
-                                                                                value="{{ $endAt }}" 
-                                                                                data-required="required"
-                                                                                required>
-                                                                        </td>
-                                                                        <td>
-                                                                            <div class="d-flex">
-                                                                                <input type="time" 
-                                                                                    class="form-control mr-2 break-time"
-                                                                                    name="availability[{{ $loop->index }}][pause_from]"
-                                                                                    value="{{ $pauseFrom }}" 
-                                                                                    data-pair="pause_to"
-                                                                                    placeholder="{{ trans('lang.break_start') }}">
-                                                                                <input type="time" 
-                                                                                    class="form-control break-time"
-                                                                                    name="availability[{{ $loop->index }}][pause_to]" 
-                                                                                    value="{{ $pauseTo }}"
-                                                                                    data-pair="pause_from"
-                                                                                    placeholder="{{ trans('lang.break_end') }}">
-                                                                            </div>
-                                                                        </td>
-                                                                    </tr>
+                                                    @php
+                                                        // Add debug output
+                                                        \Log::info("Processing day data:", [
+                                                            'day' => $englishDay,
+                                                            'type' => $type,
+                                                            'data' => $availabilities[$type][$englishDay] ?? 'not found'
+                                                        ]);
+                                                        
+                                                        $dayData = $availabilities[$type][$englishDay] ?? ['is_available' => 0];
+                                                        $isAvailable = $dayData['is_available'] ?? 0;
+                                                        $startAt = $dayData['start_at'] ?? '09:00';
+                                                        $endAt = $dayData['end_at'] ?? '17:00';
+                                                        $pauseFrom = $dayData['pause_from'] ?? '';
+                                                        $pauseTo = $dayData['pause_to'] ?? '';
+                                                    @endphp
+                                                    <tr>
+                                                        <td class="text-center align-middle">
+                                                            <label class="switch">
+                                                                <input type="checkbox" name="availability[{{ $loop->index }}][is_available]"
+                                                                    value="1" {{ $isAvailable ? 'checked' : '' }}>
+                                                                <span class="slider round"></span>
+                                                            </label>
+                                                        </td>
+                                                        <td class="align-middle">
+                                                            <input type="hidden" name="availability[{{ $loop->index }}][day]"
+                                                                value="{{ $frenchDay }}">
+                                                            {{ $frenchDay }}
+                                                        </td>
+                                                        <td>
+                                                            <input type="time" 
+                                                                class="form-control timepicker"
+                                                                name="availability[{{ $loop->index }}][from]" 
+                                                                value="{{ $startAt }}"
+                                                                data-required="required"
+                                                                required>
+                                                        </td>
+                                                        <td>
+                                                            <input type="time" 
+                                                                class="form-control timepicker"
+                                                                name="availability[{{ $loop->index }}][to]" 
+                                                                value="{{ $endAt }}" 
+                                                                data-required="required"
+                                                                required>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex">
+                                                                <input type="time" 
+                                                                    class="form-control mr-2 break-time"
+                                                                    name="availability[{{ $loop->index }}][pause_from]"
+                                                                    value="{{ $pauseFrom }}" 
+                                                                    data-pair="pause_to"
+                                                                    placeholder="{{ trans('lang.break_start') }}">
+                                                                <input type="time" 
+                                                                    class="form-control break-time"
+                                                                    name="availability[{{ $loop->index }}][pause_to]" 
+                                                                    value="{{ $pauseTo }}"
+                                                                    data-pair="pause_from"
+                                                                    placeholder="{{ trans('lang.break_end') }}">
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
@@ -303,58 +310,58 @@
                                             </thead>
                                             <tbody>
                                                 @foreach($days as $dayIndex => $day)
-                                                                    <tr>
-                                                                        <td>
-                                                                            <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]"
-                                                                                value="1" @if(isset($availabilities[$type][$day]) && $availabilities[$type][$day]->contains('is_available', true)) checked
-                                                                                @endif>
-                                                                            <input type="hidden" name="availability[{{ $dayIndex }}][day]"
-                                                                                value="{{ $day }}">
-                                                                        </td>
-                                                                        <td>{{ trans('lang.' . strtolower($day)) }}</td>
-                                                                        <td>
-                                                                            <div id="{{ $type }}-slots-{{ $dayIndex }}" class="slots-container">
-                                                                                @php
-                                                                                    $daySlots = $availabilities[$type][$day] ?? collect();
-                                                                                @endphp
+                                                    <tr>
+                                                        <td>
+                                                            <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]"
+                                                                value="1" @if(isset($availabilities[$type][$day]) && $availabilities[$type][$day]->contains('is_available', true)) checked
+                                                                @endif>
+                                                            <input type="hidden" name="availability[{{ $dayIndex }}][day]"
+                                                                value="{{ $day }}">
+                                                        </td>
+                                                        <td>{{ trans('lang.' . strtolower($day)) }}</td>
+                                                        <td>
+                                                            <div id="{{ $type }}-slots-{{ $dayIndex }}" class="slots-container">
+                                                                @php
+                                                                    $daySlots = $availabilities[$type][$day] ?? collect();
+                                                                @endphp
 
-                                                                                @if($daySlots->isNotEmpty())
-                                                                                    @foreach($daySlots as $slot)
-                                                                                        <div class="slot-entry d-flex align-items-center mb-2">
-                                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][start][]"
-                                                                                                class="form-control mr-2" required
-                                                                                                value="{{ \Carbon\Carbon::parse($slot->start_at)->format('H:i') }}">
-                                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][end][]"
-                                                                                                class="form-control mr-2" required
-                                                                                                value="{{ \Carbon\Carbon::parse($slot->end_at)->format('H:i') }}">
-                                                                                            <select name="availability[{{ $dayIndex }}][slots][pattern][]"
-                                                                                                class="form-control mr-2" required>
-                                                                                                <option value="">{{ trans('lang.select_pattern') }}</option>
-                                                                                                console.log($)
-                                                                                                @foreach($doctorPatterns as $pattern)
-                                                                                                    <option value="{{ $pattern->id }}" {{ $slot->patern_id == $pattern->id ? 'selected' : '' }}>
-                                                                                                        {{ $pattern->nom }}
-                                                                                                    </option>
-                                                                                                @endforeach
-                                                                                            </select>
-                                                                                            <input type="number"
-                                                                                                name="availability[{{ $dayIndex }}][slots][duration][]"
-                                                                                                class="form-control mr-2" placeholder="{{ trans('lang.duration') }}"
-                                                                                                required min="15" value="{{ $slot->session_duration ?? 30 }}">
-                                                                                            <button type="button" class="btn btn-danger btn-sm"
-                                                                                                onclick="removeSlot(this)">
-                                                                                                <i class="fas fa-trash"></i>
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    @endforeach
-                                                                                @endif
-                                                                                <button type="button" class="btn btn-primary btn-sm"
-                                                                                    onclick="addSlot('{{ $type }}', {{ $dayIndex }})">
-                                                                                    <i class="fas fa-plus"></i> {{ trans('lang.add_slot') }}
-                                                                                </button>
-                                                                            </div>
-                                                                        </td>
-                                                                    </tr>
+                                                                @if($daySlots->isNotEmpty())
+                                                                    @foreach($daySlots as $slot)
+                                                                        <div class="slot-entry d-flex align-items-center mb-2">
+                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][start][]"
+                                                                                class="form-control mr-2" required
+                                                                                value="{{ \Carbon\Carbon::parse($slot->start_at)->format('H:i') }}">
+                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][end][]"
+                                                                                class="form-control mr-2" required
+                                                                                value="{{ \Carbon\Carbon::parse($slot->end_at)->format('H:i') }}">
+                                                                            <select name="availability[{{ $dayIndex }}][slots][pattern][]"
+                                                                                class="form-control mr-2" required>
+                                                                                <option value="">{{ trans('lang.select_pattern') }}</option>
+                                                                                console.log($)
+                                                                                @foreach($doctorPatterns as $pattern)
+                                                                                    <option value="{{ $pattern->id }}" {{ $slot->patern_id == $pattern->id ? 'selected' : '' }}>
+                                                                                        {{ $pattern->nom }}
+                                                                                    </option>
+                                                                                @endforeach
+                                                                            </select>
+                                                                            <input type="number"
+                                                                                name="availability[{{ $dayIndex }}][slots][duration][]"
+                                                                                class="form-control mr-2" placeholder="{{ trans('lang.duration') }}"
+                                                                                required min="15" value="{{ $slot->session_duration ?? 30 }}">
+                                                                            <button type="button" class="btn btn-danger btn-sm"
+                                                                                onclick="removeSlot(this)">
+                                                                                <i class="fas fa-trash"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    @endforeach
+                                                                @endif
+                                                                <button type="button" class="btn btn-primary btn-sm"
+                                                                    onclick="addSlot('{{ $type }}', {{ $dayIndex }})">
+                                                                    <i class="fas fa-plus"></i> {{ trans('lang.add_slot') }}
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>

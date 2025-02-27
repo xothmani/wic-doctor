@@ -142,6 +142,7 @@ class AppointmentEventController extends Controller
             $availabilityDays = DB::table('availability_hours')
                 ->where('doctor_id', $doctorId)
                 ->where('is_available', 1)
+                ->where('mode', 'precise')
                 ->distinct()
                 ->pluck('day');
 
@@ -238,9 +239,6 @@ class AppointmentEventController extends Controller
             ));
         }
     }
-
-
-
 
 
     public function saveAppointment(Request $request)
@@ -585,6 +583,80 @@ class AppointmentEventController extends Controller
         ]);
     }
 
+    public function getAvailableTimeSlotsPresice(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+        $selectedDate = $request->input('date');
+
+        if (!$doctorId || !$selectedDate) {
+            return response()->json(['error' => 'Doctor or date not found'], 404);
+        }
+
+        // Get the Monday of the current week based on the selected date
+        $weekStart = Carbon::parse($selectedDate)->startOfWeek(); // Get Monday of that week
+
+        // Fetch all availability for the entire week
+        $availability = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('mode', 'precise')
+            ->get();
+
+        \Log::info('Availability fetched', ['availability' => $availability]);
+
+        if ($availability->isEmpty()) {
+            \Log::warning('No availability found', ['doctor_id' => $doctorId]);
+            return response()->json(['error' => 'No availability found'], 404);
+        }
+
+        $allSlots = [];
+
+        foreach ($availability as $slot) {
+            $startTime = Carbon::parse($slot->start_at);
+            $endTime = Carbon::parse($slot->end_at);
+            $sessionDuration = $slot->session_duration;
+
+            // Correctly map weekday names to the actual date in the current week
+            $dayMapping = [
+                'monday' => 0,
+                'tuesday' => 1,
+                'wednesday' => 2,
+                'thursday' => 3,
+                'friday' => 4,
+                'saturday' => 5,
+                'sunday' => 6
+            ];
+
+            if (!isset($dayMapping[$slot->day])) {
+                \Log::warning("Invalid day name found in DB: " . $slot->day);
+                continue;
+            }
+
+            // Calculate actual date for the slot's day
+            $slotDate = $weekStart->copy()->addDays($dayMapping[$slot->day]);
+
+            while ($startTime->lessThan($endTime)) {
+                $allSlots[] = [
+                    'time' => $startTime->format('H:i'),
+                    'color' => $this->getPatternColor($slot->patern_id),
+                    'day' => $slotDate->format('Y-m-d'), // Store exact date
+                    'session_duration' => $sessionDuration,
+                ];
+                $startTime->addMinutes($sessionDuration);
+            }
+        }
+
+        \Log::info('Generated precise slots:', ['allSlots' => $allSlots]);
+
+        return response()->json([
+            'all_slots' => $allSlots,
+            'taken_slots' => [] // Keep it for compatibility
+        ]);
+    }
+
+
+
+
     public function getAvailableTimeSlotsForOpen(Request $request)
     {
         \Log::info('Request received-2', ['request' => $request->all()]);
@@ -912,6 +984,7 @@ class AppointmentEventController extends Controller
             ->where('day', $dayName)
             ->whereTime('start_at', '<=', $selectedTime)
             ->whereTime('end_at', '>', $selectedTime)
+            ->where('mode', 'precise')
             ->first();
 
         if (!$availability) {
@@ -1019,6 +1092,7 @@ class AppointmentEventController extends Controller
             ->where('doctor_id', $doctorId)
             ->where('is_available', 1)
             ->where('day', $dayName)
+            ->where('mode', 'precise')
             ->select('start_at', 'end_at')
             ->get();
 
@@ -1110,6 +1184,7 @@ class AppointmentEventController extends Controller
             ->where('doctor_id', $doctorId)
             ->where('is_available', 1)
             ->where('day', $dayName)
+            ->where('mode', 'precise')
             ->select('start_at', 'end_at')
             ->get();
 

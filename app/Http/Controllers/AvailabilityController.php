@@ -30,24 +30,47 @@ class AvailabilityController extends Controller
             $availabilityTypes = ['cabinet', 'teleconsultation', 'home_visit'];
             $availabilities = [];
 
+            // Debug logging
+            \Log::info('Fetching open mode availabilities for doctor:', ['doctor_id' => $doctorId]);
+
             foreach ($availabilityTypes as $type) {
-                $availabilities[$type] = AvailabilityHour::where('doctor_id', $doctorId)
+                $typeAvailability = AvailabilityHour::where('doctor_id', $doctorId)
                     ->where('type', $type)
-                    ->get()
-                    ->map(function ($dayData) {
-                        return [
-                            'day' => $dayData->day,
-                            'is_available' => $dayData->is_available,
-                            'start_at' => $dayData->start_at ? Carbon::parse($dayData->start_at)->format('H:i') : '09:00',
-                            'end_at' => $dayData->end_at ? Carbon::parse($dayData->end_at)->format('H:i') : '17:00',
-                            'pause_from' => $dayData->pause_from ? Carbon::parse($dayData->pause_from)->format('H:i') : null,
-                            'pause_to' => $dayData->pause_to ? Carbon::parse($dayData->pause_to)->format('H:i') : null,
-                        ];
-                    });
+                    ->where('mode', 'open')
+                    ->get();
+
+                // Transform data for each day
+                $days = [
+                    'monday' => ['is_available' => 0],
+                    'tuesday' => ['is_available' => 0],
+                    'wednesday' => ['is_available' => 0],
+                    'thursday' => ['is_available' => 0],
+                    'friday' => ['is_available' => 0],
+                    'saturday' => ['is_available' => 0],
+                    'sunday' => ['is_available' => 0]
+                ];
+
+                foreach ($typeAvailability as $slot) {
+                    $days[strtolower($slot->day)] = [
+                        'is_available' => $slot->is_available,
+                        'start_at' => $slot->start_at ? Carbon::parse($slot->start_at)->format('H:i') : '09:00',
+                        'end_at' => $slot->end_at ? Carbon::parse($slot->end_at)->format('H:i') : '17:00',
+                        'pause_from' => $slot->pause_from ? Carbon::parse($slot->pause_from)->format('H:i') : null,
+                        'pause_to' => $slot->pause_to ? Carbon::parse($slot->pause_to)->format('H:i') : null,
+                    ];
+                }
+
+                $availabilities[$type] = collect($days);
+
+                \Log::info("Retrieved open mode for type {$type}:", [
+                    'count' => $typeAvailability->count(),
+                    'data' => $days
+                ]);
             }
 
-            // Get session duration (using cabinet as default type)
+            // Get session duration
             $sessionDuration = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('mode', 'open')
                 ->where('type', 'cabinet')
                 ->value('session_duration') ?? 15;
 

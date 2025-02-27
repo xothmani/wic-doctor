@@ -479,7 +479,7 @@
             // console.log("📡 Fetching background colors for:", viewStart);
 
             $.ajax({
-                url: "/get-available-time-slots",
+                url: "/get-available-time-slots-presice",
                 type: "GET",
                 data: { date: viewStart.format("YYYY-MM-DD") }, // Send the current week's start date
                 dataType: "json",
@@ -627,13 +627,13 @@
                         const isPast = moment(globalSelectedDate + ' ' + slot).isBefore(moment());
 
                         const $btn = $(`
-                                                                            <button type="button"
-                                                                                    class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}"
-                                                                                    data-slot="${slot}"
-                                                                                    ${isTaken || isPast ? 'disabled' : ''}>
-                                                                                ${slot}
-                                                                            </button>
-                                                                        `);
+                                                                                                                                <button type="button"
+                                                                                                                                        class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}"
+                                                                                                                                        data-slot="${slot}"
+                                                                                                                                        ${isTaken || isPast ? 'disabled' : ''}>
+                                                                                                                                    ${slot}
+                                                                                                                                </button>
+                                                                                                                            `);
 
                         // If it's not taken and not in the past, let the user pick it
                         if (!isTaken && !isPast) {
@@ -834,7 +834,7 @@
                 const url =
                     appointmentType === "Téléconsultation"
                         ? "/get-teleconsultation-time-slots"
-                        : "/get-available-time-slots";
+                        : "/get-available-time-slots-presice";
 
                 // Fetch time slots based on the selected type
                 $.ajax({
@@ -860,10 +860,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
             }
             //////////////////////////////////////////////////////////////////////////////
 
@@ -874,7 +874,9 @@
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        return { q: params.term || '' };
+                        return {
+                            q: params.term || ''
+                        };
                     },
                     processResults: function (data) {
                         return { results: data };
@@ -890,7 +892,9 @@
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        return { q: params.term || '' };
+                        return {
+                            q: params.term || ''
+                        };
                     },
                     processResults: function (data) {
                         return { results: data };
@@ -925,7 +929,7 @@
                 },
                 dayRender: function (date, cell) {
                     // 1) Log the date being rendered (YYYY-MM-DD)
-                    // console.log("dayRender called for date:", date.format("YYYY-MM-DD"));
+                    //console.log("dayRender called for date:", date.format("YYYY-MM-DD"));
 
                     // Get the lowercase English day name
                     // For example, "Monday", "Tuesday" → "monday", "tuesday"
@@ -961,19 +965,19 @@
                             'color': '#721c24',
                             'position': 'relative'
                         });
-                        cell.append('<span class="dot past-dot"></span>');
-                        cell.attr('title', 'This is a past date.');
+                        cell.append('<span class="dot unavailable-dot"></span>');
+                        //cell.attr('title', 'This is a past date.');
                     }
                     else if (isVacationDay) {
                         // 2) Vacation day
                         //console.log("Marking as vacation day:", date.format("YYYY-MM-DD"));
                         cell.removeClass('fc-today');
                         cell.addClass('cell-with-background');
-                        cell.attr('title', 'Doctor is on vacation this day.');
+                        //cell.attr('title', 'Doctor is on vacation this day.');
                     }
                     else if (normalizedAvailabilityDays.includes(formattedDayName)) {
                         // 3) Available day
-                        //console.log("Marking as available day:", date.format("YYYY-MM-DD"));
+                        console.log("Marking as available day:", date.format("YYYY-MM-DD"));
                         cell.removeClass('fc-today');
                         cell.css({
                             'background-color': '',
@@ -981,7 +985,7 @@
                             'position': 'relative'
                         });
                         cell.append('<span class="dot available-dot"></span>');
-                        cell.attr('title', 'Available day');
+                        // cell.attr('title', 'Available day');
                     }
                     else {
                         // 4) Unavailable day
@@ -992,7 +996,7 @@
                             'position': 'relative'
                         });
                         cell.append('<span class="dot unavailable-dot"></span>');
-                        cell.attr('title', 'Unavailable day');
+                        //cell.attr('title', 'Unavailable day');
                     }
 
                     //console.log("Finished rendering day:", date.format("YYYY-MM-DD"));
@@ -1197,15 +1201,15 @@
 
                     // Base details
                     let detailsHtml = `
-                                                                                    <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
-                                                                                    <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
-                                                                                    <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
-                                                                                    <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
-                                                                                    <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
-                                                                                    <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
-                                                                                    <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
-                                                                                    <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
-                                                                                `;
+                                                                                                                                        <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
+                                                                                                                                        <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
+                                                                                                                                        <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
+                                                                                                                                        <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
+                                                                                                                                        <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
+                                                                                                                                        <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
+                                                                                                                                        <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
+                                                                                                                                        <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
+                                                                                                                                    `;
                     //console.log(event.cancel_reason);
 
                     if (event.status === "Annulé" && event.cancel_reason) {
