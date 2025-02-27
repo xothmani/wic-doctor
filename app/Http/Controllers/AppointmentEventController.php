@@ -63,6 +63,7 @@ class AppointmentEventController extends Controller
                     ->select(
                         'appointments.id',
                         'appointments.online',
+                        'appointments.type',
                         'appointments.user_id',
                         'appointments.patient_id',
                         DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
@@ -104,6 +105,7 @@ class AppointmentEventController extends Controller
                         'patient_last_name' => ($decodedLastName['fr'] ?? $decodedLastName),
                         'motif_name' => $decodedMotifName['fr'] ?? $decodedMotifName,
                         'online' => $appointment->online,
+                        'type' => $appointment->type,
                     ];
                 }));
             }
@@ -178,6 +180,7 @@ class AppointmentEventController extends Controller
                         'appointments.patient_id',
                         'appointments.hint',
                         'appointments.cancel_reason',
+                        'appointments.type',
                         DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
                         DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
@@ -220,6 +223,7 @@ class AppointmentEventController extends Controller
                         'borderColor' => $color,
                         'note' => $appointment->hint,
                         'cancel_reason' => $appointment->cancel_reason,
+                        'type' => $appointment->type,
                     ];
 
                 }));
@@ -251,69 +255,54 @@ class AppointmentEventController extends Controller
             Log::info('Appointment Data Received:', $request->all());
 
             // Validate the incoming request data
-            $validatedData = $request->validate([
+            $validated = $request->validate([
                 'patient_id' => 'required|exists:patients,id',
-                'appointment_at' => 'required|date',
+                'appointment_date' => 'required|date',
                 'appointment_time' => 'required',
                 'patern_id' => 'required',
-                'day_of_week' => 'required',
-                'appointment_type' => 'required|in:cabinet,Téléconsultation',
+                'appointment_type' => 'required', // Changed from strings to IDs
             ]);
-            Log::info('validate', $validatedData);
-            $availability_hours = AvailabilityHour::where('doctor_id', $doctorId)
-                ->where('day', $validatedData['day_of_week']) // Replace with your condition
-                ->first();
-            $sessionDuration = $availability_hours ? $availability_hours->session_duration : null;
-            Log::info("Session Duration: {$sessionDuration}");
+            Log::info('validate', $validated);
+            $patient = Patient::findOrFail($validated['patient_id']);
+            $patientUserId = $patient->user_id; // or null if your patients table doesn't store user_id
 
-            // Check if the appointment time contains a range
-            if (str_contains($validatedData['appointment_time'], ' - ')) {
-                // Split the time range into start and end times
-                [$startTime, $endTime] = explode(' - ', $validatedData['appointment_time']);
-            } else {
-                // If only a start time is provided, calculate the end time based on session duration
-                $startTime = $validatedData['appointment_time'];
-                $endTime = Carbon::parse($startTime)->addMinutes($sessionDuration)->format('H:i');
-            }
-            Log::info("Parsed Times: Start Time - {$startTime}, End Time - {$endTime}");
-            $motifId = $validatedData['patern_id'];
-            $startAt = "{$validatedData['appointment_at']} $startTime:00";
-            $endAt = "{$validatedData['appointment_at']} $endTime:00";
-            Log::info("Start At: {$startAt}, End At: {$endAt}");
-            // Round times to match the availability format (ignoring seconds)
-            $startAtFormatted = Carbon::parse($startAt)->format('Y-m-d H:i:00');
-            $endAtFormatted = Carbon::parse($endAt)->format('Y-m-d H:i:00');
-            Log::info("Formatted Times: Start At - {$startAtFormatted}, End At - {$endAtFormatted}");
-            // Match availability_hours for the doctor and the selected time
+
+            // 5) Create start_at from date + time
+            $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time']);
+            $dayName = $startAt->format('l'); // e.g. "Wednesday"
+            \Log::info('Day Name:', ['day' => $dayName]);
+            $type = $validated['appointment_type'];
             $availability = DB::table('availability_hours')
                 ->where('doctor_id', $doctorId)
-                ->where('start_at', '<=', value: $startAtFormatted)
-                ->where('end_at', '>=', $endAtFormatted)
-                ->first(['id', 'start_at', 'end_at', 'patern_id']);
-            Log::info('Matched Availability:', $availability ? (array) $availability : ['message' => 'No matching availability found']);
+                ->where('day', $dayName)
+                ->where('type', $type)
+                ->where('is_available', 1)
+                ->whereTime('start_at', '<=', $startAt->format('H:i'))
+                ->whereTime('end_at', '>', $startAt->format('H:i'))
+                ->first();
 
-            Log::info("test1");
+            $sessionDuration = 15;
+            $motifId = null;
+            if ($availability) {
+                $sessionDuration = $availability->session_duration;
+            }
+            \Log::info('Session Duration:', ['duration' => $sessionDuration]);
+            $endsAt = (clone $startAt)->addMinutes($sessionDuration);
 
-            //$motifId = $availability->patern_id;
-
-            //Log::info("Availability Matched: {$availability->id}, Pattern ID: {$motifId}");
-
-            $user_id = Patient::where('id', $validatedData['patient_id'])->value('user_id');
-            Log::info("test2");
-            Log::info("Patient's User ID: {$user_id}");
-            $appointmentType = $validatedData['appointment_type']; // Either 'cabinet' or 'teleconsultation'
-            Log::info("Appointment Type: {$appointmentType}");
+            // 8) appointment_at = just the date portion
+            $appointmentAt = $startAt->copy()->startOfDay();
             // Create the appointment
             $appointment = Appointment::create([
-                'user_id' => $user_id,
                 'doctor_id' => $doctorId,
-                'appointment_at' => $validatedData['appointment_at'],
-                'start_at' => $startAtFormatted,
-                'ends_at' => $endAtFormatted,
-                'appointment_status_id' => 2,
-                'motif_id' => $motifId,
-                'online' => $appointmentType,
-                'patient_id' => $validatedData['patient_id'],
+                'patient_id' => $validated['patient_id'],
+                'user_id' => $patientUserId,
+                'motif_id' => $validated['patern_id'] ?? null,
+                'online' => $validated['appointment_type'],
+                'appointment_status_id' => 1,
+                'appointment_at' => $appointmentAt,
+                'start_at' => $startAt,
+                'ends_at' => $endsAt,
+                'hint' => $validated['notes'] ?? null,
             ]);
 
             Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
@@ -375,151 +364,7 @@ class AppointmentEventController extends Controller
     //
 
 
-    public function storePatientPassage(Request $request)
-    {
-        // Validate incoming data
-        $validatedData = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone_number' => 'required|string|max:15|unique:users,phone_number',
-            'mobile_number' => 'nullable|string|max:15',
-            'age' => 'nullable|integer|min:0',
-            'gender' => 'nullable|string|in:male,female,other',
-            'weight' => 'nullable|numeric',
-            'height' => 'nullable|numeric',
-            'medical_history' => 'nullable|string',
-            'notes' => 'nullable|string',
-            'appointment_date' => 'required|date',
-            'appointment_time' => 'required|string',
-            'password' => 'required|string|min:6|max:20', // Added password validation
-        ]);
 
-        DB::beginTransaction();
-
-        try {
-            // Check if the user already exists
-            Log::info('Checking if user exists by email or phone number.', [
-                'email' => $validatedData['email'],
-                'phone_number' => $validatedData['phone_number']
-            ]);
-
-            $user = User::where('email', $validatedData['email'])
-                ->orWhere('phone_number', $validatedData['phone_number'])
-                ->first();
-
-            if (!$user) {
-                Log::info('User not found, creating a new user.');
-
-                // Create user with plain password
-                $user = new User([
-                    'name' => "{$validatedData['first_name']} {$validatedData['last_name']}",
-                    'email' => $validatedData['email'],
-                    'phone_number' => $validatedData['phone_number'],
-                    'password' => $validatedData['password'], // Storing plain text password
-                ]);
-
-                $user->save();
-                Log::info('User created successfully.', ['user_id' => $user->id]);
-            }
-
-            // Create the patient associated with the user
-            Log::info('Creating patient record.', ['user_id' => $user->id]);
-
-            $patient = Patient::create([
-                'user_id' => $user->id,
-                'first_name' => $validatedData['first_name'],
-                'last_name' => $validatedData['last_name'],
-                'phone_number' => $validatedData['phone_number'],
-                'mobile_number' => $validatedData['mobile_number'] ?? null,
-                'age' => $validatedData['age'] ?? null,
-                'gender' => $validatedData['gender'] ?? null,
-                'weight' => $validatedData['weight'] ?? null,
-                'height' => $validatedData['height'] ?? null,
-                'medical_history' => $validatedData['medical_history'] ?? null,
-                'notes' => $validatedData['notes'] ?? null,
-            ]);
-
-            Log::info('Patient created successfully.', ['patient_id' => $patient->id]);
-
-
-            $userId = Auth::id();
-            $doctor = Doctor::where('user_id', $userId)->first();
-
-            if (!$doctor) {
-                return response()->json(['error' => 'Doctor not found'], 404);
-            }
-            $sessionDuration = $doctor->session_duration;
-            $doctorId = $doctor->id;
-
-            // Construct start and end times for the appointment
-            $startAt = "{$validatedData['appointment_date']} {$validatedData['appointment_time']}:00";
-            $endAt = Carbon::parse($startAt)->addMinutes(30)->format('Y-m-d H:i:s');
-            $startAtFormatted = Carbon::parse($startAt)->format('Y-m-d H:i:00');
-            $endAtFormatted = Carbon::parse($endAt)->format('Y-m-d H:i:00');
-
-            // Match availability_hours for the doctor and the selected time
-            $availability = DB::table('availability_hours')
-                ->where('doctor_id', $doctorId)
-                ->where('start_at', '<=', $startAtFormatted)
-                ->where('end_at', '>=', $endAtFormatted)
-                ->first(['id', 'patern_id']);
-
-            if (!$availability) {
-                return response()->json(['error' => 'No matching availability found for the selected time'], 404);
-            }
-
-            $motifId = $availability->patern_id;
-
-            Log::info("Availability Matched: {$availability->id}, Pattern ID: {$motifId}");
-            // Create an appointment using the patient_id from the newly created patient
-            Log::info('Creating appointment.', ['patient_id' => $patient->id, 'start_at' => $startAt, 'end_at' => $endAt]);
-
-            $appointment = Appointment::create([
-                'patient_id' => $patient->id,
-                'user_id' => $user->id,
-                'doctor_id' => $doctorId,
-                'appointment_at' => $validatedData['appointment_date'],
-                'start_at' => $startAt,
-                'ends_at' => $endAt,
-                'appointment_status_id' => 2,
-                'motif_id' => $motifId,
-                'patient_id' => $validatedData['patient_id'],
-            ]);
-
-            Log::info('Appointment created successfully.', ['appointment_id' => $appointment->id]);
-
-            DB::commit();
-
-            //Log::info('Transaction committed successfully. User, patient, and appointment saved.');
-            //$user->notify(new NewAppointment(
-            //  $appointment->appointment_at,
-            //$validatedData['email'],
-            //$validatedData['password']
-            //));
-
-            //Log::info('New appointment notification sent to patient.', ['email' => $validatedData['email']]);
-
-            // Commit the transaction
-            DB::commit();
-            Log::info('Transaction completed successfully.');
-
-            return response()->json([
-                'success' => true,
-                'message' => 'User, patient, and appointment saved successfully.',
-            ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Transaction failed, rolled back.', ['error' => $e->getMessage()]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'An error occurred while saving the records.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
     /////////////////////
 //les modifications
 /////////////////////
@@ -684,7 +529,7 @@ class AppointmentEventController extends Controller
         \Log::info('Request received-2', ['request' => $request->all()]);
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
-        $selectedType = $request->input('type', 'cabinet'); // Default to cabinet if not specified
+        $selectedType = $request->input('type', 'cabinet'); // Default to type 1 (cabinet) instead of 'cabinet'
 
         if (!$doctorId || !$selectedDate) {
             return response()->json(['error' => 'Doctor or date not found'], 404);
@@ -693,7 +538,7 @@ class AppointmentEventController extends Controller
         // Get the day name for the selected date
         $dayName = strtolower(Carbon::parse($selectedDate)->locale('en')->dayName);
         \Log::info('Day name fetched', ['dayName' => $dayName]);
-
+        \Log::info('Selected type', ['type' => $selectedType]);
 
 
 
@@ -703,7 +548,7 @@ class AppointmentEventController extends Controller
             ->where('day', $dayName)
             ->where('is_available', 1)
             ->where('mode', 'open')
-            ->where('type', $selectedType)
+            ->where('type', $selectedType) // Now using numeric type
             ->first();
 
         \Log::info('Availability fetched', ['availability' => $availability]);
@@ -1257,7 +1102,7 @@ class AppointmentEventController extends Controller
         // 2) Validate incoming data
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
-            'appointment_type' => 'required|in:cabinet,Téléconsultation,home_visit',
+            'appointment_type' => 'required|in:1,2,3', // Changed from strings to IDs
             'appointment_date' => 'required|date',
             'appointment_time' => 'required', // e.g. "08:00"
             'notes' => 'nullable|string',
@@ -1330,7 +1175,7 @@ class AppointmentEventController extends Controller
 
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
-            'appointment_type' => 'required|in:cabinet,Téléconsultation,home_visit',
+            'appointment_type' => 'required', // Changed from strings to IDs
             'appointment_date' => 'required|date',
             'appointment_start_time' => 'required',
             'appointment_end_time' => 'required|after:appointment_start_time',

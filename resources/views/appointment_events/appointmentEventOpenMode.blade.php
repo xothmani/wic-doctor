@@ -125,19 +125,19 @@
                                 <ul class="nav nav-tabs mb-3" id="appointmentTypeTabs" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link active" id="cabinet-tab" data-toggle="tab" href="#cabinet-content"
-                                            role="tab" data-type="1">
+                                            role="tab" data-type="cabinet">
                                             <i class="fas fa-hospital"></i> {{ trans('lang.cabinet') }}
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="teleconsultation-tab" data-toggle="tab"
-                                            href="#teleconsultation-content" role="tab" data-type="2">
+                                            href="#teleconsultation-content" role="tab" data-type="teleconsultation">
                                             <i class="fas fa-video"></i> {{ trans('lang.teleconsultation') }}
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="home-visit-tab" data-toggle="tab" href="#home-visit-content"
-                                            role="tab" data-type="3">
+                                            role="tab" data-type="home_visit">
                                             <i class="fas fa-home"></i> {{ trans('lang.home_visit') }}
                                         </a>
                                     </li>
@@ -332,10 +332,11 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+        let availableDays = [];
 
         $(document).ready(function () {
             //
-
+            fetchAvailableDaysAndInitializeCalendar();
             // Initialize field visibility based on patient type selection
             function toggleFields() {
                 $('#referencedFields').show();
@@ -368,20 +369,20 @@
                 // Handle vacation case
                 if (response.vacation) {
                     timeSlotsWrapper.append(`
-                                                                    <div class="alert alert-warning text-center">
-                                                                        Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                    </div>
-                                                                `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
                     return;
                 }
 
                 // If no slots available for this type
                 if (!all_slots || all_slots.length === 0) {
                     timeSlotsWrapper.append(`
-                                                                    <div class="alert alert-info text-center">
-                                                                        Aucun créneau disponible pour ${getTypeLabel(type)}.
-                                                                    </div>
-                                                                `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible pour ${getTypeLabel(type)}.
+                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
                     return;
                 }
 
@@ -419,11 +420,8 @@
             function getTypeLabel(type) {
                 const typeLabels = {
                     'cabinet': 'Cabinet',
-                    'teleconsultation': 'Téléconsultation',
+                    'teleconsultation': 'teleconsultation',
                     'home_visit': 'Visite à domicile',
-                    '1': 'Cabinet',
-                    '2': 'Téléconsultation',
-                    '3': 'Visite à domicile'
                 };
                 return typeLabels[type] || type;
             }
@@ -451,14 +449,14 @@
                 $('#appointmentForm')[0].reset();
                 // Clear time slots
                 $('#time-slots').empty();
-                // Reset tabs to first tab
-                $('#appointmentTypeTabs a[data-type="1"]').tab('show');
                 // Reset hidden type input
-                $('#appointmentType').val('1');
+                $('#appointmentType').val('cabinet');
+                $('#patientDropdown').val(null).trigger('change');
             });
             ///////////////////////////////////////////////
             $("#appointmentTypeTabs a").on("click", function (e) {
                 e.preventDefault();
+                console.log("Tab Clicked:", this);
                 const selectedType = $(this).data("type");
                 const selectedDate = $("#appointmentDate").val();
 
@@ -467,11 +465,38 @@
 
                 // Show this tab
                 $(this).tab('show');
+                console.log("Selected Type:", selectedType);
+                if (selectedDate) {
+                    fetchTimeSlotsForType(selectedDate, selectedType);
+                }
+            });
+            $('#appointmentTypeTabs a').on('shown.bs.tab', function (e) {
+                console.log("Tab Shown:", e.target);
+                const selectedType = $(e.target).data('type');
+                const selectedDate = $('#appointmentDate').val();
 
                 if (selectedDate) {
                     fetchTimeSlotsForType(selectedDate, selectedType);
                 }
             });
+            function fetchAvailableDaysAndInitializeCalendar() {
+                $.ajax({
+                    url: "/get-available-time-slots", // Ensure this API returns the available days
+                    type: "GET",
+                    success: function (response) {
+                        console.log("Fetched Available Days:", response);
+                        availabilityDays = response.available_days.map(day => day.toLowerCase()); // Convert to lowercase
+
+                        // Now initialize the calendar AFTER fetching availability days
+                        initializeCalendar();
+                    },
+                    error: function () {
+                        console.error("Erreur lors de la récupération des jours disponibles.");
+                        initializeCalendar(); // Still initialize the calendar to prevent UI blocking
+                    }
+                });
+            }
+
             // Modify fetchTimeSlotsForType function
             function fetchTimeSlotsForType(date, type) {
                 $.ajax({
@@ -482,30 +507,56 @@
                         type: type
                     },
                     success: function (response) {
-                        console.log("Respzzzzzzzzzzzzzzzzzzzzz", response);
+                        console.log("Fetched Time Slots Response:", response);
+
+                        if (response.vacation) {
+                            // If doctor is on vacation, show a warning alert (still using Swal)
+                            Swal.fire({
+                                title: "Le docteur est en vacances",
+                                text: "Aucune disponibilité n'est possible ce jour.",
+                                icon: "warning",
+                                confirmButtonText: "OK"
+                            });
+                            return;
+                        }
+
+                        // Show the appointment modal first (it should be visible regardless of slots)
+                        $('#appointmentModal').modal('show');
+
+                        if (!response.all_slots || response.all_slots.length === 0) {
+                            // No available slots → Show a message inside the modal
+                            $("#time-slots").html(`
+                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                            Aucune disponibilité pour ce type de rendez-vous à cette date.
+                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                    `);
+                            return;
+                        }
+
+                        // If slots are available, update the available slots section
                         updateAvailableTimeSlots(response);
                     },
                     error: function (xhr) {
-                        if (xhr.status === 404) {
-                            $('#confirmationModal').modal('show');
-                            $('#confirmCreateAvailability').off('click').on('click', function () {
-                                window.location.href = `/availability?type=${type}`;
-                            });
-                        } else {
-                            alert("Erreur lors de la récupération des créneaux horaires. Veuillez réessayer.");
-                        }
+                        // General error handling
+                        Swal.fire({
+                            title: "Erreur",
+                            text: "Une erreur s'est produite lors de la récupération des créneaux horaires. Veuillez réessayer.",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
                     }
                 });
             }
+
             // Function to clear the time slots container
             function clearTimeSlots() {
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                <div class="alert alert-info text-center">
-                                                                    Aucun créneau disponible trouvé.
-                                                                </div>
-                                                            `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
             }
             //    ////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
@@ -526,366 +577,426 @@
             let availabilityDays = @json($availabilityDays);
             let vacations = @json($vacations);
             console.log("Availability Days at Load:", availabilityDays);
-            var calendar = $('#calendar').fullCalendar({
-                locale: 'fr',
-                editable: true,
-                height: 600,
-                header: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'month,agendaWeek,agendaDay'
-                },
-                defaultView: 'agendaWeek',
-                minTime: "08:00:00",
-                eventLimit: true, // Allow "more" link for overflow events
-                dayRender: function (date, cell) {
-                    // Format date as YYYY-MM-DD for comparison
-                    const formattedDayName = date.locale('fr').format('dddd').toLowerCase(); // Normalize to lowercase
-                    const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase()); // Normalize backend days to lowercase
-                    const today = moment().startOf('day'); // Get today's date
-                    const currentDay = date.startOf('day');
-                    // Check if the doctor is on vacation
-                    const isVacationDay = vacations.some(vacation => {
-                        const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
-                        const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
-                        return currentDay.isSameOrAfter(vacationStart) && currentDay.isSameOrBefore(vacationEnd);
-                    });
-
-                    if (currentDay.isBefore(today)) {
-                        // Mark as past day
-                        cell.css('background-color', '#e9ecef'); // Light red for past days
-                        cell.css('cursor', 'not-allowed');
-                        cell.css('color', '#721c24'); // Dark red for text
-                        cell.css('position', 'relative');
-                        cell.append('<span class="dot past-dot"></span>'); // Add a dot for past day
-                        cell.attr('title', 'Ce jour est dans le passé.'); // Tooltip for past days
-                    } else if (isVacationDay) {
-                        cell.addClass('cell-with-background'); // Apply custom background for vacation days
-                        cell.attr('title', 'Le docteur est en vacances ce jour.');
-                    } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
-                        // Mark as available day
-                        cell.css('background-color', ''); // Green for available days
-                        cell.css('cursor', 'pointer');
-                        cell.css('position', 'relative');
-                        cell.append('<span class="dot available-dot"></span>'); // Green dot
-                    } else {
-                        // Mark as unavailable day
-                        cell.css('background-color', '#e9ecef'); // Gray for unavailable days
-                        cell.css('position', 'relative');
-                        cell.append('<span class="dot unavailable-dot"></span>'); // Red dot
-                    }
-                },
-                events: function (start, end, timezone, callback) {
-                    $.ajax({
-                        url: "/appointment-event",
-                        type: "GET",
-                        data: {
-                            start: start.format("YYYY-MM-DD HH:mm:ss"),
-                            end: end.format("YYYY-MM-DD HH:mm:ss")
-                        },
-                        dataType: "json",
-                        success: function (data) {
-                            const statusTranslation = {
-                                "Received": "Reçu",
-                                "In Progress": "En cours",
-                                "On the Way": "En route",
-                                "Accepted": "Accepté",
-                                "Ready": "Prêt",
-                                "Done": "Terminé",
-                                "Failed": "Annulé"
-                            };
-
-                            const events = data.map(event => {
-                                let color = '';
-                                let translatedStatus = statusTranslation[event.status] || event.status; // Default to original if no translation
-
-                                switch (translatedStatus) {
-                                    case 'Accepté':
-                                        color = '#9FCDA8';
-                                        break;
-                                    case 'Terminé':
-                                        color = '#7DC2A5';
-                                        break;
-                                    case 'En cours':
-                                        color = '#F5DF4D';
-                                        break;
-                                    case 'Annulé':
-                                        color = '#F38071';
-                                        break;
-                                    case 'Reçu':
-                                        color = '#A594F9';
-                                        break;
-                                    case 'Prêt':
-                                        color = '#9EDF9C';
-                                        break;
-                                    default:
-                                        color = '#B4BAFF';
-                                }
-
-                                return {
-                                    id: event.id,
-                                    online: event.online,
-                                    title: `${event.patient_name} - ${event.motif_name}`,
-                                    start: moment(event.start_at).format(), // Adjust for timezone here
-                                    end: moment(event.ends_at).format(),
-                                    patient_phone_number: event.patient_phone_number,
-                                    email: event.patient_email,
-                                    patient_first_name: event.patient_first_name,
-                                    patient_last_name: event.patient_last_name,
-                                    patient_id: event.patient_id,
-                                    backgroundColor: color,
-                                    borderColor: color,
-                                    description: `Patient: ${event.patient_name}\nStatus: ${translatedStatus}\nDetails: ${event.motif_name || 'N/A'}`,
-                                    patient_name: event.patient_name,
-                                    status: translatedStatus,              // Add status here
-                                    details: event.motif_name || 'N/A',
-                                    motif_name: event.motif_name // motif_name is passed here
-                                };
-                            });
-                            callback(events);
-                        }
-                    });
-                },
-                eventRender: function (event, element) {
-
-                    // Adding title attribute for simple tooltip
-                    let icon;
-
-                    // Determine the icon based on the `online` field
-                    switch (event.online) {
-                        case 'cabinet':
-                            icon = '<i class="fas fa-clinic-medical" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Blue clinic icon
-                            break;
-                        case 'Téléconsultation':
-                            icon = '<i class="fas fa-video" style="margin-right: 5px; color: 1A1A1D;"></i>'; // Green video icon
-                            break;
-                        case 'web':
-                            icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Orange globe icon
-                            break;
-                        case 'mobile':
-                            icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Purple mobile icon
-                            break;
-                        default:
-                            icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default gray icon
-                            break;
-                    }
-                    element.find('.fc-title').prepend(icon);
-                    element.attr('title', event.description);
-                    element.find('.fc-title').css('white-space', 'nowrap');
-                    element.find('.fc-time').css('font-size', '1em');
-
-                },
-                selectable: true,
-                selectAllow: function (selectInfo) {
-                    // Only allow selection if the day is in availabilityDays
-                    //return availabilityDays.includes(selectInfo.start.format("YYYY-MM-DD"));
-
-                },
-                selectHelper: true,
-                select: function (start, end) {
-                    const selectedDate = start.format("YYYY-MM-DD");
-                    const today = moment().format("YYYY-MM-DD"); // Get today's date
-                    let defaultType = "1"; // Default appointment type
-
-                    // Check if the selected date is before today's date
-                    if (moment(selectedDate).isBefore(today)) {
-                        // Show a modal with a French message for past dates
-                        $('#pastDateModal').modal('show');
-                        $('#pastDateModalMessage').text("Vous avez sélectionné une date antérieure. Veuillez sélectionner une date future.");
-                        return; // Exit the function to prevent further actions
-                    }
-                    const isVacationDay = vacations.some(vacation => {
-                        const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
-                        const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
-                        return moment(selectedDate).isSameOrAfter(vacationStart) && moment(selectedDate).isSameOrBefore(vacationEnd);
-                    });
-                    if (isVacationDay) {
-                        // Show a modal with a French message for vacation days
-                        Swal.fire({
-                            title: "Le docteur est en vacances",
-                            text: "Vous ne pouvez pas sélectionner cette date.",
-                            icon: "warning",
-                            confirmButtonText: "OK"
+            function initializeCalendar() {
+                calendar = $('#calendar').fullCalendar({
+                    locale: 'fr',
+                    editable: true,
+                    height: 600,
+                    header: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'month,agendaWeek,agendaDay'
+                    },
+                    defaultView: 'agendaWeek',
+                    minTime: "08:00:00",
+                    eventLimit: true, // Allow "more" link for overflow events
+                    dayRender: function (date, cell) {
+                        console.log("Day Rendered:", date.format());
+                        // Format date as YYYY-MM-DD for comparison
+                        const formattedDayName = date.locale('en').format('dddd').toLowerCase(); // Normalize to lowercase
+                        const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase()); // Normalize backend days to lowercase
+                        const today = moment().startOf('day'); // Get today's date
+                        const currentDay = date.startOf('day');
+                        // Check if the doctor is on vacation
+                        const isVacationDay = vacations.some(vacation => {
+                            const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
+                            const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
+                            return currentDay.isSameOrAfter(vacationStart) && currentDay.isSameOrBefore(vacationEnd);
                         });
 
-                        return; // Exit the function to prevent further actions
-                    }
-
-                    $('#appointmentDate').val(start.format("YYYY-MM-DD"));
-                    $('#startHour').val(start.format("HH"));
-                    $('#startMinute').val(start.format("mm"));
-                    $('#endHour').val(end.format("HH"));
-                    $('#endMinute').val(end.format("mm"));
-
-                    if (moment(selectedDate).isBefore(moment(), 'day')) {
-                        $('#pastDateModal').modal('show');
-                        return;
-                    }
-
-                    $('#appointmentDate').val(selectedDate);
-
-                    // Always use the currently active tab's type
-                    const activeTab = document.querySelector('#appointmentTypeTabs a.active');
-                    const selectedType = activeTab ? activeTab.dataset.type : '1';
-
-                    fetchTimeSlotsForType(selectedDate, selectedType);
-                    $('#appointmentModal').modal('show');
-
-                },
-                editable: true,
-                eventResize: function (event) {
-                    $.ajax({
-                        url: "/appointment-event/action",
-                        type: "POST",
-                        data: {
-                            id: event.id,
-                            start_at: event.start.utc().format('YYYY-MM-DD HH:mm:ss'),
-                            ends_at: event.end.utc().format('YYYY-MM-DD HH:mm:ss'),
-                            type: 'update'
-
-                        },
-                        success: function () {
-                            calendar.fullCalendar('refetchEvents');
-                            alert("Rendez-vous mis à jour avec succès.");
-                            console.log("Start At:", start_at);
-                            console.log("End At:", ends_at);
+                        if (currentDay.isBefore(today)) {
+                            // Mark as past day
+                            cell.css('background-color', '#e9ecef'); // Light red for past days
+                            cell.css('cursor', 'not-allowed');
+                            cell.css('color', '#721c24'); // Dark red for text
+                            cell.css('position', 'relative');
+                            cell.append('<span class="dot past-dot"></span>'); // Add a dot for past day
+                            cell.attr('title', 'Ce jour est dans le passé.'); // Tooltip for past days
+                        } else if (isVacationDay) {
+                            cell.addClass('cell-with-background'); // Apply custom background for vacation days
+                            cell.attr('title', 'Le docteur est en vacances ce jour.');
+                        } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
+                            // Mark as available day
+                            cell.css('background-color', ''); // Green for available days
+                            cell.css('cursor', 'pointer');
+                            cell.css('position', 'relative');
+                            cell.append('<span class="dot available-dot"></span>'); // Green dot
+                        } else {
+                            // Mark as unavailable day
+                            cell.css('background-color', '#e9ecef'); // Gray for unavailable days
+                            cell.css('position', 'relative');
+                            cell.append('<span class="dot unavailable-dot"></span>'); // Red dot
                         }
-                    });
-                },
-                eventDrop: function (event) {
-                    $.ajax({
-                        url: "/appointment-event/action",
-                        type: "POST",
-                        data: {
-                            id: event.id,
-                            start_at: event.start.format(),
-                            ends_at: event.end.format(),
-                            type: 'update'
-                        },
-                        success: function () {
-                            calendar.fullCalendar('refetchEvents');
-                            alert("Rendez-vous mis à jour avec succès.");
+                    },
+                    events: function (start, end, timezone, callback) {
+                        $.ajax({
+                            url: "/appointment-event",
+                            type: "GET",
+                            data: {
+                                start: start.format("YYYY-MM-DD HH:mm:ss"),
+                                end: end.format("YYYY-MM-DD HH:mm:ss")
+                            },
+                            dataType: "json",
+                            success: function (data) {
+                                const statusTranslation = {
+                                    "Received": "Reçu",
+                                    "In Progress": "En cours",
+                                    "On the Way": "En route",
+                                    "Accepted": "Accepté",
+                                    "Ready": "Prêt",
+                                    "Done": "Terminé",
+                                    "Failed": "Annulé"
+                                };
+
+                                const events = data.map(event => {
+                                    let color = '';
+                                    let translatedStatus = statusTranslation[event.status] || event.status; // Default to original if no translation
+
+                                    switch (translatedStatus) {
+                                        case 'Accepté':
+                                            color = '#9FCDA8';
+                                            break;
+                                        case 'Terminé':
+                                            color = '#7DC2A5';
+                                            break;
+                                        case 'En cours':
+                                            color = '#F5DF4D';
+                                            break;
+                                        case 'Annulé':
+                                            color = '#F38071';
+                                            break;
+                                        case 'Reçu':
+                                            color = '#A594F9';
+                                            break;
+                                        case 'Prêt':
+                                            color = '#9EDF9C';
+                                            break;
+                                        default:
+                                            color = '#B4BAFF';
+                                    }
+
+                                    return {
+                                        id: event.id,
+                                        online: event.online,
+                                        title: `${event.patient_name} - ${event.motif_name}`,
+                                        start: moment(event.start_at).format(), // Adjust for timezone here
+                                        end: moment(event.ends_at).format(),
+                                        patient_phone_number: event.patient_phone_number,
+                                        email: event.patient_email,
+                                        patient_first_name: event.patient_first_name,
+                                        patient_last_name: event.patient_last_name,
+                                        patient_id: event.patient_id,
+                                        backgroundColor: color,
+                                        borderColor: color,
+                                        description: `Patient: ${event.patient_name}\nStatus: ${translatedStatus}\nDetails: ${event.motif_name || 'N/A'}`,
+                                        patient_name: event.patient_name,
+                                        status: translatedStatus,              // Add status here
+                                        details: event.motif_name || 'N/A',
+                                        motif_name: event.motif_name,
+                                        appointment_type: event.type,
+                                    };
+                                });
+                                callback(events);
+                            }
+                        });
+                    },
+                    eventRender: function (event, element) {
+
+                        // Adding title attribute for simple tooltip
+                        let icon;
+
+                        // Determine the icon based on the `online` field
+                        switch (event.online) {
+                            case 'cabinet':
+                                icon = '<i class="fas fa-clinic-medical" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Blue clinic icon
+                                break;
+                            case 'teleconsultation':
+                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: 1A1A1D;"></i>'; // Green video icon
+                                break;
+                            case 'web':
+                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Orange globe icon
+                                break;
+                            case 'mobile':
+                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Purple mobile icon
+                                break;
+                            default:
+                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default gray icon
+                                break;
                         }
-                    });
-                },
-                eventClick: function (event) {
-                    const appointment = {
-                        appointment_id: event.id,
-                        patient_name: event.patient_name,
-                        patient_first_name: event.patient_first_name,
-                        patient_last_name: event.patient_last_name,
-                        email: event.email,
-                        patient_id: event.patient_id,
-                        status: event.status,
-                        motif_name: event.motif_name,
-                        online: event.online,
-                        start: event.start.format(),
-                        phone: event.patient_phone_number // Include the patient phone number
-                    };
-                    $('#patientName').text(event.patient_name);
-                    $('#appointmentStatus').text(event.status);
-                    $('#appointmentDetails').text(event.details || 'No additional details');
-                    $('#motifName').text(event.motif_name || 'No motif name available');
-                    //console.log(event.motif_name);
-                    //console.log(event.patient_name);
-                    // Show the modal
-                    openAppointmentModal(appointment);
-                    $('#appointmentDetailsModal').modal('show');
+                        element.find('.fc-title').prepend(icon);
+                        element.attr('title', event.description);
+                        element.find('.fc-title').css('white-space', 'nowrap');
+                        element.find('.fc-time').css('font-size', '1em');
 
-                    // Event handler for "Mark as Failed"
-                    $('#markAsFailed').off('click').on('click', function () {
-                        updateAppointmentStatus(event.id, 7, "Failed");
-                    });
+                    },
+                    selectable: true,
+                    selectAllow: function (selectInfo) {
+                        // Only allow selection if the day is in availabilityDays
+                        //return availabilityDays.includes(selectInfo.start.format("YYYY-MM-DD"));
 
-                    // Event handler for "Mark as Done"
-                    $('#markAsDone').off('click').on('click', function () {
-                        updateAppointmentStatus(event.id, 5, "Done");
-                    });
-                }
-            });
-            $('#saveAppointmentRef').click(function () {
-                let appointmentDate = $('#appointmentDate').val();
-                let patientId = $('#patientDropdown').val();
-                let selectedTime = $('#appointment_time').val();
-                let patternId = $('#patern_id').val();
-                let appointmentType = $('input[name="appointmentType"]:checked').val(); // Get appointment type
-                let isValid = true;
+                    },
+                    selectHelper: true,
+                    select: function (start, end) {
+                        const selectedDate = start.format("YYYY-MM-DD");
+                        //const selectedDayName = start.format('dddd').toLowerCase(); // Get day name in lowercase
+                        const selectedDayName = moment(selectedDate).locale('en').format("dddd").toLowerCase(); // Ensure English name
+                        const today = moment().format("YYYY-MM-DD");
+                        console.log("Selected Date:", selectedDate);
+                        //console.log("Selected Day:", selectedDay);
+                        console.log("Selected Day Name:", selectedDayName);
 
-                // Clear previous errors
-                $('.error-message').remove();
-                $('.error-input').removeClass('error-input');
+                        // First check if date is in the past
+                        if (moment(selectedDate).isBefore(today)) {
+                            $('#pastDateModal').modal('show');
+                            $('#pastDateModalMessage').text("Vous avez sélectionné une date antérieure. Veuillez sélectionner une date future.");
+                            return;
+                        }
 
-                // Validation checks
-                if (!patientId) {
-                    $('#patientDropdown').addClass('error-input')
-                        .after('<div class="error-message text-danger">Veuillez sélectionner un patient.</div>');
-                    isValid = false;
-                }
-                if (!appointmentDate) {
-                    $('#appointmentDate').addClass('error-input')
-                        .after('<div class="error-message text-danger">Veuillez sélectionner une date.</div>');
-                    isValid = false;
-                }
-                if (!selectedTime) {
-                    $('#appointment_time').addClass('error-input')
-                        .after('<div class="error-message text-danger">Veuillez sélectionner une heure.</div>');
-                    isValid = false;
-                }
-                if (!patternId) {
-                    $('#patern_id').addClass('error-input')
-                        .after('<div class="error-message text-danger">Veuillez sélectionner un motif.</div>');
-                    isValid = false;
-                }
-                if (!appointmentType) {
-                    alert("Veuillez sélectionner le type de rendez-vous (cabinet ou téléconsultation).");
-                    isValid = false;
-                }
+                        // Check if it's a vacation day
+                        const isVacationDay = vacations.some(vacation => {
+                            const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
+                            const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
+                            return moment(selectedDate).isSameOrAfter(vacationStart) && moment(selectedDate).isSameOrBefore(vacationEnd);
+                        });
 
-                // If validation fails, exit
-                if (!isValid) return;
-                const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-                const selectedDate = new Date(appointmentDate);
-                const dayOfWeek = days[selectedDate.getDay()]; // Get the day index and map it to the name
+                        if (isVacationDay) {
+                            Swal.fire({
+                                title: "Le docteur est en vacances",
+                                text: "Vous ne pouvez pas sélectionner cette date.",
+                                icon: "warning",
+                                confirmButtonText: "OK"
+                            });
+                            return;
+                        }
 
-                console.log("Selected Day:", dayOfWeek); // Output the day for debugging
-                // Construct the appointment data
-                let startAt = `${appointmentDate} ${selectedTime}:00`;
-                let appointmentData = {
-                    patient_id: patientId,
-                    appointment_at: appointmentDate,
-                    appointment_time: selectedTime,
-                    patern_id: patternId,
-                    appointment_type: appointmentType,
-                    day_of_week: dayOfWeek,
+                        // Check if the day is available
+                        $.ajax({
+                            url: "/get-available-time-slots",
+                            type: "GET",
+                            success: function (response) {
+                                console.log("Available Days Response:", response);
+                                const availableDays = response.available_days.map(day => day.toLowerCase());
+
+                                if (!availableDays.includes(selectedDayName)) {
+                                    Swal.fire({
+                                        title: "Jour non disponible",
+                                        text: "Le docteur n'est pas disponible ce jour-là.",
+                                        icon: "warning",
+                                        confirmButtonText: "OK"
+                                    });
+                                    return;
+                                }
+
+                                // If day is available, proceed to check time slots for each type
+                                $('#appointmentDate').val(selectedDate);
+
+                                // Check availability for all types
+                                const types = ['cabinet', 'teleconsultation', 'home_visit'];
+                                let foundSlots = false;
+                                let checkedTypes = 0;
+
+                                types.forEach(type => {
+                                    $.ajax({
+                                        url: "/get-available-time-slots-open",
+                                        type: "GET",
+                                        data: { date: selectedDate, type: type },
+                                        success: function (response) {
+                                            checkedTypes++;
+
+                                            if (response.all_slots && response.all_slots.length > 0) {
+                                                foundSlots = true;
+
+                                                // If this is the first type with available slots, select its tab
+                                                if (!$('#appointmentModal').is(':visible')) {
+                                                    $('#appointmentModal').modal('show');
+                                                    $(`#appointmentTypeTabs a[data-type="${type}"]`).tab('show');
+                                                    fetchTimeSlotsForType(selectedDate, type);
+                                                }
+                                            }
+
+                                            // If we've checked all types and found no slots
+                                            if (checkedTypes === types.length && !foundSlots) {
+                                                $('#confirmationModal').modal('show');
+                                                $('#confirmCreateAvailability').off('click').on('click', function () {
+                                                    window.location.href = `/availability`;
+                                                });
+                                            }
+                                        },
+                                        error: function () {
+                                            checkedTypes++;
+                                            if (checkedTypes === types.length && !foundSlots) {
+                                                $('#confirmationModal').modal('show');
+                                            }
+                                        }
+                                    });
+                                });
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    title: "Erreur",
+                                    text: "Impossible de vérifier les jours disponibles.",
+                                    icon: "error",
+                                    confirmButtonText: "OK"
+                                });
+                            }
+                        });
+                    },
+                    editable: true,
+                    eventResize: function (event) {
+                        $.ajax({
+                            url: "/appointment-event/action",
+                            type: "POST",
+                            data: {
+                                id: event.id,
+                                start_at: event.start.utc().format('YYYY-MM-DD HH:mm:ss'),
+                                ends_at: event.end.utc().format('YYYY-MM-DD HH:mm:ss'),
+                                type: 'update'
+
+                            },
+                            success: function () {
+                                calendar.fullCalendar('refetchEvents');
+                                alert("Rendez-vous mis à jour avec succès.");
+                                console.log("Start At:", start_at);
+                                console.log("End At:", ends_at);
+                            }
+                        });
+                    },
+                    eventDrop: function (event) {
+                        $.ajax({
+                            url: "/appointment-event/action",
+                            type: "POST",
+                            data: {
+                                id: event.id,
+                                start_at: event.start.format(),
+                                ends_at: event.end.format(),
+                                type: 'update'
+                            },
+                            success: function () {
+                                calendar.fullCalendar('refetchEvents');
+                                alert("Rendez-vous mis à jour avec succès.");
+                            }
+                        });
+                    },
+                    eventClick: function (event) {
+                        const appointment = {
+                            appointment_id: event.id,
+                            patient_name: event.patient_name,
+                            patient_first_name: event.patient_first_name,
+                            patient_last_name: event.patient_last_name,
+                            email: event.email,
+                            patient_id: event.patient_id,
+                            status: event.status,
+                            motif_name: event.motif_name,
+                            online: event.online,
+                            start: event.start.format(),
+                            phone: event.patient_phone_number // Include the patient phone number
+                        };
+                        $('#patientName').text(event.patient_name);
+                        $('#appointmentStatus').text(event.status);
+                        $('#appointmentDetails').text(event.details || 'No additional details');
+                        $('#motifName').text(event.motif_name || 'No motif name available');
+                        //console.log(event.motif_name);
+                        //console.log(event.patient_name);
+                        // Show the modal
+                        openAppointmentModal(appointment);
+                        $('#appointmentDetailsModal').modal('show');
+
+                        // Event handler for "Mark as Failed"
+                        $('#markAsFailed').off('click').on('click', function () {
+                            updateAppointmentStatus(event.id, 7, "Failed");
+                        });
+
+                        // Event handler for "Mark as Done"
+                        $('#markAsDone').off('click').on('click', function () {
+                            updateAppointmentStatus(event.id, 5, "Done");
+                        });
+                    }
+                });
+            }
+            $('#saveAppointment').on('click', function (e) {
+                e.preventDefault();
+                console.log('Save button clicked'); // Debug log
+                const activeTab = $('#appointmentTypeTabs .nav-link.active');
+                const appointmentType = activeTab.data('type');
+                console.log('Active tab type:', appointmentType); // Debug log
+
+                // Get form data
+                const appointmentData = {
+                    patient_id: $('#patientDropdown').val(),
+                    appointment_date: $('#appointmentDate').val(),
+                    appointment_time: $('#appointment_time').val(),
+                    patern_id: $('#patern_id').val(),
+                    appointment_type: appointmentType, // Use the active tab's type
+                    _token: $('meta[name="csrf-token"]').attr('content')
                 };
 
-                console.log("Appointment Data to be Sent:", appointmentData);
+                console.log('Appointment Data:', appointmentData); // Debug log
 
-                // Make the AJAX call
+                // Validate form data
+                if (!appointmentData.patient_id) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: "Veuillez sélectionner un patient",
+                        icon: "error"
+                    });
+                    return;
+                }
+
+                if (!appointmentData.appointment_time) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: "Veuillez sélectionner une heure de rendez-vous",
+                        icon: "error"
+                    });
+                    return;
+                }
+
+                if (!appointmentData.patern_id) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: "Veuillez sélectionner un motif",
+                        icon: "error"
+                    });
+                    return;
+                }
+
+                // Send AJAX request
                 $.ajax({
-                    url: "{{ route('appointments.store') }}", // Ensure this route exists in your backend
+                    url: "{{ route('appointments.store') }}",
                     method: "POST",
                     data: appointmentData,
                     success: function (response) {
-                        $('#appointmentModal').modal('hide'); // Close the modal
-                        alert("Rendez-vous enregistré avec succès."); // Success message in French
-                        location.reload(true); // Reload the page to reflect the changes
-                        $('#calendar').fullCalendar('refetchEvents'); // Refetch calendar events
+                        console.log('Success:', response); // Debug log
+
+                        Swal.fire({
+                            title: "Succès",
+                            text: "Rendez-vous créé avec succès",
+                            icon: "success"
+                        }).then((result) => {
+                            $('#appointmentModal').modal('hide');
+                            $('#calendar').fullCalendar('refetchEvents');
+                        });
                     },
                     error: function (xhr) {
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            console.log("Validation Errors:", errors);
-                            // Display validation errors
-                            for (const [field, messages] of Object.entries(errors)) {
-                                $(`#${field}`).addClass('error-input')
-                                    .after(`<div class="error-message text-danger">${messages[0]}</div>`);
-                            }
-                        } else {
-                            alert("Une erreur inattendue s'est produite. Veuillez réessayer."); // General error message in French
+                        console.log('Error:', xhr); // Debug log
+
+                        let errorMessage = "Une erreur s'est produite";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
                         }
+
+                        Swal.fire({
+                            title: "Erreur",
+                            text: errorMessage,
+                            icon: "error"
+                        });
                     }
                 });
+            });
+
+            // Add form submit prevention
+            $('#appointmentForm').on('submit', function (e) {
+                e.preventDefault();
             });
 
             function updateAppointmentStatus(appointmentId, statusId) {
@@ -969,7 +1080,7 @@
                 const isDoctor = {{ auth()->user()->hasRole('doctor') ? 'true' : 'false' }};
 
                 // Show/hide the "Create Teleconsultation" button
-                if (isDoctor && online === "Téléconsultation" && status !== "Annulé" && status !== "Terminé") {
+                if (isDoctor && online === "teleconsultation" && status !== "Annulé" && status !== "Terminé") {
 
                     teleconsultationButton.classList.remove("d-none");
                     teleconsultationButton.onclick = () => {
@@ -982,9 +1093,9 @@
                 }
 
                 if (hasUpdateStatusPermission) {
-                    if (online === "Téléconsultation") {
+                    if (online === "teleconsultation") {
                         doneButton.style.display = "none";
-                        failedButton.style.display = "none";
+                        failedButton.style.display = "inline-block";
                     }
                     else if (status === "Terminé" || status === "Annulé") {
                         doneButton.style.display = "none"; // Hide the Ready button
