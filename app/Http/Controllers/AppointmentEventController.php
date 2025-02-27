@@ -308,7 +308,12 @@ class AppointmentEventController extends Controller
             Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
 
 
-            return response()->json(['appointment_id' => $appointment->id, 'status' => 'success']);
+            return response()->json([
+                'appointment_id' => $appointment->id,
+                'status' => 'success',
+                'refresh' => true,
+                'agenda' => $this->refreshAgenda()->getData() // Get fresh agenda data
+            ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation Errors:', $e->errors());
@@ -456,7 +461,11 @@ class AppointmentEventController extends Controller
 
 
             }
-            return response()->json(['message' => 'Status updated successfully']);
+            return response()->json([
+                'message' => 'Status updated successfully',
+                'refresh' => true,
+                'agenda' => $this->refreshAgenda()->getData() // Get fresh agenda data
+            ]);
         } catch (Exception $e) {
             return response()->json(['error' => 'Failed to update status: ' . $e->getMessage()], 500);
         }
@@ -1277,7 +1286,9 @@ class AppointmentEventController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Rendez-vous forcé créé avec succès.'
+                'message' => 'Rendez-vous forcé créé avec succès.',
+                'refresh' => true,
+                'agenda' => $this->refreshAgenda()->getData() // Get fresh agenda data
             ]);
 
         } catch (\Exception $e) {
@@ -1317,6 +1328,11 @@ class AppointmentEventController extends Controller
             'availableDays' => $availableDays,
             'vacations' => $vacations
         ]);
+    }
+
+    private function refreshAgenda()
+    {
+        return $this->index(request());
     }
 
 }
