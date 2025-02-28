@@ -37,7 +37,8 @@ class AppointmentEventController extends Controller
             // Retrieve distinct availability days for the logged-in doctor
             $availabilityDays = DB::table('availability_hours')
                 ->where('doctor_id', $doctorId)
-                ->where('is_available', 1) // Filter only available days
+                ->where('is_available', 1)
+                ->where('mode', 'open')
                 ->distinct()
                 ->pluck('day'); // Get distinct day names (e.g., Lundi, Mardi)
 
@@ -66,6 +67,7 @@ class AppointmentEventController extends Controller
                         'appointments.type',
                         'appointments.user_id',
                         'appointments.patient_id',
+                        'appointments.hint',
                         DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
                         DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
@@ -106,6 +108,7 @@ class AppointmentEventController extends Controller
                         'motif_name' => $decodedMotifName['fr'] ?? $decodedMotifName,
                         'online' => $appointment->online,
                         'type' => $appointment->type,
+                        'note' => $appointment->hint,
                     ];
                 }));
             }
@@ -243,6 +246,7 @@ class AppointmentEventController extends Controller
 
     public function saveAppointment(Request $request)
     {
+        \Log::info('Appointment Data Received:', $request->all());
         try {
             $doctorId = auth()->user()->getDoctorId();
 
@@ -259,6 +263,7 @@ class AppointmentEventController extends Controller
                 'appointment_time' => 'required',
                 'patern_id' => 'required',
                 'appointment_type' => 'required', // Changed from strings to IDs
+                'notes' => 'nullable|string|max:1000', // Add validation for notes
             ]);
             Log::info('validate', $validated);
             $patient = Patient::findOrFail($validated['patient_id']);
@@ -274,6 +279,7 @@ class AppointmentEventController extends Controller
                 ->where('doctor_id', $doctorId)
                 ->where('day', $dayName)
                 ->where('type', $type)
+                ->where('mode', 'open')
                 ->where('is_available', 1)
                 ->whereTime('start_at', '<=', $startAt->format('H:i'))
                 ->whereTime('end_at', '>', $startAt->format('H:i'))

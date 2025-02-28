@@ -2092,4 +2092,15 @@ return [
 
     'home_visit_info' => 'Les visites à domicile peuvent être programmées même pendant les heures de cabinet',
     'home_visit_schedule_info' => 'Les visites à domicile peuvent chevaucher d\'autres types de consultation. Planifiez-les selon vos déplacements.',
+    'notes' => 'Notes',
+    'enter_appointment_notes' => 'Entrez des notes pour le rendez-vous...',
+    'create_modal_name' => 'Créer un rendez-vous',
+    'force_appointment' => 'Forcer un rendez-vous',
+    'start_time' => 'Heure de début',
+    'end_time' => 'Heure de fin',
+    'Select_Patient' => 'Sélectionner un patient',
+    'select_patient' => 'Choisir un patient',
+    'select_motif' => 'Sélectionner un motif',
+    'no_pattern_selected' => 'Aucun motif sélectionné',
+    'save_patient_refer' => 'Enregistrer le rendez-vous',
 ];

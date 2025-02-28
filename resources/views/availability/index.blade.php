@@ -295,197 +295,197 @@
                 </div>
             </div>
         @elseif ($currentMode === 'precise')
-            <div class="content">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <!-- Tabs Navigation -->
-                        <ul class="nav nav-tabs mb-3" id="availabilityTabs" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="cabinet-tab" data-toggle="tab" href="#cabinet" role="tab">
-                                    <i class="fas fa-hospital"></i> {{ trans('lang.cabinet') }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="teleconsultation-tab" data-toggle="tab" href="#teleconsultation" role="tab">
-                                    <i class="fas fa-video"></i> {{ trans('lang.teleconsultation') }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="home_visit-tab" data-toggle="tab" href="#home_visit" role="tab">
-                                    <i class="fas fa-home"></i> {{ trans('lang.home_visit') }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="vacation-tab" data-toggle="tab" href="#vacation" role="tab">
-                                    <i class="fas fa-umbrella-beach"></i> {{ trans('lang.vacation') }}
-                                </a>
-                            </li>
-                        </ul>
+    <div class="content">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <!-- Tabs Navigation -->
+                <ul class="nav nav-tabs mb-3" id="availabilityTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="cabinet-tab" data-toggle="tab" href="#cabinet" role="tab">
+                            <i class="fas fa-hospital"></i> {{ trans('lang.cabinet') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="teleconsultation-tab" data-toggle="tab" href="#teleconsultation" role="tab">
+                            <i class="fas fa-video"></i> {{ trans('lang.teleconsultation') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="home_visit-tab" data-toggle="tab" href="#home_visit" role="tab">
+                            <i class="fas fa-home"></i> {{ trans('lang.home_visit') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="vacation-tab" data-toggle="tab" href="#vacation" role="tab">
+                            <i class="fas fa-umbrella-beach"></i> {{ trans('lang.vacation') }}
+                        </a>
+                    </li>
+                </ul>
 
-                        <!-- Availability Form -->
-                        <div class="tab-content" id="availabilityTabContent">
-                            @foreach(['cabinet' => 'Cabinet', 'teleconsultation' => 'Téléconsultation', 'home_visit' => 'Visite à domicile'] as $type => $label)
-                                <div class="tab-pane fade {{ $type === 'cabinet' ? 'show active' : '' }}" id="{{ $type }}"
-                                    role="tabpanel">
-                                    <form action="{{ route('availability.store') }}" method="POST">
-                                        @csrf
+                <!-- Availability Form -->
+                <div class="tab-content" id="availabilityTabContent">
+                    @foreach(['cabinet' => 'Cabinet', 'teleconsultation' => 'Téléconsultation', 'home_visit' => 'Visite à domicile'] as $type => $label)
+                        <div class="tab-pane fade {{ $type === 'cabinet' ? 'show active' : '' }}" id="{{ $type }}" role="tabpanel">
+                            <form action="{{ route('availability.store') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="type" value="{{ $type }}">
+                                <input type="hidden" name="mode" value="{{ $currentMode }}">
 
-                                        <input type="hidden" name="type" value="{{ $type }}">
-                                        <input type="hidden" name="mode" value="{{ $currentMode }}">
+                                <table class="table table-bordered">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th style="width: 10%;">{{ trans('lang.availability') }}</th>
+                                            <th style="width: 20%;">{{ trans('lang.day') }}</th>
+                                            <th style="width: 70%;">{{ trans('lang.timeSlots') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($days as $dayIndex => $day)
+                                            <tr>
+                                                <td class="text-center align-middle">
+                                                    <label class="switch">
+                                                        <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]"
+                                                            value="1" @if(isset($availabilities[$type][$day]) && $availabilities[$type][$day]->contains('is_available', true)) checked @endif>
+                                                        <span class="slider round"></span>
+                                                    </label>
+                                                    <input type="hidden" name="availability[{{ $dayIndex }}][day]" value="{{ $day }}">
+                                                </td>
+                                                <td class="align-middle">
+                                                    {{ trans('lang.' . strtolower($day)) }}
+                                                </td>
+                                                <td>
+                                                    <div id="{{ $type }}-slots-{{ $dayIndex }}" class="slots-container">
+                                                        @php
+                                                            $daySlots = $availabilities[$type][$day] ?? collect();
+                                                        @endphp
 
-                                        <table class="table table-bordered">
+                                                        @if($daySlots->isNotEmpty())
+                                                            @foreach($daySlots as $slot)
+                                                                <div class="slot-entry d-flex align-items-center mb-2">
+                                                                    <input type="time" name="availability[{{ $dayIndex }}][slots][start][]"
+                                                                        class="form-control mr-2" required
+                                                                        value="{{ \Carbon\Carbon::parse($slot->start_at)->format('H:i') }}">
+                                                                    <input type="time" name="availability[{{ $dayIndex }}][slots][end][]"
+                                                                        class="form-control mr-2" required
+                                                                        value="{{ \Carbon\Carbon::parse($slot->end_at)->format('H:i') }}">
+                                                                    <select name="availability[{{ $dayIndex }}][slots][pattern][]"
+                                                                        class="form-control mr-2" required>
+                                                                        <option value="">{{ trans('lang.select_pattern') }}</option>
+                                                                        @foreach($doctorPatterns as $pattern)
+                                                                            <option value="{{ $pattern->id }}" {{ $slot->patern_id == $pattern->id ? 'selected' : '' }}>
+                                                                                {{ $pattern->nom }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                    <input type="number"
+                                                                        name="availability[{{ $dayIndex }}][slots][duration][]"
+                                                                        class="form-control mr-2" placeholder="{{ trans('lang.duration') }}"
+                                                                        required min="15" value="{{ $slot->session_duration ?? 30 }}">
+                                                                    <button type="button" class="btn btn-danger btn-sm"
+                                                                        onclick="removeSlot(this)">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </div>
+                                                            @endforeach
+                                                        @endif
+                                                        <button type="button" class="btn btn-primary btn-sm mt-2"
+                                                            onclick="addSlot('{{ $type }}', {{ $dayIndex }})">
+                                                            <i class="fas fa-plus"></i> {{ trans('lang.add_slot') }}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                                <button type="submit" class="btn bg-{{ setting('theme_color') }} mt-4">
+                                    {{ trans("lang.saveDispo") }}
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                    
+                    <!-- Vacation Tab -->
+                    <div class="tab-pane fade" id="vacation" role="tabpanel">
+                        <form action="{{ route('holidays.store') }}" method="POST">
+                            @csrf
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>{{ trans("lang.add_vacation") }}</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>{{ trans("lang.start_date") }}</label>
+                                                <input type="date" name="start_date" class="form-control" required
+                                                    min="{{ date('Y-m-d') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>{{ trans("lang.end_date") }}</label>
+                                                <input type="date" name="end_date" class="form-control" required
+                                                    min="{{ date('Y-m-d') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ trans("lang.reason") }}</label>
+                                        <textarea name="reason" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn bg-{{ setting('theme_color') }}">
+                                        {{ trans("lang.save_vacation") }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        @if(isset($vacations) && count($vacations) > 0)
+                            <div class="card mt-4">
+                                <div class="card-header">
+                                    <h4>{{ trans("lang.vacation_list") }}</h4>
+                                </div>
+                                <div class="card-body vacation-list-container">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
                                             <thead>
                                                 <tr>
-                                                    <th>{{ trans('lang.availability') }}</th>
-                                                    <th>{{ trans('lang.day') }}</th>
-                                                    <th>{{ trans('lang.timeSlots') }}</th>
+                                                    <th>{{ trans("lang.start_date") }}</th>
+                                                    <th>{{ trans("lang.end_date") }}</th>
+                                                    <th>{{ trans("lang.reason") }}</th>
+                                                    <th>{{ trans("lang.actions") }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($days as $dayIndex => $day)
+                                                @foreach($vacations as $vacation)
                                                     <tr>
+                                                        <td>{{ \Carbon\Carbon::parse($vacation->start_date)->format('d/m/Y') }}</td>
+                                                        <td>{{ \Carbon\Carbon::parse($vacation->end_date)->format('d/m/Y') }}</td>
+                                                        <td>{{ $vacation->reason }}</td>
                                                         <td>
-                                                            <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]"
-                                                                value="1" @if(isset($availabilities[$type][$day]) && $availabilities[$type][$day]->contains('is_available', true)) checked
-                                                                @endif>
-                                                            <input type="hidden" name="availability[{{ $dayIndex }}][day]"
-                                                                value="{{ $day }}">
-                                                        </td>
-                                                        <td>{{ trans('lang.' . strtolower($day)) }}</td>
-                                                        <td>
-                                                            <div id="{{ $type }}-slots-{{ $dayIndex }}" class="slots-container">
-                                                                @php
-                                                                    $daySlots = $availabilities[$type][$day] ?? collect();
-                                                                @endphp
-
-                                                                @if($daySlots->isNotEmpty())
-                                                                    @foreach($daySlots as $slot)
-                                                                        <div class="slot-entry d-flex align-items-center mb-2">
-                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][start][]"
-                                                                                class="form-control mr-2" required
-                                                                                value="{{ \Carbon\Carbon::parse($slot->start_at)->format('H:i') }}">
-                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][end][]"
-                                                                                class="form-control mr-2" required
-                                                                                value="{{ \Carbon\Carbon::parse($slot->end_at)->format('H:i') }}">
-                                                                            <select name="availability[{{ $dayIndex }}][slots][pattern][]"
-                                                                                class="form-control mr-2" required>
-                                                                                <option value="">{{ trans('lang.select_pattern') }}</option>
-                                                                                console.log($)
-                                                                                @foreach($doctorPatterns as $pattern)
-                                                                                    <option value="{{ $pattern->id }}" {{ $slot->patern_id == $pattern->id ? 'selected' : '' }}>
-                                                                                        {{ $pattern->nom }}
-                                                                                    </option>
-                                                                                @endforeach
-                                                                            </select>
-                                                                            <input type="number"
-                                                                                name="availability[{{ $dayIndex }}][slots][duration][]"
-                                                                                class="form-control mr-2" placeholder="{{ trans('lang.duration') }}"
-                                                                                required min="15" value="{{ $slot->session_duration ?? 30 }}">
-                                                                            <button type="button" class="btn btn-danger btn-sm"
-                                                                                onclick="removeSlot(this)">
-                                                                                <i class="fas fa-trash"></i>
-                                                                            </button>
-                                                                        </div>
-                                                                    @endforeach
-                                                                @endif
-                                                                <button type="button" class="btn btn-primary btn-sm"
-                                                                    onclick="addSlot('{{ $type }}', {{ $dayIndex }})">
-                                                                    <i class="fas fa-plus"></i> {{ trans('lang.add_slot') }}
+                                                            <form action="{{ route('vacances.destroy', $vacation->id) }}"
+                                                                method="POST" class="d-inline">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                                    <i class="fas fa-trash"></i>
                                                                 </button>
-                                                            </div>
+                                                            </form>
                                                         </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
-                                        <button type="submit" class="btn bg-{{ setting('theme_color') }} mt-4">
-                                            {{ trans("lang.saveDispo") }}
-                                        </button>
-                                    </form>
+                                    </div>
                                 </div>
-                            @endforeach
-
-                            <!-- Vacation Tab -->
-                            <div class="tab-pane fade" id="vacation" role="tabpanel">
-                                <form action="{{ route('holidays.store') }}" method="POST">
-                                    @csrf
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h4>{{ trans("lang.add_vacation") }}</h4>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>{{ trans("lang.start_date") }}</label>
-                                                        <input type="date" name="start_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label>{{ trans("lang.end_date") }}</label>
-                                                        <input type="date" name="end_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>{{ trans("lang.reason") }}</label>
-                                                <textarea name="reason" class="form-control" rows="3"></textarea>
-                                            </div>
-                                            <button type="submit" class="btn bg-{{ setting('theme_color') }}">
-                                                {{ trans("lang.save_vacation") }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-
-                                @if(isset($vacations) && count($vacations) > 0)
-                                    <div class="card mt-4">
-                                        <div class="card-header">
-                                            <h4>{{ trans("lang.vacation_list") }}</h4>
-                                        </div>
-                                        <div class="card-body vacation-list-container">
-                                            <div class="table-responsive">
-                                                <table class="table table-hover">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>{{ trans("lang.start_date") }}</th>
-                                                            <th>{{ trans("lang.end_date") }}</th>
-                                                            <th>{{ trans("lang.reason") }}</th>
-                                                            <th>{{ trans("lang.actions") }}</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($vacations as $vacation)
-                                                            <tr>
-                                                                <td>{{ \Carbon\Carbon::parse($vacation->start_date)->format('d/m/Y') }}</td>
-                                                                <td>{{ \Carbon\Carbon::parse($vacation->end_date)->format('d/m/Y') }}</td>
-                                                                <td>{{ $vacation->reason }}</td>
-                                                                <td>
-                                                                    <form action="{{ route('vacances.destroy', $vacation->id) }}"
-                                                                        method="POST" class="d-inline">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                        <button type="submit" class="btn btn-danger btn-sm">
-                                                                            <i class="fas fa-trash"></i>
-                                                                        </button>
-                                                                    </form>
-                                                                </td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
                             </div>
-                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
         @else
             <div class="content-header">
                 <div class="container-fluid">
@@ -497,6 +497,196 @@
         @endif
     @endif
 @endsection
+
+@section('styles')
+    <link href="{{ asset('css/availability.css') }}" rel="stylesheet">
+    <style>
+        /* Modern Table Styles */
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-collapse: collapse;
+        }
+
+        .table thead th {
+            background-color: var(--primary);
+            color: #fff;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            padding: 12px;
+            border: none;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .table td {
+            padding: 12px;
+            vertical-align: middle;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        /* Modern Switch/Radio Styles */
+        .mode-switch {
+            display: inline-flex;
+            background: #f8f9fa;
+            padding: 4px;
+            border-radius: 30px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        .mode-switch label {
+            position: relative;
+            cursor: pointer;
+            padding: 8px 20px;
+            border-radius: 25px;
+            margin: 0;
+            transition: all 0.3s ease;
+        }
+
+        .mode-switch label:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .mode-switch input[type="radio"] {
+            display: none;
+        }
+
+        .mode-switch input[type="radio"]:checked + label {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Slot Entry Styles */
+        .slot-entry {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .slot-entry:hover {
+            border-color: var(--primary);
+        }
+
+        /* Input Enhancements */
+        .form-control {
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb), 0.25);
+        }
+
+        /* Switch Enhancement */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Tab Enhancement */
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 12px 20px;
+            margin-bottom: -2px;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-color: transparent;
+            color: var(--primary);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            background: transparent;
+        }
+
+        /* Button Enhancement */
+        .btn {
+            border-radius: 6px;
+            padding: 8px 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+        }
+
+        .btn i {
+            margin-right: 4px;
+        }
+    </style>
+@endsection
+
+<!-- Replace the mode selection radio buttons with this -->
+<div class="mode-switch mb-4">
+    <input type="radio" id="openMode" name="mode" value="open" {{ $currentMode === 'open' ? 'checked' : '' }}>
+    <label for="openMode">Mode Ouvert</label>
+    
+    <input type="radio" id="preciseMode" name="mode" value="precise" {{ $currentMode === 'precise' ? 'checked' : '' }}>
+    <label for="preciseMode">Mode Précis</label>
+</div>
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

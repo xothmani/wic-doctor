@@ -534,3 +534,18 @@
     background-color: #6a89cc;
     border-color: #6a89cc;
 }
+/* Add this to your existing styles */
+#appointment_notes {
+    resize: vertical;
+    min-height: 80px;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#appointment_notes:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
