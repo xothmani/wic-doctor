@@ -2090,4 +2090,6 @@ return [
     'close' => 'Fermer',
     'confirm_cancel' => 'Confirmer l\'annulation',
 
+    'home_visit_info' => 'Les visites à domicile peuvent être programmées même pendant les heures de cabinet',
+    'home_visit_schedule_info' => 'Les visites à domicile peuvent chevaucher d\'autres types de consultation. Planifiez-les selon vos déplacements.',
 ];

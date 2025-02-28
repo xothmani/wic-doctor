@@ -15,6 +15,27 @@ use Carbon\Carbon;
 
 class AvailabilityController extends Controller
 {
+    protected $defaultSchedules = [
+        'cabinet' => [
+            'start' => '09:00',
+            'end' => '17:00',
+            'break_start' => '14:00',
+            'break_end' => '15:00'
+        ],
+        'teleconsultation' => [
+            'start' => '19:00',
+            'end' => '22:00',
+            'break_start' => null,
+            'break_end' => null
+        ],
+        'home_visit' => [
+            'start' => '00:00',
+            'end' => '00:00',
+            'break_start' => null,
+            'break_end' => null
+        ]
+    ];
+
     public function index()
     {
         $doctorId = auth()->user()->getDoctorId();
@@ -39,7 +60,7 @@ class AvailabilityController extends Controller
                     ->where('mode', 'open')
                     ->get();
 
-                // Transform data for each day
+                // Transform data for each day with default values
                 $days = [
                     'monday' => ['is_available' => 0],
                     'tuesday' => ['is_available' => 0],
@@ -49,6 +70,16 @@ class AvailabilityController extends Controller
                     'saturday' => ['is_available' => 0],
                     'sunday' => ['is_available' => 0]
                 ];
+
+                foreach ($days as $day => &$data) {
+                    // If no existing data, use defaults
+                    if (!$typeAvailability->where('day', $day)->count()) {
+                        $data['start_at'] = $this->defaultSchedules[$type]['start'];
+                        $data['end_at'] = $this->defaultSchedules[$type]['end'];
+                        $data['pause_from'] = $this->defaultSchedules[$type]['break_start'];
+                        $data['pause_to'] = $this->defaultSchedules[$type]['break_end'];
+                    }
+                }
 
                 foreach ($typeAvailability as $slot) {
                     $days[strtolower($slot->day)] = [
@@ -68,16 +99,19 @@ class AvailabilityController extends Controller
                 ]);
             }
 
-            // Get session duration
-            $sessionDuration = AvailabilityHour::where('doctor_id', $doctorId)
-                ->where('mode', 'open')
-                ->where('type', 'cabinet')
-                ->value('session_duration') ?? 15;
+            // Get session durations for each type
+            $sessionDurations = [];
+            foreach ($availabilityTypes as $type) {
+                $duration = AvailabilityHour::where('doctor_id', $doctorId)
+                    ->where('mode', 'open')
+                    ->where('type', $type)
+                    ->value('session_duration') ?? 15;
 
-            // Convert session_duration to hh:mm format
-            $hours = intdiv($sessionDuration, 60);
-            $minutes = $sessionDuration % 60;
-            $sessionDurationFormatted = sprintf('%02d:%02d', $hours, $minutes);
+                // Convert to hh:mm format
+                $hours = intdiv($duration, 60);
+                $minutes = $duration % 60;
+                $sessionDurations[$type] = sprintf('%02d:%02d', $hours, $minutes);
+            }
 
             // Get doctor's patterns
             $doctorPatterns = Pattern::where('doctor_id', $doctorId)
@@ -104,7 +138,7 @@ class AvailabilityController extends Controller
 
             return view('availability.index', compact(
                 'availabilities',
-                'sessionDurationFormatted',
+                'sessionDurations', // Replace sessionDurationFormatted with sessionDurations
                 'currentMode',
                 'doctorPatterns',
                 'breakTime',
@@ -125,7 +159,7 @@ class AvailabilityController extends Controller
             // Get availability for all types
             $availabilities = [
                 'cabinet' => [],
-                'Téléconsultation' => [],
+                'teleconsultation' => [],
                 'home_visit' => []
             ];
 
@@ -229,12 +263,13 @@ class AvailabilityController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Request received:', ['request' => $request->all()]);
         $doctorId = auth()->user()->getDoctorId();
         $type = $request->input('type', 'cabinet');
 
         try {
             $validated = $request->validate([
-                'type' => 'required|in:cabinet,Téléconsultation,home_visit',
+                'type' => 'required|in:cabinet,teleconsultation,home_visit',
                 'availability' => 'required|array',
                 'availability.*.day' => 'required|string',
                 'availability.*.is_available' => 'nullable|boolean',
@@ -263,6 +298,22 @@ class AvailabilityController extends Controller
                             continue;
                         }
 
+                        // Check for overlaps with other consultation types
+                        $hasOverlap = $this->checkOverlappingSlots(
+                            $doctorId,
+                            $dayData['day'],
+                            $startTime,
+                            $dayData['slots']['end'][$index],
+                            $type
+                        );
+
+                        if ($hasOverlap) {
+                            throw new \Exception(
+                                "Conflit d'horaire détecté entre {$startTime} et {$dayData['slots']['end'][$index]}. " .
+                                "Ces horaires chevauchent une autre consultation."
+                            );
+                        }
+
                         AvailabilityHour::create([
                             'doctor_id' => $doctorId,
                             'day' => $day,
@@ -278,12 +329,101 @@ class AvailabilityController extends Controller
                 }
             }
 
+            // Convert new session duration from hh:mm to minutes
+            if (isset($validated['slots']['duration'])) {
+                foreach ($validated['slots']['duration'] as $duration) {
+                    $currentDuration = AvailabilityHour::where('doctor_id', $doctorId)
+                        ->where('type', $type)
+                        ->where('mode', 'precise')
+                        ->value('session_duration');
+
+                    if ($currentDuration && $duration != $currentDuration) {
+                        $hasAppointments = DB::table('appointments')
+                            ->where('doctor_id', $doctorId)
+                            ->where('type', $type)
+                            ->where('appointment_at', '>', now())
+                            ->exists();
+
+                        if ($hasAppointments) {
+                            session()->flash('duration_changed', true);
+                            session()->flash('old_duration', $currentDuration);
+                            session()->flash('new_duration', $duration);
+                            session()->flash('has_existing_appointments', true);
+                        }
+                    }
+                }
+            }
+
             DB::commit();
             return redirect()->back()->with('success', 'Disponibilité sauvegardée avec succès !');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error saving availability:', ['error' => $e->getMessage()]);
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    private function adjustAppointments($doctorId, $type, $oldDuration, $newDuration)
+    {
+        $futureAppointments = DB::table('appointments')
+            ->where('doctor_id', $doctorId)
+            ->where('type', $type)
+            ->where('appointment_at', '>', now())
+            ->orderBy('appointment_at')
+            ->get();
+
+        DB::beginTransaction();
+        try {
+            // Group appointments by their start time
+            $appointmentGroups = $futureAppointments->groupBy(function ($appointment) {
+                return Carbon::parse($appointment->appointment_at)->format('Y-m-d H:i');
+            });
+
+            foreach ($appointmentGroups as $startTime => $appointments) {
+                $currentStartTime = Carbon::parse($startTime);
+
+                foreach ($appointments as $appointment) {
+                    // Update only duration while keeping same start time for concurrent appointments
+                    DB::table('appointments')
+                        ->where('id', $appointment->id)
+                        ->update([
+                            'duration' => $newDuration
+                        ]);
+                }
+
+                // Calculate end time of current group
+                $groupEndTime = $currentStartTime->copy()->addMinutes($newDuration);
+
+                // Get next group's appointments that need to be shifted
+                $nextAppointments = DB::table('appointments')
+                    ->where('doctor_id', $doctorId)
+                    ->where('type', $type)
+                    ->where('appointment_at', '>', $currentStartTime)
+                    ->where('appointment_at', '<', $groupEndTime)
+                    ->orderBy('appointment_at')
+                    ->get();
+
+                // Shift any overlapping appointments
+                if ($nextAppointments->count() > 0) {
+                    foreach ($nextAppointments as $nextAppointment) {
+                        DB::table('appointments')
+                            ->where('id', $nextAppointment->id)
+                            ->update([
+                                'appointment_at' => $groupEndTime->format('Y-m-d H:i:s'),
+                                'duration' => $newDuration
+                            ]);
+
+                        $groupEndTime->addMinutes($newDuration);
+                    }
+                }
+            }
+
+            DB::commit();
+            return true;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error adjusting appointments:', ['error' => $e->getMessage()]);
+            throw $e;
         }
     }
 
@@ -317,21 +457,84 @@ class AvailabilityController extends Controller
 
             $validated = $request->validate([
                 'type' => 'required|in:cabinet,teleconsultation,home_visit',
-                'session_duration' => ['required', 'regex:/^\d{1,2}:\d{2}$/'],
+                'session_duration' => [
+                    'required',
+                    'regex:/^\d{1,2}:\d{2}$/',
+                ],
                 'availability' => 'required|array',
-                'availability.*.day' => ['required', 'string', 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday'],
-                'availability.*.from' => 'required_with:availability.*.is_available|date_format:H:i',
-                'availability.*.to' => 'required_with:availability.*.is_available|date_format:H:i|after:availability.*.from',
+                'availability.*.day' => [
+                    'required',
+                    'string',
+                    'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday'
+                ],
+                'availability.*.from' => [
+                    'required_with:availability.*.is_available',
+                    'date_format:H:i',
+                    function ($attribute, $value, $fail) use ($request) {
+                        $index = explode('.', $attribute)[1];
+                        if ($value === '00:00' && $request->input("availability.$index.to") === '00:00') {
+                            $fail(trans('validation.invalid_time_range'));
+                        }
+                    }
+                ],
+                'availability.*.to' => [
+                    'required_with:availability.*.is_available',
+                    'date_format:H:i',
+                    'after:availability.*.from'
+                ],
                 'availability.*.pause_from' => 'nullable|required_with:availability.*.pause_to|date_format:H:i',
                 'availability.*.pause_to' => 'nullable|required_with:availability.*.pause_from|date_format:H:i|after:availability.*.pause_from',
                 'availability.*.is_available' => 'nullable|boolean',
             ], [
-                'availability.*.pause_from.required_with' => 'L\'heure de début de pause est requise si l\'heure de fin est remplie',
-                'availability.*.pause_to.required_with' => 'L\'heure de fin de pause est requise si l\'heure de début est remplie',
-                'availability.*.pause_to.after' => 'L\'heure de fin de pause doit être après l\'heure de début'
+                'availability.*.from.required_with' => trans('validation.required_time'),
+                'availability.*.to.required_with' => trans('validation.required_time'),
+                'availability.*.to.after' => trans('validation.end_time_after'),
+                'availability.*.pause_from.required_with' => trans('validation.break_start_required'),
+                'availability.*.pause_to.required_with' => trans('validation.break_end_required'),
+                'availability.*.pause_to.after' => trans('validation.break_end_after'),
+                'session_duration.regex' => trans('validation.session_duration_format')
             ]);
 
             Log::info('Validated Open Mode Data with breaks:', ['validated' => $validated]);
+
+            // Convert new session duration from hh:mm to minutes
+            [$hours, $minutes] = explode(':', $validated['session_duration']);
+            $newSessionDuration = ($hours * 60) + $minutes;
+
+            // Get current session duration for this specific type
+            $currentSessionDuration = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('type', $type)
+                ->where('mode', 'open')
+                ->value('session_duration');
+
+            // Check for existing appointments if duration is being reduced
+            if ($currentSessionDuration && $newSessionDuration < $currentSessionDuration) {
+                $hasAppointments = DB::table('appointments')
+                    ->where('doctor_id', $doctorId)
+                    ->where('type', $type)
+                    ->where('appointment_at', '>', now())
+                    ->exists();
+
+                if ($hasAppointments) {
+                    throw new \Exception(trans('validation.cannot_reduce_duration'));
+                }
+            }
+
+            if ($currentSessionDuration && $newSessionDuration != $currentSessionDuration) {
+                $hasAppointments = DB::table('appointments')
+                    ->where('doctor_id', $doctorId)
+                    ->where('type', $type)
+                    ->where('appointment_at', '>', now())
+                    ->exists();
+
+                if ($hasAppointments) {
+                    session()->flash('duration_changed', true);
+                    session()->flash('old_duration', $currentSessionDuration);
+                    session()->flash('new_duration', $newSessionDuration);
+                    session()->flash('has_existing_appointments', true);
+                    session()->flash('affected_type', $type);  // Add affected type to flash
+                }
+            }
 
             DB::beginTransaction();
 
@@ -356,6 +559,22 @@ class AvailabilityController extends Controller
                         throw new \Exception("L'heure de fin de pause doit être après l'heure de début de pause pour {$data['day']}");
                     }
 
+                    // Check for overlaps with other consultation types
+                    $hasOverlap = $this->checkOverlappingSlots(
+                        $doctorId,
+                        $data['day'],
+                        $data['from'],
+                        $data['to'],
+                        $type
+                    );
+
+                    if ($hasOverlap) {
+                        throw new \Exception(
+                            "Conflit d'horaire détecté entre {$data['from']} et {$data['to']}. " .
+                            "Ces horaires chevauchent une autre consultation."
+                        );
+                    }
+
                     // Create or update with both type and mode conditions
                     AvailabilityHour::create([
                         'doctor_id' => $doctorId,
@@ -378,8 +597,16 @@ class AvailabilityController extends Controller
                 }
             }
 
+            // After successful update, store the new duration in session for the warning message
+            if ($currentSessionDuration && $newSessionDuration != $currentSessionDuration) {
+                session()->flash('duration_changed', true);
+                session()->flash('old_duration', $currentSessionDuration);
+                session()->flash('new_duration', $newSessionDuration);
+            }
+
             DB::commit();
-            return redirect()->back()->with('success', 'Disponibilité et pauses sauvegardées avec succès !');
+            return redirect()->back()->with('success', __('messages.availability_saved'));
+
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error saving open mode availability:', ['error' => $e->getMessage()]);
@@ -576,4 +803,34 @@ class AvailabilityController extends Controller
         // ...rest of your existing code...
     }
 
+    private function checkOverlappingSlots($doctorId, $day, $startTime, $endTime, $currentType = null, $currentId = null)
+    {
+        // Don't check overlaps for home visits
+        if ($currentType === 'home_visit') {
+            return false;
+        }
+
+        // Original overlap checking logic
+        $query = AvailabilityHour::where('doctor_id', $doctorId)
+            ->where('day', $day)
+            ->where('is_available', true)
+            ->where('type', '!=', 'home_visit'); // Exclude home visits from overlap checks
+
+        // Exclude current record if updating
+        if ($currentId) {
+            $query->where('id', '!=', $currentId);
+        }
+
+        // Check other consultation types if specified
+        if ($currentType) {
+            $query->where('type', '!=', $currentType);
+        }
+
+        return $query->where(function ($query) use ($startTime, $endTime) {
+            $query->where(function ($q) use ($startTime, $endTime) {
+                $q->where('start_at', '<', $endTime)
+                    ->where('end_at', '>', $startTime);
+            });
+        })->exists();
+    }
 }

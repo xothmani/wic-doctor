@@ -98,7 +98,6 @@ return [
     'regex' => 'The :attribute format is invalid.',
     'required' => 'Le champ :attribute est obligatoire.',
     'required_if' => 'Le champs :attribute est obligatoire lorsque :other est :value.',
-
     'required_unless' => 'The :attribute field is required unless :other is in :values.',
     'required_with' => 'The :attribute field is required when :values is present.',
     'required_with_all' => 'The :attribute field is required when :values are present.',
@@ -115,10 +114,17 @@ return [
     'string' => 'The :attribute must be a string.',
     'timezone' => 'The :attribute must be a valid zone.',
     'unique' => 'Le :attribute a déjà été prise.',
-
     'uploaded' => 'The :attribute failed to upload.',
     'url' => 'The :attribute format is invalid.',
     'uuid' => 'The :attribute must be a valid UUID.',
+    'invalid_time_range' => 'La plage horaire ne peut pas être 00:00-00:00. Veuillez définir des heures valides.',
+    'required_time' => 'L\'heure est requise lorsque le jour est disponible.',
+    'end_time_after' => 'L\'heure de fin doit être postérieure à l\'heure de début.',
+    'break_start_required' => 'L\'heure de début de pause est requise si une pause est définie.',
+    'break_end_required' => 'L\'heure de fin de pause est requise si une pause est définie.',
+    'break_end_after' => 'L\'heure de fin de pause doit être postérieure à l\'heure de début de pause.',
+    'session_duration_format' => 'La durée de session doit être au format HH:MM.',
+    'cannot_reduce_duration' => 'Impossible de réduire la durée des consultations car il existe des rendez-vous futurs. Veuillez d\'abord annuler ou reprogrammer ces rendez-vous.',
 
     /*
     |--------------------------------------------------------------------------
@@ -135,6 +141,24 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'availability.*' => [
+            'from' => [
+                'required_with' => 'L\'heure de début est requise pour les jours disponibles.',
+                'date_format' => 'L\'heure de début doit être au format HH:MM.',
+            ],
+            'to' => [
+                'required_with' => 'L\'heure de fin est requise pour les jours disponibles.',
+                'date_format' => 'L\'heure de fin doit être au format HH:MM.',
+                'after' => 'L\'heure de fin doit être postérieure à l\'heure de début.',
+            ],
+            'pause_from' => [
+                'date_format' => 'L\'heure de début de pause doit être au format HH:MM.',
+            ],
+            'pause_to' => [
+                'date_format' => 'L\'heure de fin de pause doit être au format HH:MM.',
+                'after' => 'L\'heure de fin de pause doit être postérieure à l\'heure de début de pause.',
+            ],
+        ],
     ],
 
     /*
@@ -149,12 +173,12 @@ return [
     */
 
     'attributes' => [
-	'first_name' => 'prénom',
+        'first_name' => 'prénom',
         'last_name' => 'nom de famille',
         'phone_number' => 'numéro de téléphone',
         'mobile_number' => 'numéro de mobile',
         'gender' => 'sexe',
         'date_naissance' => 'date de naissance',
-],
+    ],
 
 ];

@@ -39,6 +39,39 @@
             </div>
         @endif
 
+        @if(session('duration_changed'))
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <h5><i class="icon fas fa-info"></i> {{ trans('messages.duration_changed_notice') }}</h5>
+                @if(session('has_existing_appointments'))
+                    {{ trans('messages.duration_changed_future', [
+                        'old' => session('old_duration'),
+                        'new' => session('new_duration'),
+                        'type' => ucfirst(session('affected_type'))
+                    ]) }}
+                @else
+                    {{ trans('messages.duration_changed_warning', [
+                        'old' => session('old_duration'),
+                        'new' => session('new_duration'),
+                        'type' => ucfirst(session('affected_type'))
+                    ]) }}
+                @endif
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
+        @if(session('appointments_adjusted'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{ trans('messages.appointments_adjusted_warning') }}
+                <br>
+                {{ trans('messages.appointments_adjusted') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 setTimeout(function () {
@@ -87,7 +120,7 @@
                                         <div class="form-group d-flex align-items-baseline mb-4">
                                             {!! Form::label('session_duration', trans("lang.sessionDuration") . ' *', ['class' => 'col-md-2 control-label text-md-right']) !!}
                                             <div class="col-md-2">
-                                                {!! Form::text('session_duration', $sessionDurationFormatted, [
+                                                {!! Form::text('session_duration', $sessionDurations[$type], [
                                                     'class' => 'form-control',
                                                     'required' => 'required',
                                                     'placeholder' => 'e.g., 01:00 (hh:mm)'
@@ -273,7 +306,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="teleconsultation-tab" data-toggle="tab" href="#Téléconsultation" role="tab">
+                                <a class="nav-link" id="teleconsultation-tab" data-toggle="tab" href="#teleconsultation" role="tab">
                                     <i class="fas fa-video"></i> {{ trans('lang.teleconsultation') }}
                                 </a>
                             </li>
@@ -291,7 +324,7 @@
 
                         <!-- Availability Form -->
                         <div class="tab-content" id="availabilityTabContent">
-                            @foreach(['cabinet' => 'Cabinet', 'Téléconsultation' => 'Téléconsultation', 'home_visit' => 'Visite à domicile'] as $type => $label)
+                            @foreach(['cabinet' => 'Cabinet', 'teleconsultation' => 'Téléconsultation', 'home_visit' => 'Visite à domicile'] as $type => $label)
                                 <div class="tab-pane fade {{ $type === 'cabinet' ? 'show active' : '' }}" id="{{ $type }}"
                                     role="tabpanel">
                                     <form action="{{ route('availability.store') }}" method="POST">
@@ -575,6 +608,28 @@
                         e.preventDefault();
                     }
                 });
+            }
+        });
+    </script>
+    @parent
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add tooltip for home visits
+            const homeVisitTab = document.getElementById('home-visit-tab');
+            if (homeVisitTab) {
+                new bootstrap.Tooltip(homeVisitTab, {
+                    title: "{{ trans('lang.home_visit_info') }}",
+                    placement: 'top'
+                });
+            }
+
+            // Add info text under home visit tab
+            const homeVisitContent = document.getElementById('home_visit');
+            if (homeVisitContent) {
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'alert alert-info mt-2';
+                infoDiv.innerHTML = "<i class='fas fa-info-circle'></i> {{ trans('lang.home_visit_schedule_info') }}";
+                homeVisitContent.insertBefore(infoDiv, homeVisitContent.firstChild);
             }
         });
     </script>

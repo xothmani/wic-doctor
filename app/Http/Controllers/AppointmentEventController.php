@@ -1238,7 +1238,7 @@ class AppointmentEventController extends Controller
         // 2) Validate incoming data
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
-            'appointment_type' => 'required|in:1,2,3', // Changed from strings to IDs
+            'appointment_type' => 'required', // Changed from strings to IDs
             'appointment_date' => 'required|date',
             'appointment_time' => 'required', // e.g. "08:00"
             'notes' => 'nullable|string',
