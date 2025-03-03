@@ -31,7 +31,6 @@
             {!! Form::label('titre', trans("lang.blog_title"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
             <div class="col-md-9" style="max-width: 570px;">
     {!! Form::textarea('titre', $doctorBlog->titre ?? '', ['class' => 'form-control', 'placeholder'=> trans("lang.blog_title_placeholder")]) !!}
-            <div class="form-text text-muted">{{ trans("lang.blog_title_help") }}</div> 
             </div>
         </div>
     </div>
@@ -42,11 +41,26 @@
         <div class="form-group align-items-baseline d-flex flex-column flex-md-row mt-4">
             {!! Form::label('contenu', trans("lang.my_blog_content"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
             <div class="col-md-9"  style="max-width: 570px;">
-                {!! Form::textarea('contenu', $doctorBlog->contenu ?? '', ['class' => 'form-control', 'placeholder'=> trans("lang.blog_content_placeholder"), 'style' => 'height: 250px;']) !!}
+                {!! Form::textarea('contenu', $doctorBlog->contenu ?? '', ['class' => 'form-control', 'placeholder'=> trans("lang.blog_content_placeholder")]) !!}
                 <div class="form-text text-muted">{{ trans("lang.blog_content_help") }}</div>
             </div>
         </div>
     </div>
+
+<script>
+    tinymce.init({
+        selector: '#contenu', // Cible le textarea
+        height: 500,
+        plugins: 'advlist autolink lists link charmap preview anchor',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
+        menubar: false,
+        branding: false,
+        entity_encoding: "raw",  // 🔹 Permet de lire les caractères spéciaux
+        valid_elements: "*[*]",  // 🔹 Accepte tous les éléments HTML
+        content_css: false,      // 🔹 Empêche TinyMCE de forcer son propre style
+    });
+</script>
+
 </div>
 
 
