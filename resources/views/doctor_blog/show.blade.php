@@ -14,7 +14,7 @@
                             <!-- Texte à gauche -->
                             <div class="col-md-8">
                                 <span class="badge bg-primary text-white mb-2">{{ $blog->titre_court }}</span>
-                                <h1 class="fw-bold">{!! $blog->titre !!}</h1>
+                                <h2 class="fw-bold">{!! $blog->titre !!}</h2>
 
                                 <!-- Contenu du blog avec un texte masqué -->
                                 <div id="blog-content" class="text-muted" style="max-height: 180px; overflow: hidden; position: relative;">
