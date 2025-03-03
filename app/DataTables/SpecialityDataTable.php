@@ -45,15 +45,6 @@ class SpecialityDataTable extends DataTable
             ->editColumn('name', function ($speciality) {
                 return $speciality->name;
             })
-            ->editColumn('color', function ($speciality) {
-                return getColorColumn($speciality, 'color');
-            })
-            ->editColumn('featured', function ($speciality) {
-                return getBooleanColumn($speciality, 'featured');
-            })
-            ->editColumn('parent_speciality.name', function ($speciality) {
-                return getLinksColumnByRouteName([$speciality->parentSpeciality], 'specialities.edit', 'id', 'name');
-            })
             ->editColumn('updated_at', function ($speciality) {
                 return getDateColumn($speciality, 'updated_at');
             })
@@ -81,29 +72,11 @@ class SpecialityDataTable extends DataTable
                 'title' => trans('lang.speciality_name'),
 
             ],
-            [
-                'data' => 'color',
-                'title' => trans('lang.speciality_color'),
-
-            ],
+            
             [
                 'data' => 'description',
                 'title' => trans('lang.speciality_description'),
 
-            ],
-            [
-                'data' => 'featured',
-                'title' => trans('lang.speciality_featured'),
-            ],
-            [
-                'data' => 'order',
-                'title' => trans('lang.speciality_order'),
-            ],
-            [
-                'data' => 'parent_speciality.name',
-                'name' => 'parentSpeciality.name',
-                'title' => trans('lang.speciality_parent_id'),
-                'searchable' => false, 'orderable' => false,
             ],
             [
                 'data' => 'updated_at',

@@ -58,7 +58,7 @@
                     
                         <!-- /.card-body -->
                     </div>
-                    @can('doctors.editProfil')
+ @can('doctors.editProfil')
     <!-- Profile Edit -->
     <div class="card shadow-sm">
         <div class="card-header">
@@ -66,32 +66,35 @@
         </div>
         <div class="card-body box-profile">
             <!-- Liste des étapes -->
-            <ul class="task-list">
-                <li class="task {{ $doctor->pourcentage_avatar ? 'completed' : 'pending' }}">
-                    <i class="{{ $doctor->pourcentage_avatar ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
-                    {{ trans('lang.import_avatar') }}
-                </li>
-                <li class="task {{ $doctor->pourcentage_adresse ? 'completed' : 'pending' }}">
-                    <i class="{{ $doctor->pourcentage_adresse ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
-                    {{ trans('lang.complet_adresse') }}
-                </li>
-                <li class="task {{ $doctor->pourcentage_cv ? 'completed' : 'pending' }}">
-                    <i class="{{ $doctor->pourcentage_cv ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
-                    {{ trans('lang.complet_cv') }}
-                </li>
-                <li class="task {{ $doctor->pourcentage_cabinet ? 'completed' : 'pending' }}">
-                    <i class="{{ $doctor->pourcentage_cabinet ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
-                    {{ trans('lang.import_photos') }}
-                </li>
-                <li class="task {{ $doctor->pourcentage_tags ? 'completed' : 'pending' }}">
-                    <i class="{{ $doctor->pourcentage_tags ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
-                    {{ trans('lang.check_tags') }}
-                </li>
-                <li class="task {{ $doctor->pourcentage_profil ? 'completed' : 'pending' }}">
-                    <i class="{{ $doctor->pourcentage_profil ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
-                    {{ trans('lang.final_profil') }}
-                </li>
-            </ul>
+            @if(auth()->user()->hasRole('doctor'))
+    <ul class="task-list">
+        <li class="task {{ $doctor->pourcentage_avatar ? 'completed' : 'pending' }}">
+            <i class="{{ $doctor->pourcentage_avatar ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            {{ trans('lang.import_avatar') }}
+        </li>
+        <li class="task {{ $doctor->pourcentage_adresse ? 'completed' : 'pending' }}">
+            <i class="{{ $doctor->pourcentage_adresse ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            {{ trans('lang.complet_adresse') }}
+        </li>
+        <li class="task {{ $doctor->pourcentage_cv ? 'completed' : 'pending' }}">
+            <i class="{{ $doctor->pourcentage_cv ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            {{ trans('lang.complet_cv') }}
+        </li>
+        <li class="task {{ $doctor->pourcentage_cabinet ? 'completed' : 'pending' }}">
+            <i class="{{ $doctor->pourcentage_cabinet ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            {{ trans('lang.import_photos') }}
+        </li>
+        <li class="task {{ $doctor->pourcentage_tags ? 'completed' : 'pending' }}">
+            <i class="{{ $doctor->pourcentage_tags ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            {{ trans('lang.check_tags') }}
+        </li>
+        <li class="task {{ $doctor->pourcentage_profil ? 'completed' : 'pending' }}">
+            <i class="{{ $doctor->pourcentage_profil ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            {{ trans('lang.final_profil') }}
+        </li>
+    </ul>
+@endif
+
 
             <!-- Progress Bar -->
             <div class="progress-container">
@@ -104,7 +107,7 @@
                 <i class="fas fa-edit mr-2"></i> {{ trans('lang.edit_profil') }}
             </a>
             <a class="btn btn-block" 
-   style="background-color: #da029c; color: #ffffff; border-color: #da029c;" 
+   style="background-color: #36a78a; color: #ffffff; border-color: #36a78a;" 
    href="{{ route('doctors.generateUrl') }}" 
    target="_blank" 
    rel="noopener noreferrer">
