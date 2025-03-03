@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 use App\Models\DoctorBlog;
 use App\Models\Doctor;
-use Illuminate\Support\Facades\Log;  // Import the Log facade
+use Illuminate\Support\Facades\Log;  
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\DataTables\DoctorBlogDataTable;
 use App\Models\Media;
 use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
-
 
 class DoctorBlogController extends Controller
 {
@@ -259,26 +258,88 @@ class DoctorBlogController extends Controller
 
     return response()->json(['success' => false, 'message' => 'Média non trouvé']);
 }
+
 public function accepterBlog($id)
 {
+    Log::info("Début de l'acceptation du blog avec ID: {$id}");
+
     // Trouver le blog par son ID
     $blog = DoctorBlog::find($id);
 
     // Vérifier si le blog existe
     if (!$blog) {
+        Log::error("Blog avec ID {$id} non trouvé.");
         return redirect()->back()->with('error', 'Blog non trouvé.');
     }
-
 
     // Changer le statut à "accepté"
     $blog->status = 'accepté';
     $blog->save();
+    Log::info("Statut du blog mis à jour en 'accepté'.");
 
+    // Récupérer le nom du docteur 
+    $doctor = Doctor::find($blog->doctor_id);
+    $doctorName = $doctor ? json_encode(["fr" => $doctor->name], JSON_UNESCAPED_UNICODE) : json_encode(["fr" => "Inconnu"], JSON_UNESCAPED_UNICODE);
+    Log::info("Nom du docteur récupéré : {$doctorName}");
 
+    // Récupérer le fichier media 
+    $media = Media::find($blog->media_id);
+    $fileName = $media ? $media->file_name : null;
+    $imageUrl = $fileName ? "https://dashboard.wic-doctor.com/storage/{$blog->media_id}/{$fileName}" : "";
+    Log::info("URL de l'image récupérée : {$imageUrl}");
 
-    // Redirection vers la page 'doctor_blog.accepted' avec message de succès
+    // Chemin du fichier JSON
+    $jsonFile = public_path('script-blog/file.json');
+    Log::info("Chemin du fichier JSON : {$jsonFile}");
+
+    // Lire le fichier existant et décoder le JSON
+    $existingData = file_exists($jsonFile) ? json_decode(file_get_contents($jsonFile), true) : [];
+
+    // Vérifier si le JSON est valide, sinon initialiser un tableau vide
+    if (!is_array($existingData)) {
+        $existingData = [];
+        Log::warning("Le fichier JSON existant n'était pas valide. Initialisation d'un nouveau tableau.");
+    }
+
+    // Ajouter le nouveau blog accepté
+    $newBlog = [
+        "id" => $blog->id,
+        "titre" => $blog->titre,
+        "titre_court" => $blog->titre_court,
+        "contenu" => $blog->contenu,
+        "status" => $blog->status,
+        "doctor_id" => $blog->doctor_id,
+        "doctor_name" => $doctorName,
+        "media_id" => $blog->media_id,
+        "created_at" => $blog->created_at,
+        "updated_at" => $blog->updated_at,
+        "image_blogs" => $imageUrl 
+    ];
+
+    // Écraser le fichier avec les nouvelles données
+    file_put_contents($jsonFile, json_encode([$newBlog], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    Log::info("Le fichier JSON a été mis à jour avec succès.");
+
+    // Exécuter le script Node.js
+    $nodeScriptPath = public_path('script-blog/nodejs.js');
+    Log::info("Exécution du script Node.js : {$nodeScriptPath}");
+
+    $output = shell_exec("node {$nodeScriptPath} 2>&1");
+
+    // Vérifier le résultat du script
+    if ($output === null) {
+        Log::error("Échec de l'exécution du script Node.js.");
+    } else {
+        Log::info("Sortie du script Node.js : {$output}");
+    }
+
+    // Redirection avec un message de succès
     return redirect()->route('doctor_blog.accepted')->with('success', 'Le blog a été accepté avec succès.');
 }
+
+
+
+
 public function rejeterBlog(Request $request, $id)
 {
     // Trouver le blog par son ID
