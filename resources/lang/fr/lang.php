@@ -86,7 +86,7 @@ return [
     'teleconsultation_status' => 'Status',
     'teleconsultation_link' => 'Lien',
     'teleconsultation_table' => 'Liste des téléconsultations',
-    'doctor_request_name' => 'Nom Complet',
+    'doctor_request_name' => 'Prénom',
     'doctor_request_email' => 'Email',
     'doctor_request_phone_number' => 'N° de téléphone',
     'doctor_request_type' => 'Type',
@@ -2051,6 +2051,7 @@ return [
     'noVacationFound' => 'Aucune vacance trouvée',
     'speciality_country' => 'Pays',
     'speciality_country_help' => 'Insérer le Pays',
+    'doctor_request_lastname' => 'Nom',
 
     
     
