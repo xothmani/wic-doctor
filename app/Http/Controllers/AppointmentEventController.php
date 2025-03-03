@@ -8,6 +8,7 @@ use App\Models\AvailabilityHour;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Doctor;
+use App\Models\DoctorSubstitute;
 use App\Models\Patient;
 use App\Models\User;
 use Carbon\Carbon;
@@ -1415,5 +1416,90 @@ class AppointmentEventController extends Controller
     {
         return $this->index(request());
     }
+
+
+    public function getSubstitutes($doctorId)
+    {
+        \Log::info('Fetching substitutes for doctor:', ['doctor_id' => $doctorId]);
+
+        $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
+            ->with('doctor')
+            ->get()
+            ->map(function ($substitute) {
+                return [
+                    'id' => $substitute->id,
+                    'name' => $substitute->name,
+                    'start_date' => Carbon::parse($substitute->start_date)->format('Y-m-d'), // ✅ FIXED
+                    'end_date' => Carbon::parse($substitute->end_date)->format('Y-m-d'), // ✅ FIXED
+                    'notes' => $substitute->notes
+                ];
+            });
+
+        return response()->json($substitutes);
+    }
+    public function getAppointmentStats($doctorId, $selectedDate = null)
+    {
+        \Log::info('Fetching Appointment Stats:', [
+            'doctor_id' => $doctorId,
+            'selected_date' => $selectedDate,
+        ]);
+
+        // Validate doctor ID
+        if (!$doctorId) {
+            return response()->json(['error' => 'Missing doctor ID'], 400);
+        }
+
+        // Parse selected date
+        $selectedDate = $selectedDate ? Carbon::parse($selectedDate) : Carbon::now();
+        $dayName = $selectedDate->format('l'); // Get the day name (e.g., Monday)
+
+        // Retrieve all availability slots for the doctor on this day
+        $availabilities = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('day', $dayName)
+            ->where('mode', 'precise')
+            ->get();
+
+        $totalAvailableSlots = 0;
+        $takenSlots = [];
+
+        foreach ($availabilities as $availability) {
+            // Get start, end time, and session duration
+            $startTime = Carbon::parse($availability->start_at);
+            $endTime = Carbon::parse($availability->end_at);
+            $sessionDuration = (int) $availability->session_duration; // Convert to integer
+
+            // Generate all possible time slots
+            while ($startTime->lessThan($endTime)) {
+                $slotTime = $startTime->format('H:i'); // e.g., 08:00
+                $totalAvailableSlots++;
+
+                // Check if this slot is taken
+                $slotTaken = DB::table('appointments')
+                    ->where('doctor_id', $doctorId)
+                    ->whereDate('start_at', $selectedDate->format('Y-m-d'))
+                    ->whereTime('start_at', $slotTime)
+                    ->whereNotIn('appointment_status_id', [7, 6])
+                    ->exists(); // Check if appointment exists for this slot
+
+                if ($slotTaken) {
+                    $takenSlots[] = $slotTime;
+                }
+
+                // Move to the next slot based on session duration
+                $startTime->addMinutes($sessionDuration);
+            }
+        }
+
+        // Return response
+        return response()->json([
+            'total_appointments' => $totalAvailableSlots,
+            'appointments_taken' => count($takenSlots),
+            'available_slots' => $totalAvailableSlots - count($takenSlots),
+        ]);
+    }
+
+
 
 }

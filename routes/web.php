@@ -527,5 +527,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::post('/availability/vacation/store', [AvailabilityController::class, 'storeVacation'])->name('holidays.store');
     Route::delete('/availability/vacation/{id}', [AvailabilityController::class, 'deleteVacation'])->name('vacances.destroy');
 
+    Route::get('/substitutes/{doctorId}', [AppointmentEventController::class, 'getSubstitutes'])->name('get.substitutes');
+    Route::get('/appointments/stats/{doctorId}/{selectedDate?}', [AppointmentEventController::class, 'getAppointmentStats'])
+        ->name('appointment.stats');
 });
 

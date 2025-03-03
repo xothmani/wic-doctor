@@ -886,4 +886,57 @@ class AvailabilityController extends Controller
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
     }
+
+    public function getSubstitutesForRange(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        return DoctorSubstitute::where('doctor_id', $doctorId)
+            ->where('start_date', '<=', $endDate)
+            ->where('end_date', '>=', $startDate)
+            ->get(['id', 'name', 'start_date', 'end_date']);
+    }
+
+    public function getWeeklyAppointmentsCount(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        $total = Appointment::where('doctor_id', $doctorId)
+            ->whereBetween('start_at', [$startDate, $endDate])
+            ->count();
+
+        $completed = Appointment::where('doctor_id', $doctorId)
+            ->whereBetween('start_at', [$startDate, $endDate])
+            ->where('appointment_status_id', 5) // Assuming 5 is the "completed" status
+            ->count();
+
+        return response()->json([
+            'total' => $total,
+            'completed' => $completed
+        ]);
+    }
+
+    public function getDailyAppointmentsCount(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+        $date = $request->date;
+
+        $total = Appointment::where('doctor_id', $doctorId)
+            ->whereDate('start_at', $date)
+            ->count();
+
+        $completed = Appointment::where('doctor_id', $doctorId)
+            ->whereDate('start_at', $date)
+            ->where('appointment_status_id', 5) // Assuming 5 is the "completed" status
+            ->count();
+
+        return response()->json([
+            'total' => $total,
+            'completed' => $completed
+        ]);
+    }
 }
