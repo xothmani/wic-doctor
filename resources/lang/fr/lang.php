@@ -2049,6 +2049,8 @@ return [
     'patient_notes' => 'Notes',
     'noUrgenciesFound' => 'Aucune cas d\'urgence trouvée',
     'noVacationFound' => 'Aucune vacance trouvée',
+    'speciality_country' => 'Pays',
+    'speciality_country_help' => 'Insérer le Pays',
 
     
     
