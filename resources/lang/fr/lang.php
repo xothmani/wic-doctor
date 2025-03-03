@@ -2103,4 +2103,23 @@ return [
     'select_motif' => 'Sélectionner un motif',
     'no_pattern_selected' => 'Aucun motif sélectionné',
     'save_patient_refer' => 'Enregistrer le rendez-vous',
+
+    // Substitute related translations
+    'substitute' => 'Remplaçant',
+    'substitute_list' => 'Liste des remplaçants',
+    'add_substitute' => 'Ajouter un remplaçant',
+    'substitute_name' => 'Nom du remplaçant',
+    'substitute_status_active' => 'Actif',
+    'substitute_status_inactive' => 'Inactif',
+    'substitute_status_pending' => 'À venir',
+    'status' => 'Statut',
+    'actions' => 'Actions',
+    'notes' => 'Notes',
+    'start_date' => 'Date de début',
+    'end_date' => 'Date de fin',
+    'save_substitute' => 'Enregistrer le remplaçant',
+    'confirm_delete' => 'Confirmer la suppression',
+    'confirm_delete_substitute' => 'Êtes-vous sûr de vouloir supprimer ce remplaçant ?',
+    'no_substitutes_found' => 'Aucun remplaçant trouvé',
+    'substitute_saved_successfully' => 'Remplaçant enregistré avec succès',
 ];

@@ -84,6 +84,8 @@ Route::post('/availability/store', [AvailabilityController::class, 'store'])->na
 Route::get('/doctor/vacance', [DoctorVacationController::class, 'index'])->name('vacance.index');
 Route::post('/availability/store-open', [AvailabilityController::class, 'storeOpen'])
     ->name('availability.store.open');
+Route::post('/availability/substitute', [AvailabilityController::class, 'storeSubstitute'])->name('substitute.store');
+Route::delete('/availability/substitute/{id}', [AvailabilityController::class, 'deleteSubstitute'])->name('substitute.destroy');
 
 Route::delete('vacances/{id}', [DoctorVacationController::class, 'destroy'])->name('vacances.destroy');
 Route::put('/vacances/{id}', [DoctorVacationController::class, 'update'])->name('vacances.update');

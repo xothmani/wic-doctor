@@ -229,3 +229,15 @@ input:checked + .slider::before {
 .vacation-list-container::-webkit-scrollbar-thumb:hover {
     background: #5a6cb8;
 }
+
+footer {
+    display: none;
+}
+
+.table thead th {
+    background-color: #6c7ae0 !important; /* Light blue header */
+    color: white !important;
+}
+
+
+

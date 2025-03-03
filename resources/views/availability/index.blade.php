@@ -106,6 +106,11 @@
                                     <i class="fas fa-umbrella-beach"></i> {{ trans('lang.vacation') }}
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="substitute-tab" data-toggle="tab" href="#substitute" role="tab">
+                                    <i class="fas fa-user-md"></i> {{ trans('lang.substitute') }}
+                                </a>
+                            </li>
                         </ul>
 
                         <div class="tab-content" id="typeTabsContent">
@@ -290,6 +295,106 @@
                                     </div>
                                 @endif
                             </div>
+                            <div class="tab-pane fade" id="substitute" role="tabpanel">
+                                <form action="{{ route('substitute.store') }}" method="POST">
+                                    @csrf
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4>{{ trans('lang.add_substitute') }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label>{{ trans('lang.substitute_name') }}</label>
+                                                <input type="text" name="name" class="form-control" required>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.start_date') }}</label>
+                                                        <input type="date" name="start_date" class="form-control" required
+                                                            min="{{ date('Y-m-d') }}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.end_date') }}</label>
+                                                        <input type="date" name="end_date" class="form-control" required
+                                                            min="{{ date('Y-m-d') }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>{{ trans('lang.notes') }}</label>
+                                                <textarea name="notes" class="form-control" rows="3"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn bg-{{ setting('theme_color') }}">
+                                                {{ trans('lang.save_substitute') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            
+                                @if(isset($substitutes) && count($substitutes) > 0)
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h4>{{ trans('lang.substitute_list') }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>{{ trans('lang.substitute_name') }}</th>
+                                                            <th>{{ trans('lang.start_date') }}</th>
+                                                            <th>{{ trans('lang.end_date') }}</th>
+                                                            <th>{{ trans('lang.notes') }}</th>
+                                                            <th>{{ trans('lang.status') }}</th>
+                                                            <th>{{ trans('lang.actions') }}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($substitutes as $substitute)
+                                                            @php
+                                                                $now = now();
+                                                                $startDate = \Carbon\Carbon::parse($substitute->start_date);
+                                                                $endDate = \Carbon\Carbon::parse($substitute->end_date);
+                                                                
+                                                                $status = 'inactive';
+                                                                if ($now->between($startDate, $endDate)) {
+                                                                    $status = 'active';
+                                                                } elseif ($now->lt($startDate)) {
+                                                                    $status = 'pending';
+                                                                }
+                                                            @endphp
+                                                            <tr>
+                                                                <td>{{ $substitute->name }}</td>
+                                                                <td>{{ $startDate->format('d/m/Y') }}</td>
+                                                                <td>{{ $endDate->format('d/m/Y') }}</td>
+                                                                <td>{{ $substitute->notes }}</td>
+                                                                <td>
+                                                                    <span class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">
+                                                                        {{ trans('lang.substitute_status_' . $status) }}
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <form action="{{ route('substitute.destroy', $substitute->id) }}"
+                                                                        method="POST" class="d-inline">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -318,6 +423,11 @@
                     <li class="nav-item">
                         <a class="nav-link" id="vacation-tab" data-toggle="tab" href="#vacation" role="tab">
                             <i class="fas fa-umbrella-beach"></i> {{ trans('lang.vacation') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="substitute-tab" data-toggle="tab" href="#substitute" role="tab">
+                            <i class="fas fa-user-md"></i> {{ trans('lang.substitute') }}
                         </a>
                     </li>
                 </ul>
@@ -482,6 +592,106 @@
                             </div>
                         @endif
                     </div>
+                    <div class="tab-pane fade" id="substitute" role="tabpanel">
+                        <form action="{{ route('substitute.store') }}" method="POST">
+                            @csrf
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>{{ trans('lang.add_substitute') }}</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label>{{ trans('lang.substitute_name') }}</label>
+                                        <input type="text" name="name" class="form-control" required>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>{{ trans('lang.start_date') }}</label>
+                                                <input type="date" name="start_date" class="form-control" required
+                                                    min="{{ date('Y-m-d') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>{{ trans('lang.end_date') }}</label>
+                                                <input type="date" name="end_date" class="form-control" required
+                                                    min="{{ date('Y-m-d') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ trans('lang.notes') }}</label>
+                                        <textarea name="notes" class="form-control" rows="3"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn bg-{{ setting('theme_color') }}">
+                                        {{ trans('lang.save_substitute') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    
+                        @if(isset($substitutes) && count($substitutes) > 0)
+                            <div class="card mt-4">
+                                <div class="card-header">
+                                    <h4>{{ trans('lang.substitute_list') }}</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>{{ trans('lang.substitute_name') }}</th>
+                                                    <th>{{ trans('lang.start_date') }}</th>
+                                                    <th>{{ trans('lang.end_date') }}</th>
+                                                    <th>{{ trans('lang.notes') }}</th>
+                                                    <th>{{ trans('lang.status') }}</th>
+                                                    <th>{{ trans('lang.actions') }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($substitutes as $substitute)
+                                                    @php
+                                                        $now = now();
+                                                        $startDate = \Carbon\Carbon::parse($substitute->start_date);
+                                                        $endDate = \Carbon\Carbon::parse($substitute->end_date);
+                                                        
+                                                        $status = 'inactive';
+                                                        if ($now->between($startDate, $endDate)) {
+                                                            $status = 'active';
+                                                        } elseif ($now->lt($startDate)) {
+                                                            $status = 'pending';
+                                                        }
+                                                    @endphp
+                                                    <tr>
+                                                        <td>{{ $substitute->name }}</td>
+                                                        <td>{{ $startDate->format('d/m/Y') }}</td>
+                                                        <td>{{ $endDate->format('d/m/Y') }}</td>
+                                                        <td>{{ $substitute->notes }}</td>
+                                                        <td>
+                                                            <span class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">
+                                                                {{ trans('lang.substitute_status_' . $status) }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <form action="{{ route('substitute.destroy', $substitute->id) }}"
+                                                                method="POST" class="d-inline">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -502,6 +712,7 @@
     <link href="{{ asset('css/availability.css') }}" rel="stylesheet">
     <style>
         /* Modern Table Styles */
+        
         .table {
             border-radius: 8px;
             overflow: hidden;
@@ -533,15 +744,7 @@
             border-bottom: 1px solid #dee2e6;
         }
 
-        /* Modern Switch/Radio Styles */
-        .mode-switch {
-            display: inline-flex;
-            background: #f8f9fa;
-            padding: 4px;
-            border-radius: 30px;
-            margin-bottom: 20px;
-            border: 1px solid #dee2e6;
-        }
+        
 
         .mode-switch label {
             position: relative;
@@ -825,9 +1028,7 @@
     </script>
 @endsection
 
-@section('styles')
-    <link href="{{ asset('css/availability.css') }}" rel="stylesheet">
-@endsection
+
 
 @section('scripts')
     <script>

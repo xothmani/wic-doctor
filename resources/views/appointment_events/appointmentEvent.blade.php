@@ -164,7 +164,6 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-
                     <div class="modal-body">
                         <!-- Appointment Type Tabs -->
                         <ul class="nav nav-tabs mb-3" id="forcedApptTypeTabs" role="tablist">
@@ -627,13 +626,13 @@
                         const isPast = moment(globalSelectedDate + ' ' + slot).isBefore(moment());
 
                         const $btn = $(`
-                                                                                                                                            <button type="button"
-                                                                                                                                                    class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}"
-                                                                                                                                                    data-slot="${slot}"
-                                                                                                                                                    ${isTaken || isPast ? 'disabled' : ''}>
-                                                                                                                                                ${slot}
-                                                                                                                                            </button>
-                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                            <button type="button"
+                                                                                                                                                                                                                                                                                                                                                                                                                    class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}"
+                                                                                                                                                                                                                                                                                                                                                                                                                    data-slot="${slot}"
+                                                                                                                                                                                                                                                                                                                                                                                                                    ${isTaken || isPast ? 'disabled' : ''}>
+                                                                                                                                                                                                                                                                                                                                                                                                                ${slot}
+                                                                                                                                                                                                                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                                                                                                                                                                                                                        `);
 
                         // If it's not taken and not in the past, let the user pick it
                         if (!isTaken && !isPast) {
@@ -860,10 +859,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
             }
             //////////////////////////////////////////////////////////////////////////////
 
@@ -920,18 +919,39 @@
                 },
                 defaultView: 'agendaWeek',
                 minTime: "08:00:00",
-                eventLimit: true, // Allow "more" link for overflow events
+                allDaySlot: false, // Removes "Toute la journée"
+                allDayText: '', // Clear the default text
+                eventLimit: true,
                 viewRender: function (view) {
                     let viewStart = $('#calendar').fullCalendar('getView').intervalStart; // Get the current view's start date
                     //console.log(`🔄 View Changed to: ${view.name}, Start Date: ${viewStart.format("YYYY-MM-DD")}`);
 
-                    loadAvailabilitySlots(viewStart); // Fetch background colors with the correct date
+                    loadAvailabilitySlots(viewStart);
+                    console.log("View changed to:", view.name);
+                    $('.custom-day-label').remove();
+                    if (view.name === 'agendaWeek') {
+                        $('.fc-axis.fc-widget-header').first().empty();
+
+                        // Add your static text
+                        $('.fc-axis.fc-widget-header').first().html(`<span class="static-day-name">151/155</span>`);
+                        $('.fc-day-header').each(function () {
+                            let dayIndex = $(this).index(); // Get the day column index
+                            let customLabel = "Static Name";  // Change this if needed
+                            let staticNumber = "37 / 36";  // Example static number
+
+                            $(this).append(`<hr class="day-header-divider"><div class="custom-day-label">${customLabel}</div><hr class="day-header-divider"><div class="custom-number-label">${staticNumber}</div>`);
+                        });
+                    }
                 },
                 dayRender: function (date, cell) {
+                    let dayNumber = date.format('D/M'); // Format day as "3/3" (day/month)
+                    let customLabel = "Custom Label";  // Change this to your desired text
+
+                    // Insert custom text below the date number
+                    cell.append(`<div class="custom-day-label">${customLabel}</div>`);
                     // 1) Log the date being rendered (YYYY-MM-DD)
                     //console.log("dayRender called for date:", date.format("YYYY-MM-DD"));
 
-                    // Get the lowercase English day name
                     // For example, "Monday", "Tuesday" → "monday", "tuesday"
                     const formattedDayName = date.locale('en').format('dddd').toLowerCase();
                     // console.log("Formatted day name (EN):", formattedDayName);
@@ -1201,15 +1221,15 @@
 
                     // Base details
                     let detailsHtml = `
-                                                                                                                                                    <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
-                                                                                                                                                    <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
-                                                                                                                                                    <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
-                                                                                                                                                    <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
-                                                                                                                                                    <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
-                                                                                                                                                    <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
-                                                                                                                                                    <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
-                                                                                                                                                    <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
-                                                                                                                                                `;
+                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                `;
                     //console.log(event.cancel_reason);
 
                     if (event.status === "Annulé" && event.cancel_reason) {

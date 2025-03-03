@@ -549,3 +549,30 @@
     outline: 0;
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
 }
+
+/* Add this to your CSS */
+.day-header-divider {
+    border: 0;
+    height: 1px;
+    background: #ccc; /* Light gray line */
+    margin: 3px 0; /* Adjust space between elements */
+}
+
+.custom-day-label {
+    text-align: center;
+    font-size: 12px;
+    color: gray;
+    font-weight: bold;
+    margin-top: 3px;
+}
+
+.custom-number-label {
+    text-align: center;
+    font-size: 14px;
+    color: gray;
+    font-weight: bold;
+    margin-top: 3px;
+}
+
+
+

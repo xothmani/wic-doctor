@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Doctor;
 use App\Models\Pattern;
+use App\Models\DoctorSubstitute;
 use App\Models\AvailabilityHour;
 use Carbon\Carbon;
 
@@ -136,13 +137,19 @@ class AvailabilityController extends Controller
                 ->orderBy('start_date', 'desc')
                 ->get();
 
+            // Add substitutes to the view data
+            $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
+                ->orderBy('start_date', 'desc')
+                ->get();
+
             return view('availability.index', compact(
                 'availabilities',
                 'sessionDurations', // Replace sessionDurationFormatted with sessionDurations
                 'currentMode',
                 'doctorPatterns',
                 'breakTime',
-                'vacations'
+                'vacations',
+                'substitutes' // Add this line
             ));
         } elseif ($currentMode == 'precise') {
 
@@ -196,7 +203,9 @@ class AvailabilityController extends Controller
                     }
                     return $pattern;
                 });
-
+            $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
+                ->orderBy('start_date', 'desc')
+                ->get();
             // For debugging
             \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
             return view('availability.index', compact(
@@ -204,6 +213,7 @@ class AvailabilityController extends Controller
                 'currentMode',
                 'days',
                 'vacations',
+                'substitutes',
                 'doctorPatterns'
             ));
         }
@@ -832,5 +842,48 @@ class AvailabilityController extends Controller
                     ->where('end_at', '>', $startTime);
             });
         })->exists();
+    }
+
+    public function storeSubstitute(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'notes' => 'nullable|string'
+            ]);
+
+            DoctorSubstitute::create([
+                'doctor_id' => $doctorId,
+                'name' => $validated['name'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'notes' => $validated['notes']
+            ]);
+
+            return redirect()->back()->with('success', trans('lang.substitute_saved_successfully'));
+        } catch (\Exception $e) {
+            Log::error('Error saving substitute:', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function deleteSubstitute($id)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+
+        try {
+            DoctorSubstitute::where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->delete();
+
+            return redirect()->back()->with('success', 'Remplaçant supprimé avec succès!');
+        } catch (\Exception $e) {
+            Log::error('Error deleting substitute:', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 }
