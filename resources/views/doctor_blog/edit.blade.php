@@ -1,11 +1,31 @@
 @extends('layouts.app')
 
 @push('css_lib')
-<link rel="stylesheet" href="{{asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css')}}">
-<link rel="stylesheet" href="{{asset('vendor/select2/css/select2.min.css')}}">
-<link rel="stylesheet" href="{{asset('vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css')}}">
-<link rel="stylesheet" href="{{asset('vendor/summernote/summernote-bs4.min.css')}}">
-<link rel="stylesheet" href="{{asset('vendor/dropzone/min/dropzone.min.css')}}">
+    <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/dropzone/min/dropzone.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <!-- dropzone (same version as old code) -->
+    <link rel="stylesheet" href="{{ asset('vendor/dropzone/min/dropzone.min.css') }}">
+<!-- CSS de Slick -->
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css"/>
+
+<!-- JS de Slick -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+
+
+    <!-- ADD THIS STYLE to reveal delete-media on hover -->
+    <style>
+        .card.clickble:hover .delete-media {
+            display: block !important;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -83,7 +103,6 @@
 
 @push('scripts_lib')
 <script src="{{asset('vendor/select2/js/select2.full.min.js')}}"></script>
-<script src="{{asset('vendor/summernote/summernote.min.js')}}"></script>
 <script src="{{asset('vendor/dropzone/min/dropzone.min.js')}}"></script>
 <script type="text/javascript">
     Dropzone.autoDiscover = false;
