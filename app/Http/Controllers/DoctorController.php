@@ -11,6 +11,7 @@ namespace App\Http\Controllers;
 use App\Criteria\Clinics\ClinicsOfUserCriteria;
 use App\Criteria\Doctors\DoctorsOfUserCriteria;
 use App\DataTables\DoctorDataTable;
+use App\DataTables\SuiviDoctorsDataTable;
 use App\Http\Requests\CreateDoctorRequest;
 use App\Http\Requests\UpdateDoctorRequest;
 use App\Repositories\SpecialityRepository;
@@ -36,6 +37,7 @@ use App\Models\Address;
 use App\Models\Doctor;
 use App\Models\Speciality;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DoctorController extends Controller
 {
@@ -369,21 +371,21 @@ class DoctorController extends Controller
         $languesParlees = explode(',', $doctor->langues_parlees ?? '');
 
 
- // Récupérer les spécialités du médecin (table pivot doctor_specialities)
- $doctorSpecialities = $doctor->specialities;  // Ce sera une collection des spécialités liées
+        // Récupérer les spécialités du médecin (table pivot doctor_specialities)
+        $doctorSpecialities = $doctor->specialities;  // Ce sera une collection des spécialités liées
 
- // Si le médecin a une spécialité, récupérer la première spécialité
- $specialitySelected = $doctorSpecialities->first(); // Prend la première spécialité
- $descriptionSpecialite = $specialitySelected ? $specialitySelected->pivot->description : '';  // Récupérer la description de la table pivot
+        // Si le médecin a une spécialité, récupérer la première spécialité
+        $specialitySelected = $doctorSpecialities->first(); // Prend la première spécialité
+        $descriptionSpecialite = $specialitySelected ? $specialitySelected->pivot->description : '';  // Récupérer la description de la table pivot
 
- // Récupérer toutes les spécialités disponibles
- $specialities = Speciality::pluck('name', 'id');
-        // Récupérer les diplômes associés au médecin
-        $diplomes = $doctor->diplomes;
+        // Récupérer toutes les spécialités disponibles
+        $specialities = Speciality::pluck('name', 'id');
+                // Récupérer les diplômes associés au médecin
+                $diplomes = $doctor->diplomes;
 
-         // Récupérer les informations de stationnement et accessibilité associées
-            $stationnement = explode(',', $address->stationnement ?? '');
-            $accessibilite = explode(',', $address->accessibilite ?? '');
+                // Récupérer les informations de stationnement et accessibilité associées
+                    $stationnement = explode(',', $address->stationnement ?? '');
+                    $accessibilite = explode(',', $address->accessibilite ?? '');
 
 
 
@@ -441,6 +443,26 @@ class DoctorController extends Controller
                 'description' => $request->input('description'),
                 'payment_methods' => $payment_methods,
             ]);
+
+                // Vérifier si tous les champs sont remplis pour mettre à jour le pourcentage de profil
+                $allFieldsFilled = $request->input('name') && 
+                $request->input('lastname') && 
+                $request->input('email') && 
+                $request->input('phone_number') && 
+                $request->input('bio') && 
+                $request->input('consultation_methods') && 
+                $request->input('payment_methods') && 
+                $request->input('cabinet_number') && 
+                $request->input('facebook') && 
+                $request->input('instagram') && 
+                $request->input('website') && 
+                $request->input('description');
+
+            // Mise à jour du pourcentage de profil en fonction de la condition
+            $doctor->pourcentage_profil = $allFieldsFilled ? 20 : 0;
+
+            // Sauvegarder les modifications du médecin
+            $doctor->save();
             $this->executeNodeScript($doctor);
 
         
@@ -496,6 +518,12 @@ class DoctorController extends Controller
               ->where('speciality_id', $specialityId)
               ->update(['description' => $description]);
       }
+
+        // Vérifier si tous les champs sont remplis
+        $pourcentage_cv = (!empty($langues) && !empty($diplome) && !empty($description) && !empty($specialityId)) ? 20 : 0;
+
+        // Mettre à jour le pourcentage du CV
+        $doctor->update(['pourcentage_cv' => $pourcentage_cv]);
 
         return response()->json(['success' => 'Informations mises à jour avec succès.']);
     }    
@@ -559,6 +587,163 @@ private function executeNodeScript($doctor)
             Log::info('Script Node.js exécuté avec succès', ['output' => $output]);
         }
 }
+ 
+
+// Dans le contrôleur DoctorController.php
+
+public function updateChartStatus(Request $request)
+{
+    $doctor = auth()->user()->doctor; // Récupérer le doctor associé à l'utilisateur connecté
+
+    if ($doctor) {
+        // Mettre à jour l'attribut verif_chart
+        $doctor->verif_chart = $request->accepted;  // 1 si accepté, 0 si non accepté
+        $doctor->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    return response()->json(['success' => false, 'message' => 'Doctor not found'], 404);
+}
+    /**
+     * Display a listing of the Doctor for commercial.
+     *
+     * @param SuiviDoctorsDataTable $suiviDoctorsDataTable
+     * @return mixed
+     */
+    public function SuiviDoctorsIndex(SuiviDoctorsDataTable $suiviDoctorsDataTable): mixed
+    {
+        return $suiviDoctorsDataTable->render('suivi_doctors.index');
+    }
+    public function getTotalPourcentage()
+{
+    $doctor = auth()->user()->doctor;
+
+    if (!$doctor) {
+        return response()->json(['message' => 'Aucun doctor trouvé'], 404);
+    }
+
+    $total = $doctor->pourcentage_avatar +
+             $doctor->pourcentage_adresse +
+             $doctor->pourcentage_cv +
+             $doctor->pourcentage_cabinet +
+             $doctor->pourcentage_tags +
+
+             $doctor->pourcentage_profil;
+
+    return response()->json(['total_pourcentage' => $total]);
+}
+
+
+public function generateDoctorUrl($doctorId)
+{
+    // Trouver le médecin avec l'ID fourni
+    $doctor = Doctor::find($doctorId);
+
+    if (!$doctor) {
+        return response()->json(['error' => 'Médecin non trouvé'], 404);
+    }
+
+    // Récupérer l'utilisateur associé au médecin avec l'adresse
+    $userWithAddress = $doctor->user()->with('address')->first();
+    $address = $userWithAddress->address;
+
+    // Extraire le pays et le gouvernorat de l'adresse
+    $pays = $address && $address->pays ? json_decode($address->pays, true) : null;
+    $pays = isset($pays['fr']) ? strtolower($pays['fr']) : (is_array($pays) ? strtolower(reset($pays) ?: '') : ($pays ? strtolower($pays) : null));
+
+    $gouvernorat = $address && $address->gouvernorat ? json_decode($address->gouvernorat, true) : null;
+    $gouvernorat = isset($gouvernorat['fr']) ? strtolower($gouvernorat['fr']) : (is_array($gouvernorat) ? strtolower(reset($gouvernorat) ?: '') : ($gouvernorat ? strtolower($gouvernorat) : null));
+
+    // Remplacer les espaces par des tirets dans le gouvernorat
+    if ($gouvernorat) {
+        $gouvernorat = str_replace(' ', '-', $gouvernorat);
+    }
+
+    // Vérifier que l'adresse du médecin est complète
+    if (!$pays || !$gouvernorat) {
+        return response()->json(['error' => 'Adresse du médecin incomplète'], 400);
+    }
+
+    // Vérifier les spécialités du médecin
+    $specialities = $doctor->specialities;
+
+    if ($specialities->isEmpty()) {
+        return response()->json(['error' => 'Aucune spécialité trouvée pour ce médecin'], 400);
+    }
+
+    // Récupérer le nom de la spécialité
+    $specialityName = $specialities->first()->name;
+
+    if (is_string($specialityName)) {
+        $specialityName = strtolower($specialityName);
+    } else {
+        $specialityName = json_decode($specialityName, true);
+        $specialityName = isset($specialityName['fr']) ? strtolower($specialityName['fr']) : (is_array($specialityName) ? strtolower(reset($specialityName) ?: '') : null);
+    }
+
+    // Remplacer les espaces par des tirets dans le nom de la spécialité
+    if ($specialityName) {
+        $specialityName = str_replace(' ', '-', $specialityName);
+    }
+
+    // Récupérer l'ID aléatoire du médecin
+    $randomId = $doctor->id_aleatoire;
+
+    // Récupérer et traiter le nom du médecin
+    $doctorName = $doctor->name;
+    if (is_string($doctorName)) {
+        // Décoder le nom si nécessaire
+        $decoded = json_decode($doctorName, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            $doctorName = isset($decoded['fr'])
+                ? strtolower($decoded['fr'])
+                : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : strtolower($doctorName));
+        } else {
+            $doctorName = strtolower($doctorName);
+        }
+    } else {
+        $decoded = json_decode($doctorName, true);
+        $doctorName = isset($decoded['fr'])
+            ? strtolower($decoded['fr'])
+            : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : '');
+    }
+
+    // Remplacer les espaces par des tirets dans le nom du médecin
+    if ($doctorName) {
+        $doctorName = str_replace(' ', '-', $doctorName);
+    }
+
+    // Générer l'URL du médecin
+    $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/dr-{$doctorName}-{$randomId}.html";
+
+    // Rediriger l'utilisateur vers l'URL générée
+    return redirect()->away($link);
+}
+
+public function generateConnectedDoctorUrl()
+{
+    // Vérifier si l'utilisateur est connecté
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'Veuillez vous connecter pour voir votre profil.');
+    }
+
+    // Récupérer le médecin connecté
+    $user = Auth::user();
+    $doctor = Doctor::where('user_id', $user->id)->first();
+
+    if (!$doctor) {
+        return redirect()->back()->with('error', 'Aucun profil de médecin associé à cet utilisateur.');
+    }
+
+    // Générer l'URL du médecin connecté
+    $url = $this->generateDoctorUrl($doctor->id); 
+
+    // Rediriger vers l'URL générée
+    return $url;
+}
+
+
 
         
 }

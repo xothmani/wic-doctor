@@ -104,7 +104,7 @@ return [
     'teleconsultation_status' => 'Status',
     'teleconsultation_link' => 'Lien',
     'teleconsultation_table' => 'Liste des téléconsultations',
-    'doctor_request_name' => 'Nom Complet',
+    'doctor_request_name' => 'Prénom',
     'doctor_request_email' => 'Email',
     'doctor_request_phone_number' => 'N° de téléphone',
     'doctor_request_type' => 'Type',
@@ -1003,10 +1003,10 @@ return [
     'appointment_user_id' => 'Client',
     'appointment_user_id_help' => 'Insérer un client',
     'appointment_user_id_placeholder' => 'Insérer un client',
-    'appointment_patient_first_name' => 'Prénom du patient',
+    'appointment_patient_first_name' => 'Nom du patient',
     'appointment_patient_first_name_help' => 'Insérer le prénom',
     'appointment_patient_first_name_placeholder' => 'Insérer le prénom',
-    'appointment_patient_last_name' => 'Nom de famille du patient',
+    'appointment_patient_last_name' => 'Prénom du patient',
     'appointment_patient_last_name_help' => 'Insérer le nom de famille',
     'appointment_patient_last_name_placeholder' => 'Insérer le nom de famille',
     'password' => 'Mot de passe',
@@ -1070,7 +1070,7 @@ return [
     'user_api_token_help' => 'Insérer un jeton API',
     'user_api_token_placeholder' => 'Insérer un jeton API',
     'user_avatar' => 'Avatar',
-    'user_avatar_help' => 'Téléchargez une image d\'avatar ou sélectionnez-la dans les médias',
+    'user_avatar_help' => 'Téléchargez une image professionnelle pour votre photo de profil',
     'user_bio' => 'Courte biographie',
     'user_bio_help' => 'Insérer la biographie',
     'user_bio_placeholder' => 'Courte biographie ici',
@@ -1877,7 +1877,7 @@ return [
     'total' => 'Total',
     'signature' => 'Signature',
     'tel' => 'Tél: ',
-    'appointments_completed_today' => 'Rendez-vous du jour',
+    'appointments_completed_today' => 'RDV prêts du jour ',
     'appointment_start_time' => 'Heure début',
     'appointment_end_time' => 'Heure fin',
     'appointment_motif' => 'Motif',
@@ -2025,11 +2025,11 @@ return [
 
 
 
-    'my_blog_plural' => 'Mes blogs',
+    'my_blog_plural' => 'Blogs',
     'my_blog' => 'blog',
 
-    'blog_desc' => 'Gestion de mes blogs',
-    'blog_table' => 'Liste des blogs',
+    'blog_desc' => 'Gestion des blogs',
+    'blog_table' => 'Liste des blogs en cours',
     'blog_title' => 'Titre du blog',
     'blog_short_title' => 'Titre abrégé',
     'blog_content' => 'Contenu',
@@ -2043,6 +2043,38 @@ return [
     'blog_title_placeholder' => 'Insérer le titre du blog',
     'blog_title_help' => 'Insérer le titre du blog',
     'blog_short_title_placeholder' => 'Insérer le titre abrégé du blog',
+
+    'doctor_blog_edit' => 'Modifier blog',
+    'blog_doctor' => 'Docteur',
+    'validate' => 'Publier le blog',
+    'blog_accepted' => 'Liste des blogs acceptés',
+    'photos_cabinet' => 'Galerie des médecins',
+    'management_photos_cabinet' => 'Gestion des galeries',
+    'photos_cabinet_table' => 'Liste des médecins',
+    'photos_cabinet_table' => 'Liste des médecins',
+    'blog_rejected' => 'Liste des blogs ajournés',
+    'blog_rejeter' => 'Rejeter le blog',
+    'blog_reason' => 'Raison',
+    'appointment_patient' => 'Nom Complet du patient',
+    'check_tags' => 'Ajouter vos expertises et actes',
+    'suivi_doctors_table' => 'Liste des médecins',
+    'management_suivi_doctors' => 'Suivi et gestion des médecins',
+    'suivi_doctors' => 'Suivi des médecins',
+    'pourcentage' => 'Pourcentage profil',
+    'last_login_at' => 'Dernière connexion',
+    'verif_chart' => 'Vérification Charte',
+    'my_profile' => 'Mon profil',
+    'voir_profil' => 'Voir mon profil sur WIC Dr.',
+    'patient_notes' => 'Notes',
+    'noUrgenciesFound' => 'Aucune cas d\'urgence trouvée',
+    'noVacationFound' => 'Aucune vacance trouvée',
+    'speciality_country' => 'Pays',
+    'speciality_country_help' => 'Insérer le Pays',
+    'doctor_request_lastname' => 'Nom',
+
+    
+    
+
 
     'add_vacation' => 'Ajouter des vacances',
     'vacation_list' => 'Liste des vacances',
@@ -2066,6 +2098,7 @@ return [
     'teleconsultation' => 'Téléconsultation',
     'home_visit' => 'Visite à domicile',
     'vacation' => 'Vacances',
+
 
     // Form labels and buttons
     'availability' => 'Disponibilité',

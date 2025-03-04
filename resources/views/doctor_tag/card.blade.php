@@ -134,7 +134,7 @@
             <div class="col-md-12">
                 <div class="etiquette">
                     <h3 style="font-weight: bold;">À propos des étiquettes</h3>
-                    <p style="font-size: 20px;">Les étiquettes permettent d'indiquer vos spécialités, vos domaines d'expertise et les services que vous proposez. Elles aident les patients à vous trouver plus facilement en fonction de leurs besoins médicaux. Ajoutez des étiquettes pertinentes pour mieux présenter votre activité.</p>
+                    <p style="font-size: 20px;">Les étiquettes sont des expertises et des actes qui permettent d’indiquer vos spécialités, vos domaines d’expertise et les services que vous proposez. Elles aident les patients à vous trouver plus facilement en fonction de leurs besoins médicaux. Ajoutez des étiquettes pertinentes pour mieux présenter votre activité.</p>
                 </div>
 
                 <div class="p-1 border" style="display: flex; flex-direction: column; height: 80%;">
@@ -159,23 +159,52 @@
                                 @endforeach
                             </div>
                         </div>
-
                         <div style="margin-top: 15px;" class="d-flex justify-content-between">
-                            <div>
-                                <a class="btn btn-default" onclick="selectAllTags()">
-                                    <i class="fa fa-check"></i> Cocher tous
-                                </a>
-                                <a class="btn btn-default" onclick="deselectAllTags()">
-                                    <i class="fa fa-times"></i> Décocher tous
-                                </a>
-                            </div>
-                        </div>
+    <div>
+        <a class="btn btn-default" onclick="selectAllTags()">
+            <i class="fa fa-check"></i> Cocher tous
+        </a>
+        <a class="btn btn-default" onclick="deselectAllTags()">
+            <i class="fa fa-times"></i> Décocher tous
+        </a>
+    </div>
+<!-- Modification du bouton enregistrer pour ouvrir la modal -->
+<button type="button" class="btn bg-{{setting('theme_color')}} mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2" data-toggle="modal" data-target="#confirmAcceptModal">Enregistrer</button></div>
+
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </body>
+<!-- Ajout de la modal -->
+<div class="modal fade" id="confirmAcceptModal" tabindex="-1" aria-labelledby="confirmAcceptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmAcceptModalLabel">Confirmer l'enregistrement</h5>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir enregistrer ces étiquettes ?<br><b>Vos expertises et actes seront visibles sur votre profil.</b> </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light border cancel-btn" data-dismiss="modal">
+                    <i class="fas fa-times mr-2"></i> Annuler
+                </button>
+                <button type="button" class="btn bg-{{setting('theme_color')}} mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2" id="confirmSave">Confirmer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+document.getElementById("confirmSave").addEventListener("click", function() {
+    document.getElementById("tagForm").submit();
+});
+</script>
 
 <script>
 function filterTags() {
@@ -191,14 +220,13 @@ function filterTags() {
         }
     });
 }
-
 function toggleTagSelection(tagElement) {
     let checkbox = tagElement.querySelector("input[type='checkbox']");
     
     // Inverser l'état de la case à cocher
     checkbox.checked = !checkbox.checked;
 
-    // Si le tag est sélectionné
+    // Mettre à jour l'apparence du tag
     if (checkbox.checked) {
         tagElement.classList.add('selected');
         tagElement.querySelector('.icon').classList.remove('fa-plus');
@@ -208,10 +236,8 @@ function toggleTagSelection(tagElement) {
         tagElement.querySelector('.icon').classList.remove('fa-check');
         tagElement.querySelector('.icon').classList.add('fa-plus');
     }
-
-    // Soumettre le formulaire après chaque modification
-    document.getElementById("tagForm").submit();
 }
+
 
 function selectAllTags() {
     let checkboxes = document.querySelectorAll(".tag-checkbox");
@@ -222,9 +248,6 @@ function selectAllTags() {
         tagElement.querySelector('.icon').classList.remove('fa-plus');
         tagElement.querySelector('.icon').classList.add('fa-check');
     });
-
-    // Soumettre le formulaire après la sélection
-    document.getElementById("tagForm").submit();
 }
 
 function deselectAllTags() {
@@ -236,10 +259,8 @@ function deselectAllTags() {
         tagElement.querySelector('.icon').classList.remove('fa-check');
         tagElement.querySelector('.icon').classList.add('fa-plus');
     });
-
-    // Soumettre le formulaire après la désélection
-    document.getElementById("tagForm").submit();
 }
+
 
 </script>
 </html>

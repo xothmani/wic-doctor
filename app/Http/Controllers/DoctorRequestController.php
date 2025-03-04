@@ -178,11 +178,6 @@ public function store(Request $request)
         // Vérifier si l'utilisateur est déjà associé à un docteur
         $existingDoctor = Doctor::where('user_id', $user->id)->first();
         if ($existingDoctor) {
-            // Logguer une tentative de doublon
-            Log::warning('Tentative de conventionnement pour un utilisateur déjà existant.', [
-                'user_id' => $user->id,
-                'doctorRequestId' => $doctorRequestId,
-            ]);
             return redirect()->back()->with('error', 'Docteur déjà conventionné pour cet utilisateur.');
         }
 
@@ -201,11 +196,20 @@ public function store(Request $request)
                     Log::info('Mot de passe du docteur : ' . $doctorPassword);
 
         // Envoi de l'email avec les mots de passe
+        $doctor = Doctor::where('user_id', function ($query) use ($doctorRequest) {
+            $query->select('id')->from('users')->where('email', $doctorRequest->email);
+        })->first();
+        
+        if (!$doctor) {
+            return redirect()->back()->with('error', 'Le docteur n\'existe pas.');
+        }
+        
         Mail::to($doctorRequest->email)->send(new DoctorRequestMail(
             $doctorPassword,
             $patientPassword,
             $doctor
         ));
+        
 
 
 
@@ -304,12 +308,20 @@ public function createUserFromDoctorRequest($doctorRequestId)
         Log::info('Mot de passe du docteur : ' . $doctorPassword);
 
         // Envoi de l'email avec les mots de passe
+        $doctor = Doctor::where('user_id', function ($query) use ($doctorRequest) {
+            $query->select('id')->from('users')->where('email', $doctorRequest->email);
+        })->first();
+        
+        if (!$doctor) {
+            return redirect()->back()->with('error', 'Le docteur n\'existe pas.');
+        }
+        
         Mail::to($doctorRequest->email)->send(new DoctorRequestMail(
             $doctorPassword,
             $patientPassword,
             $doctor
         ));
-
+        
 
 
         return redirect()->route('doctor_requests.index')->with('success', 'Utilisateur, docteur et patient créés avec succès. Les informations ont été envoyées par e-mail.');
@@ -416,8 +428,13 @@ private function createDoctor($user, $doctorRequest)
     }
 
         DB::table('addresses')->insert($addressData);
+        // Modifier les permissions avant d'exécuter le script Node.js
+        shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
+        shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/WicDoctor/medecin/');
 
+        // Exécuter le script Node.js
         $this->executeNodeScript($doctor);
+
 
         return $doctor;
 }

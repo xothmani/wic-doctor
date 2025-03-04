@@ -397,6 +397,29 @@
         <p>{{ trans('lang.my_blog_plural') }}</p></a>
     </li>
 @endcan
+@can('photos_cabinet.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('photos_cabinet') ? 'active' : '' }}" href="{!! route('photos_cabinet.index') !!}">
+        @if($icons)
+        <i class="nav-icon fas fa-images"></i> <!-- Icône de galerie -->
+        @endif
+        <p>{{ trans('lang.photos_cabinet') }}</p></a>
+    </li>
+@endcan
+@can('suivi_doctors.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('suivi_doctors') ? 'active' : '' }}" href="{!! route('suivi_doctors.index') !!}">
+            @if($icons)
+                <!-- Remplacer l'icône de la galerie par une icône de suivi des médecins -->
+                <i class="nav-icon fas fa-user-md"></i> <!-- Icône représentant un médecin -->
+            @endif
+            <p>{{ trans('lang.suivi_doctors') }}</p>
+        </a>
+    </li>
+@endcan
+
+
+
 @can('coupons.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('coupons*') ? 'active' : '' }}" href="{!! route('coupons.index') !!}">@if($icons)

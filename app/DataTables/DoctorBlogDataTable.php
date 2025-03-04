@@ -8,6 +8,8 @@ use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder;
 use Yajra\DataTables\Services\DataTable;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Illuminate\Support\Facades\Log;  // Import the Log facade
+use App\Models\Doctor;
 
 class DoctorBlogDataTable extends DataTable
 {
@@ -18,60 +20,145 @@ class DoctorBlogDataTable extends DataTable
      * @return DataTableAbstract
      */
     public function dataTable(mixed $query): DataTableAbstract
-    {
-        $dataTable = new EloquentDataTable($query);
+{
+    $dataTable = new EloquentDataTable($query);
 
-        return $dataTable
-            ->editColumn('titre', function ($blog) {
-                return $blog->titre;
-            })
-            ->editColumn('titre_court', function ($blog) {
-                return $blog->titre_court;
-            })
-            ->editColumn('contenu', function ($blog) {
-                return '<a href="#" onclick="showModal(`'. addslashes($blog->contenu) .'`)" style="color: black; text-decoration: none;">'
-                    . substr($blog->contenu, 0, 100) . 'lire la suite</a>';
-            })
-            ->editColumn('status', function ($blog) {
-                return $blog->status;
-            })
-            ->addColumn('action', 'doctor_blog.datatables_actions')
-            ->rawColumns(['contenu', 'action']);
-    }
+    return $dataTable
+        ->editColumn('titre', function ($blog) {
+            $title = strip_tags($blog->titre); // Supprime les balises HTML
+            if (strlen($title) > 50) {
+                $shortTitle = substr($title, 0, strrpos(substr($title, 0, 50), ' '));
+                return $shortTitle . ' <a href="#" onclick="showModal(`' . addslashes($title) . '`)" style="color: blue; text-decoration: none;">...lire la suite</a>';
+            }
+            return $title;
+        })
+        ->editColumn('contenu', function ($blog) {
+            $content = strip_tags($blog->contenu);          
+            if (strlen($content) > 50) {
+                $shortContent = substr($content, 0, strrpos(substr($content, 0, 50), ' '));
 
+                return $shortContent . ' <a href="#" onclick="showModal(`' . addslashes($content) . '`)" style="color: blue; text-decoration: none;">...lire la suite</a>';
+            }
+            return $content;
+        })
+        ->addColumn('raison', function ($blog) {
+            // Afficher la raison si le statut est "ajourné"
+            return $blog->status == 'ajourné' ? $blog->raison : null;
+        })
+        
+        
+        
+ 
+        ->addColumn('doctor', function ($blog) {
+            return optional($blog->doctor)->name; // Affiche le nom du médecin
+        })
+
+        ->addColumn('action', 'doctor_blog.datatables_actions')
+        ->rawColumns(['contenu', 'titre', 'action']);
+}
+
+    
+    
+    
     /**
      * Get query source of dataTable.
      *
      * @param DoctorBlog $model
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function query(DoctorBlog $model): \Illuminate\Database\Eloquent\Builder
-    {
-        return $model->newQuery()->select('doctor_blogs.*');
-    }
 
+     public function query(DoctorBlog $model): \Illuminate\Database\Eloquent\Builder
+     {
+         // Récupérer le statut passé par le contrôleur
+         $status = $this->request->input('status', $this->status);
+         Log::info('Statut récupéré dans la requête : ' . $status); // Ajouter un log
+     
+         $user = auth()->user();
+     
+         if (!$user) {
+             return $model->newQuery()->whereRaw('1 = 0');
+         }
+     
+         $query = $model->newQuery();
+     
+         // Si l'utilisateur est commercial, afficher les blogs en fonction du statut
+         if ($user->hasRole('commercial')) {
+             $query->select('doctor_blogs.*', 'doctors.name as doctor_name')
+                   ->leftJoin('doctors', 'doctors.id', '=', 'doctor_blogs.doctor_id');
+     
+             if ($status) {
+                 $query->where('doctor_blogs.status', $status);
+             } else {
+                 $query->whereIn('doctor_blogs.status', ['en cours', 'accepté']);
+             }
+     
+             // Si le statut est 'en cours', trier par date de création (created_at)
+             if ($status == 'en cours') {
+                 $query->orderBy('doctor_blogs.created_at', 'desc'); // Ou 'desc' selon l'ordre voulu
+             }
+     
+             return $query;
+         }
+     
+         // Si l'utilisateur est médecin, afficher uniquement les blogs qui lui sont associés
+         $doctor = Doctor::where('user_id', $user->id)->first();
+     
+         if (!$doctor) {
+             return $model->newQuery()->whereRaw('1 = 0');
+         }
+     
+         $query->select('doctor_blogs.*')
+               ->where('doctor_blogs.doctor_id', '=', $doctor->id);
+     
+               if (!empty($status)) {
+                $query->where('doctor_blogs.status', $status);
+            } else {
+                $query->whereIn('doctor_blogs.status', ['en cours', 'accepté', 'ajourné']);
+            }
+            
+            // Tri en fonction du statut
+            if ($status == 'en cours') {
+                $query->orderBy('doctor_blogs.created_at', 'desc');
+            }
+            if ($status == 'accepté') {
+                $query->orderBy('doctor_blogs.updated_at', 'desc');
+            }
+            if ($status == 'ajourné') {
+                $query->orderBy('doctor_blogs.updated_at', 'desc'); // Tri par date de mise à jour
+            }
+            
+
+     
+         return $query;
+     }
+     
+    
     /**
      * Optional method if you want to use html builder.
      *
      * @return Builder
      */
-    public function html(): Builder
-    {
-        return $this->builder()
-            ->columns($this->getColumns())
-            ->minifiedAjax()
-            ->addAction(['width' => '80px', 'printable' => false, 'responsivePriority' => '100'])
-            ->parameters(array_merge(
-                config('datatables-buttons.parameters'),
-                [
-                    'language' => json_decode(
-                        file_get_contents(base_path('resources/lang/' . app()->getLocale() . '/datatable.json')),
-                        true
-                    ),
-                ]
-            ));
-    }
 
+    public function html(): Builder
+{
+    return $this->builder()
+        ->columns($this->getColumns())
+        ->minifiedAjax()
+        ->addAction(['width' => '80px', 'printable' => false, 'responsivePriority' => '100'])
+        ->parameters(array_merge(
+            config('datatables-buttons.parameters'), [
+                'language' => json_decode(
+                    file_get_contents(base_path('resources/lang/' . app()->getLocale() . '/datatable.json')
+                    ), true),
+                'fixedColumns' => [],
+                'ajax' => [
+    'url' => route('doctor_blog.index'),
+    'data' => 'function(d) { d.status = "' . $this->status . '"; }'
+],
+
+            ]
+        ));
+}
     /**
      * Get columns.
      *
@@ -79,7 +166,7 @@ class DoctorBlogDataTable extends DataTable
      */
     protected function getColumns(): array
     {
-        return [
+        $columns = [
             [
                 'data' => 'titre_court',
                 'title' => trans('lang.blog_short_title'),
@@ -92,13 +179,29 @@ class DoctorBlogDataTable extends DataTable
                 'data' => 'contenu',
                 'title' => trans('lang.blog_content'),
             ],
-            [
-                'data' => 'status',
-                'title' => trans('lang.blog_status'),
-            ],
         ];
+    
+        // Ajouter la colonne "doctor" uniquement si l'utilisateur est un commercial
+        if (auth()->user()->hasRole('commercial')) {
+            $columns[] = [
+                'data' => 'doctor',
+                'title' => trans('lang.blog_doctor'),
+            ];
+        }
+    
+        // Ajouter la colonne "raison" uniquement si le statut est "ajourné"
+        $status = $this->request->input('status', $this->status);
+        if ($status == 'ajourné') {
+            $columns[] = [
+                'data' => 'raison',
+                'title' => trans('lang.blog_reason'),
+            ];
+        }
+    
+        return $columns;
     }
-
+    
+    
     /**
      * Get filename for export.
      *

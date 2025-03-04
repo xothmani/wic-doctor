@@ -9,6 +9,8 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Attachment;
+
 class DoctorRequestMail extends Mailable
 {
     use Queueable, SerializesModels;
@@ -54,6 +56,10 @@ class DoctorRequestMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        return [
+            Attachment::fromPath(storage_path('app/public/pdf/Guide modification photo de profil.pdf'))
+                      ->as('Guide_WIC_Doctor.pdf') // Nom du fichier dans l'email
+                      ->withMime('application/pdf'),
+        ];
     }
 }

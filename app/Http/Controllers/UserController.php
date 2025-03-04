@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Models\Doctor;
 
 class UserController extends Controller
 {
@@ -77,21 +78,59 @@ class UserController extends Controller
      */
     public function profile()
     {
-        $user = $this->userRepository->findWithoutFail(auth()->id());
+        $user = auth()->user();
         unset($user->password);
+    
         $customFields = false;
         $role = $this->roleRepository->pluck('name', 'name');
         $rolesSelected = $user->getRoleNames()->toArray();
         $customFieldsValues = $user->customFieldsValues()->with('customField')->get();
-        //dd($customFieldsValues);
+    
         $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
         if ($hasCustomField) {
             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
             $customFields = generateCustomField($customFields, $customFieldsValues);
         }
-        return view('settings.users.profile', compact(['user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues']));
+    
+        // Vérifier si l'utilisateur est un médecin
+        $doctor = null;
+        if ($user->hasRole('doctor')) {
+            $doctor = Doctor::where('user_id', $user->id)->first();
+        }
+    
+        // Liste des champs à vérifier
+        $fieldsToCheck = [
+            $user->name, $user->lastname, $user->email, $user->phone_number,
+            optional($doctor)->bio, optional($doctor)->type_consultation, optional($doctor)->fixe,
+            optional($doctor)->facebook, optional($doctor)->instagram, optional($doctor)->site_web,
+            optional($doctor)->description, optional($doctor)->payment_methods
+        ];
+    
+        // Calcul du pourcentage de complétion global
+        $filledFields = count(array_filter($fieldsToCheck, function ($field) {
+            return !empty($field);
+        }));
+        $totalFields = count($fieldsToCheck);
+        $progressPercentage = $totalFields > 0 ? ($filledFields / $totalFields) * 100 : 0;
+    
+        // Calcul des pourcentages spécifiques
+        $progressAvatar = !empty($doctor->pourcentage_avatar) ? 10 : 0;
+        $progressAdresse = !empty($doctor->pourcentage_adresse) ? 20 : 0;
+        $progressCV = !empty($doctor->pourcentage_cv) ? 20 : 0;
+        $progressCabinet = !empty($doctor->pourcentage_cabinet) ? 10 : 0;
+        $progressProfil = !empty($doctor->pourcentage_profil) ? 20 : 0;
+        $progressTags = !empty($doctor->pourcentage_tags) ? 20 : 0;
+   
+        // Calcul du pourcentage total
+        $progressBar = $progressAvatar + $progressAdresse + $progressCV + $progressCabinet + $progressProfil +$progressTags;
+    
+        return view('settings.users.profile', compact(
+            'user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues', 'doctor',
+            'progressPercentage', 'progressAvatar', 'progressAdresse', 'progressCV', 'progressCabinet', 'progressProfil', 'progressBar', 'progressTags'
+        ));
     }
-
+    
+    
     /**
      * Show the form for creating a new User.
      *
@@ -175,50 +214,44 @@ class UserController extends Controller
         return view('settings.users.profile')->with('user', $user);
     }
     public function loginAsUser(Request $request, $id)
-    {
-        // 1. Valider le reCAPTCHA
-        $recaptchaResponse = $request->input('g-recaptcha-response');
-        $secretKey = env('RECAPTCHA_SECRET'); // Clé secrète définie dans le fichier .env
+{
+    // 1. Valider le reCAPTCHA
+    $recaptchaResponse = $request->input('g-recaptcha-response');
+    $secretKey = env('RECAPTCHA_SECRET');
 
-        // Vérifier si le reCAPTCHA est vide (obligatoire)
-        if (empty($recaptchaResponse)) {
-            Flash::error('Le reCAPTCHA est obligatoire. Veuillez le valider.');
-            return redirect()->back()->withInput(); // Rediriger avec les entrées précédentes
-        }
-
-        // Requête pour vérifier le reCAPTCHA auprès de Google
-        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-            'secret' => $secretKey,
-            'response' => $recaptchaResponse,
-        ]);
-        $responseData = $response->json();
-
-        // Si le reCAPTCHA échoue
-        if (!$responseData['success']) {
-            Flash::error('La validation du reCAPTCHA a échoué. Veuillez réessayer.');
-            return redirect()->back()->withInput();
-        }
-
-        // 2. Trouver l'utilisateur cible
-        $user = $this->userRepository->findWithoutFail($id);
-        if (empty($user)) {
-            Flash::error('Utilisateur non trouvé');
-            return redirect(route('users.index'));
-        }
-
-        // 3. Se connecter en tant qu'utilisateur
-        auth()->login($user, true);
-
-        // 4. Vérification de la connexion
-        if (auth()->id() !== $user->id) {
-            Flash::error('Échec de la connexion en tant qu\'utilisateur sélectionné.');
-            return redirect(route('users.index'));
-        }
-
-        // 5. Redirection vers le profil
-        return redirect(route('users.profile'));
+    if (empty($recaptchaResponse)) {
+        Flash::error('Le reCAPTCHA est obligatoire.');
+        return redirect()->back()->withInput();
     }
 
+    // Vérification du reCAPTCHA
+    $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+        'secret' => $secretKey,
+        'response' => $recaptchaResponse,
+    ]);
+    $responseData = $response->json();
+    if (!$responseData['success']) {
+        Flash::error('La validation du reCAPTCHA a échoué.');
+        return redirect()->back()->withInput();
+    }
+
+    // 2. Trouver l'utilisateur
+    $user = $this->userRepository->findWithoutFail($id);
+    if (empty($user)) {
+        Flash::error('Utilisateur non trouvé');
+        return redirect(route('users.index'));
+    }
+
+    // 3. Se connecter en tant qu'utilisateur
+    auth()->login($user, true);
+
+    // 4. Mettre à jour last_login_at
+    $user->last_login_at = now();
+    $user->save();
+
+    // 5. Rediriger vers le profil
+    return redirect(route('users.profile'));
+}
 
 
     /**

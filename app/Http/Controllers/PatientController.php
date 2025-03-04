@@ -170,15 +170,15 @@ class PatientController extends Controller
             // Si l'utilisateur n'existe pas, créer un nouvel utilisateur
             Log::info("No existing user found. Creating a new user.");
     
-            // Créez un nouvel utilisateur
+            // Créez un nouvel utilisateur avec les noms en format JSON
             $user = User::create([
-                'name' => $request->first_name,
-                'lastname' => $request->last_name,
+                'name' => json_encode(['fr' => $request->first_name]),  // Prénom en format JSON sans majuscules
+                'lastname' => json_encode(['fr' => $request->last_name]),  // Prénom en format JSON sans majuscules
                 'phone_number' => $request->phone_number,
                 'email' => $request->email,
                 'passwordpatient' => Hash::make($generatedPassword),
             ]);
-    
+
             Log::info("New user created with ID: " . $user->id);
     
             // Vérifiez si le patient est déjà associé à un médecin avant de l'associer à un médecin
