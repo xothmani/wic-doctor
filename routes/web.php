@@ -88,6 +88,10 @@ Route::middleware('auth')->group(function () {
 
 Route::post('/availability/store', [AvailabilityController::class, 'store'])->name('availability.store');
 Route::get('/doctor/vacance', [DoctorVacationController::class, 'index'])->name('vacance.index');
+Route::post('/availability/store-open', [AvailabilityController::class, 'storeOpen'])
+    ->name('availability.store.open');
+Route::post('/availability/substitute', [AvailabilityController::class, 'storeSubstitute'])->name('substitute.store');
+Route::delete('/availability/substitute/{id}', [AvailabilityController::class, 'deleteSubstitute'])->name('substitute.destroy');
 
 Route::delete('vacances/{id}', [DoctorVacationController::class, 'destroy'])->name('vacances.destroy');
 Route::put('/vacances/{id}', [DoctorVacationController::class, 'update'])->name('vacances.update');
@@ -390,7 +394,11 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
     Route::resource('patterns', PatternController::class);
     Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name('appointments.getAvailableTimeSlots');
+    Route::get('/get-available-time-slots-presice', [AppointmentEventController::class, 'getAvailableTimeSlotsPresice'])->name('appointments.getAvailableTimeSlotsPresice');
+    Route::get('/get-available-For-open', [AppointmentEventController::class, 'getAvailableForOpen'])->name('appointments.getAvailableForOpen');
+    Route::get('/get-available-time-slots-open', [AppointmentEventController::class, 'getAvailableTimeSlotsForOpen'])->name('appointments.getAvailableTimeSlotsForOpen');
     Route::get('/get-teleconsultation-time-slots', [AppointmentEventController::class, 'getTeleconsultationTimeSlots'])->name('get.teleconsultation.slots');
+    Route::get('/get-available-days', [AppointmentEventController::class, 'getAvailableDays'])->name('get.available.days');
 
     // Route pour afficher toutes les prescriptions liées à une consultation
     Route::get('/consultation/{consultation}/prescriptions', [ConsultationController::class, 'showPrescriptions'])->name('consultation.prescriptions');
@@ -513,6 +521,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/doctor-blog', [DoctorBlogController::class, 'index'])->name('doctor_blog.index');
     Route::get('/doctor-blog/create', [DoctorBlogController::class, 'create'])->name('doctor_blog.create');
     Route::post('/doctor-blog', [DoctorBlogController::class, 'store'])->name('doctor_blog.store');
+
     Route::post('uploads/storeImage', [DoctorBlogController::class, 'storeImage'])->name('uploads.storeImage');
     Route::get('doctor_blog/{id}', [DoctorBlogController::class, 'show'])->name('doctor_blog.show');
     Route::delete('/doctor_blog/{id}', [DoctorBlogController::class, 'destroy'])->name('doctor_blog.destroy');
@@ -540,5 +549,22 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
 
     
+
+    Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
+    Route::post('/appointmentsEvent/store', [AppointmentEventController::class, 'store'])
+        ->name('appointmentsEvent.store');
+    Route::get('/get-pattern-for-time-slot-without-type', [AppointmentEventController::class, 'getPatternForTimeSlotWithoutType'])->name('get.slot.no.type');
+    Route::post('/appointmentsEvent/storeForced', [AppointmentEventController::class, 'storeForced'])
+        ->name('appointmentsEvent.storeForced');
+
+    Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
+    Route::post('/availability/store', [AvailabilityController::class, 'store'])->name('availability.store');
+    Route::post('/availability/vacation/store', [AvailabilityController::class, 'storeVacation'])->name('holidays.store');
+    Route::delete('/availability/vacation/{id}', [AvailabilityController::class, 'deleteVacation'])->name('vacances.destroy');
+
+    Route::get('/substitutes/{doctorId}', [AppointmentEventController::class, 'getSubstitutes'])->name('get.substitutes');
+    Route::get('/appointments/stats/{doctorId}/{selectedDate?}', [AppointmentEventController::class, 'getAppointmentStats'])
+        ->name('appointment.stats');
+
 });
 

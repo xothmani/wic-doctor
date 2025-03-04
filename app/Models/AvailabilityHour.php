@@ -41,7 +41,7 @@ class AvailabilityHour extends Model
     public static array $rules = [
         'data' => 'max:255',
         'doctor_id' => 'required|exists:doctors,id',
-        'patern_id' => 'required|exists:pattern,id', 
+        'patern_id' => 'required|exists:pattern,id',
     ];
     public array $translatable = [
         'data',
@@ -49,17 +49,18 @@ class AvailabilityHour extends Model
     public $timestamps = false;
     public $table = 'availability_hours';
     public $fillable = [
+        'doctor_id',
         'day',
+        'type',
         'start_at',
         'end_at',
-        'data',
-        'doctor_id',
         'patern_id',
-        'is_available',
         'session_duration',
+        'is_available',
         'pause_from',
-        'pause_to'
- 
+        'pause_to',
+        'data',
+        'mode'
     ];
     /**
      * The attributes that should be casted to native types.
@@ -72,8 +73,8 @@ class AvailabilityHour extends Model
         'end_at' => 'datetime:d-m-Y H:i:s',
         'data' => 'string',
         'doctor_id' => 'integer',
-	'patern_id' => 'integer',
-        'session_duration' => 'integer'	
+        'patern_id' => 'integer',
+        'session_duration' => 'integer'
     ];
     /**
      * New Attributes

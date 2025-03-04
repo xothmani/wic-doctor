@@ -2,132 +2,167 @@
 
 @section('content')
 
-<!-- Second Modal -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title" id="confirmationModalLabel">Créer des heures disponibles</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>Cette date n'est pas disponible. Voulez-vous créer une heure disponible pour cette date ?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" id="confirmCreateAvailability" class="btn btn-primary">Créer</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Past Date Modal -->
-<div class="modal fade" id="pastDateModal" tabindex="-1" aria-labelledby="pastDateModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="pastDateModalLabel">Date Antérieure Sélectionnée</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            </div>
-            <div class="modal-body">
-                <p id="pastDateModalMessage"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Modal for Viewing and Updating Appointment Details -->
-<div class="modal fade" id="appointmentDetailsModal" tabindex="-1" role="dialog"
-    aria-labelledby="appointmentDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="appointmentDetailsModalLabel">{{ trans('lang.appointment_details') }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="appointment-info">
-                    <!-- Patient Details will be dynamically filled here -->
-                    <p><strong>{{ trans('lang.patient_nom') }}:</strong> <span id="patientName"></span></p>
-                    <p><strong>{{ trans('lang.appointment_status') }}:</strong> <span id="appointmentStatus"></span></p>
-                    <p><strong>{{ trans('lang.motif_name') }}:</strong> <span id="motifName"></span></p>
+    <!-- Second Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title" id="confirmationModalLabel">Créer des heures disponibles</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Cette date n'est pas disponible. Voulez-vous créer une heure disponible pour cette date ?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                    <button type="button" id="confirmCreateAvailability" class="btn btn-primary">Créer</button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary d-none" id="createTeleconsultation"
-                    style="background-color: #AEC6CF; color: #000;">{{ trans('lang.create_teleconsultation') }}</button>
-                <button type="button" class="btn btn-danger" id="markAsFailed"
-                    style="background-color: #F4C2C2; color: #000;">{{ trans('lang.mark_failed') }}</button>
-                <button type="button" class="btn btn-success" id="markAsDone"
-                    style="background-color: #B1E5D6; color: #000;">{{ trans('lang.mark_ready') }}</button>
+        </div>
+    </div>
+    <!-- Past Date Modal -->
+    <div class="modal fade" id="pastDateModal" tabindex="-1" aria-labelledby="pastDateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pastDateModalLabel">Date Antérieure Sélectionnée</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                </div>
+                <div class="modal-body">
+                    <p id="pastDateModalMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Modal for Creating Appointment -->
-<div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="appointmentModalLabel">{{ trans('lang.create_modal_name') }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+    <!-- Modal for Viewing and Updating Appointment Details -->
+    <div class="modal fade" id="appointmentDetailsModal" tabindex="-1" role="dialog"
+        aria-labelledby="appointmentDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="appointmentDetailsModalLabel">{{ trans('lang.appointment_details') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="appointment-info">
+                        <!-- Patient Details will be dynamically filled here -->
+                        <p><strong>{{ trans('lang.patient_nom') }}:</strong> <span id="patientName"></span></p>
+                        <p><strong>{{ trans('lang.appointment_status') }}:</strong> <span id="appointmentStatus"></span></p>
+                        <p><strong>{{ trans('lang.motif_name') }}:</strong> <span id="motifName"></span></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary d-none" id="createTeleconsultation"
+                        style="background-color: #AEC6CF; color: #000;">{{ trans('lang.create_teleconsultation') }}</button>
+                    <button type="button" class="btn btn-danger" id="markAsFailed"
+                        style="background-color: #F4C2C2; color: #000;">{{ trans('lang.mark_failed') }}</button>
+                    <button type="button" class="btn btn-success" id="markAsDone"
+                        style="background-color: #B1E5D6; color: #000;">{{ trans('lang.mark_ready') }}</button>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="appointmentForm">
-                    @csrf
-                    <!-- Toggle for Appointment Type -->
-                    <div class="form-group">
-                        <label class="font-weight-bold">{{ trans('lang.select_appointment_type') }}</label>
-                        <div class="d-flex align-items-center">
-                            <div class="form-check mr-3">
-                                <input class="form-check-input" type="radio" name="appointmentType" id="inCabinet"
-                                    value="cabinet" checked>
-                                <label class="form-check-label" for="inCabinet">
-                                    {{ trans('lang.in_cabinet') }}
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="appointmentType"
-                                    id="Téléconsultation" value="Téléconsultation">
-                                <label class="form-check-label" for="Téléconsultation">
-                                    {{ trans('lang.teleconsultation') }}
-                                </label>
+        </div>
+    </div>
+
+    <!-- Modal for Creating Appointment -->
+    <div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="appointmentModalLabel">{{ trans('lang.create_modal_name') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="appointmentForm">
+                        @csrf
+                        <!-- Toggle for Appointment Type -->
+                        <div class="form-group">
+                            <label class="font-weight-bold">{{ trans('lang.select_appointment_type') }}</label>
+                            <div class="d-flex align-items-center">
+                                <div class="form-check mr-3">
+                                    <input class="form-check-input" type="radio" name="appointmentType" id="inCabinet"
+                                        value="cabinet" checked>
+                                    <label class="form-check-label" for="inCabinet">
+                                        {{ trans('lang.in_cabinet') }}
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="appointmentType"
+                                        id="Téléconsultation" value="Téléconsultation">
+                                    <label class="form-check-label" for="Téléconsultation">
+                                        {{ trans('lang.teleconsultation') }}
+                                    </label>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- Fields for Patient référencé -->
-                    <div id="referencedFields">
+                        <!-- Fields for Patient référencé -->
+                        <div id="referencedFields">
+                            <div class="form-group">
+                                <label for="patientDropdown"
+                                    class="font-weight-bold">{{ trans('lang.Select_Patient') }}</label>
+                                <div class="d-flex align-items-center">
+                                    <select id="patientDropdown" class="form-control select2-ajax" required
+                                        style="flex-grow: 1;">
+                                        <option value="" disabled selected>{{ trans('lang.Select_Patient') }}</option>
+                                    </select>
+                                    <a href="{{ route('patients.create') }}" class="btn btn-success d-flex "
+                                        id="addNewPatient">
+                                        <i class="fa fa-user-plus"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="form-group" id="dateGroup">
+                                <label class="font-weight-bold">{{ trans('lang.date') }}</label>
+                                <input type="date" class="form-control" id="appointmentDate" name="appointment_date"
+                                    readonly>
+                            </div>
+                        </div>
+
+                        <!-- Start and End Time Fields -->
+                        <div id="time-slots-wrapper" class="mt-4" style="display: none;">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <label class="font-weight-bold mb-0">{{ trans('lang.select_time') }}</label>
+                                <button type="button" id="addMoreAvailable" class="btn btn-primary ml-3"><i
+                                        class="fas fa-stopwatch"></i></button>
+                            </div>
+
+                            <div id="time-slots" class="d-flex flex-wrap">
+                                <!-- Time slots will be dynamically populated by JavaScript -->
+                            </div>
+                            <input type="hidden" id="appointment_time" name="appointment_time">
+                        </div>
+                        <!-- Pattern Selection -->
                         <div class="form-group">
-                            <label for="patientDropdown"
-                                class="font-weight-bold">{{ trans('lang.Select_Patient') }}</label>
+                            <label for="patternDropdown" class="font-weight-bold">
+                                {{ trans('lang.availability_hour_pattern') }}
+                            </label>
                             <div class="d-flex align-items-center">
-                                <select id="patientDropdown" class="form-control select2-ajax" required
+                                <select id="patternDropdown" name="patern_id" class="form-control select2-ajax" required
                                     style="flex-grow: 1;">
-                                    <option value="" disabled selected>{{ trans('lang.Select_Patient') }}</option>
+                                    <option value="" disabled selected>{{ trans('lang.select_pattern') }}</option>
                                 </select>
-                                <a href="{{ route('patients.create') }}" class="btn btn-success d-flex "
-                                    id="addNewPatient">
-                                    <i class="fa fa-user-plus"></i>
+                                <a href="{{ route('patterns.create') }}" class="btn btn-success d-flex " id="addNewPatient">
+                                    <i class="fa fa-plus"></i>
                                 </a>
                             </div>
                         </div>
-                        <div class="form-group" id="dateGroup">
-                            <label class="font-weight-bold">{{ trans('lang.date') }}</label>
-                            <input type="date" class="form-control" id="appointmentDate" name="appointment_date"
-                                readonly>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="saveAppointmentRef"
+                                style="display: none;">{{ trans('lang.save_patient_refer') }}</button>
+                            <button type="button" class="btn btn-secondary" id="saveAppointmentPass"
+                                style="display: none;">Save Patient de Passage</button>
                         </div>
-                    </div>
-
+                    </form>
                     <!-- Start and End Time Fields -->
                     <div id="time-slots-wrapper" class="mt-4" style="display: none;">
                         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -141,138 +176,103 @@
                         </div>
                         <input type="hidden" id="appointment_time" name="appointment_time">
                     </div>
-                    <!-- Pattern Selection -->
-                    <div class="form-group">
-                        <label for="patternDropdown" class="font-weight-bold">
-                            {{ trans('lang.availability_hour_pattern') }}
-                        </label>
-                        <div class="d-flex align-items-center">
-                            <select id="patternDropdown" name="patern_id" class="form-control select2-ajax" required
-                                style="flex-grow: 1;">
-                                <option value="" disabled selected>{{ trans('lang.select_pattern') }}</option>
-                            </select>
-                            <a href="{{ route('patterns.create') }}" class="btn btn-success d-flex " id="addNewPatient">
-                                <i class="fa fa-plus"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" id="saveAppointmentRef"
-                            style="display: none;">{{ trans('lang.save_patient_refer') }}</button>
-                        <button type="button" class="btn btn-secondary" id="saveAppointmentPass"
-                            style="display: none;">Save Patient de Passage</button>
-                    </div>
-                </form>
-                <!-- Start and End Time Fields -->
-                <div id="time-slots-wrapper" class="mt-4" style="display: none;">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <label class="font-weight-bold mb-0">{{ trans('lang.select_time') }}</label>
-                        <button type="button" id="addMoreAvailable" class="btn btn-primary ml-3"><i
-                                class="fas fa-stopwatch"></i></button>
-                    </div>
 
-                    <div id="time-slots" class="d-flex flex-wrap">
-                        <!-- Time slots will be dynamically populated by JavaScript -->
-                    </div>
-                    <input type="hidden" id="appointment_time" name="appointment_time">
-                </div>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Content -->
-<div class="content">
-    <div class="row">
-        <div class="col-md-2 col-sm-12 d-flex flex-column">
-            <!-- Doctor Selection -->
-            <div class="card shadow-sm flex-grow-1" style="max-height: 300px; overflow-y: auto; padding: 0;">
-                <div class="card-header py-2 px-3" style="background-color: #f8f9fa;">
-                    <input type="text" id="doctorSearch" class="form-control"
-                        placeholder="{{ trans('lang.search_doctor') }}" style="height: 35px; font-size: 14px;">
-                </div>
-                <div class="card-body">
-
-                    <ul class="list-group doctor-list">
-                        @foreach ($doctors as $doctor)
-                            <li class="list-group-item doctor-item {{ $loop->first ? 'active' : '' }}"
-                                data-doctor-id="{{ $doctor->doctor->id }}" style="cursor: pointer; height: 35px">
-                                {{ $doctor->doctor->name  }}
-                            </li>
-                        @endforeach
-                    </ul>
-
-                </div>
-            </div>
-
-            <!-- Appointment Details -->
-            <div class="card shadow-sm flex-grow-1 mt-3" id="appointment-card">
-                <div class="card-body">
-                    <div id="appointment-details">
-                        <p>{{ trans('lang.hover_to_view_details') }}</p>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-        <!-- Right Side: Calendar -->
-        <div class="col-md-10 col-sm-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <div id="calendar-container">
-                        <div id="calendar"></div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <!-- Left Section (Legend Boxes) -->
-                        <div class="d-flex align-items-center">
-                            <div class="d-flex align-items-center me-4">
-                                <span class="legend-box" style="background-color: #9FCDA8;"></span>
-                                <span class="ms-1">Accepté&nbsp;</span>
-                            </div>
-                            <div class="d-flex align-items-center me-4">
-                                <span class="legend-box" style="background-color: #7DC2A5;"></span>
-                                <span class="ms-1">Terminé&nbsp;</span>
-                            </div>
-                            <div class="d-flex align-items-center me-4">
-                                <span class="legend-box" style="background-color: #9EDF9C;"></span>
-                                <span class="ms-1">Prêt&nbsp;</span>
-                            </div>
-                            <div class="d-flex align-items-center me-4">
-                                <span class="legend-box" style="background-color: #F5DF4D;"></span>
-                                <span class="ms-1">En cours&nbsp;</span>
-                            </div>
-                            <div class="d-flex align-items-center me-4">
-                                <span class="legend-box" style="background-color: #F38071;"></span>
-                                <span class="ms-1">Annulé&nbsp;</span>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="legend-box" style="background-color: #A594F9;"></span>
-                                <span class="ms-1">Reçu</span>
-                            </div>
-                        </div>
-
-                        <!-- Right Section (Circles) -->
-                        <div class="d-flex align-items-center">
-                            <div class="d-flex align-items-center me-4">
-                                <span class="circle-indicator" style="background-color: #28a745;"></span>
-                                <span class="ms-2">Disponible&nbsp;&nbsp;</span>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="circle-indicator" style="background-color: #dc3545;"></span>
-                                <span class="ms-2">Non Disponible</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Content -->
+    <div class="content">
+        <div class="row">
+            <div class="col-md-2 col-sm-12 d-flex flex-column">
+                <!-- Doctor Selection -->
+                <div class="card shadow-sm flex-grow-1" style="max-height: 300px; overflow-y: auto; padding: 0;">
+                    <div class="card-header py-2 px-3" style="background-color: #f8f9fa;">
+                        <input type="text" id="doctorSearch" class="form-control"
+                            placeholder="{{ trans('lang.search_doctor') }}" style="height: 35px; font-size: 14px;">
+                    </div>
+                    <div class="card-body">
 
-</div>
+                        <ul class="list-group doctor-list">
+                            @foreach ($doctors as $doctor)
+                                <li class="list-group-item doctor-item {{ $loop->first ? 'active' : '' }}"
+                                    data-doctor-id="{{ $doctor->doctor->id }}" style="cursor: pointer; height: 35px">
+                                    {{ $doctor->doctor->name  }}
+                                </li>
+                            @endforeach
+                        </ul>
 
-</div>
+                    </div>
+                </div>
+
+                <!-- Appointment Details -->
+                <div class="card shadow-sm flex-grow-1 mt-3" id="appointment-card">
+                    <div class="card-body">
+                        <div id="appointment-details">
+                            <p>{{ trans('lang.hover_to_view_details') }}</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- Right Side: Calendar -->
+            <div class="col-md-10 col-sm-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div id="calendar-container">
+                            <div id="calendar"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                            <!-- Left Section (Legend Boxes) -->
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center me-4">
+                                    <span class="legend-box" style="background-color: #9FCDA8;"></span>
+                                    <span class="ms-1">Accepté&nbsp;</span>
+                                </div>
+                                <div class="d-flex align-items-center me-4">
+                                    <span class="legend-box" style="background-color: #7DC2A5;"></span>
+                                    <span class="ms-1">Terminé&nbsp;</span>
+                                </div>
+                                <div class="d-flex align-items-center me-4">
+                                    <span class="legend-box" style="background-color: #9EDF9C;"></span>
+                                    <span class="ms-1">Prêt&nbsp;</span>
+                                </div>
+                                <div class="d-flex align-items-center me-4">
+                                    <span class="legend-box" style="background-color: #F5DF4D;"></span>
+                                    <span class="ms-1">En cours&nbsp;</span>
+                                </div>
+                                <div class="d-flex align-items-center me-4">
+                                    <span class="legend-box" style="background-color: #F38071;"></span>
+                                    <span class="ms-1">Annulé&nbsp;</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="legend-box" style="background-color: #A594F9;"></span>
+                                    <span class="ms-1">Reçu</span>
+                                </div>
+                            </div>
+
+                            <!-- Right Section (Circles) -->
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex align-items-center me-4">
+                                    <span class="circle-indicator" style="background-color: #28a745;"></span>
+                                    <span class="ms-2">Disponible&nbsp;&nbsp;</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="circle-indicator" style="background-color: #dc3545;"></span>
+                                    <span class="ms-2">Non Disponible</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    </div>
 
 @endsection
 
@@ -335,10 +335,10 @@
             if (response.vacation) {
                 //console.log("Doctor is on vacation. No slots to display.");
                 const vacationMessage = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `;
                 timeSlotsWrapper.append(vacationMessage);
 
                 // Show a confirmation dialog to the user
@@ -1036,10 +1036,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
             }
             /////////////////////////////////////////////////////////////////
             function getStatusColor(status) {
