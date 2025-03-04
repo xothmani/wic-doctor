@@ -31,6 +31,7 @@ class DoctorTelesecretariatController extends Controller
             Log::info('Fetched Telesecretariat', ['telesecretariat' => $telesecretariat]);
 
             if ($telesecretariat) {
+                \Log::info('Telesecretariat found', ['telesecretariat' => $telesecretariat]);
                 // Récupérer les médecins associés via DoctorTelesecretariat, avec jointure sur la table doctor
                 $doctors = DoctorTelesecretariat::with(['doctor', 'telesecretariat'])
                     ->join('doctors', 'doctor_telesecretariat.doctor_id', '=', 'doctors.id') // Jointure sur la table doctor
@@ -42,7 +43,7 @@ class DoctorTelesecretariatController extends Controller
 
 
 
-
+                \Log::info('Doctors found', ['doctors' => $doctors]);
                 // Initialize empty data for the agenda
                 $availabilityDays = collect();
                 $vacations = collect();
@@ -98,8 +99,10 @@ class DoctorTelesecretariatController extends Controller
                     ->select(
                         'appointments.id',
                         'appointments.online',
+                        'appointments.type',
                         'appointments.user_id',
                         'appointments.patient_id',
+                        'appointments.hint',
                         DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
                         DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
@@ -118,6 +121,8 @@ class DoctorTelesecretariatController extends Controller
                     ->join('pattern as pattern', 'appointments.motif_id', '=', 'pattern.id')
                     ->get();
 
+                //Log::info("Appointments retrieved for Doctor ID {$doctorId}", ['appointments_count' => $data->count()]);
+
                 return response()->json($data->map(function ($appointment) {
                     $decodedFirstName = json_decode($appointment->patient_first_name, true);
                     $decodedLastName = json_decode($appointment->patient_last_name, true);
@@ -133,8 +138,12 @@ class DoctorTelesecretariatController extends Controller
                         'patient_email' => $appointment->patient_email,
                         'patient_phone_number' => $appointment->patient_phone_number,
                         'patient_name' => ($decodedFirstName['fr'] ?? $decodedFirstName) . ' ' . ($decodedLastName['fr'] ?? $decodedLastName),
+                        'patient_first_name' => ($decodedFirstName['fr'] ?? $decodedFirstName),
+                        'patient_last_name' => ($decodedLastName['fr'] ?? $decodedLastName),
                         'motif_name' => $decodedMotifName['fr'] ?? $decodedMotifName,
                         'online' => $appointment->online,
+                        'type' => $appointment->type,
+                        'note' => $appointment->hint,
                     ];
                 }));
             }
@@ -194,8 +203,10 @@ class DoctorTelesecretariatController extends Controller
                     ->select(
                         'appointments.id',
                         'appointments.online',
+                        'appointments.type',
                         'appointments.user_id',
                         'appointments.patient_id',
+                        'appointments.hint',
                         DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
                         DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
@@ -214,7 +225,7 @@ class DoctorTelesecretariatController extends Controller
                     ->join('pattern as pattern', 'appointments.motif_id', '=', 'pattern.id')
                     ->get();
 
-                Log::info("Appointments retrieved for Doctor ID: {$doctorId}", ['appointments_count' => $data->count()]);
+                //Log::info("Appointments retrieved for Doctor ID {$doctorId}", ['appointments_count' => $data->count()]);
 
                 return response()->json($data->map(function ($appointment) {
                     $decodedFirstName = json_decode($appointment->patient_first_name, true);
@@ -229,10 +240,14 @@ class DoctorTelesecretariatController extends Controller
                         'status' => $appointment->status,
                         'patient_id' => $appointment->patient_id,
                         'patient_email' => $appointment->patient_email,
-                        'user_phone_number' => $appointment->user_phone_number,
+                        'patient_phone_number' => $appointment->patient_phone_number,
                         'patient_name' => ($decodedFirstName['fr'] ?? $decodedFirstName) . ' ' . ($decodedLastName['fr'] ?? $decodedLastName),
+                        'patient_first_name' => ($decodedFirstName['fr'] ?? $decodedFirstName),
+                        'patient_last_name' => ($decodedLastName['fr'] ?? $decodedLastName),
                         'motif_name' => $decodedMotifName['fr'] ?? $decodedMotifName,
                         'online' => $appointment->online,
+                        'type' => $appointment->type,
+                        'note' => $appointment->hint,
                     ];
                 }));
             } catch (\Exception $e) {
@@ -250,12 +265,13 @@ class DoctorTelesecretariatController extends Controller
             $availabilityDays = DB::table('availability_hours')
                 ->where('doctor_id', $doctorId)
                 ->where('is_available', 1)
+                ->where('mode', 'precise')
                 ->distinct()
                 ->pluck('day');
 
             $vacations = DB::table('vacance')
                 ->where('doctor_id', $doctorId)
-                ->select('dateDebut', 'dateFin')
+                ->select('start_date', 'end_date')
                 ->get();
 
             $patterns = DB::table('pattern')
@@ -645,7 +661,7 @@ class DoctorTelesecretariatController extends Controller
             // Fetch vacation data for the doctor
             $vacations = DB::table('vacance')
                 ->where('doctor_id', $doctorId)
-                ->select('dateDebut', 'dateFin')
+                ->select('start_date', 'end_date')
                 ->get();
 
             return response()->json([
@@ -754,8 +770,8 @@ class DoctorTelesecretariatController extends Controller
         // Check for vacations
         $vacations = DB::table('vacance')
             ->where('doctor_id', $doctorId)
-            ->whereDate('dateDebut', '<=', $selectedDate)
-            ->whereDate('dateFin', '>=', $selectedDate)
+            ->whereDate('start_date', '<=', $selectedDate)
+            ->whereDate('end_date', '>=', $selectedDate)
             ->exists();
 
         \Log::info('Vacation status', ['vacations' => $vacations]);

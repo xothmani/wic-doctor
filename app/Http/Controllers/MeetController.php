@@ -170,8 +170,6 @@ class MeetController extends Controller
 
 
 
-
-    
     public function sendMeetingInfo(Request $request)
     {
         \Log::info("Request Data for sendMeetingInfo:", $request->all());

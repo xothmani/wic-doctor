@@ -66,4 +66,6 @@ class Pattern extends Model
     {
         return $this->belongsTo(Speciality::class, 'specialite_id');
     }
+
+
 }
