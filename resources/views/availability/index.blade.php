@@ -311,15 +311,14 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>{{ trans('lang.start_date') }}</label>
-                                                        <input type="date" name="start_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}">
+                                                        <input type="datetime-local" name="start_date" class="form-control" required>
                                                     </div>
                                                 </div>
+
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>{{ trans('lang.end_date') }}</label>
-                                                        <input type="date" name="end_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}">
+                                                        <input type="datetime-local" name="end_date" class="form-control" required>
                                                     </div>
                                                 </div>
                                             </div>
@@ -368,8 +367,8 @@
                                                             @endphp
                                                             <tr>
                                                                 <td>{{ $substitute->name }}</td>
-                                                                <td>{{ $startDate->format('d/m/Y') }}</td>
-                                                                <td>{{ $endDate->format('d/m/Y') }}</td>
+                                                                <td>{{ $substitute->formatted_start_date }}</td>
+                                                                <td>{{ $substitute->formatted_end_date }}</td>
                                                                 <td>{{ $substitute->notes }}</td>
                                                                 <td>
                                                                     <span class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">
@@ -605,18 +604,17 @@
                                         <input type="text" name="name" class="form-control" required>
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-6">
+                                    <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>{{ trans('lang.start_date') }}</label>
-                                                <input type="date" name="start_date" class="form-control" required
-                                                    min="{{ date('Y-m-d') }}">
+                                                <input type="datetime-local" name="start_date" class="form-control" required>
                                             </div>
                                         </div>
+
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>{{ trans('lang.end_date') }}</label>
-                                                <input type="date" name="end_date" class="form-control" required
-                                                    min="{{ date('Y-m-d') }}">
+                                                <input type="datetime-local" name="end_date" class="form-control" required>
                                             </div>
                                         </div>
                                     </div>
@@ -665,8 +663,8 @@
                                                     @endphp
                                                     <tr>
                                                         <td>{{ $substitute->name }}</td>
-                                                        <td>{{ $startDate->format('d/m/Y') }}</td>
-                                                        <td>{{ $endDate->format('d/m/Y') }}</td>
+                                                        <td>{{ $substitute->formatted_start_date }}</td>
+                                                        <td>{{ $substitute->formatted_end_date }}</td>
                                                         <td>{{ $substitute->notes }}</td>
                                                         <td>
                                                             <span class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">

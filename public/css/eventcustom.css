@@ -569,3 +569,61 @@
     margin: 2px 0;
 }
 
+/* Add this to your CSS */
+
+/* Tooltip styles */
+.substitute-tooltip {
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 10px;
+    display: none;
+    width: 250px;
+}
+
+.substitute-info-container {
+    padding: 5px;
+}
+
+.substitute-info {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.substitute-info-label {
+    font-weight: bold;
+    color: #666;
+    width: 60px;
+    flex-shrink: 0;
+}
+
+.substitute-info-value {
+    color: #333;
+    margin-left: 10px;
+}
+
+.substitute-hover {
+    cursor: pointer;
+}
+
+/* Existing styles */
+.custom-day-label {
+    font-size: 12px;
+    text-align: center;
+    padding: 2px 0;
+}
+
+.day-header-divider {
+    margin: 2px 0;
+    border-top: 1px solid #eee;
+}
+
+.custom-number-label {
+    font-size: 11px;
+    text-align: center;
+    color: #666;
+}

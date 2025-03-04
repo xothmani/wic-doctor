@@ -851,16 +851,16 @@ class AvailabilityController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
-                'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
+                'start_date' => 'required|date_format:Y-m-d\TH:i',
+                'end_date' => 'required|date_format:Y-m-d\TH:i|after_or_equal:start_date',
                 'notes' => 'nullable|string'
             ]);
 
             DoctorSubstitute::create([
                 'doctor_id' => $doctorId,
                 'name' => $validated['name'],
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
+                'start_date' => Carbon::parse($validated['start_date']),
+                'end_date' => Carbon::parse($validated['end_date']),
                 'notes' => $validated['notes']
             ]);
 

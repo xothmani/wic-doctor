@@ -1429,8 +1429,8 @@ class AppointmentEventController extends Controller
                 return [
                     'id' => $substitute->id,
                     'name' => $substitute->name,
-                    'start_date' => Carbon::parse($substitute->start_date)->format('Y-m-d'), // ✅ FIXED
-                    'end_date' => Carbon::parse($substitute->end_date)->format('Y-m-d'), // ✅ FIXED
+                    'start_date' => Carbon::parse($substitute->start_date)->format('Y-m-d H:i'), // ✅ FIXED
+                    'end_date' => Carbon::parse($substitute->end_date)->format('Y-m-d H:i'), // ✅ FIXED
                     'notes' => $substitute->notes
                 ];
             });
