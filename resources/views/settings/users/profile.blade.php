@@ -11,6 +11,92 @@
     <link rel="stylesheet" href="{{asset('vendor/dropzone/min/dropzone.min.css')}}">
 @endpush
 @section('content')
+    @if($showNewFeaturesModal)
+        <!-- Replace the existing modal content with this -->
+        <div id="welcomeModal" class="welcome-modal">
+            <div class="modal-content">
+                <!-- Header Section -->
+                <div class="modal-header">
+                    <div class="header-content">
+                        <span class="new-badge">MISE À JOUR</span>
+                        <h2><i class="fas fa-rocket"></i> Nouvelle Version de l'Agenda</h2>
+                    </div>
+                </div>
+
+                <!-- Body Section -->
+                <div class="modal-body">
+                    <div class="welcome-message">
+                        <p><i class="fas fa-bell"></i> Découvrez les améliorations majeures de votre agenda médical</p>
+                    </div>
+
+                    <!-- Version Comparison Grid -->
+                    <div class="version-comparison">
+                        <div class="version-column old-version">
+                            <div class="version-header">
+                                <i class="fas fa-calendar"></i>
+                                <h3>Version Actuelle</h3>
+                            </div>
+                            <div class="feature-list-container">
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check"></i> Vue agenda simple</li>
+                                    <li><i class="fas fa-check"></i> Gestion basique des rendez-vous</li>
+                                    <li><i class="fas fa-check"></i> Calendrier standard</li>
+                                    <li><i class="fas fa-check"></i> Mode unique de consultation</li>
+                                    <li><i class="fas fa-check"></i> Statistiques limitées</li>
+                                    <li><i class="fas fa-times text-muted"></i> Pas de gestion des remplaçants</li>
+                                    <li><i class="fas fa-times text-muted"></i> Pas de gestion multi-motifs</li>
+                                    <li><i class="fas fa-times text-muted"></i> Interface basique</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="version-divider">
+                            <div class="arrow-container">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                        </div>
+
+                        <div class="version-column new-version">
+                            <div class="version-header">
+                                <i class="fas fa-calendar-alt"></i>
+                                <h3>Nouvelle Version</h3>
+                                <span class="new-tag">NEW</span>
+                            </div>
+                            <div class="feature-list-container">
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-star"></i> Vue hebdomadaire optimisée</li>
+                                    <li><i class="fas fa-star"></i> Gestion avancée des rendez-vous</li>
+                                    <li><i class="fas fa-star"></i> Calendrier interactif amélioré</li>
+                                    <li><i class="fas fa-star"></i> Trois modes de consultation:
+                                        <ul class="sub-features">
+                                            <li>Cabinet</li>
+                                            <li>Téléconsultation</li>
+                                            <li>Visite à domicile</li>
+                                        </ul>
+                                    </li>
+                                    <li><i class="fas fa-star"></i> Statistiques détaillées en temps réel</li>
+                                    <li><i class="fas fa-star"></i> Gestion complète des remplaçants</li>
+                                    <li><i class="fas fa-star"></i> Motifs de consultation personnalisables</li>
+                                    <li><i class="fas fa-star"></i> Interface moderne et intuitive</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Section -->
+                <div class="modal-footer">
+                    <button id="acceptNewFeatures" class="btn-accept">
+                        <i class="fas fa-check"></i> Activer la Nouvelle Version
+                    </button>
+                    <button id="rejectNewFeatures" class="btn-reject">
+                        <i class="fas fa-times"></i> Rester sur l'Ancienne Version
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Content Header (Page header) -->
     <div class="content-header">
         <div class="container-fluid">
@@ -20,7 +106,8 @@
                 </div><!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-                        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt"></i> {{trans('lang.dashboard')}}</a></li>
+                        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt"></i>
+                                {{trans('lang.dashboard')}}</a></li>
                         <li class="breadcrumb-item active">{{trans('lang.user_profile')}}</li>
                     </ol>
                 </div><!-- /.col -->
@@ -28,7 +115,7 @@
         </div><!-- /.container-fluid -->
     </div>
     <!-- /.content-header -->
-    <section class="content" >
+    <section class="content">
         <div class="container-fluid" style="min-height: 100vh">
             <div class="row">
                 <div class="col-md-3">
@@ -40,46 +127,53 @@
                         </div>
                         <div class="card-body box-profile">
                             <div class="text-center">
-                                <img src="{{auth()->user()->getFirstMediaUrl('avatar','icon')}}" class="profile-user-img img-fluid img-circle" alt="{{auth()->user()->name}}">
+                                <img src="{{auth()->user()->getFirstMediaUrl('avatar', 'icon')}}"
+                                    class="profile-user-img img-fluid img-circle" alt="{{auth()->user()->name}}">
                             </div>
                             <h3 class="profile-username text-center">{{auth()->user()->name}}</h3>
-                            <p class="text-muted text-center">{{implode(', ',$rolesSelected)}}</p>
-                            <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="mailto:{{auth()->user()->email}}"><i class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}
+                            <p class="text-muted text-center">{{implode(', ', $rolesSelected)}}</p>
+                            <a class="btn btn-outline-{{setting('theme_color')}} btn-block"
+                                href="mailto:{{auth()->user()->email}}"><i
+                                    class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}
                             </a>
                         </div>
-                    
+
                         <!-- /.card-body -->
                     </div>
 
                     <!-- Profile Edit -->
-                <div class="card shadow-sm">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-user mr-2"></i>  {{trans('lang.edit_profil')}}</h3>
-                    </div>
-                    <div class="card-body box-profile">
-                        <!-- Liste des étapes -->
-                        <ul class="task-list">
-                            <li class="task completed"><i class="fas fa-check-circle"></i>{{trans('lang.import_avatar')}} </li>
-                            <li class="task completed"><i class="fas fa-check-circle"></i> {{trans('lang.complet_adresse')}}</li>
-                            <li class="task pending"><i class="far fa-circle"></i>{{trans('lang.complet_cv')}}</li>
-                            <li class="task completed"><i class="fas fa-check-circle"></i>{{trans('lang.import_photos')}}</li>
-                            <li class="task pending"><i class="far fa-circle"></i> {{trans('lang.final_profil')}}</li>
-
-
-                        </ul>
-
-                        <!-- Progress Bar -->
-                        <div class="progress-container">
-                            <div class="progress-bar-container">
-                                <div class="progress-bar" style="width: 75%; background-color: #5c6bc0;"></div>
-                            </div>
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-user mr-2"></i> {{trans('lang.edit_profil')}}</h3>
                         </div>
+                        <div class="card-body box-profile">
+                            <!-- Liste des étapes -->
+                            <ul class="task-list">
+                                <li class="task completed"><i
+                                        class="fas fa-check-circle"></i>{{trans('lang.import_avatar')}} </li>
+                                <li class="task completed"><i class="fas fa-check-circle"></i>
+                                    {{trans('lang.complet_adresse')}}</li>
+                                <li class="task pending"><i class="far fa-circle"></i>{{trans('lang.complet_cv')}}</li>
+                                <li class="task completed"><i
+                                        class="fas fa-check-circle"></i>{{trans('lang.import_photos')}}</li>
+                                <li class="task pending"><i class="far fa-circle"></i> {{trans('lang.final_profil')}}</li>
 
-                        <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="{{ route('doctors.editProfil') }}">
-                            <i class="fas fa-edit mr-2"></i>{{trans('lang.edit_profil')}}
-                        </a>
+
+                            </ul>
+
+                            <!-- Progress Bar -->
+                            <div class="progress-container">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 75%; background-color: #5c6bc0;"></div>
+                                </div>
+                            </div>
+
+                            <a class="btn btn-outline-{{setting('theme_color')}} btn-block"
+                                href="{{ route('doctors.editProfil') }}">
+                                <i class="fas fa-edit mr-2"></i>{{trans('lang.edit_profil')}}
+                            </a>
+                        </div>
                     </div>
-                </div>
 
 
                     <!-- /.card -->
@@ -94,17 +188,20 @@
                         <div class="card-header">
                             <ul class="nav nav-tabs d-flex flex-row align-items-start card-header-tabs">
                                 <li class="nav-item">
-                                    <a class="nav-link active" href="{!! url()->current() !!}"><i class="fas fa-cog mr-2"></i>{{trans('lang.app_setting')}}</a>
+                                    <a class="nav-link active" href="{!! url()->current() !!}"><i
+                                            class="fas fa-cog mr-2"></i>{{trans('lang.app_setting')}}</a>
                                 </li>
-                           <!--      <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('fieldsDoctor') }}">
-                                        <i class="fas fa-cog mr-2"></i>{{ trans('lang.profile') }}
-                                    </a>
-                                </li>  -->
+                                <!--      <li class="nav-item">
+                                                                                                                                                <a class="nav-link" href="{{ route('fieldsDoctor') }}">
+                                                                                                                                                    <i class="fas fa-cog mr-2"></i>{{ trans('lang.profile') }}
+                                                                                                                                                </a>
+                                                                                                                                            </li>  -->
                                 @hasrole('customer')
                                 <div class="ml-auto d-inline-flex">
                                     <li class="nav-item">
-                                        <a class="nav-link pt-1" href="{{ route('clinics.create') }}"><i class="fas fa-check-o"></i> {{trans('lang.app_setting_become_servicclinic')}}
+                                        <a class="nav-link pt-1" href="{{ route('clinics.create') }}"><i
+                                                class="fas fa-check-o"></i>
+                                            {{trans('lang.app_setting_become_servicclinic')}}
                                         </a>
                                     </li>
                                 </div>
@@ -124,7 +221,7 @@
             </div>
         </div>
     </section>
-    @include('layouts.media_modal',['collection'=>null])
+    @include('layouts.media_modal', ['collection' => null])
 @endsection
 @push('scripts_lib')
     <!-- select2 -->
@@ -136,6 +233,37 @@
         Dropzone.autoDiscover = false;
         var dropzoneFields = [];
     </script>
+
+    <script>
+        $(document).ready(function () {
+            @if($showNewFeaturesModal)
+                $('#newFeaturesModal').modal('show'); // Show the modal if user has not accepted new features
+            @endif
+
+            $('#acceptNewFeatures').click(function () {
+                $.ajax({
+                    url: '{{ route("users.acceptNewFeatures") }}',
+                    method: 'POST',
+                    data: { _token: '{{ csrf_token() }}' },
+                    success: function () {
+                        window.location.href = '/availability'; // Redirect to new agenda
+                    }
+                });
+            });
+
+            $('#rejectNewFeatures').click(function () {
+                $.ajax({
+                    url: '{{ route("users.rejectNewFeatures") }}',
+                    method: 'POST',
+                    data: { _token: '{{ csrf_token() }}' },
+                    success: function () {
+                        $('#newFeaturesModal').modal('hide'); // Close modal
+                    }
+                });
+            });
+        });
+    </script>
+
 @endpush
 
 <style>
@@ -159,11 +287,13 @@
     }
 
     .task.completed i {
-        color:#5c6bc0; /* mauve */
+        color: #5c6bc0;
+        /* mauve */
     }
 
     .task.pending i {
-        color: #aaa; /* Gris */
+        color: #aaa;
+        /* Gris */
     }
 
     /* Barre de progression */
@@ -186,5 +316,300 @@
         height: 100%;
         border-radius: 10px;
         transition: width 0.4s ease-in-out;
+    }
+</style>
+<style>
+    .welcome-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background: #fff;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 800px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #4a90e2, #2c3e50);
+        color: white;
+        padding: 20px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .new-badge {
+        background: #e74c3c;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        text-transform: uppercase;
+        animation: pulse 2s infinite;
+    }
+
+    .modal-body {
+        padding: 30px;
+        color: #2c3e50;
+    }
+
+    .welcome-message {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 18px;
+        color: #34495e;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin: 20px 0;
+    }
+
+    .feature-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-section h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .feature-list li {
+        margin: 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .feature-list li i {
+        color: #27ae60;
+    }
+
+    .modal-footer {
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .btn-accept,
+    .btn-reject {
+        padding: 12px 25px;
+        border-radius: 25px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-accept {
+        background: #27ae60;
+        color: white;
+    }
+
+    .btn-reject {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-accept:hover,
+    .btn-reject:hover {
+        transform: translateY(-2px);
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .modal-footer {
+            flex-direction: column;
+        }
+
+        .btn-accept,
+        .btn-reject {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Add to your existing modal styles */
+    .version-comparison {
+        display: flex;
+        align-items: stretch;
+        gap: 20px;
+        margin: 30px 0;
+    }
+
+    .version-column {
+        flex: 1;
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        position: relative;
+    }
+
+    .version-header {
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .version-header h3 {
+        margin: 10px 0;
+        color: #2c3e50;
+        font-size: 1.5rem;
+    }
+
+    .version-header i {
+        font-size: 2rem;
+        color: #4a90e2;
+    }
+
+    .new-version {
+        background: #f0f7ff;
+        border: 2px solid #4a90e2;
+    }
+
+    .new-tag {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #e74c3c;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        animation: pulse 2s infinite;
+    }
+
+    .feature-list-container {
+        height: 100%;
+    }
+
+    .feature-list li {
+        margin: 15px 0;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        line-height: 1.4;
+    }
+
+    .old-version .feature-list i {
+        color: #7f8c8d;
+    }
+
+    .new-version .feature-list i {
+        color: #f39c12;
+    }
+
+    .sub-features {
+        list-style: none;
+        padding-left: 25px;
+        margin-top: 5px;
+        font-size: 0.9em;
+        color: #666;
+    }
+
+    .sub-features li:before {
+        content: "•";
+        color: #4a90e2;
+        margin-right: 5px;
+    }
+
+    .version-divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .arrow-container {
+        width: 40px;
+        height: 40px;
+        background: #4a90e2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .arrow-container i {
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    @media (max-width: 768px) {
+        .version-comparison {
+            flex-direction: column;
+        }
+
+        .version-divider {
+            transform: rotate(90deg);
+            margin: 20px 0;
+        }
     }
 </style>

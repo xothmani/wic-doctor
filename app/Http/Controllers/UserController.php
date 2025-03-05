@@ -78,6 +78,7 @@ class UserController extends Controller
     public function profile()
     {
         $user = $this->userRepository->findWithoutFail(auth()->id());
+        $showNewFeaturesModal = !$user->saw_new_features;
         unset($user->password);
         $customFields = false;
         $role = $this->roleRepository->pluck('name', 'name');
@@ -89,7 +90,7 @@ class UserController extends Controller
             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
             $customFields = generateCustomField($customFields, $customFieldsValues);
         }
-        return view('settings.users.profile', compact(['user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues']));
+        return view('settings.users.profile', compact(['user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues', 'showNewFeaturesModal']));
     }
 
     /**
@@ -383,4 +384,56 @@ class UserController extends Controller
             }
         }
     }
+
+
+    public function acceptNewFeatures()
+    {
+        $user = auth()->user();
+
+        // Mark that the user has seen the new features
+        $user->saw_new_features = true;
+        $user->save();
+
+        // Ensure the doctor record exists for this user
+        $doctor = $user->doctor; // Assuming there's a relationship between users and doctors
+
+        if ($doctor) {
+            // If the doctor exists, update availability_mode to "precise"
+            $doctor->availability_mode = 'precise';
+            $doctor->save();
+        } else {
+            // If no doctor record exists, create one with "precise" mode
+            \DB::table('doctors')->insert([
+                'user_id' => $user->id,
+                'availability_mode' => 'precise',
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function rejectNewFeatures()
+    {
+        $user = auth()->user();
+        $user->saw_new_features = true;
+        $user->save();
+        // Ensure the doctor record exists for this user
+        $doctor = $user->doctor; // Assuming there's a relationship between users and doctors
+
+        if ($doctor) {
+            // If the doctor exists, update availability_mode to "open"
+            $doctor->availability_mode = 'open';
+            $doctor->save();
+        } else {
+            // If no doctor record exists, create one with "open" mode
+            \DB::table('doctors')->insert([
+                'user_id' => $user->id,
+                'availability_mode' => 'open',
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+
 }

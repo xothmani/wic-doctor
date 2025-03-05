@@ -48,6 +48,7 @@ use App\Http\Controllers\ParrainerController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\DoctorsGalleryController;
 use App\Http\Controllers\DoctorBlogController;
+use App\Http\Controllers\UserController;
 
 
 
@@ -530,5 +531,11 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/substitutes/{doctorId}', [AppointmentEventController::class, 'getSubstitutes'])->name('get.substitutes');
     Route::get('/appointments/stats/{doctorId}/{selectedDate?}', [AppointmentEventController::class, 'getAppointmentStats'])
         ->name('appointment.stats');
+
+
+    Route::post('/users/accept-new-features', [UserController::class, 'acceptNewFeatures'])->name('users.acceptNewFeatures');
+    Route::post('/users/reject-new-features', [UserController::class, 'rejectNewFeatures'])->name('users.rejectNewFeatures');
+
+
 });
 

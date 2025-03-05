@@ -31,9 +31,10 @@ class UserRepository extends BaseRepository
         'email',
         'password',
         'api_token',
-	'phone_number',
+        'phone_number',
         'role_id',
-        'remember_token'
+        'remember_token',
+        'saw_new_features',
     ];
 
     /**

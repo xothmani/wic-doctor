@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Doctor;
 use App\Models\Pattern;
+use App\Models\Appointment;
 use App\Models\DoctorSubstitute;
 use App\Models\AvailabilityHour;
 use Carbon\Carbon;
