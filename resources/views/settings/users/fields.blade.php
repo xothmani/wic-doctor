@@ -54,8 +54,7 @@
             <div style="width: 100%" class="dropzone avatar" id="avatar" data-field="avatar">
                 <input type="hidden" name="avatar">
             </div>
-            <a href="#loadMediaModal" data-dropzone="avatar" data-toggle="modal" data-target="#mediaModal" class="btn btn-outline-{{setting('theme_color','primary')}} btn-sm float-right mt-1">{{ trans('lang.media_select')}}</a>
-            <div class="form-text text-muted w-50">
+            <div class="form-text text-muted w-100">
                 {{ trans("lang.user_avatar_help") }}
             </div>
         </div>

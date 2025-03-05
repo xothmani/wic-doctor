@@ -13,12 +13,12 @@
 <p>Voici vos informations de connexion :</p>
 
 <h2>Compte Docteur :</h2>
-<p><strong>Login :</strong> {{ $doctor->user->email }}</p> <!-- Affiche l'email du docteur -->
-<p><strong>Mot de passe :</strong> {{ $doctorPassword }}</p> <!-- Affiche le mot de passe du docteur -->
+<p><strong>Login :</strong> {{ $doctor->user->email }}</p>
+<p><strong>Mot de passe :</strong> {{ $doctorPassword }}</p>
 
 <h2>Compte Patient :</h2>
-<p><strong>Login :</strong> {{ $doctor->user->email }}</p> <!-- Réutilise le même email -->
-<p><strong>Mot de passe :</strong> {{ $patientPassword }}</p> <!-- Affiche le mot de passe pour le compte patient -->
+<p><strong>Login :</strong> {{ $doctor->user->email }}</p>
+<p><strong>Mot de passe :</strong> {{ $patientPassword }}</p>
 
 <p>Pour vous connecter à votre compte, cliquez sur les liens suivants :</p>
 <ul>
@@ -27,6 +27,8 @@
 </ul>
 
 <p>Vous avez un accès de 10 jours gratuits pour tester notre système. Nous espérons que vous apprécierez l'expérience !</p>
+
+<p>Vous trouverez ci-joint le <strong>Guide pour modifier et compléter votre profil</strong> sur WIC Doctor.</p>
 
 <p>Si vous avez des questions ou besoin d'aide, n'hésitez pas à nous contacter.</p>
 

@@ -97,18 +97,16 @@ class Doctor extends Model implements HasMedia, Castable
         'session_duration',
         'clinic_id',
         'user_id',
-	'matricule_CNAM',
-	'diplome',
+	    'matricule_CNAM',
+	    'diplome',
         'numOrdre',
-	'tele_price_tnd',
-	'tele_price_eur',
-	'id_aleatoire',
-	'sexe',
-
-	'code_parent',  
-	'code_doctor',
-
-	'fixe',
+        'tele_price_tnd',
+        'tele_price_eur',
+        'id_aleatoire',
+        'sexe',
+        'code_parent',  
+        'code_doctor',
+	    'fixe',
         'facebook',
         'instagram',
         'site_web',
@@ -117,8 +115,17 @@ class Doctor extends Model implements HasMedia, Castable
         'payment_methods',
         'langues_parlees',
         'num_france',
-        'api_key',  
+        'api_key', 
+        'cabinet_photo',
+        'pourcentage_avatar',
+        'pourcentage_adresse',
+        'pourcentage_cv',
+        'pourcentage_cabinet',
+        'pourcentage_profil',
+        'pourcentage_tags',
+        'verif_chart',
 
+        
     ];
     /**
      * The attributes that should be casted to native types.
@@ -244,21 +251,44 @@ class Doctor extends Model implements HasMedia, Castable
         return $this->hasMedia('image');
     }
 
-    public function openingHours(): OpeningHours
+ 
+
+public function openingHours(): OpeningHours
 {
+    // Mapping des jours français vers les jours anglais
+    $joursMapping = [
+        'Lundi' => 'monday',
+        'Mardi' => 'tuesday',
+        'Mercredi' => 'wednesday',
+        'Jeudi' => 'thursday',
+        'Vendredi' => 'friday',
+        'Samedi' => 'saturday',
+        'Dimanche' => 'sunday',
+    ];
+
     $openingHoursArray = [];
 
     foreach ($this->availabilityHours as $element) {
-        // Combine start and end times into the required format `H:i-H:i`
-        $timeRange = \Carbon\Carbon::parse($element['start_at'])->format('H:i') . '-' . \Carbon\Carbon::parse($element['end_at'])->format('H:i');
-        
-        // Ensure each day is an array of time ranges
-        $openingHoursArray[$element['day']][] = $timeRange;
+        // Vérifier si le jour est valide
+        if (!isset($joursMapping[$element['day']])) {
+            throw new \Exception("Jour invalide : {$element['day']}");
+        }
+
+        // Convertir le jour en anglais
+        $dayInEnglish = $joursMapping[$element['day']];
+
+        // Convertir les horaires au format H:i-H:i
+        $timeRange = \Carbon\Carbon::parse($element['start_at'])->format('H:i') . '-' .
+                     \Carbon\Carbon::parse($element['end_at'])->format('H:i');
+
+        // Ajouter l'horaire à la liste
+        $openingHoursArray[$dayInEnglish][] = $timeRange;
     }
 
-    // Create OpeningHours instance with formatted hours
+    // Créer l'objet OpeningHours
     return OpeningHours::createAndMergeOverlappingRanges($openingHoursArray);
 }
+
    /* public function openingHours(): OpeningHours
 {
     $openingHoursArray = [];
@@ -611,4 +641,15 @@ public function diplomes()
     return $this->hasMany(DoctorDiplome::class);
 
 }
+public function getTotalPourcentage()
+{
+    return $this->pourcentage_avatar +
+           $this->pourcentage_adresse +
+           $this->pourcentage_cv +
+           $this->pourcentage_cabinet +
+           $this->pourcentage_tags +
+           $this->pourcentage_profil;
+}
+
+
 }

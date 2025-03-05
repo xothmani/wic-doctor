@@ -40,7 +40,14 @@ class AvailabilityController extends Controller
 
     public function index()
     {
+        // Vérifier si l'utilisateur est connecté
+        if (!auth()->check()) {
+            return redirect()->route('login'); // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
+        }
+    
+        // Récupérer l'ID du médecin lié à l'utilisateur connecté
         $doctorId = auth()->user()->getDoctorId();
+
         if (!$doctorId) {
             return redirect()->route('users.profile');
         }

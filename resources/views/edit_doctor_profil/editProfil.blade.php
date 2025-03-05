@@ -4,8 +4,19 @@
     <!-- select2 -->
     <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
     <!-- dropzone (same version as old code) -->
     <link rel="stylesheet" href="{{ asset('vendor/dropzone/min/dropzone.min.css') }}">
+<!-- CSS de Slick -->
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css"/>
+
+<!-- JS de Slick -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"></script>
+
 
     <!-- ADD THIS STYLE to reveal delete-media on hover -->
     <style>
@@ -143,7 +154,7 @@
 
                         <!-- Numéro de cabinet Field -->
                         <div class="form-group d-flex align-items-center">
-                            {!! Form::label('cabinet_number', 'N° Cabinet', ['class' => 'col-md-3 control-label text-md-right']) !!}
+                            {!! Form::label('cabinet_number', 'Fixe Cabinet', ['class' => 'col-md-3 control-label text-md-right']) !!}
                             <div class="col-md-9">
                                 {!! Form::text('cabinet_number', $doctor->fixe, ['class' => 'form-control', 'placeholder' => trans("lang.user_cabinet_number_placeholder")]) !!}
                             </div>
@@ -171,13 +182,35 @@
                             </div>
                         </div>
 
-                        <!-- Description -->
-                        <div class="form-group d-flex align-items-center">
-                            {!! Form::label('description', 'Description', ['class' => 'col-md-3 control-label text-md-right']) !!}
-                            <div class="col-md-9">
-                                {!! Form::textarea('description', $doctor->description, ['class' => 'form-control', 'placeholder' => 'Écrivez une description', 'style' => 'height: 80px;']) !!}
-                            </div>
-                        </div>
+<!-- Description -->
+<!-- Description -->
+<div class="form-group d-flex align-items-center">
+    {!! Form::label('description', 'Description', ['class' => 'col-md-3 control-label text-md-right']) !!}
+    <div class="col-md-9">
+        {!! Form::textarea('description', $doctor->description, [
+            'id' => 'description', 
+            'class' => 'form-control', 
+            'placeholder' => 'Écrivez une description'
+        ]) !!}
+    </div>
+</div>
+
+<script>
+    tinymce.init({
+        selector: '#description', // Cible le textarea
+        height: 200,
+        plugins: 'advlist autolink lists link charmap preview anchor',
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat',
+        menubar: false,
+        branding: false,
+        entity_encoding: "raw",  // 🔹 Permet de lire les caractères spéciaux
+        valid_elements: "*[*]",  // 🔹 Accepte tous les éléments HTML
+        content_css: false,      // 🔹 Empêche TinyMCE de forcer son propre style
+    });
+</script>
+
+
+
 
 
                         <!-- Méthodes de paiement -->
@@ -537,7 +570,7 @@
 
 
 
-            <!-- *************************GESTION CV -->
+<!-- *************************GESTION CV -->
             @if(session('success'))
                 <script>
                     alert("{{ session('success') }}");
@@ -564,30 +597,28 @@
             <!-- Conteneur des champs Diplômes et Langues -->
             <div class="collapse mt-3" id="curriculumVitae">
                 <div class="row">
-<!-- Champ Sélection de la Spécialité -->
-<!-- Champ Affichage de la Spécialité -->
-<div class="col-md-6">
-    <div class="form-group d-flex align-items-center">
-        {!! Form::label('speciality', trans("lang.Speciality"), ['class' => 'col-md-3 control-label text-md-right']) !!}
-        <div class="col-md-9">
-            <input type="text" class="form-control" value="{{ $specialitySelected ? $specialitySelected->name : 'Non défini' }}" readonly>
-            <!-- Champ caché pour envoyer l'ID de la spécialité si nécessaire -->
-            <input type="hidden" name="speciality_id" value="{{ $specialitySelected ? $specialitySelected->id : '' }}">
+        <!-- Champ Affichage de la Spécialité -->
+        <div class="col-md-6">
+            <div class="form-group d-flex align-items-center">
+                {!! Form::label('speciality', trans("lang.Speciality"), ['class' => 'col-md-3 control-label text-md-right']) !!}
+                <div class="col-md-9">
+                    <input type="text" class="form-control" value="{{ $specialitySelected ? $specialitySelected->name : 'Non défini' }}" readonly>
+                    <!-- Champ caché pour envoyer l'ID de la spécialité si nécessaire -->
+                    <input type="hidden" name="speciality_id" value="{{ $specialitySelected ? $specialitySelected->id : '' }}">
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
 
-<!-- Description Field -->
-<!-- Description Field -->
-<div class="col-md-6">
-    <div class="form-group d-flex align-items-center">
-        {!! Form::label('description', 'Description spécialité', ['class' => 'col-md-3 control-label text-md-right']) !!}
-        <div class="col-md-9">
-            <textarea name="description" class="form-control" placeholder="Écrivez la description de votre spécialité" style="height: 80px;">{{ $descriptionSpecialite ?? '' }}</textarea>
+        <!-- Description Field -->
+        <div class="col-md-6">
+            <div class="form-group d-flex align-items-center">
+                {!! Form::label('description', 'Description spécialité', ['class' => 'col-md-3 control-label text-md-right']) !!}
+                <div class="col-md-9">
+                    <textarea name="description" class="form-control" placeholder="Écrivez la description de votre spécialité" style="height: 80px;">{{ $descriptionSpecialite ?? '' }}</textarea>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
 
 
@@ -768,19 +799,19 @@
             }
         });
     });
-});
+    });
             </script>
 
 
 
-            <!-- ************************* GESTION PHOTOS, VIDÉOS -->
+            <!-- ************************* GESTION PHOTOS -->
             <!-- Bouton pour afficher/masquer la section du Cabinet -->
             <button
                 class="btn bg-{{ setting('theme_color') }} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
                 type="button" data-toggle="collapse" data-target="#mediaSection" aria-expanded="false"
                 aria-controls="mediaSection" id="toggleMedia">
                 <span class="d-flex align-items-center">
-                    <i class="fas fa-camera mr-2"></i> Photos et Vidéos du Cabinet
+                    <i class="fas fa-camera mr-2"></i> Photos du Cabinet
                 </span>
                 <i class="fas fa-angle-down fa-lg" id="arrowIcon"></i>
             </button>
@@ -789,50 +820,80 @@
 
 
 
-            <!-- *************************GESTION PHOTOS, VIDÉOS -->
+            <!-- *************************GESTION PHOTOS -->
 
 
             <!-- Section Média -->
             <div class="collapse mt-3" id="mediaSection">
-                <div class="card-body">
-                    <!-- Section d'importation via Dropzone -->
-                    <div id="uploadSection">
-                        <button id="createMedia" class="btn mb-3"
-                            style="background-color: #5c6bc0; border-color: #5c6bc0; color: #fff;">Importer des images
-                            du cabinet</button>
+            <div class="card-body">
+            <div style="font-size: 16px; text-align: justify;">
+    <div>
+        <i class="fas fa-user-edit" style="color: #5c6bc0; margin-right: 8px;"></i>
+        <span>Complétez votre profil sur WIC Doctor : Téléchargez des photos professionnelles de votre cabinet pour bénéficier pleinement de nos services.</span>
+    </div><br>
 
-                        <div id="createMediaField" class="row" style="display: none;">
-                            <div class="col-12">
-                                <!-- Conteneur Dropzone dédié au cabinet -->
-                                <div id="cabinetDropzone" class="dropzone" data-field="cabinet"></div>
-                                <button id="doneMedia"
-                                    class="btn btn-outline-primary btn-sm float-right mt-2">Terminer</button>
-                                <div class="form-text text-muted">Importer vos images du cabinet ici.</div>
-                            </div>
-                        </div>
-                    </div>
+    <div>
+        <i class="fas fa-shield-alt" style="color: #ff9800; margin-right: 8px;"></i>
+        <strong style="font-size: 18px; color: #333;">Veillez à respecter les critères de confidentialité et de qualité requis !</strong>
+    </div><br>
 
-                    <!-- Galerie : Afficher les images importées -->
-                    <div class="row medias-items">
-                        <div class="card loader">
-                            <div class="overlay">
-                                <i class="fas fa-redo-alt fa-spin"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div>
+        <i class="fas fa-check-circle" style="color: #4caf50; margin-right: 8px;"></i>
+        <span>Une fois vos images envoyées, elles seront examinées par l’administrateur. Si elles sont acceptées, elles seront publiées sur votre profil.</span>
+    </div>
+    </div>
+
+
+    <!-- Section d'importation via Dropzone -->
+    <div id="uploadSection">
+        <button id="createMedia" class="btn mt-2 mb-2"
+            style="background-color: #5c6bc0; border-color: #5c6bc0; color: #fff;">Importer</button>
+
+        <div id="createMediaField" class="row" style="display: none;">
+            <div class="col-12">
+                <!-- Conteneur Dropzone dédié au cabinet -->
+                <div id="cabinetDropzone" class="dropzone" data-field="cabinet"></div>
+                <button id="doneMedia"
+                    class="btn btn-outline-primary btn-sm float-right mt-2">Terminer</button>
+                <div class="form-text text-muted">Importer vos images du cabinet ici.</div>
             </div>
         </div>
     </div>
-</div>
-@endsection
 
-@push('scripts_lib')
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <script src="{{ asset('vendor/dropzone/min/dropzone.min.js') }}"></script>
-@endpush
+    <!-- Galerie : Afficher les images importées -->
+    <div class="row medias-items">
+        <div class="card loader">
+            <div class="overlay">
+                <i class="fas fa-redo-alt fa-spin"></i>
+            </div>
+        </div>
+    </div>
+    </div>
 
-@push('scripts')
+            </div>
+            <button
+    class="btn bg-{{setting('theme_color')}} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
+    type="button" onclick="window.location.href='/doctor_tag';">
+    <span class="d-flex align-items-center">
+        <!-- Icône de tag (remplacer l'icône actuelle) -->
+        <i class="fas fa-tag mr-2"></i> Expertises et actes 
+    </span>
+</button>
+
+        </div>
+
+        </div>
+
+    </div>
+
+    @endsection
+
+    @push('scripts_lib')
+        <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+        <script src="{{ asset('vendor/dropzone/min/dropzone.min.js') }}"></script>
+    @endpush
+
+    @push('scripts')
     <script type="text/javascript">
         // Désactive autoDiscover pour initialiser Dropzone manuellement
         Dropzone.autoDiscover = false;
@@ -869,86 +930,146 @@
                 $('#createMediaField').hide();
                 cabinetDropzone.removeAllFiles(true);
             });
+function loadMedia() {
+    let mediaContainer = $('.medias-items');
+    mediaContainer.html(`
+        <div class="card loader">
+            <div class="overlay">
+                <i class="fas fa-redo-alt fa-spin"></i>
+            </div>
+        </div>
+    `);
 
-            // Fonction pour actualiser la galerie des médias du cabinet
-            function loadMedia() {
-                let mediaItems = $('.medias-items');
-                mediaItems.html(`
-                                                                                                                                                                        <div class="card loader">
-                                                                                                                                                                            <div class="overlay">
-                                                                                                                                                                                <i class="fas fa-redo-alt fa-spin"></i>
-                                                                                                                                                                            </div>
-                                                                                                                                                                        </div>
-                                                                                                                                                                    `);
-                $.ajax({
-                    url: "{{ route('doctors_gallery.all_cabinet') }}",
-                    method: 'GET',
-                    success: function (data) {
-                        let html = '';
-                        data.forEach(item => {
-                            // Utiliser custom_properties.uuid si disponible, sinon le nom du fichier
-                            let theUuid = (item.custom_properties && item.custom_properties.uuid) ? item.custom_properties.uuid : item.file_name;
-                            html += `
-                                                                                                                                                                                    <div class="media-item m-2">
-                                                                                                                                                                                        <div class="card clickble" style="position: relative;">
-                                                                                                                                                                                            <button class="btn btn-sm btn-danger delete-media" style="display:none; position:absolute; top:5px; right:5px;" data-uuid="${theUuid}">
-                                                                                                                                                                                                <i class="fas fa-trash-alt"></i>
-                                                                                                                                                                                            </button>
-                                                                                                                                                                                            <img class="card-img-top" src="${item.thumb}" alt="${item.file_name}">
-                                                                                                                                                                                            <div class="card-footer text-center">
-                                                                                                                                                                                                <small>${item.name} (${item.formated_size})</small>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                        </div>
-                                                                                                                                                                                    </div>`;
-                        });
-                        mediaItems.html(html);
-                        initDeleteButtons();
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Erreur lors du chargement des médias du cabinet :", error);
-                        mediaItems.html('<p>Erreur lors du chargement des médias. Veuillez consulter la console ou les logs.</p>');
-                    }
-                });
+    $.ajax({
+        url: "{{ route('doctors_gallery.all_cabinet') }}",
+        method: 'GET',
+        success: function (data) {
+            let enAttenteHtml = '<div class="section"><h5 class="mt-4">📌 En Attente</h5><div class="row d-flex flex-wrap justify-content-start row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">';
+let accepteHtml = '<div class="section"><h5 class="mt-4">✅ Accepté</h5><div class="row d-flex flex-wrap justify-content-start row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">';
+let refuseHtml = '<div class="section"><h5 class="mt-4">❌ Refusé</h5>';
+
+            let enAttenteFound = false;
+            let accepteFound = false;
+            let refuseFound = false;
+
+// Ajouter le message d'avertissement avant les images
+refuseHtml += '<p class="text-muted mt-2">Ces photos ne respectent pas les critères de confidentialité et de qualité. Merci de télécharger des photos professionnelles de votre cabinet, sans patients ni contenu sensible, pour valider votre profil.</p>';
+refuseHtml += '<div class="row d-flex flex-wrap justify-content-start row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4">';
+
+            // Parcourir les données et organiser par statut
+            data.forEach(item => {
+                let theUuid = item.file_name;
+                let mediaCard = `
+    <div class="col-md-3 col-sm-6 col-12 media-item m-2"><div class="card clickble" style="position: relative;">
+                            <button class="btn btn-sm btn-danger delete-media" 
+                                style="display:none; position:absolute; top:5px; right:5px;" 
+                                data-uuid="${theUuid}"
+                                data-status="${item.status}"> <!-- Ajouter le statut ici -->
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+        <img class="card-img-top" src="${item.thumb}" alt="${item.file_name}" 
+            style="height: 200px; object-fit: cover; width: 100%;">                        </div>
+                    </div>
+                `;
+
+                // Ajouter le fichier dans la section appropriée en fonction du statut
+                if (item.status === 'en_attente') {
+                    enAttenteHtml += mediaCard;
+                    enAttenteFound = true;
+                } else if (item.status === 'accepte') {
+                    accepteHtml += mediaCard;
+                    accepteFound = true;
+                } else if (item.status === 'refuse') {
+                    refuseHtml += mediaCard;
+                    refuseFound = true;
+                }
+            });
+
+            // Si aucune image n'a été trouvée pour une section, ne pas afficher la section
+            if (!enAttenteFound) {
+                enAttenteHtml = ''; // Supprimer la section "En Attente"
+            } else {
+                enAttenteHtml += '</div></div>'; // Fermer la section "En Attente"
             }
+
+            if (!accepteFound) {
+                accepteHtml = ''; // Supprimer la section "Accepté"
+            } else {
+                accepteHtml += '</div></div>'; // Fermer la section "Accepté"
+            }
+
+            if (!refuseFound) {
+                refuseHtml = ''; // Supprimer la section "Refusé"
+            } else {
+                refuseHtml += '</div></div>'; // Fermer la section "Refusé"
+            }
+
+            // Si au moins une section contient des images, on met à jour le conteneur
+            if (enAttenteHtml || accepteHtml || refuseHtml) {
+                mediaContainer.html(enAttenteHtml + accepteHtml + refuseHtml);
+            } else {
+                mediaContainer.html('<p class="text-center">Aucune image disponible.</p>');
+            }
+
+            initDeleteButtons(); // Assurez-vous d'initialiser les boutons de suppression
+        },
+        error: function (xhr, status, error) {
+            console.error("Erreur lors du chargement des médias du cabinet :", error);
+            mediaContainer.html('<p class="text-danger">Erreur lors du chargement des médias.</p>');
+        }
+    });
+}
 
             // Initialiser les boutons de suppression avec confirmation
             function initDeleteButtons() {
-                $('.delete-media').off('click').on('click', function (e) {
-                    e.preventDefault();
-                    let btn = $(this);
-                    let uuid = btn.data('uuid');
-                    swal({
-                        title: "Êtes-vous sûr ?",
-                        text: "Voulez-vous supprimer cette image ?",
-                        icon: "warning",
-                        buttons: true,
-                        dangerMode: true,
-                    }).then((willDelete) => {
-                        if (willDelete) {
-                            $.post("{{ route('doctors_gallery.clear_file') }}", {
-                                _token: '{{ csrf_token() }}',
-                                uuid: uuid
-                            }).done(function (data) {
-                                if (data && data.success === true) {
-                                    loadMedia(); // Actualiser la galerie après suppression
-                                } else {
-                                    swal("Erreur", data.message, "error");
-                                }
-                            }).fail(function () {
-                                swal("Erreur", "Erreur lors de la suppression du fichier.", "error");
-                            });
-                        }
-                    });
-                });
+    $('.delete-media').off('click').on('click', function (e) {
+        e.preventDefault();
+        let btn = $(this);
+        let uuid = btn.data('uuid');
+        let encodedUuid = encodeURIComponent(uuid);
 
-                // Afficher le bouton de suppression au survol
-                $('.card.clickble').hover(function () {
-                    $(this).find('.delete-media').show();
-                }, function () {
-                    $(this).find('.delete-media').hide();
+        let status = btn.data('status'); // Récupérer le statut du fichier
+
+        swal({
+            title: "Êtes-vous sûr ?",
+            text: "Voulez-vous supprimer cette image ?",
+            icon: "warning",
+            buttons: true,
+            dangerMode: true,
+        }).then((willDelete) => {
+            if (willDelete) {
+                $.ajax({
+    url: "{{ route('doctors_gallery.clear_file') }}",
+    method: 'POST',
+    data: {
+        _token: '{{ csrf_token() }}',
+        uuid: encodedUuid,
+        status: status
+    },
+                    success: function (data) {
+                        if (data && data.success === true) {
+                            swal("Succès", "Fichier supprimé avec succès", "success");
+                            loadMedia(); // Actualiser la galerie après suppression
+                        } else {
+                            swal("Erreur", data.message || "Erreur lors de la suppression du fichier.", "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        swal("Erreur", "Erreur lors de la suppression du fichier.", "error");
+                        console.error("Erreur lors de la suppression du fichier :", error);
+                    }
                 });
             }
+        });
+    });
 
+    // Afficher le bouton de suppression au survol
+    $('.card.clickble').hover(function () {
+        $(this).find('.delete-media').show();
+    }, function () {
+        $(this).find('.delete-media').hide();
+    });
+}
             // Chargement initial de la galerie
             loadMedia();
 
@@ -958,4 +1079,4 @@
             });
         });
     </script>
-@endpush
+    @endpush

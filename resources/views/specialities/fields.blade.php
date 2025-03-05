@@ -12,9 +12,25 @@
             </div>
         </div>
     </div>
+<!-- Pays Field -->
+<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+    {!! Form::label('pays', trans("lang.speciality_country"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+    <div class="col-md-9">
+        {!! Form::select('pays', [
+            '' => trans("lang.select_country"), 
+            'France' => 'France', 
+            'Tunisie' => 'Tunisie'
+        ], null, ['class' => 'form-control', 'required', 'oninvalid' => "this.setCustomValidity('Veuillez sélectionner un pays')", 'oninput' => "setCustomValidity('')"]) !!}
+        <div class="form-text text-muted">
+            {{ trans("lang.speciality_country_help") }}
+        </div>
+    </div>
+</div>
+
+
 
     <!-- Color Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+<!--     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('color', trans("lang.speciality_color"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             {!! Form::text('color', null,  ['class' => 'form-control','placeholder'=>  trans("lang.speciality_color_placeholder")]) !!}
@@ -22,7 +38,7 @@
                 {{ trans("lang.speciality_color_help") }}
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Description Field -->
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
@@ -95,7 +111,7 @@
 @endprepend
 
 <!-- Order Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+<!--     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('order', trans("lang.speciality_order"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             {!! Form::number('order', null,  ['class' => 'form-control','step'=>'1','min'=>'0', 'placeholder'=>  trans("lang.speciality_order_placeholder")]) !!}
@@ -103,17 +119,17 @@
                 {{ trans("lang.speciality_order_help") }}
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Parent Id Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+<!--     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('parent_id', trans("lang.speciality_parent_id"),['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             {!! Form::select('parent_id', $parentSpeciality, null, ['data-empty'=>trans("lang.speciality_parent_id_placeholder"), 'class' => 'select2 not-required form-control']) !!}
             <div class="form-text text-muted">{{ trans("lang.speciality_parent_id_help") }}</div>
         </div>
     </div>
-
+ -->
 </div>
 @if($customFields)
     <div class="clearfix"></div>
@@ -124,11 +140,6 @@
 @endif
 <!-- Submit Field -->
 <div class="form-group col-12 d-flex flex-column flex-md-row justify-content-md-end justify-content-sm-center border-top pt-4">
-    <div class="d-flex flex-row justify-content-between align-items-center">
-        {!! Form::label('featured', trans("lang.speciality_featured_help"),['class' => 'control-label my-0 mx-3'],false) !!} {!! Form::hidden('featured', 0, ['id'=>"hidden_featured"]) !!}
-        <span class="icheck-{{setting('theme_color')}}">
-            {!! Form::checkbox('featured', 1, null) !!} <label for="featured"></label> </span>
-    </div>
     <button type="submit" class="btn bg-{{setting('theme_color')}} mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2">
         <i class="fa fa-save"></i> {{trans('lang.save')}} {{trans('lang.speciality')}}
     </button>

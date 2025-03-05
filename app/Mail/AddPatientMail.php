@@ -27,8 +27,8 @@ class AddPatientMail extends Mailable
         return $this->subject('Bienvenue chez Wic-Doctor')
                     ->view('emails.add_patient')
                     ->with([
-                        'userName' => $this->user->name,
-                        'userLastname' => $this->user->lastname,
+                        'userName' => json_decode($this->user->name, true)['fr'] ?? $this->user->name,
+                        'userLastname' => json_decode($this->user->lastname, true)['fr'] ?? $this->user->lastname,
                         'generatedPassword' => $this->generatedPassword,
                         'email' => $this->email,
                         'shortUrl' => $this->shortUrl, // Passez le lien court à la vue
