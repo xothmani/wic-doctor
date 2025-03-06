@@ -29,6 +29,7 @@
     </div><!-- /.container-fluid -->
 </div>
 <!-- /.content-header -->
+
 @if(session('success'))
     <div id="success-alert" class="alert alert-success">
         {{ session('success') }}
@@ -74,10 +75,6 @@
                             <i class="fa fa-list mr-2"></i>{{trans('lang.doctor_request_table')}}
                         </a>
                     </li>
-
-
-
-                  
                 </div>
                 @include('layouts.right_toolbar', compact('dataTable'))
             </ul>
@@ -89,3 +86,20 @@
     </div>
 </div>
 @endsection
+
+<!-- Firebase Configuration -->
+<script>
+    const firebaseConfig = {
+        apiKey: "{{ env('FIREBASE_API_KEY') }}",
+        authDomain: "{{ env('FIREBASE_AUTH_DOMAIN') }}",
+        databaseURL: "{{ env('FIREBASE_DATABASE_URL') }}",
+        projectId: "{{ env('FIREBASE_PROJECT_ID') }}",
+        storageBucket: "{{ env('FIREBASE_STORAGE_BUCKET') }}",
+        messagingSenderId: "{{ env('FIREBASE_MESSAGING_SENDER_ID') }}",
+        appId: "{{ env('FIREBASE_APP_ID') }}",
+        measurementId: "{{ env('FIREBASE_MEASUREMENT_ID', '') }}"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+</script>

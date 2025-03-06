@@ -57,7 +57,8 @@ use App\Models\Address;
  * @property integer user_id
  */
 class Doctor extends Model implements HasMedia, Castable
-{
+{    protected $guard = 'doctor'; 
+
     use InteractsWithMedia {
         getFirstMediaUrl as protected getFirstMediaUrlTrait;
     }
@@ -523,6 +524,9 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
      * and his
      * Provider is ready so he is accepted by admin and marked as available and is open now
      */
+
+
+     
     public function getAvailableAttribute(): bool
     {
         return isset($this->attributes['available']) && $this->attributes['available'] && isset($this->clinic) && $this->openingHours()->isOpen();

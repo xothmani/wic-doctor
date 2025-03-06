@@ -20,6 +20,7 @@
 use App\Http\Controllers\API\PayPalAPIController;
 use App\Http\Controllers\API\DoctorAPIController;
 
+use App\Http\Controllers\ChatController;
 
 
 Route::prefix('clinic_owner')->group(function () {
@@ -135,6 +136,10 @@ Route::resource('appointment_statuses', 'API\AppointmentStatusAPIController')->e
     'show'
 ]);
 
+
+Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+
+Route::post('messages', [ChatController::class, 'message']);
 
 Route::resource('patients', 'API\PatientAPIController');
 

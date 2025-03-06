@@ -61,7 +61,8 @@
     </li>
 @endcan
 
-@can('telesecretariats.index')
+
+<!-- @can('telesecretariats.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('telesecretariats') ? 'active' : '' }}"
             href="{!! route('telesecretariats.index') !!}">
@@ -72,7 +73,7 @@
             <p>{{ trans('lang.telesecretariat_plural') }}</p>
         </a>
     </li>
-@endcan
+@endcan -->
 
 @can('doctor_telesecretariat.index')
     <li class="nav-item">
@@ -97,6 +98,9 @@
         </a>
     </li>
 @endcan
+
+
+
 
 
 @can('newsletters.index')
@@ -356,16 +360,23 @@
         </a>
     </li>
 @endcan
-@can('Messagerie.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('Messagerie*') ? 'active' : '' }}" href="{!! route('messagerie.index') !!}">
-            @if($icons)
-            <i class="nav-icon fas fa-comment-dots"></i>
-            @endif
-            <p>Messagerie</p> <!-- Texte directement modifié ici -->
-        </a>
+
+
+@can('chat.index')
+<li class="nav-item">
+
+    <a class="nav-link {{ Request::is('chat*') ? 'active' : '' }}" href="{{ url('/chat') }}">
+        @if($icons)
+            <i class="nav-icon fas fa-comments"></i> <!-- Icône de messagerie -->
+        @endif
+        <p>Messagerie</p>
+    </a>
     </li>
 @endcan
+
+
+
+<!--  -->
 @can('addresses.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"
