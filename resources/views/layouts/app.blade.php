@@ -23,7 +23,8 @@
 <body class="@if(in_array(app()->getLocale(), ['ar','ku','fa','ur','he','ha','ks'])) rtl @else ltr @endif layout-fixed {{setting('fixed_header',false) ? "layout-navbar-fixed" : ""}} {{setting('fixed_footer',false) ? "layout-footer-fixed" : ""}} sidebar-mini {{setting('theme_color')}} {{setting('theme_contrast','')}}-mode" data-scrollbar-auto-hide="r" data-scrollbar-theme="os-theme-dark">
 @yield('scripts')
 <div class="wrapper">
-
+<!-- Global Active Doctor Component -->
+<x-active-doctor />
     <nav class="main-header navbar navbar-expand {{setting('nav_color','navbar-light navbar-white')}} border-bottom-0">
         <ul class="navbar-nav">
             <li class="nav-item">

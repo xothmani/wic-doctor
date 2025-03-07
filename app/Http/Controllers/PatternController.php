@@ -39,7 +39,7 @@ class PatternController extends Controller
 
     public function create()
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         if (!$doctorId) {
             Flash::error(__('Aucun médecin associé trouvé.'));
@@ -63,7 +63,7 @@ class PatternController extends Controller
 
     public function store(CreatePatternRequest $request): RedirectResponse
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         if (!$doctorId) {
             Flash::error(__('Aucun médecin associé trouvé.'));
@@ -128,7 +128,7 @@ class PatternController extends Controller
 
     public function update($id, UpdatePatternRequest $request): RedirectResponse
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         if (!$doctorId) {
             Flash::error(__('Aucun médecin associé trouvé.'));
@@ -171,7 +171,7 @@ class PatternController extends Controller
 
     public function destroy($id)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         if (!$doctorId) {
             Flash::error(__('Aucun médecin associé trouvé.'));

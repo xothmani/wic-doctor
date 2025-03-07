@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Stripe\Stripe;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Doctor;
+use Illuminate\Support\Facades\Log;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -90,5 +95,25 @@ class AppServiceProvider extends ServiceProvider
         } catch (Exception $e) {
 
         }
+
+
+        View::composer('*', function ($view) {
+            $activeDoctor = null;
+
+            if (Auth::check()) {
+                $user = Auth::user();
+
+                if ($user->hasRole('Telesecretary')) {
+                    // Only Telesecretary can have an active doctor
+                    $doctorId = session('selectedDoctorId');
+
+                    if ($doctorId) {
+                        $activeDoctor = Doctor::find($doctorId);
+                    }
+                }
+            }
+
+            $view->with('activeDoctor', $activeDoctor);
+        });
     }
 }

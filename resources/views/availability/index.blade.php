@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
         $permissionKey = 'availability.index';
         $permission = \Spatie\Permission\Models\Permission::where('name', $permissionKey)->with('readable')->first();
         $readablePermission = $permission ? $permission->display_name : $permissionKey;

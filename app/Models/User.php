@@ -76,7 +76,7 @@ class User extends Authenticatable implements HasMedia
         'device_token',
         'last_login_at',
 
-        
+
     ];
     /**
      * The attributes that should be casted to native types.
@@ -316,8 +316,21 @@ class User extends Authenticatable implements HasMedia
         // For other roles, return null
         return null;
     }
-
-
+    /**
+     * Get the active doctor id for the current user.
+     *
+     * If the user has the Tele role, it returns the doctor id stored in the session.
+     * Otherwise, it returns the doctor id associated with the user.
+     *
+     * @return int|null
+     */
+    public function getActiveDoctorId(): ?int
+    {
+        if ($this->hasRole('Telesecretary')) {
+            return session('selectedDoctorId');
+        }
+        return $this->getDoctorId(); // assuming getDoctorId() exists on your model
+    }
     public function patient()
     {
         return $this->hasOne(Patient::class);

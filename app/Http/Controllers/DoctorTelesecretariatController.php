@@ -15,6 +15,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log; // Add this line to import Log
 use App\Models\DoctorSubstitute;
+use App\Models\ProfileManagement;
 
 
 class DoctorTelesecretariatController extends Controller
@@ -24,46 +25,60 @@ class DoctorTelesecretariatController extends Controller
     {
         Log::info('Entered the index method');
         try {
-            $userId = Auth::id();
+            $user = auth()->user();
+            $telesecretariat = Telesecretariat::where('user_id', $user->id)->first();
+            // Vérifier si cet utilisateur est un télésécrétariat
+            if ($user->hasRole('Telesecretary')) {
+                // Récupérer la liste des médecins associés via doctor_associate
+                $doctors = DoctorTelesecretariat::with(['doctor', 'telesecretariat'])
+                    ->join('doctors', 'doctor_telesecretariat.doctor_id', '=', 'doctors.id') // Jointure sur la table doctor
+                    ->where('telesecretariat_id', $telesecretariat->id)
+                    ->orderBy('doctors.name', 'asc') // Trier par nom du médecin
+                    ->get();
 
-            // Chercher cet ID dans la table Telesecretariat
-            $telesecretariat = Telesecretariat::where('user_id', $userId)->first();
-            Log::info('Fetched Telesecretariat', ['telesecretariat' => $telesecretariat]);
+                // Vérifier si un doctor_id sélectionné existe dans la session
+                $selectedDoctorId = session('selectedDoctorId');
+                if (!$selectedDoctorId && $doctors->count() > 0) {
+                    // Si aucun n'est sélectionné, on prend le premier médecin de la liste
+                    $selectedDoctorId = $doctors->first()->id;
+                    session(['selectedDoctorId' => $selectedDoctorId]);
+                }
 
-            if ($telesecretariat) {
-                // Default empty collections to prevent errors
+                // Préparer les collections vides pour l'agenda, etc.
+                $availabilityDays = collect();
+                $vacations = collect();
+                $patterns = collect();
+                $patients = collect();
+
+                // Retourner la vue avec la liste des médecins et le doctor_id sélectionné
+                return view('doctor_telesecretariat.agenda_card', compact(
+                    'doctors',
+                    'availabilityDays',
+                    'patterns',
+                    'vacations',
+                    'patients',
+                    'selectedDoctorId'
+                ));
+            } else {
+                // Si l'utilisateur n'est pas trouvé dans la table telesecretariat,
+                // renvoyer la vue avec une liste de médecins vide.
                 $doctors = collect();
                 $availabilityDays = collect();
                 $vacations = collect();
                 $patterns = collect();
                 $patients = collect();
 
-                try {
-                    // Récupérer les médecins associés via DoctorTelesecretariat, avec jointure sur la table doctor
-                    $doctors = DoctorTelesecretariat::with(['doctor', 'telesecretariat'])
-                        ->join('doctors', 'doctor_telesecretariat.doctor_id', '=', 'doctors.id')
-                        ->where('telesecretariat_id', $telesecretariat->id)
-                        ->orderBy('doctors.name', 'asc')
-                        ->get();
-                } catch (\Exception $e) {
-                    Log::error('Error fetching doctors', ['error' => $e->getMessage()]);
-                }
-
-                return view('doctor_telesecretariat.agenda_card', compact('doctors', 'availabilityDays', 'patterns', 'vacations', 'patients'));
-            } else {
-                return view('doctor_telesecretariat.agenda_card', compact('doctors', 'availabilityDays', 'patterns', 'vacations', 'patients'));
+                return view('doctor_telesecretariat.agenda_card', compact(
+                    'doctors',
+                    'availabilityDays',
+                    'patterns',
+                    'vacations',
+                    'patients'
+                ));
             }
-
         } catch (\Exception $e) {
             Log::error('Error in index method', ['error' => $e->getMessage()]);
-            return view('doctor_telesecretariat.agenda_card', [
-                'doctors' => collect(),
-                'availabilityDays' => collect(),
-                'patterns' => collect(),
-                'vacations' => collect(),
-                'patients' => collect(),
-                'error' => $e->getMessage()
-            ]);
+            abort(500, 'An error occurred while fetching doctors.');
         }
     }
     public function getDoctorData(Request $request)
@@ -1027,29 +1042,72 @@ class DoctorTelesecretariatController extends Controller
             ], 400);
         }
 
-        // Vérifier si l'association existe déjà
-        $exists = DoctorTelesecretariat::where('doctor_id', $doctor->id)
-            ->where('telesecretariat_id', $telesecretariat->id)
+        // =========== LOG THE DOCTOR ID ==========
+        //Log::info('Doctor ID from Auth user:', ['doctor_id' => $doctor->id]);
+
+        // ENREGISTRER AUSSI DANS LA TABLE doctor_associate
+        $alreadyAssociated = \DB::table('doctor_associate')
+            ->where('doctor_id', $doctor->id)
+            ->where('user_id', $user->id)
             ->exists();
 
-        if ($exists) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cette association existe déjà.'
-            ], 400);
+        if (!$alreadyAssociated) {
+            \DB::table('doctor_associate')->insert([
+                'doctor_id' => $doctor->id,
+                'user_id' => $user->id,
+            ]);
+            //Log::info('Store method called just now!');
+
         }
 
-        // Créer l'association
-        $doctorTelesecretariat = new DoctorTelesecretariat();
-        $doctorTelesecretariat->doctor_id = $doctor->id;
-        $doctorTelesecretariat->telesecretariat_id = $telesecretariat->id;
-        $doctorTelesecretariat->save();
-
-        return response()->json([
-            'success' => true,
-            'email' => $user->email
-        ]);
+        // Redirect + show the ProfileManagement modal
+        return redirect()
+            ->route('doctor_telesecretariat.create')
+            ->with('success', 'Association créée avec succès!')
+            ->with('show_modal', true)
+            ->with('profile_user_id', $user->id)
+            ->with('profile_user_email', $user->email);
     }
+
+    public function storeProfileManagment(Request $request)
+    {
+        // 1) Validate the incoming data
+        $validatedData = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'is_active' => 'sometimes|boolean',
+        ]);
+
+        // 2) Find the user
+        $user = User::findOrFail($validatedData['user_id']);
+
+        // 3) Get the doctor from the currently logged in user
+        $doctor = Auth::user()->doctor;
+        if (!$doctor) {
+            return redirect()
+                ->route('doctor_telesecretariat.create')
+                ->with('error', 'Vous n\'êtes pas enregistré comme médecin.');
+        }
+
+
+        // 4) Create and save the new ProfileManagement record
+        $profile = new ProfileManagement();
+        $profile->user_id = $user->id;
+        $profile->doctor_id = $doctor->id;
+        $profile->start_date = $validatedData['start_date'] ?? null;
+        $profile->end_date = $validatedData['end_date'] ?? null;
+        $profile->is_active = $request->has('is_active');
+        // or: $profile->is_active = $request->boolean('is_active'); // if you prefer
+
+        $profile->save();
+
+        // 5) Redirect back (or wherever you want) with a success message
+        return redirect()
+            ->route('doctor_telesecretariat.create')
+            ->with('success', 'Profile Management créé avec succès!');
+    }
+
     public function BackgroundColorForAgenda(Request $request)
     {
         $doctorId = $request->input('doctor_id'); // Use doctor_id from request

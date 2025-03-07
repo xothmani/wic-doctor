@@ -28,6 +28,7 @@ use App\Models\Patient;
 use App\Models\Doctor;
 
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Session;
 use App\Mail\AddPatientMail;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -75,6 +76,8 @@ class PatientController extends Controller
      */
     public function index(PatientDataTable $patientDataTable): mixed
     {
+        $doctorId = auth()->user()->getActiveDoctorId();
+        Log::info('Active doctor id used in PatientController::index', ['doctorId' => $doctorId]);
         return $patientDataTable->render('patients.index');
     }
 
@@ -246,7 +249,7 @@ class PatientController extends Controller
             $shortUrlResponse = $this->genererLink();
 
 
-            $doctorId = auth()->user()->getDoctorId();
+            $doctorId = auth()->user()->getActiveDoctorId();
 
             $doctor = Doctor::find($doctorId);
 
@@ -322,7 +325,7 @@ class PatientController extends Controller
     private function associatePatientToDoctor(\App\Models\Patient $patient): bool
     {
 
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         $doctor = Doctor::find($doctorId);
 
@@ -526,7 +529,7 @@ class PatientController extends Controller
         }
 
         // Chercher l'ID du médecin connecté
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         // Chercher l'association du patient avec ce médecin dans la table doctor_patient
         $doctorPatient = \DB::table('doctor_patients')
@@ -632,7 +635,7 @@ class PatientController extends Controller
 
     public function genererLink()
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         $doctor = Doctor::find($doctorId);
 

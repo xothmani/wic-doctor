@@ -44,9 +44,9 @@ class AvailabilityController extends Controller
         if (!auth()->check()) {
             return redirect()->route('login'); // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
         }
-    
+
         // Récupérer l'ID du médecin lié à l'utilisateur connecté
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         if (!$doctorId) {
             return redirect()->route('users.profile');
@@ -231,7 +231,7 @@ class AvailabilityController extends Controller
 
     public function indexTele()
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
         Log::info("Retrieving doctor ID: {$doctorId}");
 
         if (!$doctorId) {
@@ -282,7 +282,7 @@ class AvailabilityController extends Controller
     public function store(Request $request)
     {
         \Log::info('Request received:', ['request' => $request->all()]);
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
         $type = $request->input('type', 'cabinet');
 
         try {
@@ -447,7 +447,7 @@ class AvailabilityController extends Controller
 
     public function storeOpen(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
         $type = $request->input('type', 'cabinet');
 
         try {
@@ -634,7 +634,7 @@ class AvailabilityController extends Controller
 
     public function storeTele(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
         Log::info("Retrieving doctor ID: {$doctorId}");
 
 
@@ -731,7 +731,7 @@ class AvailabilityController extends Controller
 
     public function storeVacation(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         try {
             $validated = $request->validate([
@@ -756,7 +756,7 @@ class AvailabilityController extends Controller
 
     public function deleteVacation($id)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         try {
             DB::table('vacance')
@@ -773,7 +773,7 @@ class AvailabilityController extends Controller
 
     public function storeBreaks(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         try {
             $validated = $request->validate([
@@ -799,7 +799,7 @@ class AvailabilityController extends Controller
     public function getAvailableTimeSlotsForOpen(Request $request)
     {
         \Log::info('Request received-2', ['request' => $request->all()]);
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
         $selectedDate = $request->input('date');
         $type = $request->input('type', 'cabinet'); // Default to cabinet if not specified
 
@@ -854,7 +854,7 @@ class AvailabilityController extends Controller
 
     public function storeSubstitute(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         try {
             $validated = $request->validate([
@@ -881,7 +881,7 @@ class AvailabilityController extends Controller
 
     public function deleteSubstitute($id)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         try {
             DoctorSubstitute::where('id', $id)
@@ -897,7 +897,7 @@ class AvailabilityController extends Controller
 
     public function getSubstitutesForRange(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
         $startDate = $request->start_date;
         $endDate = $request->end_date;
 
@@ -909,7 +909,7 @@ class AvailabilityController extends Controller
 
     public function getWeeklyAppointmentsCount(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
         $startDate = $request->start_date;
         $endDate = $request->end_date;
 
@@ -930,7 +930,7 @@ class AvailabilityController extends Controller
 
     public function getDailyAppointmentsCount(Request $request)
     {
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
         $date = $request->date;
 
         $total = Appointment::where('doctor_id', $doctorId)

@@ -12,6 +12,7 @@ class ActiveDoctor extends Component
 
     public function __construct()
     {
+        \Log::info('ActiveDoctor');
         $user = Auth::user();
         if ($user) {
             if ($user->hasRole('Telesecretary')) {

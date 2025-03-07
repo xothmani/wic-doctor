@@ -63,7 +63,7 @@ class PatternDataTable extends DataTable
             return $query;
         }
 
-        $doctorId = auth()->user()->getDoctorId();
+        $doctorId = auth()->user()->getActiveDoctorId();
 
         if ($doctorId) {
             return $query->where('doctor_id', $doctorId);
@@ -72,7 +72,7 @@ class PatternDataTable extends DataTable
         return $query->where('doctor_id', -1); // Return empty if unauthorized
     }
 
-     /**
+    /**
      * Optional method if you want to use html builder.
      *
      * @return Builder

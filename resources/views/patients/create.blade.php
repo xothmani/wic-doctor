@@ -1,34 +1,34 @@
 @extends('layouts.app')
 
 @php
-  $doctorId = auth()->user()->getDoctorId();
+  $doctorId = auth()->user()->getActiveDoctorId();
 @endphp
 
 @section('content')
-@if(auth()->user()->hasPermissionInContext('patients.create', $doctorId))
-  <!-- Content Header (Page header) -->
-  <div class="content-header">
+  @if(auth()->user()->hasPermissionInContext('patients.create', $doctorId))
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
     <div class="container-fluid">
     <div class="row mb-2">
       <div class="col-md-6">
       <h1 class="m-0 text-bold">{{trans('lang.patient_plural')}} <small
-        class="mx-3">|</small><small>{{trans('lang.patient_desc')}}</small></h1>
+      class="mx-3">|</small><small>{{trans('lang.patient_desc')}}</small></h1>
       </div>
       <div class="col-md-6">
       <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-        <li class="breadcrumb-item"><a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt mx-1"></i>
-          {{trans('lang.dashboard')}}</a></li>
-        <li class="breadcrumb-item">
-        <a href="{!! route('patients.index') !!}">{{trans('lang.patient_plural')}}</a>
-        </li>
-        <li class="breadcrumb-item active">{{trans('lang.patient_create')}}</li>
+      <li class="breadcrumb-item"><a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt mx-1"></i>
+        {{trans('lang.dashboard')}}</a></li>
+      <li class="breadcrumb-item">
+      <a href="{!! route('patients.index') !!}">{{trans('lang.patient_plural')}}</a>
+      </li>
+      <li class="breadcrumb-item active">{{trans('lang.patient_create')}}</li>
       </ol>
       </div>
     </div>
     </div>
-  </div>
-  <!-- /.content-header -->
-  <div class="content">
+    </div>
+    <!-- /.content-header -->
+    <div class="content">
     <div class="clearfix"></div>
     @include('flash::message')
     @include('adminlte-templates::common.errors')
@@ -39,12 +39,12 @@
       @can('patients.index')
       <li class="nav-item">
       <a class="nav-link" href="{!! route('patients.index') !!}"><i
-        class="fas fa-list mr-2"></i>{{trans('lang.patient_table')}}</a>
+      class="fas fa-list mr-2"></i>{{trans('lang.patient_table')}}</a>
       </li>
     @endcan
       <li class="nav-item">
-        <a class="nav-link active" href="{!! url()->current() !!}"><i
-          class="fas fa-plus mr-2"></i>{{trans('lang.patient_create')}}</a>
+      <a class="nav-link active" href="{!! url()->current() !!}"><i
+        class="fas fa-plus mr-2"></i>{{trans('lang.patient_create')}}</a>
       </li>
       </ul>
     </div>
@@ -57,17 +57,17 @@
       <div class="clearfix"></div>
     </div>
     </div>
-  </div>
-  @include('layouts.media_modal')
-@else
-  <div class="content-header">
+    </div>
+    @include('layouts.media_modal')
+  @else
+    <div class="content-header">
     <div class="container-fluid">
     <div class="alert alert-danger">
       {{ __('You do not have permission to access this page.') }}
     </div>
     </div>
-  </div>
-@endif
+    </div>
+  @endif
 @endsection
 
 @push('css_lib')
