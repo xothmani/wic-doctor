@@ -2052,7 +2052,14 @@ return [
     'speciality_country' => 'Pays',
     'speciality_country_help' => 'Insérer le Pays',
     'doctor_request_lastname' => 'Nom',
-
+    'consultation_finished' => 'Consultation terminée',
+    'send_meeting_link' => 'Envoyer le lien de la réunion',
+    'new_teleconsultation' => 'Nouvelle téléconsultation',
+    'patient_information' => 'Informations du patient',
+    'contact_information' => 'Contact',
+    'appointment_information' => 'Rendez-vous',
+    'payment_information' => 'Paiement',
+    'send' => 'Envoyer',
     
     
 

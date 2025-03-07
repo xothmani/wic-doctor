@@ -199,23 +199,29 @@ class DoctorsGalleryController extends Controller
         $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
     
         try {
-            // Créer le dossier "doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
-            $storagePath = "doctors/{$doctorId}/{$category}";
-            if (!Storage::exists($storagePath)) {
-                Storage::makeDirectory($storagePath);
+            // Définir le chemin de stockage dans /mnt/doctor
+            $storagePath = "/mnt/doctor/{$doctorId}/{$category}";
+    
+            // Vérifier si le dossier existe, sinon le créer
+            if (!file_exists($storagePath)) {
+                mkdir($storagePath, 0777, true);
             }
     
-            // Récupérer le fichier et l'enregistrer sous "en_attente"
+            // Récupérer le fichier
             $file = $request->file('file');
-            $filePath = $file->storeAs($storagePath, $file->getClientOriginalName(), 'public');
+            $fileName = $file->getClientOriginalName();
+            $filePath = "{$storagePath}/{$fileName}";
+    
+            // Déplacer le fichier vers /mnt/doctor
+            $file->move($storagePath, $fileName);
     
             // Enregistrer dans la base de données avec statut "en attente"
             $upload = $this->uploadRepository->create([
-                'name' => $file->getClientOriginalName(),
-                'file_name' => basename($filePath),
+                'name' => $fileName,
+                'file_name' => $fileName,
                 'collection_name' => 'cabinet',
                 'uuid' => $uuid,
-                'disk' => 'public',
+                'disk' => 'local', // Mettre "local" au lieu de "public" car on n'utilise pas Storage
                 'size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
                 'status' => 'en attente', // Nouveau champ pour gérer l'état
@@ -231,17 +237,18 @@ class DoctorsGalleryController extends Controller
         }
     }
     
+    
     public function allCabinet(Request $request): JsonResponse
     {
         $doctorId = auth()->user()->doctor->id;
         
         $baseCategory = 'cabinet';
-        $statuses = ['en_attente', 'accepte', 'refuse']; // Ajout du statut 'refuse'
+        $statuses = ['en_attente', 'accepte', 'refuse'];
         $mediaFiles = [];
         
         foreach ($statuses as $status) {
-            // Construire le chemin vers chaque dossier (en_attente, accepte, refuse)
-            $directoryPath = storage_path("app/public/doctors/{$doctorId}/{$baseCategory}/{$status}");
+            // Nouveau chemin vers /mnt/doctor/
+            $directoryPath = "/mnt/doctor/{$doctorId}/{$baseCategory}/{$status}";
         
             // Vérifier si le dossier existe
             if (!is_dir($directoryPath)) {
@@ -254,16 +261,22 @@ class DoctorsGalleryController extends Controller
             foreach ($files as $file) {
                 $fullPath = $directoryPath . '/' . $file;
                 if (is_file($fullPath)) {
-                    $fileUrl = asset("storage/doctors/{$doctorId}/{$baseCategory}/{$status}/{$file}");
-        
+                    // URL pour accéder au fichier via Laravel (voir l'explication ci-dessous)
+                    $fileUrl = route('serveFile', [
+                        'doctorId' => $doctorId,
+                        'category' => $baseCategory,
+                        'status' => $status,
+                        'fileName' => $file
+                    ]);
+    
                     $mediaFiles[] = [
                         'name' => pathinfo($file, PATHINFO_FILENAME),
                         'file_name' => $file,
                         'url' => $fileUrl,
-                        'thumb' => $fileUrl,  // Adapter si vous générez des miniatures
-                        'icon' => $fileUrl,  // Adapter si vous générez des icônes
+                        'thumb' => $fileUrl,
+                        'icon' => $fileUrl,
                         'formated_size' => round(filesize($fullPath) / 1024, 2) . ' KB',
-                        'status' => $status,  // Ajouter le statut pour faciliter le tri
+                        'status' => $status,
                     ];
                 }
             }
@@ -287,41 +300,42 @@ class DoctorsGalleryController extends Controller
         $doctorId = auth()->user()->doctor->id;
         
         // Récupère les données de la requête
-        $uuid = urldecode($request->input('uuid'));  // Décoder le uuid si nécessaire
-        $status = $request->input('status');  // Le statut du fichier (accepte, en_attente, refuse)
+        $uuid = urldecode($request->input('uuid'));
+        $status = $request->input('status');
         
         // Définir le dossier en fonction du statut
-        $folder = $status === 'accepte' ? 'accepte' :
-                  ($status === 'refuse' ? 'refuse' : 'en_attente');
+        $folder = match ($status) {
+            'accepte' => 'accepte',
+            'refuse' => 'refuse',
+            default => 'en_attente',
+        };
         
-        // Construire le chemin complet du fichier
-        $directoryPath = storage_path("app/public/doctors/{$doctorId}/cabinet/{$folder}");
+        // Nouveau chemin du fichier dans /mnt/doctor/
+        $directoryPath = "/mnt/doctor/{$doctorId}/cabinet/{$folder}";
         $fullPath = $directoryPath . '/' . $uuid;
-        
+    
         Log::info("Full file path: " . $fullPath);
         
         // Vérifier si le fichier existe
         if (file_exists($fullPath)) {
-            // Supprimer le nom du fichier de la colonne cabinet_photo
+            // Supprimer le nom du fichier de la colonne cabinet_photo si le statut est "accepte"
             if ($status === 'accepte') {
                 $doctor = Doctor::find($doctorId);
     
                 if ($doctor) {
-                    // Récupérer les images dans la colonne cabinet_photo, séparées par /
+                    // Récupérer les images dans la colonne cabinet_photo
                     $images = explode('/', $doctor->cabinet_photo);
     
-                    // Supprimer le nom du fichier de la liste
-                    $images = array_filter($images, function ($image) use ($uuid) {
-                        return trim($image) !== $uuid;  // Ne pas inclure l'image supprimée
-                    });
+                    // Supprimer le fichier de la liste
+                    $images = array_filter($images, fn($image) => trim($image) !== $uuid);
     
-                    // Réindexer le tableau et mettre à jour la colonne cabinet_photo
+                    // Mettre à jour la colonne cabinet_photo
                     $doctor->cabinet_photo = implode('/', array_values($images));
                     $doctor->save();
     
                     Log::info("Updated cabinet_photo column", ['cabinet_photo' => $doctor->cabinet_photo]);
-                    
-                    // Si cabinet_photo est vide ou null, mettre à jour pourcentage_cabinet à 0
+    
+                    // Si cabinet_photo est vide, mettre à jour pourcentage_cabinet à 0
                     if (empty($doctor->cabinet_photo)) {
                         $doctor->pourcentage_cabinet = 0;
                         $doctor->save();
@@ -329,8 +343,8 @@ class DoctorsGalleryController extends Controller
                     }
                 }
             }
-            
-            // Supprimer le fichier après avoir mis à jour la base de données
+    
+            // Supprimer le fichier après mise à jour de la base de données
             if (@unlink($fullPath)) {
                 Log::info("File deleted successfully", ['path' => $fullPath]);
     
@@ -346,7 +360,6 @@ class DoctorsGalleryController extends Controller
                 ], 500);
             }
         } else {
-            // Fichier non trouvé
             Log::error("File not found", ['path' => $fullPath]);
             return response()->json([
                 'success' => false,
@@ -354,5 +367,6 @@ class DoctorsGalleryController extends Controller
             ], 404);
         }
     }
+    
     
 }

@@ -51,7 +51,8 @@ use App\Http\Controllers\DoctorBlogController;
 use App\Http\Controllers\PhotosCabinetController;
 use App\Http\Controllers\DoctorUserController;
 //use App\Http\Controllers\MailController;
-
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Route;
 
 
 Route::get('/payment-success', function () {
@@ -544,6 +545,17 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     ->name('prescriptions.sendEmail');
     Route::post('/teleconsultations/create-specific-meeting', [MeetController::class, 'createSpecificMeeting'])->name('create.specific.meeting');
 
+    
+    Route::get('/serve-file/{doctorId}/{category}/{status}/{fileName}', function ($doctorId, $category, $status, $fileName) {
+        $filePath = "/mnt/doctor/{$doctorId}/{$category}/{$status}/{$fileName}";
+    
+        if (!file_exists($filePath)) {
+            abort(404);
+        }
+    
+        return Response::file($filePath);
+    })->name('serveFile');
+    
 
     
 });

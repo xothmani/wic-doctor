@@ -396,7 +396,64 @@
                     validationMessage.textContent = field.dataset.validationMessage;
                 }
             }
+            function validatePrices() {
+    const paymentMode = document.getElementById('paymentMode').value;
+    const tndPrice = parseFloat(document.getElementById('tele_price_tnd').value) || 0;
+    const eurPrice = parseFloat(document.getElementById('tele_price_eur').value) || 0;
 
+    // First check if payment mode is selected
+    if (!paymentMode) {
+        Swal.fire({
+            title: 'Erreur de validation',
+            text: 'Veuillez sélectionner un mode de paiement',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        return false;
+    }
+
+    switch (paymentMode) {
+        case 'TND':
+            if (!document.getElementById('tele_price_tnd').value || tndPrice <= 0) {
+                Swal.fire({
+                    title: 'Erreur de validation',
+                    text: 'Le montant en TND doit être supérieur à 0',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                return false;
+            }
+            break;
+
+        case 'EUR':
+            if (!document.getElementById('tele_price_eur').value || eurPrice <= 0) {
+                Swal.fire({
+                    title: 'Erreur de validation',
+                    text: 'Le montant en EUR doit être supérieur à 0',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                return false;
+            }
+            break;
+
+        case 'SPLIT':
+            if (!document.getElementById('tele_price_tnd').value || 
+                !document.getElementById('tele_price_eur').value || 
+                tndPrice <= 0 || 
+                eurPrice <= 0) {
+                Swal.fire({
+                    title: 'Erreur de validation',
+                    text: 'Pour un paiement mixte, les deux montants doivent être supérieurs à 0',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                return false;
+            }
+            break;
+    }
+    return true;
+}
             // Form submission
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
@@ -507,63 +564,7 @@
             });
         });
 
-        // Add validation for split payment
-        function validatePrices() {
-            console.log('Validating prices');
-            const paymentMode = document.getElementById('paymentMode').value;
-            const tndPrice = parseFloat(document.getElementById('tele_price_tnd').value) || 0;
-            const eurPrice = parseFloat(document.getElementById('tele_price_eur').value) || 0;
-
-            if (paymentMode === 'SPLIT') {
-                // For split payment, both prices must be greater than 0
-                if (tndPrice <= 0 || eurPrice <= 0) {
-                    Swal.fire({
-                        title: 'Erreur de validation',
-                        text: 'Pour un paiement mixte, les deux montants doivent être supérieurs à 0',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                    return false;
-                }
-            } else if (paymentMode === 'TND' && tndPrice <= 0) {
-                Swal.fire({
-                    title: 'Erreur de validation',
-                    text: 'Le montant en TND doit être supérieur à 0',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                return false;
-            } else if (paymentMode === 'EUR' && eurPrice <= 0) {
-                Swal.fire({
-                    title: 'Erreur de validation',
-                    text: 'Le montant en EUR doit être supérieur à 0',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                return false;
-            }
-            return true;
-        }
-
-        // Update the form submission validation
-        form.addEventListener('submit', function (event) {
-            // ...existing validation code...
-
-            if (!validatePrices()) {
-                event.preventDefault();
-                return;
-            }
-
-            // Update the confirmation dialog to show split payment
-            const paymentInfo = document.getElementById('paymentMode').value === 'SPLIT'
-                ? `🇹🇳 ${document.getElementById('tele_price_tnd').value} TND<br>
-                                                                                                                                                                                                                                                                           🇪🇺 ${document.getElementById('tele_price_eur').value} EUR`
-                : document.getElementById('paymentMode').value === 'TND'
-                    ? `🇹🇳 ${document.getElementById('tele_price_tnd').value} TND`
-                    : `🇪🇺 ${document.getElementById('tele_price_eur').value} EUR`;
-
-            // ...rest of your confirmation dialog code...
-        });
+       
         function copyToClipboard() {
             const meetLink = document.getElementById('meetLink');
             navigator.clipboard.writeText(meetLink.value).then(() => {
