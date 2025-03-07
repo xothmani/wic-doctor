@@ -14,6 +14,7 @@ use App\Models\Patient;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log; // Add this line to import Log
+use App\Models\DoctorSubstitute;
 
 
 class DoctorTelesecretariatController extends Controller
@@ -23,7 +24,6 @@ class DoctorTelesecretariatController extends Controller
     {
         Log::info('Entered the index method');
         try {
-            // Fetch all doctors
             $userId = Auth::id();
 
             // Chercher cet ID dans la table Telesecretariat
@@ -31,32 +31,39 @@ class DoctorTelesecretariatController extends Controller
             Log::info('Fetched Telesecretariat', ['telesecretariat' => $telesecretariat]);
 
             if ($telesecretariat) {
-                \Log::info('Telesecretariat found', ['telesecretariat' => $telesecretariat]);
-                // Récupérer les médecins associés via DoctorTelesecretariat, avec jointure sur la table doctor
-                $doctors = DoctorTelesecretariat::with(['doctor', 'telesecretariat'])
-                    ->join('doctors', 'doctor_telesecretariat.doctor_id', '=', 'doctors.id') // Jointure sur la table doctor
-                    ->where('telesecretariat_id', $telesecretariat->id)
-                    ->orderBy('doctors.name', 'asc') // Trier par nom du médecin
-                    ->get();
-
-                // Passer les données à la vue
-
-
-
-                \Log::info('Doctors found', ['doctors' => $doctors]);
-                // Initialize empty data for the agenda
+                // Default empty collections to prevent errors
+                $doctors = collect();
                 $availabilityDays = collect();
                 $vacations = collect();
                 $patterns = collect();
                 $patients = collect();
+
+                try {
+                    // Récupérer les médecins associés via DoctorTelesecretariat, avec jointure sur la table doctor
+                    $doctors = DoctorTelesecretariat::with(['doctor', 'telesecretariat'])
+                        ->join('doctors', 'doctor_telesecretariat.doctor_id', '=', 'doctors.id')
+                        ->where('telesecretariat_id', $telesecretariat->id)
+                        ->orderBy('doctors.name', 'asc')
+                        ->get();
+                } catch (\Exception $e) {
+                    Log::error('Error fetching doctors', ['error' => $e->getMessage()]);
+                }
+
                 return view('doctor_telesecretariat.agenda_card', compact('doctors', 'availabilityDays', 'patterns', 'vacations', 'patients'));
             } else {
-                return view('doctor_telesecretariat.agenda_card', compact(['doctors' => []], 'availabilityDays', 'patterns', 'vacations', 'patients'));
+                return view('doctor_telesecretariat.agenda_card', compact('doctors', 'availabilityDays', 'patterns', 'vacations', 'patients'));
             }
 
         } catch (\Exception $e) {
             Log::error('Error in index method', ['error' => $e->getMessage()]);
-            abort(500, 'An error occurred while fetching doctors.');
+            return view('doctor_telesecretariat.agenda_card', [
+                'doctors' => collect(),
+                'availabilityDays' => collect(),
+                'patterns' => collect(),
+                'vacations' => collect(),
+                'patients' => collect(),
+                'error' => $e->getMessage()
+            ]);
         }
     }
     public function getDoctorData(Request $request)
@@ -691,14 +698,14 @@ class DoctorTelesecretariatController extends Controller
             return response()->json(['error' => 'Doctor or date not found'], 404);
         }
         // Get the day name for the selected date
-        $dayName = Carbon::parse($selectedDate)->locale('fr')->dayName; // Example: "Lundi", "Mardi"
+        $dayName = Carbon::parse($selectedDate)->locale('en')->dayName; // Example: "Lundi", "Mardi"
 
         // Fetch availability hours for the selected day and doctor
         $availability = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
             ->where('day', $dayName)
             ->where('is_available', 1) // Ensure availability is enabled
-            ->where('onligne', 0)
+            ->where('mode', 'precise') // Fetch only precise slots
             ->first();
 
         \Log::info('Availability fetched', ['availability' => $availability]);
@@ -808,14 +815,14 @@ class DoctorTelesecretariatController extends Controller
 
 
         // Get the day name for the selected date
-        $dayName = Carbon::parse($selectedDate)->locale('fr')->dayName; // Example: "Lundi", "Mardi"
+        $dayName = Carbon::parse($selectedDate)->locale('en')->dayName; // Example: "Lundi", "Mardi"
 
         // Fetch teleconsultation availability hours for the selected day and doctor
         $teleAvailability = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
             ->where('day', $dayName)
             ->where('is_available', 1) // Ensure availability is enabled
-            ->where('onligne', 1) // Fetch only teleconsultation slots
+            ->where('mode', 'precise') // Fetch only teleconsultation slots
             ->first();
 
         if (!$teleAvailability) {
@@ -995,23 +1002,29 @@ class DoctorTelesecretariatController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            return redirect()->route('doctor_telesecretariat.create')
-                ->with('error', 'Utilisateur non trouvé.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Utilisateur non trouvé.'
+            ], 404);
         }
 
         // Vérifier si cet utilisateur est un télésécrétariat
         $telesecretariat = Telesecretariat::where('user_id', $user->id)->first();
 
         if (!$telesecretariat) {
-            return redirect()->route('doctor_telesecretariat.create')
-                ->with('error', 'Cet utilisateur n\'est pas lié à un télésécrétariat.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Cet utilisateur n\'est pas lié à un télésécrétariat.'
+            ], 400);
         }
 
         // Récupérer l'ID du médecin connecté
         $doctor = Auth::user()->doctor;
         if (!$doctor) {
-            return redirect()->route('doctor_telesecretariat.create')
-                ->with('error', 'Vous n\'êtes pas enregistré comme médecin.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous n\'êtes pas enregistré comme médecin.'
+            ], 400);
         }
 
         // Vérifier si l'association existe déjà
@@ -1020,8 +1033,10 @@ class DoctorTelesecretariatController extends Controller
             ->exists();
 
         if ($exists) {
-            return redirect()->route('doctor_telesecretariat.create')
-                ->with('error', 'Cette association existe déjà.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Cette association existe déjà.'
+            ], 400);
         }
 
         // Créer l'association
@@ -1030,6 +1045,354 @@ class DoctorTelesecretariatController extends Controller
         $doctorTelesecretariat->telesecretariat_id = $telesecretariat->id;
         $doctorTelesecretariat->save();
 
+        return response()->json([
+            'success' => true,
+            'email' => $user->email
+        ]);
+    }
+    public function BackgroundColorForAgenda(Request $request)
+    {
+        $doctorId = $request->input('doctor_id'); // Use doctor_id from request
+        $selectedDate = $request->input('date');
+        \Log::info('Fetching background color for doctor:', ['doctor_id' => $doctorId]);
+        if (!$doctorId || !$selectedDate) {
+            return response()->json(['error' => 'Doctor or date not found'], 404);
+        }
+
+        // Get the Monday of the current week based on the selected date
+        $weekStart = Carbon::parse($selectedDate)->startOfWeek(); // Get Monday of that week
+
+        // Fetch all availability for the entire week
+        $availability = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('mode', 'precise')
+            ->get();
+
+        \Log::info('Availability fetched', ['availability' => $availability]);
+
+        if ($availability->isEmpty()) {
+            \Log::warning('No availability found', ['doctor_id' => $doctorId]);
+            return response()->json(['error' => 'No availability found'], 404);
+        }
+
+        $allSlots = [];
+
+        foreach ($availability as $slot) {
+            $startTime = Carbon::parse($slot->start_at);
+            $endTime = Carbon::parse($slot->end_at);
+            $sessionDuration = $slot->session_duration;
+
+            // Correctly map weekday names to the actual date in the current week
+            $dayMapping = [
+                'monday' => 0,
+                'tuesday' => 1,
+                'wednesday' => 2,
+                'thursday' => 3,
+                'friday' => 4,
+                'saturday' => 5,
+                'sunday' => 6
+            ];
+
+            if (!isset($dayMapping[$slot->day])) {
+                \Log::warning("Invalid day name found in DB: " . $slot->day);
+                continue;
+            }
+
+            // Calculate actual date for the slot's day
+            $slotDate = $weekStart->copy()->addDays($dayMapping[$slot->day]);
+
+            while ($startTime->lessThan($endTime)) {
+                $allSlots[] = [
+                    'time' => $startTime->format('H:i'),
+                    'color' => $this->getPatternColor($slot->patern_id),
+                    'day' => $slotDate->format('Y-m-d'), // Store exact date
+                    'session_duration' => $sessionDuration,
+                ];
+                $startTime->addMinutes($sessionDuration);
+            }
+        }
+
+        \Log::info('Generated precise slots:', ['allSlots' => $allSlots]);
+
+        return response()->json([
+            'all_slots' => $allSlots,
+            'taken_slots' => [] // Keep it for compatibility
+        ]);
+    }
+    private function getPatternColor($patternId)
+    {
+        return DB::table('pattern')
+            ->where('id', $patternId)
+            ->value('color') ?? '#C6E7FF'; // Default if color not found
+    }
+    public function getSubstitutes($doctorId)
+    {
+        \Log::info('Fetching substitutes for doctor:', ['doctor_id' => $doctorId]);
+
+        $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
+            ->with('doctor')
+            ->get()
+            ->map(function ($substitute) {
+                return [
+                    'id' => $substitute->id,
+                    'name' => $substitute->name,
+                    'start_date' => Carbon::parse($substitute->start_date)->format('Y-m-d H:i'), // ✅ FIXED
+                    'end_date' => Carbon::parse($substitute->end_date)->format('Y-m-d H:i'), // ✅ FIXED
+                    'notes' => $substitute->notes
+                ];
+            });
+
+        return response()->json($substitutes);
+    }
+    public function getAppointmentStats($doctorId, $selectedDate = null)
+    {
+        \Log::info('Fetching Appointment Stats:', [
+            'doctor_id' => $doctorId,
+            'selected_date' => $selectedDate,
+        ]);
+
+        // Validate doctor ID
+        if (!$doctorId) {
+            return response()->json(['error' => 'Missing doctor ID'], 400);
+        }
+
+        // Parse selected date
+        $selectedDate = $selectedDate ? Carbon::parse($selectedDate) : Carbon::now();
+        $dayName = $selectedDate->format('l'); // Get the day name (e.g., Monday)
+
+        // Retrieve all availability slots for the doctor on this day
+        $availabilities = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('day', $dayName)
+            ->where('mode', 'precise')
+            ->get();
+
+        $totalAvailableSlots = 0;
+        $takenSlots = [];
+
+        foreach ($availabilities as $availability) {
+            // Get start, end time, and session duration
+            $startTime = Carbon::parse($availability->start_at);
+            $endTime = Carbon::parse($availability->end_at);
+            $sessionDuration = (int) $availability->session_duration; // Convert to integer
+
+            // Generate all possible time slots
+            while ($startTime->lessThan($endTime)) {
+                $slotTime = $startTime->format('H:i'); // e.g., 08:00
+                $totalAvailableSlots++;
+
+                // Check if this slot is taken
+                $slotTaken = DB::table('appointments')
+                    ->where('doctor_id', $doctorId)
+                    ->whereDate('start_at', $selectedDate->format('Y-m-d'))
+                    ->whereTime('start_at', $slotTime)
+                    ->whereNotIn('appointment_status_id', [7, 6])
+                    ->exists(); // Check if appointment exists for this slot
+
+                if ($slotTaken) {
+                    $takenSlots[] = $slotTime;
+                }
+
+                // Move to the next slot based on session duration
+                $startTime->addMinutes($sessionDuration);
+            }
+        }
+
+        // Return response
+        return response()->json([
+            'total_appointments' => $totalAvailableSlots,
+            'appointments_taken' => count($takenSlots),
+            'available_slots' => $totalAvailableSlots - count($takenSlots),
+        ]);
+    }
+    public function telegetPatternForTimeSlot(Request $request)
+    {
+        \Log::info('Fetching Unavailable Time Slots:', [
+            'date' => $request->get('date'),
+            'time' => $request->get('time'),
+            'type' => $request->get('type')
+        ]);
+        $doctorId = $request->input('doctor_id');
+        $selectedDate = $request->input('date');
+        $selectedTime = $request->input('time');
+        $selectedType = $request->input('type');
+
+        if (!$doctorId || !$selectedDate || !$selectedTime || !$selectedType) {
+            return response()->json(['error' => 'Missing data'], 400);
+        }
+
+        $dayName = Carbon::parse($selectedDate)->format('l');
+        $now = Carbon::now();
+
+        // Get availability for the selected time slot
+        $availability = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('type', $selectedType)
+            ->where('day', $dayName)
+            ->whereTime('start_at', '<=', $selectedTime)
+            ->whereTime('end_at', '>', $selectedTime)
+            ->where('mode', 'precise')
+            ->first();
+
+        if (!$availability) {
+            return response()->json([
+                'pattern_name' => trans('lang.no_pattern_selected'),
+                'pattern_color' => '#cccccc',
+                'available_slots' => []
+            ]);
+        }
+
+        // Get pattern details
+        $pattern = DB::table('pattern')->where('id', $availability->patern_id)->first();
+        $displayMotifName = trans('lang.no_pattern_selected');
+
+        if ($pattern) {
+            $lang = app()->getLocale();
+            $decodedNom = json_decode($pattern->nom, true);
+            $displayMotifName = is_array($decodedNom)
+                ? ($decodedNom[$lang] ?? $decodedNom['fr'] ?? $pattern->nom)
+                : $pattern->nom;
+        }
+
+        // Generate all possible time slots
+        $startTime = Carbon::parse($availability->start_at);
+        $endTime = Carbon::parse($availability->end_at);
+        $sessionDuration = $availability->session_duration;
+        $availableSlots = [];
+        $pastSlots = []; // Track past slots
+
+        while ($startTime->lessThan($endTime)) {
+            $slotTime = $startTime->format('H:i');
+            $availableSlots[] = $slotTime;
+
+            // Check if slot is in the past
+            $slotDateTime = Carbon::parse($selectedDate . ' ' . $slotTime);
+            if ($slotDateTime->isPast()) {
+                $pastSlots[] = $slotTime;
+            }
+
+            $startTime->addMinutes($sessionDuration);
+        }
+
+        // Get taken slots (excluding canceled appointments)
+        $takenSlots = DB::table('appointments')
+            ->where('doctor_id', $doctorId)
+            ->whereDate('start_at', $selectedDate)
+            ->where('appointment_status_id', '!=', 7) // Exclude canceled appointments
+            ->select(DB::raw("DATE_FORMAT(start_at, '%H:%i') as time"))
+            ->pluck('time')
+            ->toArray();
+
+        // Combine taken slots with past slots
+        $takenSlots = array_unique(array_merge($takenSlots, $pastSlots));
+
+        return response()->json([
+            'pattern_id' => $pattern->id,
+            'pattern_name' => $displayMotifName,
+            'pattern_color' => $pattern ? $pattern->color : '#cccccc',
+            'available_slots' => $availableSlots,
+            'taken_slots' => $takenSlots
+        ]);
     }
 
+    public function telegetPatternForTimeSlotWithoutType(Request $request)
+    {
+        \Log::info('Fetching Unavailable Time Slots:', [
+            'date' => $request->get('date'),
+            'time' => $request->get('time')
+        ]);
+
+        $doctorId = $request->input('doctor_id');
+        $selectedDate = $request->input('date');
+        $selectedTime = $request->input('time');
+
+        if (!$doctorId || !$selectedDate || !$selectedTime) {
+            return response()->json(['error' => 'Missing data'], 400);
+        }
+
+        $dayName = Carbon::parse($selectedDate)->format('l'); // e.g., "Monday"
+        \Log::info("📆 Selected Date: $selectedDate → 🗓 Day: $dayName");
+        \Log::info("⏰ Selected Time: $selectedTime");
+
+        // ✅ Fetch all patterns (motifs) for the doctor
+        $patterns = DB::table('pattern')
+            ->where('doctor_id', $doctorId)
+            ->select('id', 'nom')
+            ->get();
+        $decodedPatterns = $patterns->map(function ($pattern) {
+            $name = json_decode($pattern->nom, true);
+            return [
+                'id' => $pattern->id,
+                'nom' => $name['fr'] ?? $name, // Default to French
+            ];
+        });
+
+        if ($patterns->isEmpty()) {
+            return response()->json([
+                'patterns' => [],
+                'unavailable_slots' => [],
+                'message' => "Aucun motif trouvé pour ce médecin.",
+            ]);
+        }
+
+        // ✅ Get doctor's availability periods for the selected day
+        $availabilities = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('day', $dayName)
+            ->where('mode', 'precise')
+            ->select('start_at', 'end_at')
+            ->get();
+
+
+        // ✅ Define full day range from 07:00 to 23:59
+        $fullDayStart = Carbon::parse($selectedDate . ' 07:00');
+        $fullDayEnd = Carbon::parse($selectedDate . ' 23:59');
+
+        // ✅ Generate all possible time slots in a full day
+        $allTimeSlots = [];
+        $sessionDuration = $availabilities->first()->session_duration ?? 15;
+        $currentTime = clone $fullDayStart;
+
+        while ($currentTime->lessThanOrEqualTo($fullDayEnd)) {
+            $allTimeSlots[] = $currentTime->format('H:i');
+            $currentTime->addMinutes($sessionDuration);
+        }
+
+        // ✅ Collect all available time slots
+        $availableSlots = [];
+        foreach ($availabilities as $availability) {
+            $start = Carbon::parse($availability->start_at);
+            $end = Carbon::parse($availability->end_at);
+            $slotTime = clone $start;
+            while ($slotTime->lessThan($end)) {
+                $availableSlots[] = $slotTime->format('H:i');
+                $slotTime->addMinutes($sessionDuration);
+            }
+        }
+
+        // ✅ Find unavailable slots (full day minus available slots)
+        $unavailableSlots = array_diff($allTimeSlots, $availableSlots);
+
+        // ✅ Check if the selected time is inside availability
+        if (!in_array($selectedTime, $availableSlots)) {
+            return response()->json([
+                'patterns' => $decodedPatterns,
+                'session_duration' => $sessionDuration,
+                'available_slots' => array_values($availableSlots), // Always include this
+                'unavailable_slots' => array_values($unavailableSlots),
+                'message' => "Le médecin n'est pas disponible à l'heure sélectionnée.",
+            ]);
+        }
+
+        return response()->json([
+            'patterns' => $decodedPatterns,
+            'session_duration' => $sessionDuration,
+            'available_slots' => array_values($availableSlots),
+            'message' => "Le médecin est disponible à cette heure.",
+        ]);
+    }
 }

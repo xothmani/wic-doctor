@@ -17,8 +17,8 @@
 |
 */
 use App\Http\Controllers\AppointmentController;
-//use App\Http\Controllers\PharmacyController;
-//use App\Http\Controllers\PharmacyTypeController;
+use App\Http\Controllers\PharmacyController;
+use App\Http\Controllers\PharmacyTypeController;
 use App\Http\Controllers\MessagerieController;
 
 use App\Http\Controllers\ConsultationController;
@@ -49,10 +49,6 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\DoctorsGalleryController;
 use App\Http\Controllers\DoctorBlogController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\PhotosCabinetController;
-use App\Http\Controllers\DoctorUserController;
-//use App\Http\Controllers\MailController;
-
 
 
 
@@ -83,11 +79,8 @@ Route::prefix('profile_management')->group(function () {
 
 
 Auth::routes();
-Route::middleware('auth')->group(function () {
-    Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
-    Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
-});
-
+Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
+Route::post('/availability', [AvailabilityController::class, 'store'])->name('availability.store');
 Route::post('/availability/store', [AvailabilityController::class, 'store'])->name('availability.store');
 Route::get('/doctor/vacance', [DoctorVacationController::class, 'index'])->name('vacance.index');
 Route::post('/availability/store-open', [AvailabilityController::class, 'storeOpen'])
@@ -374,8 +367,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('patients/{id}/whatsapp', 'PatientController@openWhatsAppClient')->name('patients.whatsapp');
     Route::get('/fiche/{id}', [FicheController::class, 'show'])->name('fiche.show');
     //route pour rayen
-    //Route::resource('pharmacies', PharmacyController::class);
-    //Route::resource('pharmacyTypes', PharmacyTypeController::class);
+    Route::resource('pharmacies', PharmacyController::class);
+    Route::resource('pharmacyTypes', PharmacyTypeController::class);
     Route::get('paypal', [PayPalController::class, 'index'])->name('paypal');
     Route::get('appointment-event', [AppointmentEventController::class, 'index'])->name('appointment-events.index');
     Route::post('appointment-event/action', [AppointmentEventController::class, 'action']);
@@ -407,7 +400,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/prescriptions/{prescription}/pdf', [PrescriptionController::class, 'generatePrescriptionPdf'])->name('prescriptions.pdf');
     Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
 
-    // Route::get('send-mail', [MailController::class, 'index']);
+    Route::get('send-mail', [MailController::class, 'index']);
 
     Route::get('/appointments/today/completed', [AppointmentController::class, 'getTodayCompletedAppointments'])
         ->name('appointments.today.completed');
@@ -505,7 +498,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     Route::get('/listdoctors', [ParrainerController::class, 'listDoctors'])->name('parrainers.listdoctors');
 
-    //Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::post('/adresse/store', [AddressController::class, 'store']);
     Route::get('editProfil', [DoctorController::class, 'editProfil'])->name('doctors.editProfil');
     Route::post('/edit-info-personnelle', [DoctorController::class, 'editInfoPersonnelle'])->name('editInfoPersonnelle');
@@ -523,35 +516,6 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/doctor-blog', [DoctorBlogController::class, 'index'])->name('doctor_blog.index');
     Route::get('/doctor-blog/create', [DoctorBlogController::class, 'create'])->name('doctor_blog.create');
     Route::post('/doctor-blog', [DoctorBlogController::class, 'store'])->name('doctor_blog.store');
-
-    Route::post('uploads/storeImage', [DoctorBlogController::class, 'storeImage'])->name('uploads.storeImage');
-    Route::get('doctor_blog/{id}', [DoctorBlogController::class, 'show'])->name('doctor_blog.show');
-    Route::delete('/doctor_blog/{id}', [DoctorBlogController::class, 'destroy'])->name('doctor_blog.destroy');
-    Route::get('doctor_blog/{id}/edit', [DoctorBlogController::class, 'edit'])->name('doctor_blog.edit');
-    Route::patch('doctor_blog/{id}', [DoctorBlogController::class, 'update'])->name('doctor_blog.update');
-    Route::post('uploads/deleteImage', [DoctorBlogController::class, 'deleteImage'])->name('uploads.deleteImage');
-    Route::get('doctor_blogs/accepted', [DoctorBlogController::class, 'acceptedBlogs'])->name('doctor_blog.accepted');
-    Route::get('doctor_blogs/rejected', [DoctorBlogController::class, 'rejectedBlogs'])->name('doctor_blog.rejected');
-
-    Route::get('/doctor_blog/accept/{id}', [DoctorBlogController::class, 'accepterBlog'])
-        ->name('doctor_blog.accept');
-    Route::post('/doctor_blog/rejet/{id}', [DoctorBlogController::class, 'rejeterBlog'])
-        ->name('doctor_blog.rejet');
-
-    Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
-    Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
-    Route::post('photos-cabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
-    Route::post('photos-cabinet/rejet', [PhotosCabinetController::class, 'rejet'])->name('photos_cabinet.rejet');
-    Route::post('/doctor/update-chart-status', [DoctorController::class, 'updateChartStatus'])->name('doctor.updateChartStatus');
-    Route::get('/suivi-doctors', [DoctorController::class, 'SuiviDoctorsIndex'])->name('suivi_doctors.index');
-    Route::get('/doctor/total-pourcentage', [DoctorController::class, 'getTotalPourcentage'])
-        ->name('doctor.total-pourcentage');
-    Route::get('/generate-doctor-url/{doctorId}', [DoctorController::class, 'generateDoctorUrl'])->name('generateDoctorUrl');
-    Route::get('/medecin/generer-url', [DoctorController::class, 'generateConnectedDoctorUrl'])->name('doctors.generateUrl');
-
-
-
-
     Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
     Route::post('/appointmentsEvent/store', [AppointmentEventController::class, 'store'])
         ->name('appointmentsEvent.store');
@@ -569,10 +533,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         ->name('appointment.stats');
 
 
-
     Route::post('/users/accept-new-features', [UserController::class, 'acceptNewFeatures'])->name('users.acceptNewFeatures');
     Route::post('/users/reject-new-features', [UserController::class, 'rejectNewFeatures'])->name('users.rejectNewFeatures');
-
 
 
 });

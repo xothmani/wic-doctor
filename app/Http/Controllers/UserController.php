@@ -88,6 +88,7 @@ class UserController extends Controller
         $customFields = false;
         $role = $this->roleRepository->pluck('name', 'name');
         $rolesSelected = $user->getRoleNames()->toArray();
+        $isDoctor = $user->hasRole('doctor');
         $customFieldsValues = $user->customFieldsValues()->with('customField')->get();
 
         $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
@@ -151,7 +152,8 @@ class UserController extends Controller
             'progressProfil',
             'progressBar',
             'showNewFeaturesModal',
-            'progressTags'
+            'progressTags',
+            'isDoctor'
         ));
 
 

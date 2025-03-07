@@ -2072,8 +2072,8 @@ return [
     'speciality_country_help' => 'Insérer le Pays',
     'doctor_request_lastname' => 'Nom',
 
-    
-    
+
+
 
 
     'add_vacation' => 'Ajouter des vacances',
@@ -2155,4 +2155,12 @@ return [
     'confirm_delete_substitute' => 'Êtes-vous sûr de vouloir supprimer ce remplaçant ?',
     'no_substitutes_found' => 'Aucun remplaçant trouvé',
     'substitute_saved_successfully' => 'Remplaçant enregistré avec succès',
+    'consultation_finished' => 'Consultation terminée',
+    'send_meeting_link' => 'Envoyer le lien de la réunion',
+    'new_teleconsultation' => 'Nouvelle téléconsultation',
+    'patient_information' => 'Informations du patient',
+    'contact_information' => 'Contact',
+    'appointment_information' => 'Rendez-vous',
+    'payment_information' => 'Paiement',
+    'send' => 'Envoyer',
 ];

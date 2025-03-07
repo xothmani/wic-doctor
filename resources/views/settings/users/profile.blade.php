@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="{{asset('vendor/dropzone/min/dropzone.min.css')}}">
 @endpush
 @section('content')
-    @if($showNewFeaturesModal)
+    @if($showNewFeaturesModal && $isDoctor)
         <!-- Replace the existing modal content with this -->
         <div id="welcomeModal" class="welcome-modal">
             <div class="modal-content">

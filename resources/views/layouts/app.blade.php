@@ -179,6 +179,7 @@
 @stack('scripts_lib')
 <script src="{{asset('dist/js/adminlte.min.js')}}"></script>
 <script src="{{asset('js/scripts.min.js')}}"></script>
+<script src="{{ asset('js/services/doctorService.js') }}"></script>
 @stack('scripts')
 </body>
 </html>

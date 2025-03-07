@@ -112,7 +112,7 @@ class KonnectController extends Controller
             ]);
 
         // Insert payment record
-       $paymentId = DB::table('payments')->insertGetId([
+        $paymentId = DB::table('payments')->insertGetId([
             'amount' => $paymentSession->tele_price_tnd,
             'description' => $paymentSession->description,
             'user_id' => $paymentSession->user_id,
@@ -123,7 +123,7 @@ class KonnectController extends Controller
             'updated_at' => now(),
         ]);
 
-	DB::table('rooms')
+        DB::table('rooms')
             ->where('appointment_id', $paymentSession->appointment_id)
             ->update([
                 'payments_id' => $paymentId,
@@ -133,12 +133,12 @@ class KonnectController extends Controller
         // Send success email
         $patient = Patient::where('user_id', $paymentSession->user_id)->first();
         if ($patient) {
-        $formattedDate = Carbon::parse($paymentSession->start_at)->format('d/m/Y H:i'); // Format date and time
-	$currency = 'TND';
+            $formattedDate = Carbon::parse($paymentSession->start_at)->format('d/m/Y H:i'); // Format date and time
+            $currency = 'TND';
             $paymentDetails = [
                 'patient_name' => $patient->first_name . ' ' . $patient->last_name,
                 'amount' => $paymentSession->tele_price_tnd,
-		'currency' => $currency,
+                'currency' => $currency,
                 'description' => $paymentSession->description,
                 'start_at' => $formattedDate,
             ];
