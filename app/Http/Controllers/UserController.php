@@ -29,7 +29,8 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Prettus\Validator\Exceptions\ValidatorException;
 use App\Models\Doctor;
-
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 class UserController extends Controller
 {
     /** @var  UserRepository */
@@ -76,61 +77,117 @@ class UserController extends Controller
      * @param
      * @return Response
      */
-    public function profile()
-    {
-        $user = auth()->user();
-        unset($user->password);
+
     
-        $customFields = false;
-        $role = $this->roleRepository->pluck('name', 'name');
-        $rolesSelected = $user->getRoleNames()->toArray();
-        $customFieldsValues = $user->customFieldsValues()->with('customField')->get();
-    
-        $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
-        if ($hasCustomField) {
-            $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
-            $customFields = generateCustomField($customFields, $customFieldsValues);
-        }
-    
-        // Vérifier si l'utilisateur est un médecin
-        $doctor = null;
-        if ($user->hasRole('doctor')) {
-            $doctor = Doctor::where('user_id', $user->id)->first();
-        }
-    
-        // Liste des champs à vérifier
-        $fieldsToCheck = [
-            $user->name, $user->lastname, $user->email, $user->phone_number,
-            optional($doctor)->bio, optional($doctor)->type_consultation, optional($doctor)->fixe,
-            optional($doctor)->facebook, optional($doctor)->instagram, optional($doctor)->site_web,
-            optional($doctor)->description, optional($doctor)->payment_methods
-        ];
-    
-        // Calcul du pourcentage de complétion global
-        $filledFields = count(array_filter($fieldsToCheck, function ($field) {
-            return !empty($field);
-        }));
-        $totalFields = count($fieldsToCheck);
-        $progressPercentage = $totalFields > 0 ? ($filledFields / $totalFields) * 100 : 0;
-    
-        // Calcul des pourcentages spécifiques
-        $progressAvatar = !empty($doctor->pourcentage_avatar) ? 10 : 0;
-        $progressAdresse = !empty($doctor->pourcentage_adresse) ? 20 : 0;
-        $progressCV = !empty($doctor->pourcentage_cv) ? 20 : 0;
-        $progressCabinet = !empty($doctor->pourcentage_cabinet) ? 10 : 0;
-        $progressProfil = !empty($doctor->pourcentage_profil) ? 20 : 0;
-        $progressTags = !empty($doctor->pourcentage_tags) ? 20 : 0;
-   
-        // Calcul du pourcentage total
-        $progressBar = $progressAvatar + $progressAdresse + $progressCV + $progressCabinet + $progressProfil +$progressTags;
-    
-        return view('settings.users.profile', compact(
-            'user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues', 'doctor',
-            'progressPercentage', 'progressAvatar', 'progressAdresse', 'progressCV', 'progressCabinet', 'progressProfil', 'progressBar', 'progressTags'
-        ));
+
+     
+     public function profile()
+     {
+         $user = auth()->user();
+         unset($user->password);
+     
+         $customFields = false;
+         $role = $this->roleRepository->pluck('name', 'name');
+         $rolesSelected = $user->getRoleNames()->toArray();
+         $customFieldsValues = $user->customFieldsValues()->with('customField')->get();
+     
+         $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
+         if ($hasCustomField) {
+             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
+             $customFields = generateCustomField($customFields, $customFieldsValues);
+         }
+     
+         // Vérifier si l'utilisateur est un médecin
+         $doctor = null;
+         if ($user->hasRole('doctor')) {
+             $doctor = Doctor::where('user_id', $user->id)->first();
+         }
+     
+         // Liste des champs à vérifier
+         $fieldsToCheck = [
+             $user->name, $user->lastname, $user->email, $user->phone_number,
+             optional($doctor)->bio, optional($doctor)->type_consultation, optional($doctor)->fixe,
+             optional($doctor)->facebook, optional($doctor)->instagram, optional($doctor)->site_web,
+             optional($doctor)->description, optional($doctor)->payment_methods
+         ];
+     
+         // Calcul du pourcentage de complétion global
+         $filledFields = count(array_filter($fieldsToCheck, function ($field) {
+             return !empty($field);
+         }));
+         $totalFields = count($fieldsToCheck);
+         $progressPercentage = $totalFields > 0 ? ($filledFields / $totalFields) * 100 : 0;
+     
+         // Calcul des pourcentages spécifiques
+         $progressAvatar = !empty($doctor->pourcentage_avatar) ? 10 : 0;
+         $progressAdresse = !empty($doctor->pourcentage_adresse) ? 20 : 0;
+         $progressCV = !empty($doctor->pourcentage_cv) ? 20 : 0;
+         $progressCabinet = !empty($doctor->pourcentage_cabinet) ? 10 : 0;
+         $progressProfil = !empty($doctor->pourcentage_profil) ? 20 : 0;
+         $progressTags = !empty($doctor->pourcentage_tags) ? 20 : 0;
+     
+         // Calcul du pourcentage total
+         $progressBar = $progressAvatar + $progressAdresse + $progressCV + $progressCabinet + $progressProfil + $progressTags;
+// Récupérer l'abonnement de l'utilisateur
+$subscription = DB::table('membership')
+    ->where('user_id', $user->id)
+    ->select('start_date', 'end_date')
+    ->first();
+
+$subscriptionStatus = '';
+$badgeColor = 'yellow'; // Couleur par défaut
+
+if ($subscription) {
+    $startDate = Carbon::parse($subscription->start_date);
+    $endDate = Carbon::parse($subscription->end_date)->endOfDay(); // Prendre toute la journée en compte
+    $currentDate = Carbon::now();
+
+    // Calculer la différence détaillée
+    $difference = $currentDate->diff($endDate);
+    $yearsRemaining = $difference->y;
+    $monthsRemaining = $difference->m;
+    $daysRemaining = $difference->d;
+    $remainingDays = $currentDate->diffInDays($endDate, false); // Total des jours restants
+
+    // Construire la chaîne en fonction des valeurs
+    $remainingText = [];
+
+    if ($yearsRemaining > 0) {
+        $remainingText[] = "{$yearsRemaining} an(s)";
     }
-    
-    
+    if ($monthsRemaining > 0) {
+        $remainingText[] = "{$monthsRemaining} mois";
+    }
+    if ($daysRemaining > 0) {
+        $remainingText[] = "{$daysRemaining} jour(s)";
+    }
+
+    // Si l'abonnement expire aujourd'hui
+    if ($remainingDays == 0) {
+        $subscriptionStatus = "Expire aujourd'hui";
+    } elseif ($remainingDays < 0) {
+        $subscriptionStatus = "Expiré";
+    } else {
+        $subscriptionStatus = implode(', ', $remainingText);
+    }
+
+    // Déterminer la couleur du badge
+    if ($remainingDays < 0) {
+        $badgeColor = 'red'; // Abonnement expiré
+    } elseif ($remainingDays <= 3) {
+        $badgeColor = 'red'; // Moins de 3 jours restants
+    } elseif ($remainingDays > 90) {
+        $badgeColor = 'green'; // Plus de 3 mois restants
+    }
+}
+
+// Passer les variables à la vue
+return view('settings.users.profile', compact(
+    'user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues', 'doctor',
+    'progressPercentage', 'progressAvatar', 'progressAdresse', 'progressCV', 'progressCabinet',
+    'progressProfil', 'progressBar', 'progressTags', 'subscriptionStatus', 'badgeColor'
+));
+     }
     /**
      * Show the form for creating a new User.
      *

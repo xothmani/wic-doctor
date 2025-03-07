@@ -64,12 +64,40 @@ class MeetController extends Controller
             'start_at' => $start_at,
         ], compact('rooms', 'purchased_numbers'));
     }
+    public function showSendMeetingInfoForm(Request $request)
+    {
+        // Get all the parameters from the URL
+        $data = [
+            'patient_name' => $request->input('patient_name'),
+            'appointment_id' => $request->input('appointment_id'),
+            'phone' => $request->input('phone'),
+            'motif_name' => $request->input('motif_name'),
+            'patient_id' => $request->input('patient_id'),
+            'start_at' => $request->input('start_at'),
+            'patient_first_name' => $request->input('patient_first_name'),
+            'patient_last_name' => $request->input('patient_last_name'),
+            'patient_Email' => $request->input('patient_Email')
+        ];
 
+        // Get doctor's information
+        $user_id = auth()->id();
+        $doctor = Doctor::where('user_id', $user_id)->first();
+        if ($doctor) {
+            $data['tele_price_tnd'] = $doctor->tele_price_tnd;
+            $data['tele_price_eur'] = $doctor->tele_price_eur;
+        }
+
+        $purchased_numbers = PurchasedNumber::where('user_id', $user_id)->pluck('phone_number');
+
+        // Return the view with the data
+        return view('meet.send_link', compact('data', 'purchased_numbers'));
+    }
 
     public function createMeet(Request $request)
     {
         try {
             \Log::info("Request Data for createMeet:", $request->all());
+            \Log::info("Request prepared data:1");
 
             // Validate the request
             $validated = $request->validate([
@@ -81,6 +109,7 @@ class MeetController extends Controller
                 'patient_first_name' => 'required',
                 'patient_last_name' => 'required',
                 'patient_Email' => 'required',
+                'email' => 'required|email',
             ]);
 
 
@@ -88,7 +117,7 @@ class MeetController extends Controller
             \Log::error("Validation failed: ", $e->errors());
             return back()->withErrors($e->errors())->withInput();
         }
-
+        \Log::info("Request prepared data:2");
         // Prepare data
         $appointment_id = $request->input("appointment_id");
         $patient_id = $validated['patient_id'];
@@ -139,7 +168,7 @@ class MeetController extends Controller
             $doctor = Doctor::where('user_id', $user_id)->first();
             if (!$doctor) {
                 return back()->with('error', 'Doctor not found.');
-                \Log::info("Doctor's : {$doctor}");
+                //\Log::info("Doctor's : {$doctor}");
             }
             $tele_price_tnd = $doctor->tele_price_tnd;
             $tele_price_eur = $doctor->tele_price_eur;
@@ -170,11 +199,223 @@ class MeetController extends Controller
 
 
 
-
-    
     public function sendMeetingInfo(Request $request)
     {
         \Log::info("Request Data for sendMeetingInfo:", $request->all());
+
+        try {
+            // Step 1: Validate the request data
+            $validated = $request->validate([
+                'patient_first_name' => 'required|string|min:2',
+                'patient_last_name' => 'required|string|min:2',
+                'phone' => 'required|string|regex:/^\+?[0-9]{8,}$/',
+                'email' => 'required|email',
+                'start_at' => 'required|date',
+                'patient_id' => 'required|integer',
+                'appointment_id' => 'required|integer',
+                'payment_mode' => 'required|in:TND,EUR,SPLIT',
+                'tele_price_tnd' => 'required_if:payment_mode,TND|numeric|nullable',
+                'tele_price_eur' => 'required_if:payment_mode,EUR|numeric|nullable',
+            ]);
+            \Log::info("preparing data", $validated);
+            // Step 2: Generate room name and meet link
+            $start_at = Carbon::parse($validated['start_at']);
+            $date = $start_at->format('Y-m-d');
+            $time = $start_at->format('H-i-s');
+            $patient_id = $validated['patient_id'];
+            $patient_first_name = Str::slug($validated['patient_first_name']);
+            $patient_last_name = Str::slug($validated['patient_last_name']);
+            $patient_phone = preg_replace('/[^0-9]/', '', $validated['phone']);
+            $patient_Email = $validated['email'];
+            $appointment_id = $validated['appointment_id'];
+            $room_name = Str::random(10) . "_{$patient_first_name}_{$patient_last_name}_{$date}_{$time}";
+            $meet_link = "https://meet.jit.si/{$room_name}";
+            $tele_price_eur = $validated['tele_price_eur'];
+            $tele_price_tnd = $validated['tele_price_tnd'];
+            \Log::info("Meet Link: {$meet_link}");
+            // Step 3: Create room record
+            $room = Room::create([
+                'room_name' => $room_name,
+                'meet_link' => $meet_link,
+                'owner_id' => auth()->id(),
+                'appointment_id' => $validated['appointment_id'],
+                'patient_id' => $validated['patient_id'],
+                'date' => $date,
+                'time' => $start_at->format('H:i:s'),
+                'status' => 'Pending',
+            ]);
+
+            // Step 4: Update appointment status
+            DB::table('appointments')
+                ->where('id', $validated['appointment_id'])
+                ->update(['appointment_status_id' => 4]);
+
+            // Step 5: Get doctor information
+            $doctor = Doctor::where('user_id', auth()->id())->firstOrFail();
+            $doctorName = $doctor->name;
+
+            // Step 6: Generate payment token
+            $paymentToken = Str::uuid();
+
+            // Step 7: Save payment session
+            DB::table('payment_sessions')->insert([
+                'token' => $paymentToken,
+                'appointment_id' => $validated['appointment_id'],
+                'email' => $validated['email'],
+                'start_at' => $validated['start_at'],
+                'doctor_id' => $doctor->id,
+                'tele_price_tnd' => $validated['tele_price_tnd'],
+                'tele_price_eur' => $validated['tele_price_eur'],
+                'description' => $meet_link,
+                'user_id' => $validated['patient_id'],
+                'payment_method_id' => 2,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $patient = Patient::find($patient_id);
+
+            if ($patient) {
+                $PatienUserId = $patient->user_id;
+                $doctorId = $doctor->id;
+            } else {
+                return response()->json(['error' => 'Patient not found'], 404);
+            }
+
+            // Step 7: Prepare Konnect payment link
+            $apiPaymentLink = null;
+            $apiEndpoint = "https://wic-doctor.com:3004/init-payment";
+            if (!empty($tele_price_tnd) && $tele_price_tnd > 0) {
+                $successUrl = route('konnect.payment.success', [
+                    'token' => (string) $paymentToken,
+                    'patient_id' => $patient_id,
+                ]);
+
+                $failUrl = route('konnect.payment.fail', [
+                    'appointment_id' => $appointment_id,
+                    'patient_id' => $patient_id,
+                ]);
+                $payload = [
+                    "receiverWalletId" => "67a3615faa2cfe4786549b0e",
+                    "token" => "TND",
+                    "amount" => (int) $tele_price_tnd * 1000,
+                    "type" => "immediate",
+                    "description" => "description",
+                    "lifespan" => 10,
+                    "checkoutForm" => true,
+                    "addPaymentFeesToAmount" => true,
+                    "firstName" => $patient_first_name,
+                    "lastName" => $patient_last_name,
+                    "phoneNumber" => $patient_phone,
+                    "email" => $patient_Email,
+                    "patient_id" => $patient_id,
+                    "orderId" => "order_" . $appointment_id,
+                    "webhook" => $apiEndpoint,
+                    "silentWebhook" => true,
+                    "successUrl" => $successUrl,
+                    "failUrl" => $failUrl,
+                    "theme" => "light",
+                ];
+
+
+                try {
+                    $response = Http::post($apiEndpoint, $payload);
+
+                    if ($response->successful()) {
+                        $responseData = $response->json();
+                        \Log::info("API Response: " . json_encode($responseData));
+                        if (isset($responseData['payUrl'])) {
+                            $apiPaymentLink = $responseData['payUrl'];
+                        }
+                    } else {
+                        \Log::error("API Call Failed. Status: {$response->status()}, Body: " . $response->body());
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Error occurred while calling the API: " . $e->getMessage());
+                }
+            }
+
+            // Step 8: Prepare PayPal payment link
+            $paypalLink = null;
+            if (!empty($tele_price_eur) && $tele_price_eur > 0) {
+                try {
+                    $paypalPayload = [
+                        "intent" => "CAPTURE",
+                        "application_context" => [
+                            "return_url" => route('paypal.payment.success'),
+                            "cancel_url" => route('paypal.payment.cancel'),
+                        ],
+                        "purchase_units" => [
+                            [
+                                "reference_id" => $paymentToken,
+                                "description" => "Payment for Appointment",
+                                "amount" => [
+                                    "currency_code" => "EUR",
+                                    "value" => $tele_price_eur,
+                                ],
+                            ]
+                        ]
+                    ];
+
+                    $paypalProvider = new \Srmklive\PayPal\Services\PayPal;
+                    $paypalProvider->setApiCredentials(config('paypal'));
+                    $paypalToken = $paypalProvider->getAccessToken();
+
+                    $paypalResponse = $paypalProvider->createOrder($paypalPayload);
+
+                    if (isset($paypalResponse['links'])) {
+                        foreach ($paypalResponse['links'] as $link) {
+                            if ($link['rel'] === 'approve') {
+                                $paypalLink = $link['href'];
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Error occurred while generating PayPal link: " . $e->getMessage());
+                }
+            }
+
+            // Step 9: Send email with meeting and payment information
+            $emailSuccess = false;
+            if ($apiPaymentLink || $paypalLink) {
+                try {
+                    $date = Carbon::parse($start_at)->format('Y-m-d');
+                    $time = Carbon::parse($start_at)->format('H:i');
+
+                    $emailSuccess = $this->sendByEmail(
+                        $patient_Email,
+                        $apiPaymentLink,
+                        $paypalLink,
+                        $patient_first_name,
+                        $date,
+                        $time,
+                        $doctorName,
+                        $tele_price_tnd,
+                        $tele_price_eur,
+                        $meet_link
+                    );
+                } catch (\Exception $e) {
+                    \Log::error("Error sending email: " . $e->getMessage());
+                }
+            }
+
+            if ($emailSuccess) {
+                return redirect()->route('meet.index')->with('success', 'Meeting created and payment links sent successfully by email.');
+            } else {
+                return redirect()->route('meet.index')->with('error', 'Failed to send email. Please try again.');
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error("Validation failed: ", $e->errors());
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            \Log::error("Error in sendMeetingInfo: " . $e->getMessage());
+            return back()->with('error', 'An error occurred. Please try again.');
+        }
+    }
+    public function createSpecificMeeting(Request $request)
+    {
+        \Log::info("Request Data for create specific meet:", $request->all());
 
         $paymentToken = Str::uuid();
         $user_id = auth()->id();
@@ -256,7 +497,7 @@ class MeetController extends Controller
                 \Log::error("Error occurred while calling the API: " . $e->getMessage());
             }
         }
-
+        \Log::info("API Payment Link gonna be prepared");
         // Prepare PayPal payment link only if tele_price_eur is valid
         $paypalLink = null;
         if (!empty($request->input('tele_price_eur')) && $request->input('tele_price_eur') > 0) {
@@ -330,7 +571,6 @@ class MeetController extends Controller
             return redirect()->route('meet.index')->with('error', 'Échec de l\'envoi de l\'email. Veuillez réessayer.');
         }
     }
-
 
 
     /*protected function sendByEmail($email, $apiPaymentLink, $paypalLink, $patientName)
@@ -457,4 +697,50 @@ class MeetController extends Controller
 
         return $result;
     }
+
+
+    public function updateStatus(Request $request, $id)
+    {
+        try {
+            $room = Room::findOrFail($id);
+
+            // Validate status
+            $validStatus = in_array($request->status, ['completed', 'failed']);
+            if (!$validStatus) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Statut invalide'
+                ], 400);
+            }
+
+            // Update room status
+            $room->status = $request->status;
+            $room->save();
+
+            // Update appointment status if needed
+            if ($room->appointment) {
+                $appointmentStatus = $request->status === 'completed' ? 6 : 7; // 5 for completed, 6 for failed
+                $room->appointment->update(['appointment_status_id' => $appointmentStatus]);
+            }
+
+            Log::info("Meeting room status updated", [
+                'room_id' => $id,
+                'status' => $request->status
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Statut mis à jour avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Error updating meeting room status: " . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de la mise à jour du statut'
+            ], 500);
+        }
+    }
+
 }

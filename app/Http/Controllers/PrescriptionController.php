@@ -19,7 +19,9 @@ use PDF; // Import the PDF facade
 use App\Models\Analyse;
 use App\Models\Radio;
 use Illuminate\Support\Facades\Log;
-
+use App\Mail\SendPrescriptionPdf;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Redirect;
 class PrescriptionController extends Controller
 {
 
@@ -121,17 +123,17 @@ class PrescriptionController extends Controller
                 ]);
             }
         }
-                // Lier les radioq à la prescription
+        // Lier les radios à la prescription
         elseif ($request->input('type') === 'Radio') {
-                    foreach ($request->radios as $radioData) {
-                        DB::table('radio_prescription')->insert([
-                            'prescription_id' => $prescription->id,
-                            'Nom' => $radioData['Nom'],
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
-                }
+            foreach ($request->radios as $radioData) {
+                DB::table('radio_prescription')->insert([
+                    'prescription_id' => $prescription->id,
+                    'Nom' => $radioData['Nom'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
         // Lier un autre traitement à la prescription
         elseif ($request->input('nom_traitement')) {
             foreach ($request->input('nom_traitement') as $traitement) {
@@ -144,21 +146,46 @@ class PrescriptionController extends Controller
             }
         }
     
-        return redirect()->route('consultation.prescriptions', ['consultation' => $consultation->id])
-                         ->with('success', 'Prescription enregistrée avec succès.');
-    }
-    
-    
+     // Générer les deux PDF
+     $pdfs = $this->generatePrescriptionPdf($prescription->id);
+
+     // Créer le dossier pour la prescription
+     $directory = public_path('storage/prescriptions/' . $prescription->id);
+     if (!file_exists($directory)) {
+         mkdir($directory, 0777, true);
+     }
+ 
+     // Noms des fichiers PDF
+     $fileName = $consultation->patient->first_name . '_' . $consultation->patient->last_name . '-' . $prescription->created_at . '.pdf';
+     $fileNameForMail = $consultation->patient->first_name . '_' . $consultation->patient->last_name . '-' . $prescription->created_at . '_for_mail.pdf';
+ 
+     // Chemins des fichiers PDF
+     $filePath = $directory . '/' . $fileName;
+     $filePathForMail = $directory . '/' . $fileNameForMail;
+ 
+     // Enregistrer les PDF
+     file_put_contents($filePath, $pdfs['pdf']->output());
+     file_put_contents($filePathForMail, $pdfs['pdfForMail']->output());
+ 
+     // Stocker le chemin du PDF for mail dans la base de données
+     $prescription->pdf = 'storage/prescriptions/' . $prescription->id . '/' . $fileName; // Chemin relatif pour le stockage
+     $prescription->pdfForMail = 'storage/prescriptions/' . $prescription->id . '/' . $fileNameForMail; // Chemin relatif pour le stockage
+
+     $prescription->save(); // Sauvegarder la mise à jour
+ 
+     return redirect()->route('consultation.prescriptions', ['consultation' => $consultation->id])
+                      ->with('success', 'Prescription enregistrée avec succès.');
+ }
     
     public function generatePrescriptionPdf($prescriptionId)
     {
         // Récupérer la prescription et ses médicaments associés avec les informations de la consultation
         $prescription = Prescription::with(['medicaments', 'consultation.patient', 'consultation.user'])->findOrFail($prescriptionId);
         $consultation = $prescription->consultation;
-        
+    
         // Récupérer l'adresse de l'utilisateur (médecin) à partir de la table addresses
         $address = DB::table('addresses')->where('user_id', $consultation->user_id)->value('address');
-        
+    
         // Récupérer le numéro de téléphone et l'adresse du médecin
         $doctorAddress = $address;  
         $doctorPhone = $consultation->user->phone_number;
@@ -185,7 +212,7 @@ class PrescriptionController extends Controller
                 $nom_commercial = DB::table('medicaments')
                     ->where('CODE_PCT', $medicament->pivot->medicament_CODE_PCT)
                     ->value('NOM_COMMERCIAL');
-                
+    
                 $medicamentDataArray[] = [
                     'nom_commercial' => $nom_commercial,
                     'dosage' => $medicament->pivot->dosage,
@@ -249,13 +276,17 @@ class PrescriptionController extends Controller
             'numOrdre' => $numOrdre,
         ];
     
-        // Charger la vue et générer le PDF avec les données
-        $pdf = PDF::loadView('prescriptions.pdf', $pdfData);
-        
-        // Diffuser le PDF dans le navigateur
-        return $pdf->stream('prescription_' . $prescription->id . '.pdf');
-    }
-    
+       // Générer les deux PDF avec les deux vues différentes
+    $pdf = PDF::loadView('prescriptions.pdf', $pdfData); // Vue 1
+    $pdfForMail = PDF::loadView('prescriptions.pdfForMail', $pdfData); // Vue 2
+
+    // Retourner les deux PDF
+    return [
+        'pdf' => $pdf,
+        'pdfForMail' => $pdfForMail,
+    ];
+}
+
 
 public function showDetails($prescriptionId)
 {
@@ -353,6 +384,47 @@ public function showDetails($prescriptionId)
     return response()->json($responseData);
 }
 
+
+
+public function sendEmail(Request $request, $prescriptionId)
+{
+    // Récupérer la prescription
+    $prescription = Prescription::with(['consultation.patient'])->findOrFail($prescriptionId);
+
+    // Vérifier si une adresse e-mail a été fournie par l'utilisateur
+    $email = $request->email ?: $prescription->consultation->patient->email;
+
+    if (!$email) {
+        return Redirect::back()->with('error', 'Aucune adresse e-mail fournie.');
+    }
+
+    if (!$prescription->pdfForMail) {
+        Log::error("Aucune prescription PDF associée à cette prescription.");
+        return Redirect::back()->with('error', "Aucune prescription PDF associée.");
+    }
+
+    $pdfPath = public_path($prescription->pdfForMail);
+
+    if (!file_exists($pdfPath)) {
+        Log::error("Le fichier PDF est introuvable : " . $pdfPath);
+        return Redirect::back()->with('error', "Le fichier PDF n'existe pas.");
+    }
+
+    if (!is_readable($pdfPath)) {
+        Log::error("Le fichier PDF n'est pas lisible : " . $pdfPath);
+        return Redirect::back()->with('error', "Le fichier PDF n'est pas lisible.");
+    }
+
+    // Données pour l'e-mail
+    $patientName = $prescription->consultation->patient->first_name . ' ' . $prescription->consultation->patient->last_name;
+    $prescriptionDate = $prescription->date;
+
+    // Envoyer l'e-mail
+    Mail::to($email)
+        ->send(new SendPrescriptionPdf($pdfPath, $patientName, $prescriptionDate));
+
+    return Redirect::back()->with('success', 'La prescription a été envoyée par e-mail avec succès.');
+}
 
 }
 

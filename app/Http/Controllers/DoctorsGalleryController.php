@@ -74,47 +74,6 @@ class DoctorsGalleryController extends Controller
 
 
 
-    /**
-     * Store a newly uploaded file inside a selected category.
-     */
-    /*public function store(UploadRequest $request): JsonResponse
-    {
-        $category = trim($request->get('category', 'default')); // Get or default to "default"
-        $uuid = $request->get('uuid');
-
-        try {
-            // Ensure category directory exists
-            $storagePath = 'public/' . $category;
-            if (!Storage::exists($storagePath)) {
-                Storage::makeDirectory($storagePath);
-            }
-
-            // Save the file inside the category folder
-            $file = $request->file('file');
-            $filePath = $file->store($category, 'public'); // Store in `public/{category}`
-            Log::info("File stored in category: {$category}, Path: {$filePath}");
-
-            // Create an "upload" record in the database
-            $upload = $this->uploadRepository->create([
-                'name' => $file->getClientOriginalName(),
-                'file_name' => basename($filePath),
-                'collection_name' => $category,
-                'uuid' => $uuid,
-                'disk' => 'public',
-                'size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-                'custom_properties' => [
-                    'uuid' => $uuid,
-                    'user_id' => auth()->id(),
-                ],
-            ]);
-
-            return $this->sendResponse($uuid, "Uploaded Successfully");
-
-        } catch (ValidatorException $e) {
-            return $this->sendResponse(false, $e->getMessage());
-        }
-    }*/
     public function store(UploadRequest $request): JsonResponse
     {
         $category = trim($request->get('category', 'Default')); // Get or default to "default"
@@ -154,8 +113,8 @@ class DoctorsGalleryController extends Controller
                 'size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
                 'custom_properties' => [
-                    'uuid' => $uuid,
-                    'user_id' => $doctorId, // Link the file to the current doctor
+                'uuid' => $uuid,
+                'user_id' => $doctorId, // Link the file to the current doctor
                 ],
             ]);
 
@@ -164,51 +123,7 @@ class DoctorsGalleryController extends Controller
             return $this->sendResponse(false, $e->getMessage());
         }
     }
-    /**
-     * Fetch all media files inside a given category.
-     */
-    /*public function all(Request $request, $category = null)
-    {
-        // Ensure a valid category is used, default to 'default'
-        $category = $category ?? 'default';
-
-        Log::info("Fetching media for category: {$category}");
-
-        // Directory path in the public storage
-        $directoryPath = storage_path("app/public/{$category}");
-
-        // Check if the directory exists
-        if (!is_dir($directoryPath)) {
-            Log::warning("Category directory does not exist: {$directoryPath}");
-            return response()->json([]);
-        }
-
-        // Retrieve all files in the directory
-        $files = array_diff(scandir($directoryPath), ['.', '..']); // Exclude . and ..
-        $mediaFiles = [];
-
-        foreach ($files as $file) {
-            $fullPath = $directoryPath . '/' . $file;
-
-            // Ensure it's a file
-            if (is_file($fullPath)) {
-                $fileUrl = asset("storage/{$category}/{$file}");
-                $mediaFiles[] = [
-                    'name' => pathinfo($file, PATHINFO_FILENAME),
-                    'file_name' => $file,
-                    'url' => $fileUrl,
-                    'thumb' => $fileUrl, // Adjust if you generate thumbnails
-                    'icon' => $fileUrl,  // Adjust if you generate icons
-                    'formated_size' => round(filesize($fullPath) / 1024, 2) . ' KB', // File size in KB
-                ];
-            }
-        }
-
-        Log::info('Media files retrieved:', $mediaFiles);
-
-        return response()->json($mediaFiles);
-    }*/
-    public function all(Request $request, $category = null)
+        public function all(Request $request, $category = null)
     {
         $category = $category ?? 'default'; // Default to 'default' if no category is provided
         $doctorId = auth()->user()->doctor->id;
