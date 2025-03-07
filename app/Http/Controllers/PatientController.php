@@ -64,6 +64,7 @@ class PatientController extends Controller
         $this->customFieldRepository = $customFieldRepo;
         $this->userRepository = $userRepo;
         $this->uploadRepository = $uploadRepo;
+
     }
 
     /**
