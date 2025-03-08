@@ -23,7 +23,6 @@ class CreatePatternRequest extends FormRequest
     {
         return [
             'nom' => 'required|string|max:255',
-            'specialite_id' => 'required|exists:specialities,id',
             'price' => 'required|numeric|min:0',
             'color' => 'nullable|string|max:255',
         ];
