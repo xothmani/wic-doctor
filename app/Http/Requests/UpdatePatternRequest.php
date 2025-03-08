@@ -22,10 +22,9 @@ class UpdatePatternRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nom' => 'required|string|max:255', // Example rule, adjust based on your requirements
-            'specialite_id' => 'required|exists:specialities,id',
+            'nom' => 'required|string|max:255',
             'price' => 'required|numeric',
             'color' => 'nullable|string|max:7', // Assuming color is optional and in HEX format
-        ];  
+        ];
     }
 }

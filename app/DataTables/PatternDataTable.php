@@ -72,7 +72,7 @@ class PatternDataTable extends DataTable
         return $query->where('doctor_id', -1); // Return empty if unauthorized
     }
 
-     /**
+    /**
      * Optional method if you want to use html builder.
      *
      * @return Builder

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Doctor;
 use App\Models\Pattern;
+use App\Models\Appointment;
 use App\Models\DoctorSubstitute;
 use App\Models\AvailabilityHour;
 use Carbon\Carbon;
@@ -43,16 +44,24 @@ class AvailabilityController extends Controller
         if (!auth()->check()) {
             return redirect()->route('login'); // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
         }
-    
+
         // Récupérer l'ID du médecin lié à l'utilisateur connecté
         $doctorId = auth()->user()->getDoctorId();
 
         if (!$doctorId) {
             return redirect()->route('users.profile');
         }
-
-        $doctor = auth()->user()->doctor;
-        $currentMode = $doctor->availability_mode;
+        $currentMode = null;
+        if (auth()->user()->hasRole('doctor')) {
+            $doctor = auth()->user()->doctor;
+            $currentMode = $doctor->availability_mode;
+        } elseif (auth()->user()->hasRole('Telesecretary')) {
+            $doctorId = session('selectedDoctorId');
+            $doctor = Doctor::find($doctorId);
+            $currentMode = $doctor->availability_mode;
+            \Log::info('Current mode:', ['mode' => $currentMode]);
+        }
+        \Log::info('Current availability mode:', ['mode' => $currentMode]);
 
         if ($currentMode == 'open') {
             // Get availability for all three types

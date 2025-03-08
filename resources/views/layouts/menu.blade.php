@@ -1,4 +1,4 @@
-@can('dashboard')
+    @can('dashboard')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('dashboard*') ? 'active' : '' }}" href="{!! url('dashboard') !!}">@if($icons)
         <i class="nav-icon fas fa-tachometer-alt"></i>@endif
@@ -57,17 +57,38 @@
                     </a>
                 </li>
             @endcan
-            @can('appointment-events.index')
+            {{-- @can('appointment-events.index')
+                            <li class="nav-item">
+                                <a class="nav-link {{ Request::is('appointment-event*') ? 'active' : '' }}"
+                                    href="{!! route('appointment-events.index') !!}">
+                                    @if($icons)
+                                        <i class="nav-icon fas fa-calendar-alt"></i>
+                                    @endif
+                                    <p>{{ trans('lang.agenda') }}</p>
+                                </a>
+                            </li>
+                        @endcan --}}    
+            @if(Auth::check() && Auth::user()->hasRole('Telesecretary'))
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('doctor-telesecretariat*') ? 'active' : '' }}"
+                    href="{!! route('doctor_telesecretariat.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                        @endif
+                        <p>{{ trans('lang.agenda_des_medecins') }}</p>
+                    </a>
+                </li>
+            @elseif(Auth::check() && Gate::allows('appointment-events.index'))
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('appointment-event*') ? 'active' : '' }}"
-                        href="{!! route('appointment-events.index') !!}">
+                    href="{!! route('appointment-events.index') !!}">
                         @if($icons)
                             <i class="nav-icon fas fa-calendar-alt"></i>
                         @endif
                         <p>{{ trans('lang.agenda') }}</p>
                     </a>
                 </li>
-            @endcan
+            @endif
             @can('doctorReviews.index')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('doctorReviews*') ? 'active' : '' }}"
@@ -204,17 +225,17 @@
     </li>
 @endcan
 
-@can('doctor_telesecretariat.index')
+{{--@can('doctor_telesecretariat.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : '' }}"
             href="{!! route('doctor_telesecretariat.index') !!}">
             @if($icons)
-                <i class="nav-icon fas fa-calendar-check"></i> {{-- Icône représentant un agenda avec un médecin --}}
+                <i class="nav-icon fas fa-calendar-check"></i>
             @endif
             <p>{{ trans('lang.agenda_des_medecins') }}</p>
         </a>
     </li>
-@endcan
+@endcan --}}
 
 @can('doctor_telesecretariat.create')
     <li class="nav-item">
