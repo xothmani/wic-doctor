@@ -63,7 +63,7 @@ class PatternDataTable extends DataTable
             return $query;
         }
 
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
 
         if ($doctorId) {
             return $query->where('doctor_id', $doctorId);

@@ -627,3 +627,50 @@
     text-align: center;
     color: #666;
 }
+
+/* Style for the doctor list */
+.doctor-list {
+    padding: 0;
+    max-height: 250px; /* Reduce height to avoid being too big */
+    overflow-y: auto; /* Enable scrolling if needed */
+}
+
+/* Style for each doctor item */
+.doctor-item {
+    padding: 8px 12px;
+    font-size: 14px; /* Reduce font size for better spacing */
+    background-color: #f8f9fa; /* Default background */
+    color: #333; /* Default text color */
+    border: none; /* Remove default borders */
+}
+
+/* Change background color on hover */
+.doctor-item:hover {
+    background-color: #E8EAF6; /* Light purple hover effect */
+    color: #5C6BC0; /* Text color matches header */
+}
+
+/* Active doctor item (selected one) */
+.doctor-item.active {
+    background-color: #5C6BC0 !important; /* Match sidebar color */
+    color: white !important;
+    font-weight: bold;
+}
+
+/* Style for the card container */
+.card.shadow-sm {
+    max-height: 280px; /* Reduce the height */
+    border-radius: 8px; /* Optional rounded corners */
+}
+
+/* Search input styling */
+#doctorSearch {
+    border-radius: 4px;
+}
+/* Fix active doctor item styling */
+.list-group-item.active {
+    background-color: #5C6BC0 !important; /* Match sidebar header color */
+    color: white !important; /* Ensure text is readable */
+    font-weight: bold; /* Make it stand out */
+    border-color: #5C6BC0 !important; /* Remove default borders */
+}

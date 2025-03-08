@@ -76,7 +76,7 @@ class PatientController extends Controller
      */
     public function index(PatientDataTable $patientDataTable): mixed
     {
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
         Log::info('Active doctor id used in PatientController::index', ['doctorId' => $doctorId]);
         return $patientDataTable->render('patients.index');
     }
@@ -249,7 +249,7 @@ class PatientController extends Controller
             $shortUrlResponse = $this->genererLink();
 
 
-            $doctorId = auth()->user()->getActiveDoctorId();
+            $doctorId = auth()->user()->getDoctorId();
 
             $doctor = Doctor::find($doctorId);
 
@@ -325,7 +325,7 @@ class PatientController extends Controller
     private function associatePatientToDoctor(\App\Models\Patient $patient): bool
     {
 
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
 
         $doctor = Doctor::find($doctorId);
 
@@ -529,7 +529,7 @@ class PatientController extends Controller
         }
 
         // Chercher l'ID du médecin connecté
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
 
         // Chercher l'association du patient avec ce médecin dans la table doctor_patient
         $doctorPatient = \DB::table('doctor_patients')
@@ -635,7 +635,7 @@ class PatientController extends Controller
 
     public function genererLink()
     {
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
 
         $doctor = Doctor::find($doctorId);
 

@@ -1,6 +1,6 @@
 <div class='btn-group btn-group-sm'>
     @php
-        $doctorId = auth()->user()->getActiveDoctorId(); // Fetch the associated doctor ID for the logged-in user
+        $doctorId = auth()->user()->getDoctorId(); // Fetch the associated doctor ID for the logged-in user
     @endphp
 
     @if(auth()->user()->hasPermissionInContext('consultations.create', $doctorId))

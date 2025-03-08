@@ -69,7 +69,7 @@ class ExperienceController extends Controller
     {
 
         //$doctor = $this->doctorRepository->getByCriteria(new DoctorsOfUserCriteria(auth()->id()))->pluck('name', 'id');
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
 
         // Check if a doctor is associated with the logged-in user
         if (!$doctorId) {
@@ -146,7 +146,7 @@ class ExperienceController extends Controller
     public function edit(int $id): RedirectResponse|View
     {
         //Log::info("Attempting to edit experience with ID: {$id}");
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
 
         // Check if a doctor is associated with the logged-in user
         if (!$doctorId) {

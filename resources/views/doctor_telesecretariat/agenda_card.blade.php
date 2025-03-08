@@ -1,5 +1,15 @@
 @extends('layouts.app')
+@php
+    $doctorId = auth()->user()->getDoctorId();
+    $permissionKey = 'patients.index';
+    // Retrieve the permission with its related readable record
+    $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
+        ->with('readable')
+        ->first();
 
+    // Use the dynamic attribute for the display name; fall back to the key if not found
+    $readablePermission = $permission ? $permission->display_name : $permissionKey;
+@endphp
 @section('content')
 
     <!-- Second Modal -->
@@ -131,8 +141,14 @@
                     <button type="button" class="btn btn-success" id="markAsDone">
                         <i class="fas fa-check-circle"></i> {{ trans('lang.mark_ready') }}
                     </button>
+                    @if(!auth()->user()->hasPermissionInContext('updateStatus', $doctorId))
+                        <div class="alert alert-warning w-100 text-center mt-2"
+                            style="font-size: 14px; font-weight: bold; background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
+                            <i class="fas fa-exclamation-triangle"></i> Vous n’avez pas la permission de mettre à jour ce
+                            rendez-vous.
+                        </div>
+                    @endif
                 </div>
-
             </div>
         </div>
     </div>
@@ -244,7 +260,7 @@
     </div>
     <!-- Modal for Creating Appointment with Tabbed Types -->
     <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg"><!-- or modal-md if you prefer smaller -->
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
                 <div class="modal-header">
@@ -255,67 +271,79 @@
                 </div>
 
                 <div class="modal-body">
+                    <!-- Display warning if the user does not have permission -->
+                    @if(!auth()->user()->hasPermissionInContext('appointments.create', $selectedDoctorId))
+                        <div class="alert alert-warning w-100 text-center mt-2"
+                            style="font-size: 14px; font-weight: bold; background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
+                            <i class="fas fa-exclamation-triangle"></i> Vous n’avez pas la permission de créer ce rendez-vous.
+                        </div>
+                    @endif
 
                     <!-- ONE unified form for all appointment types -->
-                    <form id="appointmentForm" action="{{ route('appointmentsEvent.store') }}" method="POST">
+                    <form id="appointmentForm" action="{{ route('tele_save_appointment') }}" method="POST">
                         @csrf
 
-                        <!-- Hidden field that stores the currently selected appointment type -->
+                        <!-- Hidden field to store appointment type -->
                         <input type="hidden" name="appointment_type" id="appointmentType" value="cabinet">
-                        <!-- Nav Tabs for 3 Types -->
-                        <ul class="nav nav-tabs" id="apptTypeTabs" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="cabinet-tab" data-toggle="tab" href="#cabinet-pane"
-                                    data-type="cabinet" role="tab" aria-controls="cabinet-pane" aria-selected="true">
-                                    {{ __('En Cabinet') }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tele-tab" data-toggle="tab" href="#tele-pane"
-                                    data-type="Téléconsultation" role="tab" aria-controls="tele-pane" aria-selected="false">
-                                    {{ __('Téléconsultation') }}
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="home-tab" data-toggle="tab" href="#home-pane" data-type="home_visit"
-                                    role="tab" aria-controls="home-pane" aria-selected="false">
-                                    {{ __('Home Visit') }}
-                                </a>
-                            </li>
-                        </ul>
 
-                        <br>
-                        <!-- Patient Selection -->
-                        <div class="form-group">
-                            <label for="patientDropdown" class="font-weight-bold">{{ trans('lang.Select_Patient') }}</label>
-                            <div class="d-flex align-items-center">
-                                <select id="patientDropdown" name="patient_id" class="form-control select2-ajax" required>
-                                    <option value="" disabled selected>{{ trans('lang.select_patient') }}</option>
-                                </select>
-                                <a href="{{ route('patients.create') }}" class="btn btn-success d-flex ml-2"
-                                    id="addNewPatient">
-                                    <i class="fa fa-user-plus"></i>
-                                </a>
+                        @if(auth()->user()->hasPermissionInContext('appointments.create', $selectedDoctorId))
+                            <!-- Nav Tabs for Appointment Types -->
+                            <ul class="nav nav-tabs" id="apptTypeTabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="cabinet-tab" data-toggle="tab" href="#cabinet-pane"
+                                        data-type="cabinet" role="tab" aria-controls="cabinet-pane" aria-selected="true">
+                                        {{ __('En Cabinet') }}
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tele-tab" data-toggle="tab" href="#tele-pane"
+                                        data-type="Téléconsultation" role="tab" aria-controls="tele-pane" aria-selected="false">
+                                        {{ __('Téléconsultation') }}
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="home-tab" data-toggle="tab" href="#home-pane" data-type="home_visit"
+                                        role="tab" aria-controls="home-pane" aria-selected="false">
+                                        {{ __('Home Visit') }}
+                                    </a>
+                                </li>
+                            </ul>
+                            <br>
+
+                            <!-- Patient Selection -->
+                            <div class="form-group">
+                                <label for="patientDropdown" class="font-weight-bold">{{ trans('lang.Select_Patient') }}</label>
+                                <div class="d-flex align-items-center">
+                                    <select id="patientDropdown" name="patient_id" class="form-control select2-ajax" required>
+                                        <option value="" disabled selected>{{ trans('lang.select_patient') }}</option>
+                                    </select>
+                                    <a href="{{ route('patients.create') }}" class="btn btn-success d-flex ml-2"
+                                        id="addNewPatient">
+                                        <i class="fa fa-user-plus"></i>
+                                    </a>
+                                </div>
                             </div>
-                        </div>
-                        <input type="hidden" id="motif_id" name="motif_id" />
-                        <!-- Motif (Pattern) Display -->
-                        <div class="form-group">
-                            <label class="font-weight-bold">{{ trans('lang.motif') }}</label>
-                            <div id="patternDisplay" class="text-white p-2 rounded text-center"
-                                style="background-color: #cccccc; font-weight: bold; font-size: 16px;">
-                                {{ trans('lang.no_pattern_selected') }}
+
+                            <input type="hidden" id="motif_id" name="motif_id" />
+
+                            <!-- Motif (Pattern) Display -->
+                            <div class="form-group">
+                                <label class="font-weight-bold">{{ trans('lang.motif') }}</label>
+                                <div id="patternDisplay" class="text-white p-2 rounded text-center"
+                                    style="background-color: #cccccc; font-weight: bold; font-size: 16px;">
+                                    {{ trans('lang.no_pattern_selected') }}
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Appointment Date -->
-                        <div class="form-group">
-                            <label class="font-weight-bold" for="appointmentDate">{{ trans('lang.date') }}</label>
-                            <input type="date" class="form-control" style="text-align: center; font-size: 1rem;"
-                                id="appointmentDate" name="appointment_date" readonly />
-                        </div>
+                            <!-- Appointment Date -->
+                            <div class="form-group">
+                                <label class="font-weight-bold" for="appointmentDate">{{ trans('lang.date') }}</label>
+                                <input type="date" class="form-control" style="text-align: center; font-size: 1rem;"
+                                    id="appointmentDate" name="appointment_date" readonly />
+                            </div>
+                        @endif
 
-                        <!-- Container for time slots (shared across all tabs) -->
+                        <!-- Time Slots (Always Visible) -->
                         <div class="time-slot-container d-flex flex-wrap justify-content-center"
                             style="gap: 0.75rem; margin-top: 10px;" id="timeSlotContainer">
                             <!-- Buttons will be injected by JavaScript -->
@@ -324,27 +352,27 @@
                         <!-- Hidden input to store the selected time slot -->
                         <input type="hidden" id="appointmentTime" name="appointment_time" />
 
-                        <!-- Notes -->
-                        <div class="form-group">
-                            <label class="font-weight-bold" for="notes">{{ __('lang.notes') }}</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="5"
-                                placeholder="{{ __('lang.write_note') }}"></textarea>
-                        </div>
+                        @if(auth()->user()->hasPermissionInContext('appointments.create', $selectedDoctorId))
+                            <!-- Notes -->
+                            <div class="form-group">
+                                <label class="font-weight-bold" for="notes">{{ __('lang.notes') }}</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="5"
+                                    placeholder="{{ __('lang.write_note') }}"></textarea>
+                            </div>
 
-
-
-                        <!-- Save / Cancel Buttons -->
-                        <div class="d-flex justify-content-end align-items-center mt-3">
-                            <button type="submit"
-                                class="btn btn-primary save-btn d-flex align-items-center px-3 py-2 shadow-sm">
-                                <i class="fas fa-save mr-2"></i> {{ trans('lang.save_patient_refer') }}
-                            </button>
-                            <button type="button"
-                                class="btn btn-light border cancel-btn d-flex align-items-center px-3 py-2 shadow-sm ml-2"
-                                data-dismiss="modal">
-                                <i class="fas fa-times mr-2"></i> {{ __('lang.cancel') }}
-                            </button>
-                        </div>
+                            <!-- Save / Cancel Buttons -->
+                            <div class="d-flex justify-content-end align-items-center mt-3">
+                                <button type="submit"
+                                    class="btn btn-primary save-btn d-flex align-items-center px-3 py-2 shadow-sm">
+                                    <i class="fas fa-save mr-2"></i> {{ trans('lang.save_patient_refer') }}
+                                </button>
+                                <button type="button"
+                                    class="btn btn-light border cancel-btn d-flex align-items-center px-3 py-2 shadow-sm ml-2"
+                                    data-dismiss="modal">
+                                    <i class="fas fa-times mr-2"></i> {{ __('lang.cancel') }}
+                                </button>
+                            </div>
+                        @endif
 
                     </form>
                 </div>
@@ -353,27 +381,26 @@
         </div> <!-- end .modal-dialog -->
     </div> <!-- end #appointmentModal -->
 
+
     <!-- Content -->
     <div class="content">
         <div class="row">
             <div class="col-md-2 col-sm-12 d-flex flex-column">
                 <!-- Doctor Selection -->
-                <div class="card shadow-sm flex-grow-1" style="max-height: 300px; overflow-y: auto; padding: 0;">
-                    <div class="card-header py-2 px-3" style="background-color: #f8f9fa;">
+                <div class="card shadow-sm flex-grow-1">
+                    <div class="card-header py-2 px-3" style="background-color: #5C6BC0; color: white;">
                         <input type="text" id="doctorSearch" class="form-control"
                             placeholder="{{ trans('lang.search_doctor') }}" style="height: 35px; font-size: 14px;">
                     </div>
-                    <div class="card-body">
-
+                    <div class="card-body p-0">
                         <ul class="list-group doctor-list">
                             @foreach ($doctors as $doctor)
                                 <li class="list-group-item doctor-item {{ $loop->first ? 'active' : '' }}"
-                                    data-doctor-id="{{ $doctor->doctor->id }}" style="cursor: pointer; height: 35px">
-                                    {{ $doctor->doctor->name  }}
+                                    data-doctor-id="{{ $doctor->doctor->id }}">
+                                    <span class="doctor-name">{{ $doctor->doctor->name }}</span>
                                 </li>
                             @endforeach
                         </ul>
-
                     </div>
                 </div>
 
@@ -394,51 +421,12 @@
                         <div id="calendar-container">
                             <div id="calendar"></div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <!-- Left Section (Legend Boxes) -->
-                            <div class="d-flex align-items-center">
-                                <div class="d-flex align-items-center me-4">
-                                    <span class="legend-box" style="background-color: #9FCDA8;"></span>
-                                    <span class="ms-1">Accepté&nbsp;</span>
-                                </div>
-                                <div class="d-flex align-items-center me-4">
-                                    <span class="legend-box" style="background-color: #7DC2A5;"></span>
-                                    <span class="ms-1">Terminé&nbsp;</span>
-                                </div>
-                                <div class="d-flex align-items-center me-4">
-                                    <span class="legend-box" style="background-color: #9EDF9C;"></span>
-                                    <span class="ms-1">Prêt&nbsp;</span>
-                                </div>
-                                <div class="d-flex align-items-center me-4">
-                                    <span class="legend-box" style="background-color: #F5DF4D;"></span>
-                                    <span class="ms-1">En cours&nbsp;</span>
-                                </div>
-                                <div class="d-flex align-items-center me-4">
-                                    <span class="legend-box" style="background-color: #F38071;"></span>
-                                    <span class="ms-1">Annulé&nbsp;</span>
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <span class="legend-box" style="background-color: #A594F9;"></span>
-                                    <span class="ms-1">Reçu</span>
-                                </div>
-                            </div>
 
-                            <!-- Right Section (Circles) -->
-                            <div class="d-flex align-items-center">
-                                <div class="d-flex align-items-center me-4">
-                                    <span class="circle-indicator" style="background-color: #28a745;"></span>
-                                    <span class="ms-2">Disponible&nbsp;&nbsp;</span>
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <span class="circle-indicator" style="background-color: #dc3545;"></span>
-                                    <span class="ms-2">Non Disponible</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
 
     </div>
@@ -453,7 +441,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css" />
-    <link rel="stylesheet" href="{{ asset('css/teleagenda.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/eventcustom.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 @endpush
@@ -481,14 +469,15 @@
         });
         function refreshCalendarEvents() {
             $('#calendar').fullCalendar('refetchEvents'); // Fetch and reload events
-            console.log("Calendar events refreshed");
+            //#console.log("Calendar events refreshed");
         }
 
         // Set interval to refresh calendar every 30 seconds
         window.patternData = {};
         let selectedAppointmentId = null; // Store appointment ID
         setInterval(refreshCalendarEvents, 10000);
-        let selectedDoctorId = {{ $doctors->first()->id ?? 'null' }};
+        let selectedDoctorId = {{ $selectedDoctorId ?? $doctors->first()->id  }};
+        //console.log("Selected Doctor ID0000:", selectedDoctorId);
         let calendar; // Reference to FullCalendar instance
         let availabilityDays = @json($availabilityDays);
         let vacations = @json($vacations);
@@ -563,7 +552,7 @@
 
         //////////////////////////////////////////////////////////////////////////////
         function updateAllPatterns(date, time) {
-            console.log(date, time);
+            //console.log(date, time);
             const types = [
                 { type: 'cabinet' },
                 { type: 'Téléconsultation' },
@@ -581,7 +570,7 @@
                         doctor_id: selectedDoctorId
                     },
                     success: function (response) {
-                        console.log("Fetched data for", item.type, response);
+                        //console.log("Fetched data for", item.type, response);
                         window.patternData[item.type] = response;
 
                         // If the currently active tab is this type, update UI
@@ -628,13 +617,13 @@
                     const isPast = moment(globalSelectedDate + ' ' + slot).isBefore(moment());
 
                     const $btn = $(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <button type="button"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            data-slot="${slot}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${isTaken || isPast ? 'disabled' : ''}>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ${slot}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </button>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <button type="button"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        data-slot="${slot}"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ${isTaken || isPast ? 'disabled' : ''}>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ${slot}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </button>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
 
                     // If it's not taken and not in the past, let the user pick it
                     if (!isTaken && !isPast) {
@@ -684,18 +673,26 @@
 
         //////////////////////////////////////////////////
         function checkAvailability(selectedDate, selectedTime) {
-            console.log("Checking availability for:", selectedDoctorId, selectedDate, selectedTime);
+            //console.log("Checking availability for:", selectedDoctorId, selectedDate, selectedTime);
             return $.ajax({
                 url: "/tele-get-pattern-for-time-slot-without-type",
                 method: "GET",
                 data: { date: selectedDate, time: selectedTime, doctor_id: selectedDoctorId },
             }).then(function (response) {
-                console.log("Unavailable Slots Response:", response);
+                //console.log("Unavailable Slots Response:", response);
                 let sessionDuration = response.session_duration;
                 if (!response.unavailable_slots || response.unavailable_slots.length === 0) {
                     return true;
                 }
-
+                if (!@json(auth()->user()->hasPermissionInContext('appointmentsEvent.storeForced', $doctorId))) {
+                    Swal.fire({
+                        title: 'Accès refusé',
+                        text: 'Vous n\'avez pas la permission de forcer des rendez-vous',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                    return;
+                }
                 Swal.fire({
                     title: "Créneaux indisponibles",
                     text: response.message,
@@ -722,7 +719,7 @@
                 $("#forcedAppointmentStartTime, #forcedAppointmentEndTime").off("change").on("change", function () {
                     let startTime = $("#forcedAppointmentStartTime").val();
                     let endTime = $("#forcedAppointmentEndTime").val();
-                    console.log(startTime);
+                    //console.log(startTime);
                     if (!startTime || !endTime || startTime === "" || endTime === "") {
                         e.preventDefault(); // Prevent submission if empty
                         Swal.fire("Erreur", "Veuillez sélectionner une heure de début et de fin valide.", "error");
@@ -776,7 +773,7 @@
                 });
                 $("#forcedAppointmentForm").on("submit", function () {
                     // Optionally clear the time fields after submission
-                    //console.log("startTime", $("#forcedAppointmentStartTime").val());
+                    console.log("startTime", $("#forcedAppointmentStartTime").val());
                     $("#forcedAppointmentStartTime").val("");
                     $("#forcedAppointmentEndTime").val("");
                     // console.log("endTime", $("#forcedAppointmentEndTime").val());
@@ -795,7 +792,43 @@
             });
         }
 
+        $('#forcedAppointmentForm').on('submit', function (e) {
+            e.preventDefault();
 
+            const formData = new FormData(this);
+
+            $.ajax({
+                url: $(this).attr('action'),
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    $('#forcedAppointmentModal').modal('hide');
+                    Swal.fire({
+                        title: 'Succès',
+                        text: response.message,
+                        icon: 'success'
+                    }).then(() => {
+                        location.reload();
+                    });
+                },
+                error: function (xhr) {
+                    const response = xhr.responseJSON;
+                    let errorMessage = 'Veuillez vérifier le formulaire et réessayer';
+
+                    if (response && response.errors) {
+                        errorMessage = Object.values(response.errors)[0]; // Get first error message
+                    }
+
+                    Swal.fire({
+                        title: 'Erreur',
+                        text: errorMessage,
+                        icon: 'error'
+                    });
+                }
+            });
+        });
         ////////////////////////////////////////////
 
         $(document).ready(function () {
@@ -811,7 +844,24 @@
 
 
         ////////////////////////////////////////////////
-
+        $('#patientDropdownForced').select2({
+            allowClear: false,
+            ajax: {
+                url: "/tele-patients/search",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        q: params.term || '',
+                        doctor_id: selectedDoctorId // Pass the selected doctor ID
+                    };
+                },
+                processResults: function (data) {
+                    return { results: data };
+                },
+                cache: true
+            }
+        });
         ////////////////////////////////////////////////////
 
         function updateAvailableTimeSlots(response) {
@@ -828,10 +878,10 @@
             if (response.vacation) {
                 //console.log("Doctor is on vacation. No slots to display.");
                 const vacationMessage = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `;
                 timeSlotsWrapper.append(vacationMessage);
 
                 // Show a confirmation dialog to the user
@@ -892,13 +942,14 @@
             return { totalSlots, takenSlots, availableSlots };
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////
-        function updateAppointmentStatus(appointmentId, statusId) {
+        function updateAppointmentStatus(appointmentId, statusId, cancelReason) {
             $.ajax({
                 url: "/appointment-event/status", // Route URL
                 method: "POST",
                 data: {
                     id: appointmentId,
                     appointment_status_id: statusId,
+                    cancel_Reason: cancelReason,
                     _token: $('meta[name="csrf-token"]').attr('content') // CSRF Token
                 },
                 success: function (response) {
@@ -927,9 +978,11 @@
             const doneButton = document.getElementById("markAsDone");
             const failedButton = document.getElementById("markAsFailed");
             teleconsultationButton.setAttribute("data-phone", phone);
+            const hasUpdateStatusPermission = {{ auth()->user()->hasPermissionInContext('updateStatus', $doctorId) ? 'true' : 'false' }};
+            const isDoctor = {{ auth()->user()->hasRole('doctor') ? 'true' : 'false' }};
 
             // Show/hide the "Create Teleconsultation" button
-            if (online === "Téléconsultation" && status !== "Annulé" && status !== "Terminé") {
+            if (isDoctor && online === "Téléconsultation" && status !== "Annulé" && status !== "Terminé") {
 
                 teleconsultationButton.classList.remove("d-none");
                 teleconsultationButton.onclick = () => {
@@ -941,24 +994,28 @@
                 teleconsultationButton.classList.add("d-none");
             }
 
+            if (hasUpdateStatusPermission) {
+                if (online === "Téléconsultation") {
+                    doneButton.style.display = "none";
+                    failedButton.style.display = "inline-block";
+                }
+                else if (status === "Terminé" || status === "Annulé") {
+                    doneButton.style.display = "none"; // Hide the Ready button
+                    failedButton.style.display = "none"; // Optionally hide the Failed button too
 
-            if (online === "Téléconsultation") {
+                } else if (status === "Prêt") {
+                    doneButton.style.display = "none"; // Hide the Ready button
+                    failedButton.style.display = "inline-block";
+                }
+                else {
+                    doneButton.style.display = "inline-block"; // Show the Ready button
+                    failedButton.style.display = "inline-block"; // Show the Failed button
+                }
+            } else {
+                // If the user does not have permission, hide both buttons
                 doneButton.style.display = "none";
                 failedButton.style.display = "none";
             }
-            else if (status === "Terminé" || status === "Annulé") {
-                doneButton.style.display = "none"; // Hide the Ready button
-                failedButton.style.display = "none"; // Optionally hide the Failed button too
-
-            } else if (status === "Prêt") {
-                doneButton.style.display = "none"; // Hide the Ready button
-                failedButton.style.display = "inline-block";
-            }
-            else {
-                doneButton.style.display = "inline-block"; // Show the Ready button
-                failedButton.style.display = "inline-block"; // Show the Failed button
-            }
-
             // Show the modal
             $("#appointmentDetailsModal").modal("show");
         }
@@ -984,8 +1041,8 @@
                 eventOverlap: false,
                 viewRender: function (view) {
                     let viewStart = $('#calendar').fullCalendar('getView').intervalStart;
-                    console.log(`View Changed to: ${view.name}, Start Date: ${viewStart.format("YYYY-MM-DD")}`);
-                    console.log("doctor", selectedDoctorId);
+                    //console.log(`View Changed to: ${view.name}, Start Date: ${viewStart.format("YYYY-MM-DD")}`);
+                    //console.log("doctor", selectedDoctorId);
                     loadAvailabilitySlots(viewStart);
 
                     // Clear previous custom labels
@@ -1053,77 +1110,91 @@
                     }
                 },
                 dayRender: function (date, cell) {
-                    //console.log('fetchhhhhhh');
-                    // Format date as YYYY-MM-DD for comparison
-                    const formattedDayName = date.locale('fr').format('dddd').toLowerCase(); // Normalize to lowercase
-                    // console.log('formatted', formattedDayName);
-                    const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase()); // Normalize backend days to lowercase
-                    //console.log('normalize', normalizedAvailabilityDays);
-                    const today = moment().startOf('day'); // Get today's date
-                    const currentDay = date.startOf('day');
-                    // Check if the doctor is on vacation
+                    let dayNumber = date.format('D/M'); // Format day as "3/3" (day/month)
+                    let customLabel = "Custom Label";  // Change this to your desired text
+
+                    // Insert custom text below the date number
+                    cell.append(`<div class="custom-day-label">${customLabel}</div>`);
+                    // 1) Log the date being rendered (YYYY-MM-DD)
+                    //console.log("dayRender called for date:", date.format("YYYY-MM-DD"));
+
+                    // For example, "Monday", "Tuesday" → "monday", "tuesday"
+                    const formattedDayName = date.locale('en').format('dddd').toLowerCase();
+                    // console.log("Formatted day name (EN):", formattedDayName);
+
+                    // Suppose availabilityDays = ["monday","tuesday","wednesday"] or similar
+                    const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase());
+                    //console.log("Normalized availability days:", normalizedAvailabilityDays);
+
+                    // Compare with today's date
+                    const today = moment().startOf('day');
+                    const currentDay = date.clone().startOf('day');
+                    //console.log("Comparing currentDay:", currentDay.format("YYYY-MM-DD"), "with today:", today.format("YYYY-MM-DD"));
+
+                    // Check if the doctor is on vacation for this day
                     const isVacationDay = vacations.some(vacation => {
                         const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
                         const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
+                        //console.log("Vacation range:", vacationStart.format("YYYY-MM-DD"), "to", vacationEnd.format("YYYY-MM-DD"));
                         return currentDay.isSameOrAfter(vacationStart) && currentDay.isSameOrBefore(vacationEnd);
                     });
+                    // console.log("Is vacation day:", isVacationDay);
 
+                    // Apply conditional styling
                     if (currentDay.isBefore(today)) {
-                        // Mark as past day
-                        cell.css('background-color', '#e9ecef'); // Light red for past days
-                        cell.css('cursor', 'not-allowed');
-                        cell.css('color', '#721c24'); // Dark red for text
-                        cell.css('position', 'relative');
-                        cell.append('<span class="dot unavailable-dot"></span>'); // Red dot
-                        cell.attr('title', 'Ce jour est dans le passé.'); // Tooltip for past days
-                        //console.log('dayisleft');
-                    } else if (isVacationDay) {
-                        cell.addClass('cell-with-background'); // Apply custom background for vacation days
-                        cell.attr('title', 'Le docteur est en vacances ce jour.');
-                    } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
-                        // Mark as available day
-                        cell.css('background-color', ''); // Green for available days
-                        cell.css('cursor', 'pointer');
-                        cell.css('position', 'relative');
-                        cell.append('<span class="dot available-dot"></span>'); // Green dot
-                        //console.log('dayavai');
-                    } else {
-                        // Mark as unavailable day
-                        cell.css('background-color', '#e9ecef'); // Gray for unavailable days
-                        cell.css('position', 'relative');
-                        cell.append('<span class="dot unavailable-dot"></span>'); // Red dot
-                        //console.log('daynotavai');
+                        // 1) Past day
+                        //console.log("Marking as past day:", date.format("YYYY-MM-DD"));
+                        cell.removeClass('fc-today');
+                        cell.css({
+                            'background-color': '#e9ecef',
+                            'cursor': 'not-allowed',
+                            'color': '#721c24',
+                            'position': 'relative'
+                        });
+                        cell.append('<span class="dot unavailable-dot"></span>');
+                        //cell.attr('title', 'This is a past date.');
                     }
-                    const selectedDate = date.format('YYYY-MM-DD');
-                    $.ajax({
-                        url: "/tele-get-available-time-slots",
-                        type: "GET",
-                        data: { date: selectedDate, doctor_id: selectedDoctorId },
-                        success: function (response) {
-                            const totalSlots = response.all_slots ? response.all_slots.length : 0; // Default to 0 if no slots
-                            const takenSlots = response.taken_slots ? response.taken_slots.length : 0; // Default to 0 if no slots
+                    else if (isVacationDay) {
+                        // 2) Vacation day
+                        //console.log("Marking as vacation day:", date.format("YYYY-MM-DD"));
+                        cell.removeClass('fc-today');
+                        cell.addClass('cell-with-background');
+                        //cell.attr('title', 'Doctor is on vacation this day.');
+                    }
+                    else if (normalizedAvailabilityDays.includes(formattedDayName)) {
+                        // 3) Available day
+                        console.log("Marking as available day:", date.format("YYYY-MM-DD"));
+                        cell.removeClass('fc-today');
+                        cell.css({
+                            'background-color': '',
+                            'cursor': 'pointer',
+                            'position': 'relative'
+                        });
+                        cell.append('<span class="dot available-dot"></span>');
+                        // cell.attr('title', 'Available day');
+                    }
+                    else {
+                        // 4) Unavailable day
+                        // console.log("Marking as unavailable day:", date.format("YYYY-MM-DD"));
+                        cell.removeClass('fc-today');
+                        cell.css({
+                            'background-color': '#e9ecef',
+                            'position': 'relative'
+                        });
+                        cell.append('<span class="dot unavailable-dot"></span>');
+                        //cell.attr('title', 'Unavailable day');
+                    }
 
-                            // Display the taken/total ratio in the cell
-                            const ratioHtml = `<div class="static-number">${takenSlots}/${totalSlots}</div>`;
-                            cell.append(ratioHtml);
-                        },
-                        error: function () {
-                            // If there's an error (e.g., no availability), default to 0/0
-                            const ratioHtml = `<div class="static-number">0/0</div>`;
-                            cell.append(ratioHtml);
-                            console.warn(`No availability data found for ${selectedDate}`);
-                        }
-                    });
-
+                    //console.log("Finished rendering day:", date.format("YYYY-MM-DD"));
                 },
                 events: function (start, end, timezone, callback) {
+                    //console.log("📡 Fetching main events...");
                     $.ajax({
-                        url: "/tele-doctor-agenda-data",
+                        url: "/appointment-event",
                         type: "GET",
                         data: {
                             start: start.format("YYYY-MM-DD HH:mm:ss"),
-                            end: end.format("YYYY-MM-DD HH:mm:ss"),
-                            doctor_id: selectedDoctorId
+                            end: end.format("YYYY-MM-DD HH:mm:ss")
                         },
                         dataType: "json",
                         success: function (data) {
@@ -1138,8 +1209,9 @@
                             };
 
                             const events = data.map(event => {
+                                //console.log(event.cancel_reason);
                                 let color = '';
-                                let translatedStatus = statusTranslation[event.status] || event.status; // Default to original if no translation
+                                let translatedStatus = statusTranslation[event.status] || event.status;
 
                                 switch (translatedStatus) {
                                     case 'Accepté':
@@ -1168,7 +1240,7 @@
                                     id: event.id,
                                     online: event.online,
                                     title: `${event.patient_name} - ${event.motif_name}`,
-                                    start: moment(event.start_at).format(), // Adjust for timezone here
+                                    start: moment(event.start_at).format(),
                                     end: moment(event.ends_at).format(),
                                     patient_phone_number: event.patient_phone_number,
                                     email: event.patient_email,
@@ -1179,11 +1251,14 @@
                                     borderColor: color,
                                     description: `Patient: ${event.patient_name}\nStatus: ${translatedStatus}\nDetails: ${event.motif_name || 'N/A'}`,
                                     patient_name: event.patient_name,
-                                    status: translatedStatus,              // Add status here
+                                    status: translatedStatus,
                                     details: event.motif_name || 'N/A',
-                                    motif_name: event.motif_name // motif_name is passed here
+                                    motif_name: event.motif_name,
+                                    note: event.note,
+                                    cancel_reason: event.cancel_reason,
                                 };
                             });
+
                             callback(events);
                         }
                     });
@@ -1191,6 +1266,7 @@
                 eventRender: function (event, element) {
                     const appointmentDate = event.start ? moment(event.start).format('YYYY-MM-DD') : 'N/A';
                     const appointmentTime = event.start ? moment(event.start).format('HH:mm') : 'N/A';
+                    const currentDate = moment().format('YYYY-MM-DD'); // Get current date
 
                     // Adding title attribute for simple tooltip
                     let icon;
@@ -1214,22 +1290,19 @@
                             break;
                     }
                     element.find('.fc-title').prepend(icon);
+                    if (event.status === 'Annulé' || moment(event.start).isBefore(moment(), 'day')) {
+                        //console.log("Event Annulé - Applying strikethrough");
 
-                    element.on('mouseenter', function () {
-                        const detailsHtml = `<p><strong>${translations.appointment_date}:</strong> ${appointmentDate}</p><p><strong>${translations.appointment_time}:</strong> ${appointmentTime}</p> <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p> <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p> <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p> <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p> <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p> `;
+                        // Ensure the text inside the event is affected
+                        element.find('.fc-title').css({
+                            'text-decoration': 'line-through'
+                        });
 
-                        $('#appointment-details').html(detailsHtml);
-                    });
+                        element.find('.fc-time').css({
+                            'text-decoration': 'line-through'
+                        });
 
-                    element.on('mouseleave', function () {
-                        $('#appointment-details').html(`<p>${translations.hover_to_view_details}</p>`);
-                    });
-
-
-
-                    //element.attr('title', event.description);
-                    //element.find('.fc-title').css('white-space', 'nowrap');
-                    //element.find('.fc-time').css('font-size', '1em');
+                    }
 
                 },
                 selectable: true,
@@ -1275,7 +1348,6 @@
                         });
                         return;
                     }
-                    console
                     if (view.name === "agendaWeek" || view.name === "agendaDay") {
                         checkAvailability(selectedDate, selectedTime).then((isAvailable) => {
                             if (!isAvailable) return; // Stop if no availability
@@ -1298,9 +1370,38 @@
                         });
                     }
                 },
+                eventMouseover: function (event, jsEvent, view) {
+                    if (event.rendering === 'background') {
+                        return;
+                    }
+
+                    // Base details
+                    let detailsHtml = `
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `;
+                    //console.log(event.cancel_reason);
+
+                    if (event.status === "Annulé" && event.cancel_reason) {
+                        //console.log('tetetetet');
+                        detailsHtml += `<p><strong>${translations.raison}:</strong> ${event.cancel_reason}</p>`;
+                    }
+
+                    $('#appointment-details').html(detailsHtml);
+                },
+
+                eventMouseout: function (event, jsEvent, view) {
+                    $('#appointment-details').html(`<p>${translations.hover_to_view_details}</p>`);
+                },
                 editable: true,
                 eventClick: function (event) {
-                    console.log("Event object:", event);
+                    //console.log("Event object:", event);
                     const appointment = {
                         appointment_id: event.id,
                         patient_name: event.patient_name,
@@ -1314,7 +1415,7 @@
                         start: event.start.format(),
                         phone: event.patient_phone_number // Include the patient phone number
                     };
-                    console.log(event.patient_name);
+                    //console.log(event.patient_name);
                     $('#patientName').text(event.patient_name);
                     $('#appointmentStatus').text(event.status);
                     $('#appointmentDetails').text(event.details || 'No additional details');
@@ -1327,9 +1428,12 @@
 
                     // Event handler for "Mark as Failed"
                     $('#markAsFailed').off('click').on('click', function () {
-                        updateAppointmentStatus(event.id, 7, "Failed");
-                    });
+                        selectedAppointmentId = event.id; // Store appointment ID
+                        $('#cancelReason').val(''); // Clear previous input
+                        $('#cancelAppointmentModal').modal('show'); // Show modal
+                        $('#appointmentDetailsModal').modal('hide');
 
+                    });
                     // Event handler for "Mark as Done"
                     $('#markAsDone').off('click').on('click', function () {
                         updateAppointmentStatus(event.id, 5, "Done");
@@ -1338,6 +1442,19 @@
             });
         }
         ///////////////////////////
+        $('#confirmCancelAppointment').off('click').on('click', function () {
+            let cancelReason = $('#cancelReason').val().trim();
+            if (cancelReason === "") {
+                cancelReason = "Aucune raison fournie"; // Default reason if empty
+            }
+
+            // Send the cancellation request
+            updateAppointmentStatus(selectedAppointmentId, 7, cancelReason);
+
+            // Close the modal
+            $('#cancelAppointmentModal').modal('hide');
+        });
+
         const translations = {
             appointment_date: "{{ trans('lang.tele_appointment_date') }}",
             appointment_time: "{{ trans('lang.tele_appointment_time') }}",
@@ -1349,13 +1466,15 @@
             no_motif_name: "{{ trans('lang.no_motif_name') }}",
             phone: "{{ trans('lang.tele_patient_phone') }}",
             email: "{{ trans('lang.email') }}",
+            note: "{{ trans('lang.note') }}",
+            raison: "{{ trans('lang.raison') }}",
             hover_to_view_details: "{{ trans('lang.hover_to_view_details') }}"
         };
         ///////////////////////////////////////////////
         function fetchCountslotsData() {
             //console.log('Fetching doctor availability data...');
             if (!selectedDoctorId) {
-                console.warn("No doctor selected.");
+                //console.warn("No doctor selected.");
                 return;
             }
 
@@ -1383,7 +1502,7 @@
         function fetchDoctorAvailabilityData() {
             //console.log('Fetching doctor availability data...');
             if (!selectedDoctorId) {
-                console.warn("No doctor selected.");
+                //console.warn("No doctor selected.");
                 return;
             }
 
@@ -1396,8 +1515,8 @@
                         availabilityDays = response.availabilityDays || [];
                         vacations = response.vacations || [];
 
-                        console.log("Updated Availability Days:", availabilityDays);
-                        console.log("Updated Vacations:", vacations);
+                        //console.log("Updated Availability Days:", availabilityDays);
+                        //console.log("Updated Vacations:", vacations);
 
                         // Initialize or refresh the calendar after data is updated
                         initializeCalendar();
@@ -1460,15 +1579,20 @@
                     cache: true
                 }
             });
+
         }
 
         $('.doctor-item').on('click', function () {
+            //console.log('Selected doctor0');
             $('.doctor-item').removeClass('active');
             $(this).addClass('active');
             selectedDoctorId = $(this).data('doctor-id');
-
+            //console.log('Selected doctor');
+            //console.log('Selected doctor2:', selectedDoctorId);
             // Store the selected doctor in sessionStorage
             sessionStorage.setItem('selectedDoctorId', selectedDoctorId);
+            selectedDoctorId = selectedDoctorId;
+            //const selectedDoctorId = sessionStorage.getItem('selectedDoctorId');
             // Also send to server to update Laravel session
             $.ajax({
                 url: '/set-active-doctor',
@@ -1492,20 +1616,22 @@
 
             //////////////////////////////////////////////////////////////////////
 
-            const savedDoctorId = sessionStorage.getItem('selectedDoctorId');
-
-            if (savedDoctorId) {
-
+            //const savedDoctorId = sessionStorage.getItem('selectedDoctorId');
+            //console.log('Selected doctor2');
+            if (selectedDoctorId) {
+                //console.log('Selected doctor3:', selectedDoctorId);
                 // Reapply the active class to the previously selected doctor
                 $('.doctor-item').removeClass('active');
-                $(`.doctor-item[data-doctor-id="${savedDoctorId}"]`).addClass('active');
-                selectedDoctorId = savedDoctorId;
-
+                $(`.doctor-item[data-doctor-id="${selectedDoctorId}"]`).addClass('active');
+                //selectedDoctorId = savedDoctorId;
+                //console.log('Selected doctor4:', selectedDoctorId);
                 // Refresh calendar events for the saved doctor
                 $('#calendar').fullCalendar('refetchEvents');
             } else {
                 // Default to the first doctor if no doctor is saved
                 selectedDoctorId = $('.doctor-item.active').data('doctor-id');
+                sessionStorage.setItem('selectedDoctorId', selectedDoctorId);
+                //console.log('Selected doctor5:', selectedDoctorId);
             }
 
 
@@ -1536,7 +1662,7 @@
             $('#patientRef, #patientPass').on('change', toggleFields);
             function refreshCalendarEvents() {
                 $('#calendar').fullCalendar('refetchEvents'); // Fetch and reload events
-                console.log("Calendar events refreshed");
+                //console.log("Calendar events refreshed");
             }
 
             // Set interval to refresh calendar every 30 seconds
@@ -1604,10 +1730,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
             }
             /////////////////////////////////////////////////////////////////
             function getStatusColor(status) {
@@ -1682,7 +1808,7 @@
                 const selectedDate = new Date(appointmentDate);
                 const dayOfWeek = days[selectedDate.getDay()]; // Get the day index and map it to the name
 
-                console.log("Selected Day:", dayOfWeek); // Output the day for debugging
+                //console.log("Selected Day:", dayOfWeek); // Output the day for debugging
                 // Construct the appointment data
                 let startAt = `${appointmentDate} ${selectedTime}:00`;
                 let appointmentData = {
@@ -1695,7 +1821,7 @@
                     day_of_week: dayOfWeek,
                 };
 
-                console.log("Appointment Data to be Sent:", appointmentData);
+                //console.log("Appointment Data to be Sent:", appointmentData);
 
                 // Make the AJAX call
                 $.ajax({

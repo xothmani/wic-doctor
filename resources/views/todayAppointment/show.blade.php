@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @php
-  $doctorId = auth()->user()->getActiveDoctorId();
+  $doctorId = auth()->user()->getDoctorId();
   // Define the permission key for this page
   $permissionKey = 'appointments.today.completed';
   // Retrieve the permission record along with its human-readable info
@@ -73,7 +73,8 @@
       @forelse($appointments as $appointment)
       <tr>
       <td>{{ json_decode($appointment->first_name)->fr ?? $appointment->first_name }}
-      {{ json_decode($appointment->last_name)->fr ?? $appointment->last_name }}</td>
+      {{ json_decode($appointment->last_name)->fr ?? $appointment->last_name }}
+      </td>
       <td>{{ json_decode($appointment->motif_name)->fr ?? trans('lang.no_motif') }}</td>
       <td>{{ \Carbon\Carbon::parse($appointment->start_at)->format('H:i') }}</td>
       <td>{{ \Carbon\Carbon::parse($appointment->ends_at)->format('H:i') }}</td>

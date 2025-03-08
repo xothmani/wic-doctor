@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
         $permissionKey = 'experiences.index';
         // Retrieve the permission with its related readable record
         $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)

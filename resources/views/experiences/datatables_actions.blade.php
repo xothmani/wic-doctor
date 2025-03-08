@@ -1,6 +1,6 @@
 <div class='btn-group btn-group-sm'>
     @php
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
     @endphp
 
     @if(auth()->user()->hasPermissionInContext('experiences.edit', $doctorId))

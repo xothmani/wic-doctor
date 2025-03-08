@@ -94,7 +94,7 @@ class PatientDataTable extends DataTable
         }
 
         if ($user->hasRole('Telesecretary')) {
-            $doctorId = auth()->user()->getActiveDoctorId();
+            $doctorId = auth()->user()->getDoctorId();
             \Log::info('Telésécrétariat using doctor id in the datatable:', ['doctorId' => $doctorId]);
             $doctorIds = is_array($doctorId) ? $doctorId : [$doctorId];
             return $model->newQuery()

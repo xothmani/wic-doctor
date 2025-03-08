@@ -312,7 +312,9 @@ class User extends Authenticatable implements HasMedia
             $associatedDoctor = $this->associatedDoctors->first(); // Fetch the first associated doctor
             return $associatedDoctor->doctor_id ?? null;
         }
-
+        if ($this->hasRole('Telesecretary')) {
+            return session('selectedDoctorId');
+        }
         // For other roles, return null
         return null;
     }

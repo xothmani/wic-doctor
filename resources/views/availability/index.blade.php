@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        $doctorId = auth()->user()->getActiveDoctorId();
+        $doctorId = auth()->user()->getDoctorId();
         $permissionKey = 'availability.index';
         $permission = \Spatie\Permission\Models\Permission::where('name', $permissionKey)->with('readable')->first();
         $readablePermission = $permission ? $permission->display_name : $permissionKey;
@@ -10,6 +10,7 @@
     @endphp
 
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
+    
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
@@ -694,6 +695,7 @@
             </div>
         </div>
     </div>
+    @endif
         @else
             <div class="content-header">
                 <div class="container-fluid">
@@ -703,7 +705,6 @@
                 </div>
             </div>
         @endif
-    @endif
 @endsection
 
 @section('styles')
