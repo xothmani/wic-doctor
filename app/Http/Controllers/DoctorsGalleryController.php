@@ -192,7 +192,6 @@ class DoctorsGalleryController extends Controller
         return $this->sendResponse(false, 'Error while deleting media');
     }
 
-    use Illuminate\Support\Facades\Log;
 
     public function storeCabinet(UploadRequest $request): JsonResponse
     {
