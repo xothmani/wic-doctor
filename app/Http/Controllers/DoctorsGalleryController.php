@@ -197,42 +197,28 @@ class DoctorsGalleryController extends Controller
     $doctorId = auth()->user()->doctor->id;
     $uuid = $request->get('uuid');
     $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
-    
+
     try {
-        // Définir le chemin de stockage dans /mnt/doctor
-        $storagePath = "/mnt/doctor/{$doctorId}/{$category}";
-
-        // Debugging: Log the user and path
-        Log::info("Running as user: " . exec('whoami'));
-        Log::info("Attempting to create directory: {$storagePath}");
-
-        // Vérifier si le dossier existe, sinon le créer en utilisant sudo pour s'assurer de l'exécution en tant que storagewic
-        if (!is_dir($storagePath)) {
-            $command = "sudo -u storagewic mkdir -p {$storagePath}";
-            exec($command, $output, $status);
-            if ($status !== 0) {
-                throw new \Exception("Unable to create directory at {$storagePath}");
-            }
+        // Créer le dossier "/mnt/doctor/doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
+        $storagePath = "/mnt/doctor/doctors/{$doctorId}/{$category}";
+        if (!Storage::exists($storagePath)) {
+            Storage::makeDirectory($storagePath);
         }
 
-        // Récupérer le fichier
+        // Récupérer le fichier et l'enregistrer sous "en_attente"
         $file = $request->file('file');
-        $fileName = $file->getClientOriginalName();
-        $filePath = "{$storagePath}/{$fileName}";
-
-        // Déplacer le fichier vers /mnt/doctor en utilisant sudo
-        $file->move($storagePath, $fileName);
+        $filePath = $file->storeAs($storagePath, $file->getClientOriginalName(), 'public');
 
         // Enregistrer dans la base de données avec statut "en attente"
         $upload = $this->uploadRepository->create([
-            'name' => $fileName,
-            'file_name' => $fileName,
+            'name' => $file->getClientOriginalName(),
+            'file_name' => basename($filePath),
             'collection_name' => 'cabinet',
             'uuid' => $uuid,
-            'disk' => 'local',
+            'disk' => 'public',
             'size' => $file->getSize(),
             'mime_type' => $file->getMimeType(),
-            'status' => 'en attente',
+            'status' => 'en attente', // Nouveau champ pour gérer l'état
             'custom_properties' => [
                 'uuid' => $uuid,
                 'user_id' => $doctorId,
@@ -242,12 +228,8 @@ class DoctorsGalleryController extends Controller
         return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
     } catch (ValidatorException $e) {
         return $this->sendResponse(false, $e->getMessage());
-    } catch (\Exception $e) {
-        Log::error("Error storing file", ['exception' => $e->getMessage()]);
-        return $this->sendResponse(false, "Error: " . $e->getMessage());
     }
 }
-
     
     public function allCabinet(Request $request): JsonResponse
     {
