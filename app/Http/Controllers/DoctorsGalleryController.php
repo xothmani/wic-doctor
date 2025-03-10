@@ -197,75 +197,71 @@ class DoctorsGalleryController extends Controller
     {
         $doctorId = auth()->user()->doctor->id;
         $uuid = $request->get('uuid');
-        $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
+        $relativePath = 'cabinet/en_attente';  // Chemin relatif à partir de la racine du docteur
     
         try {
-            // Définir le chemin du stockage
-            $storagePath = "doctors/{$doctorId}/{$category}";
+            // Créer dynamiquement un disque personnalisé pour le docteur
+            $customDisk = Storage::build([
+                'driver'     => 'local',
+                'root'       => "/mnt/doctor/doctors/{$doctorId}", // Racine personnalisée pour le docteur
+                'url'        => env('APP_URL') . "/doctor/doctors/{$doctorId}",
+                'visibility' => 'public',
+            ]);
+            
+            Log::info("Using custom disk with root: /mnt/doctor/doctors/{$doctorId}");
+            Log::info("Attempting to create directory: {$relativePath} on custom disk");
     
-            Log::info("Attempting to create directory: {$storagePath}");
-    
-            // Vérifier si le répertoire existe déjà
-            if (!Storage::disk('doctor_storage')->exists($storagePath)) {
-                Log::info("Directory does not exist, creating: {$storagePath}");
-                
-                // Créer le répertoire
-                $created = Storage::disk('doctor_storage')->makeDirectory($storagePath);
-    
-                // Vérifier si le répertoire a bien été créé
+            // Vérifier et créer le répertoire si nécessaire
+            if (!$customDisk->exists($relativePath)) {
+                Log::info("Directory does not exist, creating: {$relativePath}");
+                $created = $customDisk->makeDirectory($relativePath);
                 if ($created) {
-                    Log::info("Directory created successfully: {$storagePath}");
+                    Log::info("Directory created successfully: {$relativePath}");
                 } else {
-                    Log::error("Failed to create directory: {$storagePath}");
+                    Log::error("Failed to create directory: {$relativePath}");
                     return $this->sendResponse(false, "Unable to create directory.");
                 }
             } else {
-                Log::info("Directory already exists: {$storagePath}");
+                Log::info("Directory already exists: {$relativePath}");
             }
     
-            // Vérifier si le répertoire est bien un dossier
-            $fullPath = storage_path('app/' . $storagePath); // Récupérer le chemin absolu
-            if (is_dir($fullPath)) {
-                Log::info("The directory exists: {$fullPath}");
-            } else {
+            // Pour des vérifications additionnelles, on peut reconstruire le chemin absolu
+            $fullPath = "/mnt/doctor/doctors/{$doctorId}/{$relativePath}";
+            if (!is_dir($fullPath)) {
                 Log::error("The path is not a directory: {$fullPath}");
                 return $this->sendResponse(false, "The path is not a directory.");
             }
-    
-            // Vérifier si le répertoire est accessible en écriture
-            if (is_writable($fullPath)) {
-                Log::info("The directory is writable: {$fullPath}");
-            } else {
+            if (!is_writable($fullPath)) {
                 Log::error("The directory is not writable: {$fullPath}");
                 return $this->sendResponse(false, "The directory is not writable.");
             }
-    
-            // Récupérer le fichier et l'enregistrer sous "en_attente"
+            
+            // Récupérer le fichier et l'enregistrer
             $file = $request->file('file');
             Log::info("File uploaded: " . $file->getClientOriginalName());
-    
-            // Enregistrer le fichier sous "en_attente" dans le stockage
-            $filePath = $file->storeAs($storagePath, $file->getClientOriginalName(), 'doctor_storage');
+            
+            // Stocker le fichier dans le dossier "cabinet/en_attente" sur le disque personnalisé
+            $filePath = $customDisk->putFileAs($relativePath, $file, $file->getClientOriginalName());
             Log::info("File stored at: {$filePath}");
     
-            // Enregistrer dans la base de données avec statut "en attente"
+            // Enregistrer dans la base de données avec le statut "en attente"
             $upload = $this->uploadRepository->create([
-                'name' => $file->getClientOriginalName(),
-                'file_name' => basename($filePath),
-                'collection_name' => 'cabinet',
-                'uuid' => $uuid,
-                'disk' => 'doctor_storage', // Utiliser le disque personnalisé
-                'size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-                'status' => 'en attente', // Nouveau champ pour gérer l'état
-                'custom_properties' => [
-                    'uuid' => $uuid,
+                'name'             => $file->getClientOriginalName(),
+                'file_name'        => basename($filePath),
+                'collection_name'  => 'cabinet',
+                'uuid'             => $uuid,
+                // Vous pouvez stocker ici 'doctor_storage' ou un autre identifiant, selon votre logique
+                'disk'             => 'doctor_storage',
+                'size'             => $file->getSize(),
+                'mime_type'        => $file->getMimeType(),
+                'status'           => 'en attente',
+                'custom_properties'=> [
+                    'uuid'    => $uuid,
                     'user_id' => $doctorId,
                 ],
             ]);
     
             Log::info("Upload record created successfully with UUID: {$uuid}");
-    
             return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
         } catch (ValidatorException $e) {
             Log::error("Validation exception: " . $e->getMessage());
