@@ -194,67 +194,49 @@ class DoctorsGalleryController extends Controller
 
 
     public function storeCabinet(UploadRequest $request): JsonResponse
-    {
-        $doctorId = auth()->user()->doctor->id;
-        $uuid = $request->get('uuid');
-        $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
-    
-        try {
-            // Créer le dossier "/mnt/doctor/doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
-            $storagePath = "doctors/{$doctorId}/{$category}";
-            $fullPath = "/mnt/doctor/{$storagePath}";
-    
-            Log::info("Attempting to create directory: {$fullPath}");
-    
-            if (!Storage::disk('doctor_storage')->exists($storagePath)) {
-                Log::info("Directory does not exist, creating: {$fullPath}");
-                exec("sudo mkdir -p {$fullPath}"); // Créer le répertoire en tant que root
-                exec("sudo chmod -R 775 {$fullPath}"); // Définir les permissions
-                exec("sudo chown -R root:root {$fullPath}"); // Changer le propriétaire
-            } else {
-                Log::info("Directory already exists: {$fullPath}");
-            }
-    
-            // Récupérer le fichier et l'enregistrer sous "en_attente"
-            $file = $request->file('file');
-            Log::info("File uploaded: " . $file->getClientOriginalName());
-    
-            // Enregistrer le fichier sous "en_attente" dans le stockage
-            $filePath = $file->storeAs($storagePath, $file->getClientOriginalName(), 'doctor_storage');
-            Log::info("File stored at: {$filePath}");
-    
-            // Changer les permissions et le propriétaire du fichier créé
-            $fullFilePath = "/mnt/doctor/{$filePath}";
-            exec("sudo chmod 775 {$fullFilePath}"); // Définir les permissions
-            exec("sudo chown root:root {$fullFilePath}"); // Changer le propriétaire
-    
-            // Enregistrer dans la base de données avec statut "en attente"
-            $upload = $this->uploadRepository->create([
-                'name' => $file->getClientOriginalName(),
-                'file_name' => basename($filePath),
-                'collection_name' => 'cabinet',
-                'uuid' => $uuid,
-                'disk' => 'doctor_storage', // Utiliser le disque personnalisé
-                'size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-                'status' => 'en attente', // Nouveau champ pour gérer l'état
-                'custom_properties' => [
-                    'uuid' => $uuid,
-                    'user_id' => $doctorId,
-                ],
-            ]);
-    
-            Log::info("Upload record created successfully with UUID: {$uuid}");
-    
-            return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
-        } catch (ValidatorException $e) {
-            Log::error("Validation exception: " . $e->getMessage());
-            return $this->sendResponse(false, $e->getMessage());
-        } catch (\Exception $e) {
-            Log::error("Error storing file: " . $e->getMessage());
-            return $this->sendResponse(false, "Error: " . $e->getMessage());
+{
+    $doctorId = auth()->user()->doctor->id;
+    $uuid = $request->get('uuid');
+    $category = "cabinet/en_attente";  // Enregistrer dans le dossier "en_attente"
+
+    try {
+        // Définir le chemin de stockage
+        $storagePath = "/mnt/doctor/{$doctorId}/{$category}";
+
+        // Vérifier et créer le dossier en tant que root si nécessaire
+        if (!file_exists($storagePath)) {
+            shell_exec("sudo mkdir -p {$storagePath}");
+            shell_exec("sudo chown -R www-data:www-data {$storagePath}");
+            shell_exec("sudo chmod -R 775 {$storagePath}");
         }
-    } 
+
+        // Récupérer le fichier et l'enregistrer sous "en_attente"
+        $file = $request->file('file');
+        $fileName = $file->getClientOriginalName();
+        $file->move($storagePath, $fileName);
+
+        // Enregistrer dans la base de données avec statut "en attente"
+        $upload = $this->uploadRepository->create([
+            'name' => $fileName,
+            'file_name' => $fileName,
+            'collection_name' => 'cabinet',
+            'uuid' => $uuid,
+            'disk' => 'local',
+            'size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+            'status' => 'en attente', // Nouveau champ pour gérer l'état
+            'custom_properties' => [
+                'uuid' => $uuid,
+                'user_id' => $doctorId,
+            ],
+        ]);
+
+        return $this->sendResponse($uuid, "Image enregistrée sous 'en attente' dans /mnt/doctor");
+    } catch (ValidatorException $e) {
+        return $this->sendResponse(false, $e->getMessage());
+    }
+}
+
     public function allCabinet(Request $request): JsonResponse
     {
         $doctorId = auth()->user()->doctor->id;
