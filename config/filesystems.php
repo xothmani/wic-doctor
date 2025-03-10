@@ -69,7 +69,13 @@ return [
         'endpoint' => env('AWS_ENDPOINT'),
     ],
 
-
+    // Ajoutez ce nouveau disque pour /mnt/doctor
+    'doctor_storage' => [
+        'driver' => 'local', // Utilisez 'local' pour un stockage sur le système de fichiers local
+        'root' => '/mnt/doctor', // Chemin vers le répertoire partagé
+        'url' => env('APP_URL') . '/doctor', // Optionnel : URL pour accéder aux fichiers
+        'visibility' => 'public', // Définir la visibilité des fichiers
+    ],
 ],
     /*
     |--------------------------------------------------------------------------
