@@ -193,58 +193,61 @@ class DoctorsGalleryController extends Controller
     }
 
     public function storeCabinet(UploadRequest $request): JsonResponse
-    {
-        $doctorId = auth()->user()->doctor->id;
-        $uuid = $request->get('uuid');
-        $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
-        
-        try {
-            // Définir le chemin de stockage dans /mnt/doctor
-            $storagePath = "/mnt/doctor/{$doctorId}/{$category}";
+{
+    $doctorId = auth()->user()->doctor->id;
+    $uuid = $request->get('uuid');
+    $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
     
-            // Debugging: Log the user and path
-            Log::info("Running as user: " . exec('whoami'));
-            Log::info("Attempting to create directory: {$storagePath}");
-    
-            // Vérifier si le dossier existe, sinon le créer
-            if (!is_dir($storagePath)) {
-                if (!mkdir($storagePath, 0777, true)) {
-                    throw new \Exception("Unable to create directory at {$storagePath}");
-                }
+    try {
+        // Définir le chemin de stockage dans /mnt/doctor
+        $storagePath = "/mnt/doctor/{$doctorId}/{$category}";
+
+        // Debugging: Log the user and path
+        Log::info("Running as user: " . exec('whoami'));
+        Log::info("Attempting to create directory: {$storagePath}");
+
+        // Vérifier si le dossier existe, sinon le créer en utilisant sudo pour s'assurer de l'exécution en tant que storagewic
+        if (!is_dir($storagePath)) {
+            $command = "sudo -u storagewic mkdir -p {$storagePath}";
+            exec($command, $output, $status);
+            if ($status !== 0) {
+                throw new \Exception("Unable to create directory at {$storagePath}");
             }
-    
-            // Récupérer le fichier
-            $file = $request->file('file');
-            $fileName = $file->getClientOriginalName();
-            $filePath = "{$storagePath}/{$fileName}";
-    
-            // Déplacer le fichier vers /mnt/doctor
-            $file->move($storagePath, $fileName);
-    
-            // Enregistrer dans la base de données avec statut "en attente"
-            $upload = $this->uploadRepository->create([
-                'name' => $fileName,
-                'file_name' => $fileName,
-                'collection_name' => 'cabinet',
-                'uuid' => $uuid,
-                'disk' => 'local',
-                'size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-                'status' => 'en attente',
-                'custom_properties' => [
-                    'uuid' => $uuid,
-                    'user_id' => $doctorId,
-                ],
-            ]);
-    
-            return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
-        } catch (ValidatorException $e) {
-            return $this->sendResponse(false, $e->getMessage());
-        } catch (\Exception $e) {
-            Log::error("Error storing file", ['exception' => $e->getMessage()]);
-            return $this->sendResponse(false, "Error: " . $e->getMessage());
         }
+
+        // Récupérer le fichier
+        $file = $request->file('file');
+        $fileName = $file->getClientOriginalName();
+        $filePath = "{$storagePath}/{$fileName}";
+
+        // Déplacer le fichier vers /mnt/doctor en utilisant sudo
+        $file->move($storagePath, $fileName);
+
+        // Enregistrer dans la base de données avec statut "en attente"
+        $upload = $this->uploadRepository->create([
+            'name' => $fileName,
+            'file_name' => $fileName,
+            'collection_name' => 'cabinet',
+            'uuid' => $uuid,
+            'disk' => 'local',
+            'size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+            'status' => 'en attente',
+            'custom_properties' => [
+                'uuid' => $uuid,
+                'user_id' => $doctorId,
+            ],
+        ]);
+
+        return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
+    } catch (ValidatorException $e) {
+        return $this->sendResponse(false, $e->getMessage());
+    } catch (\Exception $e) {
+        Log::error("Error storing file", ['exception' => $e->getMessage()]);
+        return $this->sendResponse(false, "Error: " . $e->getMessage());
     }
+}
+
     
     public function allCabinet(Request $request): JsonResponse
     {
