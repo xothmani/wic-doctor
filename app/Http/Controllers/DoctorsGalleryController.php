@@ -192,50 +192,52 @@ class DoctorsGalleryController extends Controller
         return $this->sendResponse(false, 'Error while deleting media');
     }
 
-
     public function storeCabinet(UploadRequest $request): JsonResponse
-{
-    $doctorId = auth()->user()->doctor->id;
-    $uuid = $request->get('uuid');
-    $category = "cabinet/en_attente";  // Enregistrer dans le dossier "en_attente"
-
-    try {
-        // Définir le chemin de stockage
+    {
+        $doctorId = auth()->user()->doctor->id;
+        $uuid = $request->get('uuid');
+        $category = "cabinet/en_attente";
         $storagePath = "/mnt/doctor/{$doctorId}/{$category}";
-
-        // Vérifier et créer le dossier en tant que root si nécessaire
-        if (!file_exists($storagePath)) {
-            shell_exec("sudo mkdir -p {$storagePath}");
-            shell_exec("sudo chown -R www-data:www-data {$storagePath}");
-            shell_exec("sudo chmod -R 775 {$storagePath}");
-        }
-
-        // Récupérer le fichier et l'enregistrer sous "en_attente"
-        $file = $request->file('file');
-        $fileName = $file->getClientOriginalName();
-        $file->move($storagePath, $fileName);
-
-        // Enregistrer dans la base de données avec statut "en attente"
-        $upload = $this->uploadRepository->create([
-            'name' => $fileName,
-            'file_name' => $fileName,
-            'collection_name' => 'cabinet',
-            'uuid' => $uuid,
-            'disk' => 'local',
-            'size' => $file->getSize(),
-            'mime_type' => $file->getMimeType(),
-            'status' => 'en attente', // Nouveau champ pour gérer l'état
-            'custom_properties' => [
+    
+        try {
+            // Vérifier et créer le dossier avec les bonnes permissions
+            if (!file_exists($storagePath)) {
+                mkdir($storagePath, 0777, true);
+                chmod($storagePath, 0777); // Permet à Laravel d'écrire
+            }
+    
+            // Vérifier que Laravel a bien accès au dossier
+            if (!is_writable($storagePath)) {
+                throw new \Exception("Le dossier {$storagePath} n'est pas accessible en écriture.");
+            }
+    
+            // Enregistrer le fichier
+            $file = $request->file('file');
+            $fileName = time() . '_' . $file->getClientOriginalName(); // Ajouter un timestamp pour éviter les doublons
+            $file->move($storagePath, $fileName);
+    
+            // Enregistrer les informations dans la base de données
+            $upload = $this->uploadRepository->create([
+                'name' => $file->getClientOriginalName(),
+                'file_name' => $fileName,
+                'collection_name' => 'cabinet',
                 'uuid' => $uuid,
-                'user_id' => $doctorId,
-            ],
-        ]);
-
-        return $this->sendResponse($uuid, "Image enregistrée sous 'en attente' dans /mnt/doctor");
-    } catch (ValidatorException $e) {
-        return $this->sendResponse(false, $e->getMessage());
+                'disk' => 'local', // On utilise local car on stocke dans /mnt/doctor
+                'size' => $file->getSize(),
+                'mime_type' => $file->getMimeType(),
+                'status' => 'en attente', // Statut du fichier
+                'custom_properties' => [
+                    'uuid' => $uuid,
+                    'user_id' => $doctorId,
+                ],
+            ]);
+    
+            return $this->sendResponse($uuid, "Image enregistrée sous 'en attente' dans /mnt/doctor");
+        } catch (\Exception $e) {
+            return $this->sendResponse(false, "Erreur : " . $e->getMessage());
+        }
     }
-}
+    
 
     public function allCabinet(Request $request): JsonResponse
     {
