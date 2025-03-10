@@ -192,44 +192,63 @@ class DoctorsGalleryController extends Controller
         return $this->sendResponse(false, 'Error while deleting media');
     }
 
+    use Illuminate\Support\Facades\Log;
+
     public function storeCabinet(UploadRequest $request): JsonResponse
-{
-    $doctorId = auth()->user()->doctor->id;
-    $uuid = $request->get('uuid');
-    $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
-
-    try {
-        // Créer le dossier "/mnt/doctor/doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
-        $storagePath = "/mnt/doctor/doctors/{$doctorId}/{$category}";
-        if (!Storage::exists($storagePath)) {
-            Storage::makeDirectory($storagePath);
-        }
-
-        // Récupérer le fichier et l'enregistrer sous "en_attente"
-        $file = $request->file('file');
-        $filePath = $file->storeAs($storagePath, $file->getClientOriginalName(), 'public');
-
-        // Enregistrer dans la base de données avec statut "en attente"
-        $upload = $this->uploadRepository->create([
-            'name' => $file->getClientOriginalName(),
-            'file_name' => basename($filePath),
-            'collection_name' => 'cabinet',
-            'uuid' => $uuid,
-            'disk' => 'public',
-            'size' => $file->getSize(),
-            'mime_type' => $file->getMimeType(),
-            'status' => 'en attente', // Nouveau champ pour gérer l'état
-            'custom_properties' => [
+    {
+        $doctorId = auth()->user()->doctor->id;
+        $uuid = $request->get('uuid');
+        $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
+    
+        try {
+            // Créer le dossier "/mnt/doctor/doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
+            $storagePath = "doctors/{$doctorId}/{$category}";
+    
+            Log::info("Attempting to create directory: {$storagePath}");
+    
+            if (!Storage::disk('doctor_storage')->exists($storagePath)) {
+                Log::info("Directory does not exist, creating: {$storagePath}");
+                Storage::disk('doctor_storage')->makeDirectory($storagePath);
+            } else {
+                Log::info("Directory already exists: {$storagePath}");
+            }
+    
+            // Récupérer le fichier et l'enregistrer sous "en_attente"
+            $file = $request->file('file');
+            Log::info("File uploaded: " . $file->getClientOriginalName());
+    
+            // Enregistrer le fichier sous "en_attente" dans le stockage
+            $filePath = $file->storeAs($storagePath, $file->getClientOriginalName(), 'doctor_storage');
+            Log::info("File stored at: {$filePath}");
+    
+            // Enregistrer dans la base de données avec statut "en attente"
+            $upload = $this->uploadRepository->create([
+                'name' => $file->getClientOriginalName(),
+                'file_name' => basename($filePath),
+                'collection_name' => 'cabinet',
                 'uuid' => $uuid,
-                'user_id' => $doctorId,
-            ],
-        ]);
-
-        return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
-    } catch (ValidatorException $e) {
-        return $this->sendResponse(false, $e->getMessage());
+                'disk' => 'doctor_storage', // Utiliser le disque personnalisé
+                'size' => $file->getSize(),
+                'mime_type' => $file->getMimeType(),
+                'status' => 'en attente', // Nouveau champ pour gérer l'état
+                'custom_properties' => [
+                    'uuid' => $uuid,
+                    'user_id' => $doctorId,
+                ],
+            ]);
+    
+            Log::info("Upload record created successfully with UUID: {$uuid}");
+    
+            return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
+        } catch (ValidatorException $e) {
+            Log::error("Validation exception: " . $e->getMessage());
+            return $this->sendResponse(false, $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error("Error storing file: " . $e->getMessage());
+            return $this->sendResponse(false, "Error: " . $e->getMessage());
+        }
     }
-}
+    
     
     public function allCabinet(Request $request): JsonResponse
     {
