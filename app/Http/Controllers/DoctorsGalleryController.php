@@ -200,16 +200,44 @@ class DoctorsGalleryController extends Controller
         $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
     
         try {
-            // Créer le dossier "/mnt/doctor/doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
+            // Définir le chemin du stockage
             $storagePath = "doctors/{$doctorId}/{$category}";
     
             Log::info("Attempting to create directory: {$storagePath}");
     
+            // Vérifier si le répertoire existe déjà
             if (!Storage::disk('doctor_storage')->exists($storagePath)) {
                 Log::info("Directory does not exist, creating: {$storagePath}");
-                Storage::disk('doctor_storage')->makeDirectory($storagePath);
+                
+                // Créer le répertoire
+                $created = Storage::disk('doctor_storage')->makeDirectory($storagePath);
+    
+                // Vérifier si le répertoire a bien été créé
+                if ($created) {
+                    Log::info("Directory created successfully: {$storagePath}");
+                } else {
+                    Log::error("Failed to create directory: {$storagePath}");
+                    return $this->sendResponse(false, "Unable to create directory.");
+                }
             } else {
                 Log::info("Directory already exists: {$storagePath}");
+            }
+    
+            // Vérifier si le répertoire est bien un dossier
+            $fullPath = storage_path('app/' . $storagePath); // Récupérer le chemin absolu
+            if (is_dir($fullPath)) {
+                Log::info("The directory exists: {$fullPath}");
+            } else {
+                Log::error("The path is not a directory: {$fullPath}");
+                return $this->sendResponse(false, "The path is not a directory.");
+            }
+    
+            // Vérifier si le répertoire est accessible en écriture
+            if (is_writable($fullPath)) {
+                Log::info("The directory is writable: {$fullPath}");
+            } else {
+                Log::error("The directory is not writable: {$fullPath}");
+                return $this->sendResponse(false, "The directory is not writable.");
             }
     
             // Récupérer le fichier et l'enregistrer sous "en_attente"
