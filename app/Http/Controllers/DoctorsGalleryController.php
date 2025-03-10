@@ -74,47 +74,6 @@ class DoctorsGalleryController extends Controller
 
 
 
-    /**
-     * Store a newly uploaded file inside a selected category.
-     */
-    /*public function store(UploadRequest $request): JsonResponse
-    {
-        $category = trim($request->get('category', 'default')); // Get or default to "default"
-        $uuid = $request->get('uuid');
-
-        try {
-            // Ensure category directory exists
-            $storagePath = 'public/' . $category;
-            if (!Storage::exists($storagePath)) {
-                Storage::makeDirectory($storagePath);
-            }
-
-            // Save the file inside the category folder
-            $file = $request->file('file');
-            $filePath = $file->store($category, 'public'); // Store in `public/{category}`
-            Log::info("File stored in category: {$category}, Path: {$filePath}");
-
-            // Create an "upload" record in the database
-            $upload = $this->uploadRepository->create([
-                'name' => $file->getClientOriginalName(),
-                'file_name' => basename($filePath),
-                'collection_name' => $category,
-                'uuid' => $uuid,
-                'disk' => 'public',
-                'size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-                'custom_properties' => [
-                    'uuid' => $uuid,
-                    'user_id' => auth()->id(),
-                ],
-            ]);
-
-            return $this->sendResponse($uuid, "Uploaded Successfully");
-
-        } catch (ValidatorException $e) {
-            return $this->sendResponse(false, $e->getMessage());
-        }
-    }*/
     public function store(UploadRequest $request): JsonResponse
     {
         $category = trim($request->get('category', 'Default')); // Get or default to "default"
@@ -154,8 +113,8 @@ class DoctorsGalleryController extends Controller
                 'size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
                 'custom_properties' => [
-                    'uuid' => $uuid,
-                    'user_id' => $doctorId, // Link the file to the current doctor
+                'uuid' => $uuid,
+                'user_id' => $doctorId, // Link the file to the current doctor
                 ],
             ]);
 
@@ -164,51 +123,7 @@ class DoctorsGalleryController extends Controller
             return $this->sendResponse(false, $e->getMessage());
         }
     }
-    /**
-     * Fetch all media files inside a given category.
-     */
-    /*public function all(Request $request, $category = null)
-    {
-        // Ensure a valid category is used, default to 'default'
-        $category = $category ?? 'default';
-
-        Log::info("Fetching media for category: {$category}");
-
-        // Directory path in the public storage
-        $directoryPath = storage_path("app/public/{$category}");
-
-        // Check if the directory exists
-        if (!is_dir($directoryPath)) {
-            Log::warning("Category directory does not exist: {$directoryPath}");
-            return response()->json([]);
-        }
-
-        // Retrieve all files in the directory
-        $files = array_diff(scandir($directoryPath), ['.', '..']); // Exclude . and ..
-        $mediaFiles = [];
-
-        foreach ($files as $file) {
-            $fullPath = $directoryPath . '/' . $file;
-
-            // Ensure it's a file
-            if (is_file($fullPath)) {
-                $fileUrl = asset("storage/{$category}/{$file}");
-                $mediaFiles[] = [
-                    'name' => pathinfo($file, PATHINFO_FILENAME),
-                    'file_name' => $file,
-                    'url' => $fileUrl,
-                    'thumb' => $fileUrl, // Adjust if you generate thumbnails
-                    'icon' => $fileUrl,  // Adjust if you generate icons
-                    'formated_size' => round(filesize($fullPath) / 1024, 2) . ' KB', // File size in KB
-                ];
-            }
-        }
-
-        Log::info('Media files retrieved:', $mediaFiles);
-
-        return response()->json($mediaFiles);
-    }*/
-    public function all(Request $request, $category = null)
+        public function all(Request $request, $category = null)
     {
         $category = $category ?? 'default'; // Default to 'default' if no category is provided
         $doctorId = auth()->user()->doctor->id;
@@ -277,6 +192,7 @@ class DoctorsGalleryController extends Controller
         return $this->sendResponse(false, 'Error while deleting media');
     }
 
+
     public function storeCabinet(UploadRequest $request): JsonResponse
     {
         $doctorId = auth()->user()->doctor->id;
@@ -284,15 +200,35 @@ class DoctorsGalleryController extends Controller
         $category = 'cabinet/en_attente';  // Enregistrer dans le dossier "en_attente"
     
         try {
-            // Créer le dossier "doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
+            // Créer le dossier "/mnt/doctor/doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
             $storagePath = "doctors/{$doctorId}/{$category}";
-            if (!Storage::exists($storagePath)) {
-                Storage::makeDirectory($storagePath);
+    
+            Log::info("Attempting to create directory: {$storagePath}");
+    
+            if (!Storage::disk('doctor_storage')->exists($storagePath)) {
+                Log::info("Directory does not exist, creating: {$storagePath}");
+                Storage::disk('doctor_storage')->makeDirectory($storagePath);
+    
+                // Changer le propriétaire du répertoire créé
+                $fullPath = "/mnt/doctor/{$storagePath}";
+                exec("sudo chown -R storagewic:storagewic {$fullPath}");
+                exec("sudo chmod -R 775 {$fullPath}"); // Définir les permissions appropriées
+            } else {
+                Log::info("Directory already exists: {$storagePath}");
             }
     
             // Récupérer le fichier et l'enregistrer sous "en_attente"
             $file = $request->file('file');
-            $filePath = $file->storeAs($storagePath, $file->getClientOriginalName(), 'public');
+            Log::info("File uploaded: " . $file->getClientOriginalName());
+    
+            // Enregistrer le fichier sous "en_attente" dans le stockage
+            $filePath = $file->storeAs($storagePath, $file->getClientOriginalName(), 'doctor_storage');
+            Log::info("File stored at: {$filePath}");
+    
+            // Changer le propriétaire du fichier créé
+            $fullFilePath = "/mnt/doctor/{$filePath}";
+            exec("sudo chown storagewic:storagewic {$fullFilePath}");
+            exec("sudo chmod 775 {$fullFilePath}"); // Définir les permissions appropriées
     
             // Enregistrer dans la base de données avec statut "en attente"
             $upload = $this->uploadRepository->create([
@@ -300,7 +236,7 @@ class DoctorsGalleryController extends Controller
                 'file_name' => basename($filePath),
                 'collection_name' => 'cabinet',
                 'uuid' => $uuid,
-                'disk' => 'public',
+                'disk' => 'doctor_storage', // Utiliser le disque personnalisé
                 'size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
                 'status' => 'en attente', // Nouveau champ pour gérer l'état
@@ -310,9 +246,15 @@ class DoctorsGalleryController extends Controller
                 ],
             ]);
     
+            Log::info("Upload record created successfully with UUID: {$uuid}");
+    
             return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
         } catch (ValidatorException $e) {
+            Log::error("Validation exception: " . $e->getMessage());
             return $this->sendResponse(false, $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error("Error storing file: " . $e->getMessage());
+            return $this->sendResponse(false, "Error: " . $e->getMessage());
         }
     }
     
@@ -321,12 +263,12 @@ class DoctorsGalleryController extends Controller
         $doctorId = auth()->user()->doctor->id;
         
         $baseCategory = 'cabinet';
-        $statuses = ['en_attente', 'accepte', 'refuse']; // Ajout du statut 'refuse'
+        $statuses = ['en_attente', 'accepte', 'refuse'];
         $mediaFiles = [];
         
         foreach ($statuses as $status) {
-            // Construire le chemin vers chaque dossier (en_attente, accepte, refuse)
-            $directoryPath = storage_path("app/public/doctors/{$doctorId}/{$baseCategory}/{$status}");
+            // Nouveau chemin vers /mnt/doctor/
+            $directoryPath = "/mnt/doctor/{$doctorId}/{$baseCategory}/{$status}";
         
             // Vérifier si le dossier existe
             if (!is_dir($directoryPath)) {
@@ -339,16 +281,22 @@ class DoctorsGalleryController extends Controller
             foreach ($files as $file) {
                 $fullPath = $directoryPath . '/' . $file;
                 if (is_file($fullPath)) {
-                    $fileUrl = asset("storage/doctors/{$doctorId}/{$baseCategory}/{$status}/{$file}");
-        
+                    // URL pour accéder au fichier via Laravel (voir l'explication ci-dessous)
+                    $fileUrl = route('serveFile', [
+                        'doctorId' => $doctorId,
+                        'category' => $baseCategory,
+                        'status' => $status,
+                        'fileName' => $file
+                    ]);
+    
                     $mediaFiles[] = [
                         'name' => pathinfo($file, PATHINFO_FILENAME),
                         'file_name' => $file,
                         'url' => $fileUrl,
-                        'thumb' => $fileUrl,  // Adapter si vous générez des miniatures
-                        'icon' => $fileUrl,  // Adapter si vous générez des icônes
+                        'thumb' => $fileUrl,
+                        'icon' => $fileUrl,
                         'formated_size' => round(filesize($fullPath) / 1024, 2) . ' KB',
-                        'status' => $status,  // Ajouter le statut pour faciliter le tri
+                        'status' => $status,
                     ];
                 }
             }
@@ -372,41 +320,42 @@ class DoctorsGalleryController extends Controller
         $doctorId = auth()->user()->doctor->id;
         
         // Récupère les données de la requête
-        $uuid = urldecode($request->input('uuid'));  // Décoder le uuid si nécessaire
-        $status = $request->input('status');  // Le statut du fichier (accepte, en_attente, refuse)
+        $uuid = urldecode($request->input('uuid'));
+        $status = $request->input('status');
         
         // Définir le dossier en fonction du statut
-        $folder = $status === 'accepte' ? 'accepte' :
-                  ($status === 'refuse' ? 'refuse' : 'en_attente');
+        $folder = match ($status) {
+            'accepte' => 'accepte',
+            'refuse' => 'refuse',
+            default => 'en_attente',
+        };
         
-        // Construire le chemin complet du fichier
-        $directoryPath = storage_path("app/public/doctors/{$doctorId}/cabinet/{$folder}");
+        // Nouveau chemin du fichier dans /mnt/doctor/
+        $directoryPath = "/mnt/doctor/{$doctorId}/cabinet/{$folder}";
         $fullPath = $directoryPath . '/' . $uuid;
-        
+    
         Log::info("Full file path: " . $fullPath);
         
         // Vérifier si le fichier existe
         if (file_exists($fullPath)) {
-            // Supprimer le nom du fichier de la colonne cabinet_photo
+            // Supprimer le nom du fichier de la colonne cabinet_photo si le statut est "accepte"
             if ($status === 'accepte') {
                 $doctor = Doctor::find($doctorId);
     
                 if ($doctor) {
-                    // Récupérer les images dans la colonne cabinet_photo, séparées par /
+                    // Récupérer les images dans la colonne cabinet_photo
                     $images = explode('/', $doctor->cabinet_photo);
     
-                    // Supprimer le nom du fichier de la liste
-                    $images = array_filter($images, function ($image) use ($uuid) {
-                        return trim($image) !== $uuid;  // Ne pas inclure l'image supprimée
-                    });
+                    // Supprimer le fichier de la liste
+                    $images = array_filter($images, fn($image) => trim($image) !== $uuid);
     
-                    // Réindexer le tableau et mettre à jour la colonne cabinet_photo
+                    // Mettre à jour la colonne cabinet_photo
                     $doctor->cabinet_photo = implode('/', array_values($images));
                     $doctor->save();
     
                     Log::info("Updated cabinet_photo column", ['cabinet_photo' => $doctor->cabinet_photo]);
-                    
-                    // Si cabinet_photo est vide ou null, mettre à jour pourcentage_cabinet à 0
+    
+                    // Si cabinet_photo est vide, mettre à jour pourcentage_cabinet à 0
                     if (empty($doctor->cabinet_photo)) {
                         $doctor->pourcentage_cabinet = 0;
                         $doctor->save();
@@ -414,8 +363,8 @@ class DoctorsGalleryController extends Controller
                     }
                 }
             }
-            
-            // Supprimer le fichier après avoir mis à jour la base de données
+    
+            // Supprimer le fichier après mise à jour de la base de données
             if (@unlink($fullPath)) {
                 Log::info("File deleted successfully", ['path' => $fullPath]);
     
@@ -431,7 +380,6 @@ class DoctorsGalleryController extends Controller
                 ], 500);
             }
         } else {
-            // Fichier non trouvé
             Log::error("File not found", ['path' => $fullPath]);
             return response()->json([
                 'success' => false,
@@ -439,5 +387,6 @@ class DoctorsGalleryController extends Controller
             ], 404);
         }
     }
+    
     
 }

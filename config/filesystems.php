@@ -46,33 +46,37 @@ return [
     | Supported Drivers: "local", "ftp", "sftp", "s3"
     |
     */
-
-    'disks' => [
-
-        'local' => [
-            'driver' => 'local',
-            'root' => storage_path('app'),
-        ],
-
-        'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL') . 'storage',
-            'visibility' => 'public',
-        ],
-
-        's3' => [
-            'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION'),
-            'bucket' => env('AWS_BUCKET'),
-            'url' => env('AWS_URL'),
-            'endpoint' => env('AWS_ENDPOINT'),
-        ],
-
+'disks' => [
+    'local' => [
+        'driver' => 'local',
+        'root' => storage_path('app'),
     ],
 
+    'public' => [
+        'driver' => 'local',
+        'root' => storage_path('app/public'),
+        'url' => env('APP_URL') . 'storage',
+        'visibility' => 'public',
+    ],
+
+    's3' => [
+        'driver' => 's3',
+        'key' => env('AWS_ACCESS_KEY_ID'),
+        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        'region' => env('AWS_DEFAULT_REGION'),
+        'bucket' => env('AWS_BUCKET'),
+        'url' => env('AWS_URL'),
+        'endpoint' => env('AWS_ENDPOINT'),
+    ],
+
+    // Ajoutez ce nouveau disque pour /mnt/doctor
+    'doctor_storage' => [
+        'driver' => 'local', // Utilisez 'local' pour un stockage sur le système de fichiers local
+        'root' => '/mnt/doctor', // Chemin vers le répertoire partagé
+        'url' => env('APP_URL') . '/doctor', // Optionnel : URL pour accéder aux fichiers
+        'visibility' => 'public', // Définir la visibilité des fichiers
+    ],
+],
     /*
     |--------------------------------------------------------------------------
     | Symbolic Links
