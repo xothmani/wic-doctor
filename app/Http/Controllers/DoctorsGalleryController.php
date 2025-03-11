@@ -191,37 +191,59 @@ class DoctorsGalleryController extends Controller
         Log::info("DoctorsGalleryController@clear => No valid UUID provided!");
         return $this->sendResponse(false, 'Error while deleting media');
     }
+
     public function storeCabinet(UploadRequest $request): JsonResponse
     {
+        Log::info('storeCabinet: Début de l\'enregistrement du fichier.');
+    
         $doctorId = auth()->user()->doctor->id;
         $uuid = $request->get('uuid');
-        $category = 'cabinet/en_attente';  // Dossier de destination
+        $category = 'cabinet/en_attente';  // Dossier cible
+        Log::info("storeCabinet: doctorId={$doctorId}, uuid={$uuid}");
     
         try {
             // Créer le dossier "/mnt/doctor/doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
             $storagePath = "/mnt/doctor/doctors/{$doctorId}/{$category}";
+            Log::info("storeCabinet: Vérification du dossier {$storagePath}");
+    
             if (!file_exists($storagePath)) {
-                mkdir($storagePath, 0777, true); // Création récursive avec permissions maximales
-                chown($storagePath, 'root');  // Propriétaire root
-                chgrp($storagePath, 'root');  // Groupe root
+                Log::info("storeCabinet: Dossier non existant, création...");
+                if (!mkdir($storagePath, 0777, true)) {
+                    Log::error("storeCabinet: Échec de création du dossier {$storagePath}");
+                    return $this->sendResponse(false, "Erreur: Impossible de créer le dossier.");
+                }
+                Log::info("storeCabinet: Dossier créé avec succès.");
+                chown($storagePath, 'root');  
+                chgrp($storagePath, 'root');
             }
     
             // Récupérer le fichier
             $file = $request->file('file');
+            if (!$file) {
+                Log::error("storeCabinet: Aucun fichier reçu.");
+                return $this->sendResponse(false, "Erreur: Aucun fichier reçu.");
+            }
+    
             $fileName = $file->getClientOriginalName();
             $filePath = "{$storagePath}/{$fileName}";
+            Log::info("storeCabinet: Enregistrement du fichier {$fileName} dans {$filePath}");
     
-            // Déplacer le fichier dans "/mnt/doctor"
-            $file->move($storagePath, $fileName);
-            chmod($filePath, 0777); // Assurer l'accès
+            // Déplacer le fichier
+            if (!$file->move($storagePath, $fileName)) {
+                Log::error("storeCabinet: Échec du déplacement du fichier {$fileName} vers {$storagePath}");
+                return $this->sendResponse(false, "Erreur: Impossible de déplacer le fichier.");
+            }
     
-            // Enregistrer en base de données
+            chmod($filePath, 0777);
+            Log::info("storeCabinet: Fichier déplacé avec succès.");
+    
+            // Enregistrement en base de données
             $upload = $this->uploadRepository->create([
                 'name' => $fileName,
                 'file_name' => basename($filePath),
                 'collection_name' => 'cabinet',
                 'uuid' => $uuid,
-                'disk' => 'doctor_sharing', // Utiliser le disque configuré
+                'disk' => 'doctor_sharing',
                 'size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
                 'status' => 'en attente',
@@ -230,9 +252,11 @@ class DoctorsGalleryController extends Controller
                     'user_id' => $doctorId,
                 ],
             ]);
+            Log::info("storeCabinet: Enregistrement en base réussi.");
     
             return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
         } catch (\Exception $e) {
+            Log::error("storeCabinet: Exception - " . $e->getMessage());
             return $this->sendResponse(false, $e->getMessage());
         }
     }
