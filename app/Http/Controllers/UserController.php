@@ -104,7 +104,7 @@ class UserController extends Controller
         if ($user->hasRole('doctor')) {
             $doctor = Doctor::where('user_id', $user->id)->first();
             \Log::info('Doctor found', ['doctor' => $doctor]);
-            $this->migrateAvailabilityDataIfNeeded($doctor->id);
+
         }
 
         // Liste des champs à vérifier
@@ -501,74 +501,7 @@ class UserController extends Controller
 
         return response()->json(['success' => true]);
     }
-    public function migrateAvailabilityDataIfNeeded($doctorId)
-    {
-        \Log::info('Migrating availability data for doctor', ['doctor_id' => $doctorId]);
 
-        $dayMap = [
-            'Lundi' => 'monday',
-            'Mardi' => 'tuesday',
-            'Mercredi' => 'wednesday',
-            'Jeudi' => 'thursday',
-            'Vendredi' => 'friday',
-            'Samedi' => 'saturday',
-            'Dimanche' => 'sunday',
-            'lundi' => 'monday',
-            'mardi' => 'tuesday',
-            'mercredi' => 'wednesday',
-            'jeudi' => 'thursday',
-            'vendredi' => 'friday',
-            'samedi' => 'saturday',
-            'dimanche' => 'sunday',
-        ];
-
-        $englishDays = array_values($dayMap);
-
-        $availabilities = AvailabilityHour::where('doctor_id', $doctorId)->get();
-
-        foreach ($availabilities as $availability) {
-            $changed = false;
-
-            // Convertir jour français en anglais si nécessaire
-            if (isset($dayMap[$availability->day])) {
-                $availability->day = $dayMap[$availability->day];
-                $changed = true;
-            }
-
-            // Vérifier si jour est valide après conversion
-            if (!in_array($availability->day, $englishDays)) {
-                \Log::warning("Jour invalide détecté : {$availability->day} pour availability ID {$availability->id}");
-                continue;
-            }
-
-            // Mode par défaut
-            if (!$availability->mode) {
-                $availability->mode = 'open';
-                $changed = true;
-            }
-
-            // Migrer onligne => type si type est vide
-            if (!$availability->type) {
-                if ($availability->onligne == 0 || $availability->onligne === '0') {
-                    $availability->type = 'cabinet';
-                } elseif ($availability->onligne == 1 || $availability->onligne === '1') {
-                    $availability->type = 'teleconsultation';
-                }
-                $changed = true;
-            }
-
-            if ($changed) {
-                $availability->save();
-            }
-        }
-
-        // Mettre doctor.availability_mode à open si vide
-        $doctor = Doctor::find($doctorId);
-        if ($doctor && empty($doctor->availability_mode)) {
-            $doctor->availability_mode = 'open';
-            $doctor->save();
-        }
-    }
 
 
 
