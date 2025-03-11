@@ -209,16 +209,18 @@ class DoctorsGalleryController extends Controller
             // Vérifier si le dossier existe, sinon le créer avec sudo
             if (!file_exists($storagePath)) {
                 Log::info("storeCabinet: Dossier non existant, création avec sudo...");
-                $cmd = "sudo mkdir -p {$storagePath} && sudo chmod 777 {$storagePath} && sudo chown www-data:www-data {$storagePath}";
+                
+                $cmd = "sudo mkdir -p {$storagePath} && sudo chmod -R 777 {$storagePath} && sudo chown -R www-data:www-data {$storagePath}";
                 exec($cmd, $output, $returnCode);
-    
+            
                 if ($returnCode !== 0) {
                     Log::error("storeCabinet: Échec de création du dossier avec sudo. Code: {$returnCode}, Output: " . implode("\n", $output));
                     return $this->sendResponse(false, "Erreur: Impossible de créer le dossier.");
                 }
-    
+            
                 Log::info("storeCabinet: Dossier créé avec succès.");
             }
+            
     
             // Récupérer le fichier
             $file = $request->file('file');
