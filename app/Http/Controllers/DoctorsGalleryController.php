@@ -198,23 +198,26 @@ class DoctorsGalleryController extends Controller
     
         $doctorId = auth()->user()->doctor->id;
         $uuid = $request->get('uuid');
-        $category = 'cabinet/en_attente';  // Dossier cible
+        $category = 'cabinet/en_attente';
         Log::info("storeCabinet: doctorId={$doctorId}, uuid={$uuid}");
     
         try {
-            // Créer le dossier "/mnt/doctor/doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
+            // Définition du chemin
             $storagePath = "/mnt/doctor/doctors/{$doctorId}/{$category}";
             Log::info("storeCabinet: Vérification du dossier {$storagePath}");
     
+            // Vérifier si le dossier existe, sinon le créer avec sudo
             if (!file_exists($storagePath)) {
-                Log::info("storeCabinet: Dossier non existant, création...");
-                if (!mkdir($storagePath, 0777, true)) {
-                    Log::error("storeCabinet: Échec de création du dossier {$storagePath}");
+                Log::info("storeCabinet: Dossier non existant, création avec sudo...");
+                $cmd = "sudo mkdir -p {$storagePath} && sudo chmod 777 {$storagePath} && sudo chown www-data:www-data {$storagePath}";
+                exec($cmd, $output, $returnCode);
+    
+                if ($returnCode !== 0) {
+                    Log::error("storeCabinet: Échec de création du dossier avec sudo. Code: {$returnCode}, Output: " . implode("\n", $output));
                     return $this->sendResponse(false, "Erreur: Impossible de créer le dossier.");
                 }
+    
                 Log::info("storeCabinet: Dossier créé avec succès.");
-                chown($storagePath, 'root');  
-                chgrp($storagePath, 'root');
             }
     
             // Récupérer le fichier
@@ -260,6 +263,7 @@ class DoctorsGalleryController extends Controller
             return $this->sendResponse(false, $e->getMessage());
         }
     }
+    
     
 
     public function allCabinet(Request $request): JsonResponse
