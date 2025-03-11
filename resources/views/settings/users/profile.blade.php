@@ -330,7 +330,7 @@
                     method: 'POST',
                     data: { _token: '{{ csrf_token() }}' },
                     success: function () {
-                        $('#newFeaturesModal').modal('hide'); // Close modal
+                        $('.welcome-modal').remove();
                     }
                 });
             });
