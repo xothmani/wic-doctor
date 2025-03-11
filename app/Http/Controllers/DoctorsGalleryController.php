@@ -191,50 +191,49 @@ class DoctorsGalleryController extends Controller
         Log::info("DoctorsGalleryController@clear => No valid UUID provided!");
         return $this->sendResponse(false, 'Error while deleting media');
     }
-
     public function storeCabinet(UploadRequest $request): JsonResponse
     {
         $doctorId = auth()->user()->doctor->id;
         $uuid = $request->get('uuid');
-        $category = "cabinet/en_attente";
-        $storagePath = "/mnt/doctor/{$doctorId}/{$category}";
+        $category = 'cabinet/en_attente';  // Dossier de destination
     
         try {
-            // Vérifier et créer le dossier avec les bonnes permissions
+            // Créer le dossier "/mnt/doctor/doctors/{doctorId}/cabinet/en_attente" s'il n'existe pas
+            $storagePath = "/mnt/doctor/doctors/{$doctorId}/{$category}";
             if (!file_exists($storagePath)) {
-                mkdir($storagePath, 0777, true);
-                chmod($storagePath, 0777); // Permet à Laravel d'écrire
+                mkdir($storagePath, 0777, true); // Création récursive avec permissions maximales
+                chown($storagePath, 'root');  // Propriétaire root
+                chgrp($storagePath, 'root');  // Groupe root
             }
     
-            // Vérifier que Laravel a bien accès au dossier
-            if (!is_writable($storagePath)) {
-                throw new \Exception("Le dossier {$storagePath} n'est pas accessible en écriture.");
-            }
-    
-            // Enregistrer le fichier
+            // Récupérer le fichier
             $file = $request->file('file');
-            $fileName = time() . '_' . $file->getClientOriginalName(); // Ajouter un timestamp pour éviter les doublons
-            $file->move($storagePath, $fileName);
+            $fileName = $file->getClientOriginalName();
+            $filePath = "{$storagePath}/{$fileName}";
     
-            // Enregistrer les informations dans la base de données
+            // Déplacer le fichier dans "/mnt/doctor"
+            $file->move($storagePath, $fileName);
+            chmod($filePath, 0777); // Assurer l'accès
+    
+            // Enregistrer en base de données
             $upload = $this->uploadRepository->create([
-                'name' => $file->getClientOriginalName(),
-                'file_name' => $fileName,
+                'name' => $fileName,
+                'file_name' => basename($filePath),
                 'collection_name' => 'cabinet',
                 'uuid' => $uuid,
-                'disk' => 'local', // On utilise local car on stocke dans /mnt/doctor
+                'disk' => 'doctor_sharing', // Utiliser le disque configuré
                 'size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
-                'status' => 'en attente', // Statut du fichier
+                'status' => 'en attente',
                 'custom_properties' => [
                     'uuid' => $uuid,
                     'user_id' => $doctorId,
                 ],
             ]);
     
-            return $this->sendResponse($uuid, "Image enregistrée sous 'en attente' dans /mnt/doctor");
+            return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
         } catch (\Exception $e) {
-            return $this->sendResponse(false, "Erreur : " . $e->getMessage());
+            return $this->sendResponse(false, $e->getMessage());
         }
     }
     

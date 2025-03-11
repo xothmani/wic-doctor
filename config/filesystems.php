@@ -68,6 +68,20 @@ return [
         'url' => env('AWS_URL'),
         'endpoint' => env('AWS_ENDPOINT'),
     ],
+    'doctor_sharing' => [
+        'driver' => 'local',
+        'root' => '/mnt/doctor',
+        'permissions' => [
+            'file' => [
+                'public' => 0777,
+                'private' => 0777,
+            ],
+            'dir' => [
+                'public' => 0777,
+                'private' => 0777,
+            ],
+        ],
+    ],
 
 
 ],
