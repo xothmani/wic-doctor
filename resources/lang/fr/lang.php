@@ -148,7 +148,7 @@ return [
     'doctor_telesecretariat_add' => 'Ajouter Télésecrétariat',
     'not_specified' => 'Non spécifié',
     'availability' => 'Disponibilité',
-    'breaks' => 'Cas d\'urgence',
+    'breaks' => 'Pause',
     'holidays' => 'Vacances',
     'manageCalender' => 'Gestion calendrier',
     'sessionDuration' => 'Durée d\'une consultation',
