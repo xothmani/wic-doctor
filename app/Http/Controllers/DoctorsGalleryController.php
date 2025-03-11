@@ -199,75 +199,58 @@ class DoctorsGalleryController extends Controller
         $doctorId = auth()->user()->doctor->id;
         $uuid = $request->get('uuid');
         $category = 'cabinet/en_attente';
-        Log::info("storeCabinet: doctorId={$doctorId}, uuid={$uuid}");
+        $storagePath = "/mnt/doctor/doctors/{$doctorId}/{$category}";
+    
+        Log::info("storeCabinet: doctorId={$doctorId}, uuid={$uuid}, path={$storagePath}");
     
         try {
-            // Définition du chemin
-            $storagePath = "/mnt/doctor/doctors/{$doctorId}/{$category}";
-            Log::info("storeCabinet: Vérification du dossier {$storagePath}");
-    
             // Vérifier si le dossier existe, sinon le créer avec sudo
-if (!file_exists($storagePath)) {
-    Log::info("storeCabinet: Dossier non existant, création avec sudo...");
+            if (!file_exists($storagePath)) {
+                Log::info("storeCabinet: Dossier non existant, création...");
     
-    $cmd = "sudo mkdir -p {$storagePath} && sudo chmod -R 777 {$storagePath} && sudo chown -R www-data:www-data {$storagePath}";
-    exec($cmd, $output, $returnCode);
-
-    if ($returnCode !== 0) {
-        Log::error("storeCabinet: Échec de création du dossier avec sudo. Code: {$returnCode}, Output: " . implode("\n", $output));
-        return $this->sendResponse(false, "Erreur: Impossible de créer le dossier.");
-    }
-
-    Log::info("storeCabinet: Dossier créé avec succès.");
-}
-
-// 🔥 Ajoute ceci après la création du dossier 🔥
-clearstatcache(); // Vider le cache des permissions pour PHP
-if (!is_writable($storagePath)) {
-    Log::error("storeCabinet: Le dossier {$storagePath} n'est pas accessible en écriture.");
-    return $this->sendResponse(false, "Erreur: Impossible d'écrire dans le dossier.");
-}
-
-// 🔽 Ici tu peux maintenant enregistrer le fichier 🔽
-
-// Vérifier si un fichier a été uploadé
-if ($request->hasFile('file')) {
-    $file = $request->file('file');
-    $fileName = $file->getClientOriginalName();
+                $cmd = "sudo mkdir -p {$storagePath} && sudo chmod -R 777 {$storagePath} && sudo chown -R www-data:www-data {$storagePath}";
+                exec($cmd . " 2>&1", $output, $returnCode);
     
-    try {
-        // Déplacement du fichier dans le dossier créé
-        $file->move($storagePath, $fileName);
-        Log::info("storeCabinet: Fichier {$fileName} enregistré avec succès dans {$storagePath}.");
-    } catch (\Exception $e) {
-        Log::error("storeCabinet: Erreur lors de l'enregistrement du fichier : " . $e->getMessage());
-        return $this->sendResponse(false, "Erreur: Impossible d'enregistrer le fichier.");
-    }
-}
-
-            
+                if ($returnCode !== 0) {
+                    Log::error("storeCabinet: Échec de création du dossier. Code: {$returnCode}, Output: " . implode("\n", $output));
+                    return $this->sendResponse(false, "Erreur: Impossible de créer le dossier.");
+                }
     
-            // Récupérer le fichier
-            $file = $request->file('file');
-            if (!$file) {
+                Log::info("storeCabinet: Dossier créé avec succès.");
+            }
+    
+            // Vider le cache des permissions pour éviter les problèmes d'accès
+            clearstatcache();
+    
+            if (!is_writable($storagePath)) {
+                Log::error("storeCabinet: Le dossier {$storagePath} n'est pas accessible en écriture.");
+                return $this->sendResponse(false, "Erreur: Impossible d'écrire dans le dossier.");
+            }
+    
+            // Vérifier si un fichier a été uploadé
+            if (!$request->hasFile('file')) {
                 Log::error("storeCabinet: Aucun fichier reçu.");
                 return $this->sendResponse(false, "Erreur: Aucun fichier reçu.");
             }
     
+            $file = $request->file('file');
             $fileName = $file->getClientOriginalName();
             $filePath = "{$storagePath}/{$fileName}";
-            Log::info("storeCabinet: Enregistrement du fichier {$fileName} dans {$filePath}");
     
-            // Déplacer le fichier
-            if (!$file->move($storagePath, $fileName)) {
-                Log::error("storeCabinet: Échec du déplacement du fichier {$fileName} vers {$storagePath}");
-                return $this->sendResponse(false, "Erreur: Impossible de déplacer le fichier.");
+            try {
+                // Déplacer le fichier
+                $file->move($storagePath, $fileName);
+                Log::info("storeCabinet: Fichier {$fileName} enregistré avec succès dans {$storagePath}.");
+            } catch (\Exception $e) {
+                Log::error("storeCabinet: Erreur lors de l'enregistrement du fichier : " . $e->getMessage());
+                return $this->sendResponse(false, "Erreur: Impossible d'enregistrer le fichier.");
             }
     
+            // Modifier les permissions du fichier
             chmod($filePath, 0777);
-            Log::info("storeCabinet: Fichier déplacé avec succès.");
+            Log::info("storeCabinet: Fichier déplacé avec succès et permissions mises à jour.");
     
-            // Enregistrement en base de données
+            // Enregistrer en base de données
             $upload = $this->uploadRepository->create([
                 'name' => $fileName,
                 'file_name' => basename($filePath),
@@ -282,14 +265,15 @@ if ($request->hasFile('file')) {
                     'user_id' => $doctorId,
                 ],
             ]);
-            Log::info("storeCabinet: Enregistrement en base réussi.");
     
+            Log::info("storeCabinet: Enregistrement en base réussi.");
             return $this->sendResponse($uuid, "Image enregistrée sous 'en attente'");
         } catch (\Exception $e) {
             Log::error("storeCabinet: Exception - " . $e->getMessage());
-            return $this->sendResponse(false, $e->getMessage());
+            return $this->sendResponse(false, "Erreur: " . $e->getMessage());
         }
     }
+    
     
     
 
