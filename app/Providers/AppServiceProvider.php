@@ -75,8 +75,8 @@ class AppServiceProvider extends ServiceProvider
             config(['services.fcm.key' => setting('fcm_key', '')]);
 
             //config(['paypal.mode' => setting('paypal_mode', '0') != '0' ? 'live' : 'sandbox']);
-            config(['paypal.mode' => 'sandbox']);
-            //config(['paypal.mode' => 'live']);
+            //config(['paypal.mode' => 'sandbox']);
+            config(['paypal.mode' => 'live']);
             config(['paypal.currency' => Str::upper(setting('default_currency_code', 'USD'))]);
 
             config(['paypal.sandbox.username' => setting('paypal_username')]);

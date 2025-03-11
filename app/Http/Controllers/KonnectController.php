@@ -129,9 +129,13 @@ class KonnectController extends Controller
                 'payments_id' => $paymentId,
                 'updated_at' => now(),
             ]);
-
+        $user_id = $paymentSession->user_id;
         // Send success email
-        $patient = Patient::where('user_id', $paymentSession->user_id)->first();
+        $patient = Patient::where('id', $user_id)->first();
+        if (!$patient) {
+            \Log::error("Patient not found for ID: " . $user_id);
+            return response()->json(['error' => 'Patient not found.'], 404);
+        }
         if ($patient) {
             $formattedDate = Carbon::parse($paymentSession->start_at)->format('d/m/Y H:i'); // Format date and time
             $currency = 'TND';
