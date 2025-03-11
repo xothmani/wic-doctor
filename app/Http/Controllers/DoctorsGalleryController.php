@@ -241,11 +241,17 @@ class DoctorsGalleryController extends Controller
                 // Déplacer le fichier
                 $file->move($storagePath, $fileName);
                 Log::info("storeCabinet: Fichier {$fileName} enregistré avec succès dans {$storagePath}.");
+            
+                // Modifier les permissions et le propriétaire du fichier
+                chmod($filePath, 0777);
+                chown($filePath, 'www-data');
+            
+                Log::info("storeCabinet: Fichier déplacé avec succès et permissions mises à jour.");
             } catch (\Exception $e) {
                 Log::error("storeCabinet: Erreur lors de l'enregistrement du fichier : " . $e->getMessage());
                 return $this->sendResponse(false, "Erreur: Impossible d'enregistrer le fichier.");
             }
-    
+            
             // Modifier les permissions du fichier
             chmod($filePath, 0777);
             Log::info("storeCabinet: Fichier déplacé avec succès et permissions mises à jour.");
