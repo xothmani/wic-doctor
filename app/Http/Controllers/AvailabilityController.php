@@ -375,6 +375,7 @@ class AvailabilityController extends Controller
                             session()->flash('old_duration', $currentDuration);
                             session()->flash('new_duration', $duration);
                             session()->flash('has_existing_appointments', true);
+                            session()->flash('affected_type', $type);
                         }
                     }
                 }
