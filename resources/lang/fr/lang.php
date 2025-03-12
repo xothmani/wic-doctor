@@ -2163,4 +2163,7 @@ return [
     'appointment_information' => 'Rendez-vous',
     'payment_information' => 'Paiement',
     'send' => 'Envoyer',
+    'consultation_status_closed' => 'Consultation clôturée',
+    'active' => 'Actif',
+    'inactive' => 'Inactif',
 ];
