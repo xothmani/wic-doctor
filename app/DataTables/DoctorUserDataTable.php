@@ -37,8 +37,8 @@ class DoctorUserDataTable extends DataTable
             })
             ->addColumn('is_active', function ($user) {
                 return $user->is_active
-                    ? '<span class="badge badge-success">Active</span>'
-                    : '<span class="badge badge-danger">Inactive</span>';
+                    ? '<span class="badge badge-success">' . trans('lang.active') . '</span>'
+                    : '<span class="badge badge-danger">' . trans('lang.inactive') . '</span>';
             })
             ->addColumn('start_date', function ($user) {
                 return $user->start_date ?? '-';

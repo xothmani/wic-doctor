@@ -47,13 +47,13 @@
                 <h5 class="card-title">{{ trans('lang.teleconsultation_table') }}</h5>
             </div>
             <!-- <div class="card-header">
-                                                                <div class="d-flex justify-content-between align-items-center">
-                                                                    <h5 class="card-title">{{ trans('lang.teleconsultation_table') }}</h5>
-                                                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createMeetModal">
-                                                                        <i class="fas fa-plus-circle"></i> Nouvelle téléconsultation
-                                                                    </button>
-                                                                </div>
-                                                            </div> -->
+                                                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                                                <h5 class="card-title">{{ trans('lang.teleconsultation_table') }}</h5>
+                                                                                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createMeetModal">
+                                                                                                    <i class="fas fa-plus-circle"></i> Nouvelle téléconsultation
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        </div> -->
             <div class="card-body">
                 <!-- Table Responsive -->
                 <div class="table-responsive">
@@ -77,7 +77,7 @@
                                                         $statusLabel = $paymentStatus == 9
                                                             ? ['text' => 'Payé', 'badge' => 'success']
                                                             : ['text' => 'En attente de paiement', 'badge' => 'warning'];
-                                                            $isFinished = in_array($room->status, ['completed', 'failed']);
+                                                        $isFinished = in_array($room->status, ['completed', 'failed']);
                                                     @endphp
                                                     <tr>
                                                         <td>{{ $patient ? $patient->first_name . ' ' . $patient->last_name : trans('lang.unknown') }}
@@ -86,39 +86,46 @@
                                                         <td>{{ $room->date ?: trans('lang.not_specified') }}</td>
                                                         <td>{{ $room->time ?: trans('lang.not_specified') }}</td>
                                                         <td>
-                                                            <span class="badge badge-{{ $statusLabel['badge'] }}">
-                                                                {{ $statusLabel['text'] }}
-                                                            </span>
+                                                            @if(!$isFinished)
+                                                                <span class="badge badge-{{ $statusLabel['badge'] }}">
+                                                                    {{ $statusLabel['text'] }}
+                                                                </span>
+                                                            @else
+                                                                <span class="text-muted">
+                                                                    {{ trans('lang.consultation_status_closed') }}
+                                                                </span>
+                                                            @endif
                                                         </td>
                                                         <td>
-        @if(!$isFinished)
-            <a href="{{ $room->meet_link }}" target="_blank" class="btn bg-{{setting('theme_color')}} btn-sm">
-                {{ trans('lang.open_link') }}
-            </a>
-        @else
-            <span class="text-muted">
-                <i class="fas fa-lock"></i> {{ trans('lang.consultation_finished') }}
-            </span>
-        @endif
-    </td>
-    <td>
-        @if(!$isFinished)
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-success btn-sm update-status"
-                    data-room-id="{{ $room->id }}" data-status="completed">
-                    <i class="fas fa-check"></i> Terminer
-                </button>
-                <button type="button" class="btn btn-danger btn-sm update-status"
-                    data-room-id="{{ $room->id }}" data-status="failed">
-                    <i class="fas fa-times"></i> Échoué
-                </button>
-            </div>
-        @else
-            <span class="badge badge-{{ $room->status === 'completed' ? 'success' : 'danger' }}">
-                {{ $room->status === 'completed' ? 'Terminée' : 'Échouée' }}
-            </span>
-        @endif
-    </td>
+                                                            @if(!$isFinished)
+                                                                <a href="{{ $room->meet_link }}" target="_blank"
+                                                                    class="btn bg-{{setting('theme_color')}} btn-sm">
+                                                                    {{ trans('lang.open_link') }}
+                                                                </a>
+                                                            @else
+                                                                <span class="text-muted">
+                                                                    <i class="fas fa-lock"></i> {{ trans('lang.consultation_finished') }}
+                                                                </span>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            @if(!$isFinished)
+                                                                <div class="btn-group" role="group">
+                                                                    <button type="button" class="btn btn-success btn-sm update-status"
+                                                                        data-room-id="{{ $room->id }}" data-status="completed">
+                                                                        <i class="fas fa-check"></i> Terminer
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-danger btn-sm update-status"
+                                                                        data-room-id="{{ $room->id }}" data-status="failed">
+                                                                        <i class="fas fa-times"></i> Échoué
+                                                                    </button>
+                                                                </div>
+                                                            @else
+                                                                <span class="badge badge-{{ $room->status === 'completed' ? 'success' : 'danger' }}">
+                                                                    {{ $room->status === 'completed' ? 'Terminée' : 'Échouée' }}
+                                                                </span>
+                                                            @endif
+                                                        </td>
                                                     </tr>
                             @endforeach
                         </tbody>

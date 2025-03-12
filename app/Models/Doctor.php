@@ -253,7 +253,7 @@ class Doctor extends Model implements HasMedia, Castable
     }
 
 
-    /* public function openingHours(): OpeningHours
+    public function openingHours(): OpeningHours
     {
         $openingHoursArray = [];
 
@@ -267,8 +267,8 @@ class Doctor extends Model implements HasMedia, Castable
 
         // Create OpeningHours instance with formatted hours
         return OpeningHours::createAndMergeOverlappingRanges($openingHoursArray);
-    } */
-    public function openingHours(): OpeningHours
+    }
+    /* public function openingHours(): OpeningHours
     {
         // Mapping des jours français vers les jours anglais
         $joursMapping = [
@@ -302,7 +302,7 @@ class Doctor extends Model implements HasMedia, Castable
 
         // Créer l'objet OpeningHours
         return OpeningHours::createAndMergeOverlappingRanges($openingHoursArray);
-    }
+    } */
 
     /* public function openingHours(): OpeningHours
  {

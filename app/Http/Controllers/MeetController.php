@@ -719,7 +719,7 @@ class MeetController extends Controller
 
             // Update appointment status if needed
             if ($room->appointment) {
-                $appointmentStatus = $request->status === 'completed' ? 6 : 7; // 5 for completed, 6 for failed
+                $appointmentStatus = $request->status === 'completed' ? 6 : 7;
                 $room->appointment->update(['appointment_status_id' => $appointmentStatus]);
             }
 
