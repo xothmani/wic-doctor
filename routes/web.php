@@ -20,6 +20,8 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\PharmacyTypeController;
 use App\Http\Controllers\MessagerieController;
+use App\Http\Controllers\PusherController;
+use App\Http\Controllers\PatientDoctorChatController;
 
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\PrescriptionController;
@@ -27,6 +29,12 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\AppointmentEventController;
 use App\Http\Controllers\FicheController;
 use App\Http\Controllers\PatternController;
+use Kreait\Firebase\Factory;
+use App\Http\Controllers\UserController;
+
+use App\Http\Controllers\FirebaseController;
+use App\Http\Controllers\TeleseceteriatDoctorsController;
+
 use App\Http\Controllers\MeetController;
 use App\Http\Controllers\AssuranceController;
 use App\Http\Controllers\PayPalController;
@@ -45,6 +53,7 @@ use App\Http\Controllers\NewsLatterController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\DoctorTagController;
 use App\Http\Controllers\ParrainerController;
+use App\Http\Controllers\ChatController;
 
 
 Route::get('/payment-success', function () {
@@ -139,8 +148,16 @@ Route::resource('clinicLevels', 'ClinicLevelController')->except([
     'show'
 ]);
 
+// Affiche le formulaire pour saisir un message
+Route::get('/message-form', [FirebaseController::class, 'showForm']);
+
 
 Route::post('/consultation/report', [ConsultationController::class, 'addReport']);
+
+// Route::get('login', [UserController::class, 'showLoginForm'])->name('login');
+// Route::post('login', [UserController::class, 'loginFirebase']);
+
+
 
 Route::get('storage/app/public/{id}/{conversion}/{filename?}', 'UploadController@storage');
 //Route::middleware('auth')->group(function () {
@@ -184,7 +201,6 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         ->middleware(['permission:update-language']) // Remplacez ou supprimez le middleware selon vos besoins
         ->name('update-language');
 
-
     Route::group(['middleware' => ['permission:app-settings']], function () {
         Route::prefix('settings')->group(function () {
             Route::resource('permissions', 'PermissionController');
@@ -196,7 +212,6 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
             Route::resource('taxes', 'TaxController')->except([
                 'show'
             ]);
-            Route::get('users/login-as-user/{id}', 'UserController@loginAsUser')->name('users.login-as-user');
             Route::patch('update', 'AppSettingController@update');
             // Route::patch('updateLanguage', 'AppSettingController@updateLanguage');
             Route::patch('translate', 'AppSettingController@translate');
@@ -387,6 +402,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/doctor-request/{id}/create-user', [DoctorRequestController::class, 'createUserFromDoctorRequest'])->name('doctor_requests.createUserFromDoctorRequest');
     Route::get('/doctor-requests/{id}', [DoctorRequestController::class, 'show']);
     Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
+    Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
 
     Route::resource('telesecretariats', TelesecretariatController::class);
     Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);
@@ -465,15 +481,135 @@ Route::get('/parrainer2', [ParrainerController::class, 'parrainer'])
 ->middleware('auth');
 
 Route::get('/listdoctors', [ParrainerController::class, 'listDoctors'])->name('parrainers.listdoctors');
+// Example route definition in web.php or api.php
+// In api.php
+Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.show');
+Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
 
-Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+// Dans routes/web.php
 
+Route::get('users/login-as-user/{id}', 'UserController@loginAsUser')->name('users.login-as-user');
+Route::get('/messages/{doctorId}', [ChatController::class, 'getMessagesForDoctor']);
+Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
+Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
+Route::get('/chat', [ChatController::class, 'showForm']);
+Route::get('storage/{file}', function ($file) {
+    $path = storage_path('app/public/' . $file);
 
-Route::middleware(['auth'])->group(function() {
-    Route::get('/messagerie', [MessagerieController::class, 'index'])->name('messagerie.index');
-    Route::get('/messagerie/create', [MessagerieController::class, 'create'])->name('messagerie.create');
-    Route::post('/messagerie/send', [MessagerieController::class, 'send'])->name('messagerie.send');
-    Route::get('/messagerie/conversation/{id}', [MessagerieController::class, 'showConversation'])->name('messagerie.showConversation');
+    if (!File::exists($path)) {                                                     
+        abort(404);
+    }
+
+    return response()->file($path);
 });
+Route::get('/download/{filename}', function ($filename) {
+    $path = storage_path('app/public/chat_files/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->download($path);
+})->name('download.file');
+
+
+
+Broadcast::routes();         
+                                                                                  
+Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
+Route::get('/telesecretariats', [TelesecretariatController::class, 'index']);
+Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
+    Route::get('/last-message', [ChatController::class, 'getLastMessage']);
+Route::delete('/messages/{chatId}/{messageId}', [ChatController::class, 'deleteMessage'])->name('chat.deleteMessage');
+Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
+Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
+// routes/web.php
+
+    Route::get('/chat/{userId}/{doctorId}', [ChatController::class, 'showChat']);
+
+Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
+
+Route::get('/get-patients-by-letter', [ChatController::class, 'getPatientsByLetter']);
+Route::get('/chatDP', [PatientDoctorChatController::class, 'showForm'])->name('chatDP .form');
+
+// Afficher la page d'index du chat (pour les médecins)
+Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP .index');
+Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
+    ->name('chatDP.show');  
+// Envoyer un message (pour les médecins et les patients)
+Route::post('/chatDP/send', [PatientDoctorChatController::class, 'sendMessage'])->name('chatDP.send');
+
+// Envoyer un message (pour les médecins et les patients)
+
+// routes/web.php
+
+Route::get('/doctor/login', [DoctorAuthController::class, 'showLoginForm'])->name('doctor.login');
+Route::post('/doctor/login', [DoctorAuthController::class, 'login']);
+// Route::get('/test-firebase', function() {
+//     try {
+//         $firebase = (new Factory)
+// Route pour l'interface de cha
+
+// Route pour l'envoi de messags
+// Route::post('/send-doctor-message', [DoctorChatController::class, 'sendMessage'])
+//     ->middleware('auth:doctor');//             ->withDatabaseUri('https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app')
+// //             ->createDatabase();
+
+//         // Essayer d'interroger la racine de la base de données
+//         $database = $firebase;
+//         $reference = $database->getReference('/');
+//         $value = $reference->getValue();
+
+//         return response()->json($value); // Affiche les données de la racine
+//     } catch (\Exception $e) {
+//         return response()->json(['error' => $e->getMessage()]);
+//     }
+// });
+
+// Ensure you're using the correct route file
+
+
+// Route::middleware(['auth'])->group(function() {
+//     Route::get('/messagerie', [MessagerieController::class, 'index'])->name('messagerie.index');
+//     Route::get('/messagerie/create', [MessagerieController::class, 'create'])->name('messagerie.create');
+//     Route::post('/messagerie/send', [MessagerieController::class, 'send'])->name('messagerie.send');
+//     Route::get('/messagerie/conversation/{id}', [MessagerieController::class, 'showConversation'])->name('messagerie.showConversation');
+// });
+
+// Route pour afficher la liste des conversations
+
+/// Route::get('/chatT', [TeleseceteriatDoctorsController::class, 'showForm']);
+// Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat']);
+// Route::post('/messageT/send', [TeleseceteriatDoctorsController::class, 'sendMessage']);
+// Route::delete('/messageT/{chatId}/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage']);
+// Route::get('/chatT/doctor/{doctorId}', [TeleseceteriatDoctorsController::class, 'fetchMessages']);
+
+
+// Route to show the chat form
+/* 
+// Route to fetch messages for a specific doctor
+Route::get('/chatTe/messages/{doctorId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.messages');
+
+// Route to show all telesecretariat and their last messages
+Route::get('/chatTe/index', [TeleseceteriatDoctorsController::class, 'index'])->name('chat.index');
+
+// Route to display a chat between a doctor and a telesecretariat
+Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chat.show');
+
+// Route to send a message
+Route::post('/chatTe/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chat.send');
+
+
+ */
+Route::get('/test-send-message', action: [PatientDoctorChatController::class, 'testSendMessage']);
+
+ 
+Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'index'])->name('chatTe');
+Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
+ Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+ Route::delete('/messages/{messageId}', [ChatController::class, 'deleteMessage'])->name('messages.delete');Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
+Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
+Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
 });
 

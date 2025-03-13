@@ -20,7 +20,26 @@
             </a>
         @endcan
     @endif
+    @if ($doctorRequest && $doctorRequest->status === 'en cours')  <!-- Vérification du statut -->
+        @can('doctor_requests.destroy')
+            <button type="button" class="btn btn-link text-danger" onclick="confirmDelete('{{ $id }}')">
+                <i class="fas fa-trash"></i>
+            </button>
+            <form id="delete-form-{{ $id }}" action="{{ route('doctor_requests.destroy', $id) }}" method="POST" style="display: none;">
+                @csrf
+                @method('DELETE')
+            </form>
+        @endcan
+    @endif
+
 </div>
+<script>
+    function confirmDelete(id) {
+        if (confirm("Voulez-vous vraiment supprimer cette demande ?")) {
+            document.getElementById("delete-form-" + id).submit();
+        }
+    }
+</script>
 
 <!-- Modal pour afficher les détails de la demande -->
 <div class="modal fade" id="requestModal-{{ $id }}" tabindex="-1" role="dialog" aria-labelledby="requestModalLabel" aria-hidden="true">

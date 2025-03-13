@@ -21,6 +21,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Permission;
+use App\Models\DoctorPatients;
+
 
 /**
  * Class User
@@ -156,6 +158,15 @@ class User extends Authenticatable implements HasMedia
             return asset('images/avatar_default.png');
         }
     }
+    public function isOnline()
+    {
+        return Cache::has('user-is-online-'.$this->id);
+    }
+
+    public function doctorPatients()
+{
+    return $this->hasMany(DoctorPatient::class, 'patient_id');
+}
 
     public function getCustomFieldsAttribute(): array
     {
@@ -198,6 +209,10 @@ class User extends Authenticatable implements HasMedia
         return $this->hasOne(Doctor::class, 'user_id');
     }
 
+public function telesecretariat()
+{
+    return $this->hasOne(Telesecretariat::class, 'user_id');
+}
 
     /**
      * @return HasMany

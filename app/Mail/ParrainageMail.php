@@ -1,6 +1,5 @@
 <?php
 namespace App\Mail;
-use App\Mail\ParrainageMail;  // Correct import for the mail class
 use Illuminate\Support\Facades\Mail;  // Correct import for Mail facade
 
 use Illuminate\Bus\Queueable;

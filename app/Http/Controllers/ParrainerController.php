@@ -103,7 +103,7 @@ class ParrainerController extends Controller
             $doctor = $user->doctor;
     
             if ($doctor) {
-                // Vérifier que le médecin a bien un code_parent
+                // Vérifier que le médecin a bien un code_parnt
                 $parrainCode = $doctor->getAttribute('code_doctor');
                 dd($parrainCode); // Vérifie la valeur du code de parrainage
     
