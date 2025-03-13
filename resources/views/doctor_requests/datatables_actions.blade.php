@@ -88,6 +88,17 @@
             </form>
         @endcan
     @endif
+    @if ($doctorRequest && $doctorRequest->status === 'en cours')  <!-- Vérification du statut -->
+        @can('doctor_requests.destroy')
+            <button type="button" class="btn btn-link text-danger" onclick="confirmDelete('{{ $id }}')">
+                <i class="fas fa-trash"></i>
+            </button>
+            <form id="delete-form-{{ $id }}" action="{{ route('doctor_requests.destroy', $id) }}" method="POST" style="display: none;">
+                @csrf
+                @method('DELETE')
+            </form>
+        @endcan
+    @endif
 
 </div>
 <script>

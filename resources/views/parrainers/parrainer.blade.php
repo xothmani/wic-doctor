@@ -67,15 +67,8 @@
                 <div class="card-body">
                     <h3 style="margin-bottom: 20px;">Parrainage</h3>
                     <p class="mb-4" style="font-size: 1.2em; margin-top: 10px;">
-                    Cher Docteur,</br>
-
-Nous vous invitons à partager ce lien avec vos collègues afin qu'ils puissent également découvrir les avantages exclusifs de WIC Doctor . En transmettant ce lien, vous leur offrez l’opportunité de profiter d’une offre promotionnelle spéciale 🎁.
-Grâce à notre programme de parrainage, chaque médecin que vous recommandez pourra accéder à des services innovants tels que la téléconsultation, la prise de rendez-vous simplifiée, la gestion optimisée de leur visibilité en ligne et bien plus encore.
-N’hésitez pas à en parler autour de vous et à encourager vos confrères à rejoindre WIC Doctor, afin qu’ils puissent eux aussi bénéficier de cette offre avantageuse.
-
-Votre réseau mérite le meilleur de la technologie médicale ! 🌟
-
-                    </p>
+                    Cher Docteur,
+                    Nous vous invitons à partager ce lien avec vos collègues afin qu'ils puissent également bénéficier de cette offre promotionnelle exclusive. En transmettant ce lien, vous leur offrez l'opportunité de profiter d'avantages spéciaux 🎁 tout en contribuant à élargir notre réseau de professionnels de santé 🌍. N’hésitez pas à solliciter d'autres médecins et à les encourager à participer pour qu'ils puissent eux aussi bénéficier de cette offre avantageuse.              </p>
 
                     @if(isset($link))
                         <div class="mb-4">
@@ -220,6 +213,8 @@ Votre réseau mérite le meilleur de la technologie médicale ! 🌟
         document.querySelector('.btn-container').appendChild(downloadButton);
     }
 });
+
+    </script>
 
     </script>
 

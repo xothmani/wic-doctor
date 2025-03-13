@@ -23,6 +23,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\OpeningHours\OpeningHours;
 use Illuminate\Support\Facades\Log;
 use App\Models\Address;
+use App\Models\Doctor;
+
 
 /**
  * Class Doctor
@@ -52,7 +54,8 @@ use App\Models\Address;
  * @property integer user_id
  */
 class Doctor extends Model implements HasMedia, Castable
-{
+{    protected $guard = 'doctor'; 
+
     use InteractsWithMedia {
         getFirstMediaUrl as protected getFirstMediaUrlTrait;
     }
@@ -215,7 +218,16 @@ class Doctor extends Model implements HasMedia, Castable
     {
         return $this->attributes['code_parent'];
     }
+    public function telesecretariats()
+    {
+        return $this->hasMany(DoctorTelesecretariat::class);
+    }
+    
 
+    public function doctorTelesecretariats()
+    {
+        return $this->hasMany(DoctorTelesecretariat::class, 'doctor_id');
+    }
     public function setCodeParrainAttribute($value)
     {
         $this->attributes['code_parent'] = $value;

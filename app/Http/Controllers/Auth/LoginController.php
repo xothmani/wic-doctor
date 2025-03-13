@@ -52,7 +52,7 @@ class LoginController extends Controller
      */
     public function __construct(UserRepository $userRepository, UploadRepository $uploadRepository, RoleRepository $roleRepository)
     {
-        $this->middleware('guest')->except('logout');
+        $this->middleware(middleware: 'guest')->except('logout');
         $this->userRepository = $userRepository;
         $this->uploadRepository = $uploadRepository;
         $this->roleRepository = $roleRepository;

@@ -5,7 +5,8 @@ use GuzzleHttp\Client;
 use Google\Auth\CredentialsLoader;
 use Google\Auth\Middleware\AuthTokenMiddleware;
 use GuzzleHttp\HandlerStack;
-    class FirestoreService
+
+class FirestoreService
 {
     protected $client;
     protected $projectId;
@@ -134,7 +135,6 @@ protected function generateJWT($serviceAccount)
         $response = $this->client->delete("$collection/$documentId");
         return $response->getStatusCode() === 204;
     }
-    
 
     protected function formatDataForFirestore($data)
     {

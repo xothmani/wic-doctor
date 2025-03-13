@@ -45,7 +45,49 @@ class ChatController extends Controller
     //         return response()->json(['success' => false, 'message' => 'Error deleting message'], $deleteResponse->status());
     //     }
     // }
-   public function markNotificationsAsRead(Request $request)
+
+    public function deleteMessage($chatId, $messageId)
+    {
+        // Récupérer l'ID de l'utilisateur connecté
+        $userId = auth()->id();
+    
+        // URL Firebase pour récupérer les messages du chat correspondant
+        $firebaseUrl = "https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/{$chatId}/messages.json";
+    
+        // Récupérer tous les messages depuis Firebase
+        $response = Http::get($firebaseUrl);
+        $messages = $response->json();
+    
+        // Vérifier si les messages existent
+        if (!$messages) {
+            return response()->json(['success' => false, 'message' => 'Aucun message trouvé'], 404);
+        }
+    
+        // Trouver l'ID Firebase correspondant au messageId
+        $firebaseMessageId = null;
+        foreach ($messages as $key => $message) {
+            if (isset($message['id']) && $message['id'] === $messageId && $message['sender_id'] === $userId) {
+                $firebaseMessageId = $key;
+                break;
+            }
+        }
+    
+        if ($firebaseMessageId) {
+            // URL pour supprimer le message
+            $deleteUrl = "https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/{$chatId}/messages/{$firebaseMessageId}.json";
+    
+            // Envoyer la requête DELETE
+            $deleteResponse = Http::delete($deleteUrl);
+    
+            if ($deleteResponse->successful()) {
+                return response()->json(['success' => true, 'message' => 'Message deleted successfully']);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Failed to delete message'], 500);
+            }
+        } else {
+            return response()->json(['success' => false, 'message' => 'Message not found'], 404);
+        }
+    }       public function markNotificationsAsRead(Request $request)
 {
     $userId = auth()->id();
     $firebaseUrl = 'https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats.json';
@@ -182,72 +224,74 @@ public function index() {
 
 public function showChat($userId, $doctorUserId)
 {
+    // Vérifier que l'utilisateur connecté est bien celui spécifié dans l'URL
     if (auth()->id() != $userId) {
         abort(403, 'Unauthorized action.');
     }
 
+    // Récupérer le chatId
     $chatId = $this->getChatId($userId, $doctorUserId);
+   
+    // Récupérer les messages depuis Firebase
     $firebaseUrl = 'https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/' . $chatId . '/messages.json';
     $response = Http::get($firebaseUrl);
-    
-    // Ajouter une validation des données
-    $messages = $response->successful() ? $response->json() : [];
+    $messages = $response->json() ?? [];
 
+    // Mapper les messages pour inclure l'id et les noms des expéditeurs et destinataires
     $messagesArray = collect($messages)->map(function ($message, $key) {
-        // Fournir des valeurs par défaut pour toutes les clés
-        $message = array_merge([
-            'id' => Str::uuid()->toString(),
-            'sender_id' => null,
-            'receiver_id' => null,
-            'content' => '',
-            'timestamp' => now()->timestamp,
-            'file_url' => null
-        ], $message);
-
-        // Récupération sécurisée des noms
         $sender = User::find($message['sender_id']);
+        $senderName = $sender ? $sender->name : 'Unknown Sender';
+        
         $receiver = User::find($message['receiver_id']);
-
+        $receiverName = $receiver ? $receiver->name : 'Unknown Receiver';
+        
         return [
+            // Si le message a une clé 'id', on l'utilise, sinon on se base sur la clé de l'itération
             'id' => $message['id'] ?? $key,
             'sender_id' => $message['sender_id'],
-            'sender_name' => $sender?->name ?? 'Unknown',
-            'receiver_name' => $receiver?->name ?? 'Unknown',
+            'sender_name' => $senderName,
+            'receiver_name' => $receiverName,
             'content' => $message['content'],
             'timestamp' => $message['timestamp'],
-            'file_url' => $message['file_url']
+            'file_url' => $message['file_url'] ?? null,
         ];
     });
 
-    // Récupération sécurisée des derniers messages
+    // Récupérer les informations du médecin
+    $doctorUser = User::find($doctorUserId);
+    $doctor = Doctor::where('user_id', $doctorUserId)->first();
+
+    // Récupérer tous les médecins pour la sidebar
+    $doctors = Doctor::all();
+
+    // Récupérer le dernier message pour chaque médecin
     $lastMessages = [];
-    foreach (Doctor::all() as $doctorItem) {
+    foreach ($doctors as $doctorItem) {
         $chatIdForDoctor = $this->getChatId($userId, $doctorItem->user_id);
         $firebaseUrl = 'https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/' . $chatIdForDoctor . '/messages.json';
         $response = Http::get($firebaseUrl);
-        
-        if ($response->successful()) {
-            $messages = $response->json() ?? [];
-            $lastMessage = collect($messages)->sortByDesc('timestamp')->first();
-            
-            $lastMessages[$doctorItem->user_id] = $lastMessage ? [
-                'content' => $lastMessage['content'] ?? '[Fichier joint]',
-                'timestamp' => $lastMessage['timestamp'] ?? now()->timestamp
-            ] : null;
-        }
+        $messages = $response->json() ?? [];
+        $lastMessages[$doctorItem->user_id] = collect($messages)->sortByDesc('timestamp')->first();
     }
 
+    // Trier les médecins en fonction du timestamp du dernier message
+    $sortedDoctors = $doctors->sortByDesc(function ($doctor) use ($lastMessages) {
+        return $lastMessages[$doctor->user_id]['timestamp'] ?? 0;
+    });
+
+    // Retourner la vue avec les messages et les informations du médecin
     return view('chat', [
-        'chatId' => $chatId,
+        'chatId' => $chatId, // Passer le chatId à la vue
         'messages' => $messagesArray,
-        'doctor' => Doctor::where('user_id', $doctorUserId)->firstOrFail(),
-        'doctorUser' => User::findOrFail($doctorUserId),
+        'doctor' => $doctor,
+        'doctorUser' => $doctorUser,
         'userId' => $userId,
         'doctorUserId' => $doctorUserId,
-        'doctors' => Doctor::all(),
-        'lastMessages' => $lastMessages
+        'doctors' => $sortedDoctors,
+        'lastMessages' => $lastMessages,
     ]);
-}   
+}
+
 private function getChatId($senderId, $receiverId)
     {
         return $senderId < $receiverId
@@ -309,47 +353,47 @@ private function getChatId($senderId, $receiverId)
         return view('chat', compact('doctors', 'unreadMessages', 'lastMessages'));
     }
     
-    public function sendMessage(Request $request)
-    {
-        $request->validate([
-            'message' => 'nullable|string|max:255',
-            'receiver_id' => 'required|exists:users,id',
-            'file' => 'nullable|file|max:2048',
 
-        ]);
-    
-        $senderId = auth()->id();
-        $receiverId = $request->input('receiver_id');
-        $chatId = $this->getChatId($senderId, $receiverId);
-    
-        // Garantir un contenu même vide
-        $messageContent = $request->input('message') ?? '';
-    
-        $fileUrl = null;
-    
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $path = $file->store('chat_files', 'public');
-            $fileUrl = asset('storage/' . $path);
-        }
-    
-        $firebase_url = 'https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/' . $chatId . '/messages.json';
-    
-        $data = [
-            'id' => Str::uuid()->toString(),
-            'content' => $messageContent, // Toujours présent (même vide)
-            'file_url' => $fileUrl,
-            'timestamp' => now()->timestamp,
-            'sender_id' => $senderId,
-            'sender_name' => auth()->user()->name,
-            'receiver_id' => $receiverId,
-            'receiver_name' => User::find($receiverId)->name,
-        ];
-    
-        $response = Http::post($firebase_url, $data);
-    
-        return $response->successful()
-            ? back()->with('success', 'Message envoyé avec succès')
-            : back()->with('error', 'Échec de l\'envoi du message');
+    public function sendMessage(Request $request)
+{
+    $request->validate([
+        'message' => 'nullable|string|max:255',
+        'receiver_id' => 'required|exists:users,id',
+        'file' => 'nullable|file|max:2048', // Ajoutez 'txt' ici
+    ]);
+
+    $senderId = auth()->id();
+    $receiverId = $request->input('receiver_id');
+    $chatId = $this->getChatId($senderId, $receiverId);
+
+    $messageContent = $request->input('message');
+    $fileUrl = null;
+
+    if ($request->hasFile('file')) {
+        $file = $request->file('file');
+        $path = $file->store('chat_files', 'public'); // Stocker dans storage/app/public/chat_files
+        $fileUrl = asset('storage/' . $path); // Générer une URL comme http://yourdomain.com/storage/chat_files/filename.ext
     }
+
+    $firebase_url = 'https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/' . $chatId . '/messages.json';
+
+    $data = [
+        'id' => Str::uuid()->toString(),
+        'content' => $messageContent,
+        'file_url' => $fileUrl,
+        'timestamp' => now()->timestamp,
+        'sender_id' => $senderId,
+        'sender_name' => auth()->user()->name,
+        'receiver_id' => $receiverId,
+        'receiver_name' => User::find($receiverId)->name,
+    ];
+
+    $response = Http::post($firebase_url, $data);
+
+    if ($response->successful()) {
+        return back()->with('success', 'Message envoyé avec succès');
+    } else {
+        return back()->with('error', 'Échec de l\'envoi du message');
+    }
+}
 }

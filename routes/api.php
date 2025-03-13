@@ -43,6 +43,7 @@ Route::prefix('rooms')->middleware('auth:api')->group(function () {
 /*********************** End Route ajouté par Hamza ********************* */
 
 
+use App\Http\Controllers\ChatController;
 
 
 Route::prefix('clinic_owner')->group(function () {
@@ -67,8 +68,10 @@ Route::prefix('clinic_owner')->group(function () {
     });
 });
 
-
-
+Broadcast::routes();
+Broadcast::routes(['middleware' => ['auth:api']]);
+// Example route definition in web.php or api.php
+// In api.php
 
 Route::prefix('doctor')->group(function () {
     Route::post('login', 'API\Doctor\UserAPIController@login');
@@ -158,6 +161,10 @@ Route::resource('appointment_statuses', 'API\AppointmentStatusAPIController')->e
     'show'
 ]);
 
+
+Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+
+Route::post('messages', [ChatController::class, 'message']);
 
 Route::resource('patients', 'API\PatientAPIController');
 

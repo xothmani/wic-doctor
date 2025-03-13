@@ -39,5 +39,11 @@ class Telesecretariat extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    } 
+    
+    
+    public function doctorTelesecretariats()
+    {
+        return $this->hasMany(DoctorTelesecretariat::class, 'telesecretariat_id');
     }
 }

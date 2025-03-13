@@ -96,6 +96,8 @@ class ParrainerDataTable extends DataTable
             ['data' => 'email', 'title' => trans('lang.doctor_request_email')],
             ['data' => 'Phone', 'title' => trans('lang.doctor_request_phone_number')],
             ['data' => 'code_parent', 'title' => trans('Code Parent')],
+            ['data' => 'status', 'title' => trans('Statut')],
+
 
             //['data' => 'type', 'title' => trans('lang.doctor_request_type')],
            // ['data' => 'speciality_id', 'title' => trans('lang.doctor_request_specialities')],
