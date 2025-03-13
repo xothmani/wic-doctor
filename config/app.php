@@ -167,12 +167,10 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
-        Mkocansey\Bladewind\BladewindServiceProvider::class,
 
-        /*
-         * Package Service Providers...
-         */
+          Kreait\Laravel\Firebase\ServiceProvider::class,
 
+     
         /*
          * Application Service Providers...
          */
@@ -182,6 +180,8 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\ModulesServiceProvider::class,
+        App\Providers\FirebaseServiceProvider::class,
+
 
     ],
 
@@ -226,6 +226,8 @@ return [
         'Redis' => Illuminate\Support\Facades\Redis::class,
         'Request' => Illuminate\Support\Facades\Request::class,
         'Response' => Illuminate\Support\Facades\Response::class,
+        'Firebase' => Kreait\Laravel\Firebase\Facades\Firebase::class,
+
         'Route' => Illuminate\Support\Facades\Route::class,
         'Schema' => Illuminate\Support\Facades\Schema::class,
         'Session' => Illuminate\Support\Facades\Session::class,
