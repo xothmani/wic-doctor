@@ -29,6 +29,7 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Prettus\Validator\Exceptions\ValidatorException;
 use App\Models\Doctor;
+use App\Models\AvailabilityHour;
 
 class UserController extends Controller
 {
@@ -78,41 +79,57 @@ class UserController extends Controller
      */
     public function profile()
     {
+
         $user = auth()->user();
+        //$showNewFeaturesModal = !$user->saw_new_features;
+        $showNewFeaturesModal = false;
+
+
         unset($user->password);
-    
+
         $customFields = false;
         $role = $this->roleRepository->pluck('name', 'name');
         $rolesSelected = $user->getRoleNames()->toArray();
+        $isDoctor = $user->hasRole('doctor');
         $customFieldsValues = $user->customFieldsValues()->with('customField')->get();
-    
+
         $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
         if ($hasCustomField) {
             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
             $customFields = generateCustomField($customFields, $customFieldsValues);
         }
-    
+
         // Vérifier si l'utilisateur est un médecin
         $doctor = null;
         if ($user->hasRole('doctor')) {
             $doctor = Doctor::where('user_id', $user->id)->first();
+            \Log::info('Doctor found', ['doctor' => $doctor]);
+
         }
-    
+
         // Liste des champs à vérifier
         $fieldsToCheck = [
-            $user->name, $user->lastname, $user->email, $user->phone_number,
-            optional($doctor)->bio, optional($doctor)->type_consultation, optional($doctor)->fixe,
-            optional($doctor)->facebook, optional($doctor)->instagram, optional($doctor)->site_web,
-            optional($doctor)->description, optional($doctor)->payment_methods
+            $user->name,
+            $user->lastname,
+            $user->email,
+            $user->phone_number,
+            optional($doctor)->bio,
+            optional($doctor)->type_consultation,
+            optional($doctor)->fixe,
+            optional($doctor)->facebook,
+            optional($doctor)->instagram,
+            optional($doctor)->site_web,
+            optional($doctor)->description,
+            optional($doctor)->payment_methods
         ];
-    
+
         // Calcul du pourcentage de complétion global
         $filledFields = count(array_filter($fieldsToCheck, function ($field) {
             return !empty($field);
         }));
         $totalFields = count($fieldsToCheck);
         $progressPercentage = $totalFields > 0 ? ($filledFields / $totalFields) * 100 : 0;
-    
+
         // Calcul des pourcentages spécifiques
         $progressAvatar = !empty($doctor->pourcentage_avatar) ? 10 : 0;
         $progressAdresse = !empty($doctor->pourcentage_adresse) ? 20 : 0;
@@ -120,17 +137,34 @@ class UserController extends Controller
         $progressCabinet = !empty($doctor->pourcentage_cabinet) ? 10 : 0;
         $progressProfil = !empty($doctor->pourcentage_profil) ? 20 : 0;
         $progressTags = !empty($doctor->pourcentage_tags) ? 20 : 0;
-   
+
         // Calcul du pourcentage total
-        $progressBar = $progressAvatar + $progressAdresse + $progressCV + $progressCabinet + $progressProfil +$progressTags;
-    
+        $progressBar = $progressAvatar + $progressAdresse + $progressCV + $progressCabinet + $progressProfil + $progressTags;
+
         return view('settings.users.profile', compact(
-            'user', 'role', 'rolesSelected', 'customFields', 'customFieldsValues', 'doctor',
-            'progressPercentage', 'progressAvatar', 'progressAdresse', 'progressCV', 'progressCabinet', 'progressProfil', 'progressBar', 'progressTags'
+            'user',
+            'role',
+            'rolesSelected',
+            'customFields',
+            'customFieldsValues',
+            'doctor',
+            'progressPercentage',
+            'progressAvatar',
+            'progressAdresse',
+            'progressCV',
+            'progressCabinet',
+            'progressProfil',
+            'progressBar',
+            'showNewFeaturesModal',
+            'progressTags',
+            'isDoctor'
         ));
+
+
+
     }
-    
-    
+
+
     /**
      * Show the form for creating a new User.
      *
@@ -214,44 +248,44 @@ class UserController extends Controller
         return view('settings.users.profile')->with('user', $user);
     }
     public function loginAsUser(Request $request, $id)
-{
-    // 1. Valider le reCAPTCHA
-    $recaptchaResponse = $request->input('g-recaptcha-response');
-    $secretKey = env('RECAPTCHA_SECRET');
+    {
+        // 1. Valider le reCAPTCHA
+        $recaptchaResponse = $request->input('g-recaptcha-response');
+        $secretKey = env('RECAPTCHA_SECRET');
 
-    if (empty($recaptchaResponse)) {
-        Flash::error('Le reCAPTCHA est obligatoire.');
-        return redirect()->back()->withInput();
+        if (empty($recaptchaResponse)) {
+            Flash::error('Le reCAPTCHA est obligatoire.');
+            return redirect()->back()->withInput();
+        }
+
+        // Vérification du reCAPTCHA
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => $secretKey,
+            'response' => $recaptchaResponse,
+        ]);
+        $responseData = $response->json();
+        if (!$responseData['success']) {
+            Flash::error('La validation du reCAPTCHA a échoué.');
+            return redirect()->back()->withInput();
+        }
+
+        // 2. Trouver l'utilisateur
+        $user = $this->userRepository->findWithoutFail($id);
+        if (empty($user)) {
+            Flash::error('Utilisateur non trouvé');
+            return redirect(route('users.index'));
+        }
+
+        // 3. Se connecter en tant qu'utilisateur
+        auth()->login($user, true);
+
+        // 4. Mettre à jour last_login_at
+        $user->last_login_at = now();
+        $user->save();
+
+        // 5. Rediriger vers le profil
+        return redirect(route('users.profile'));
     }
-
-    // Vérification du reCAPTCHA
-    $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-        'secret' => $secretKey,
-        'response' => $recaptchaResponse,
-    ]);
-    $responseData = $response->json();
-    if (!$responseData['success']) {
-        Flash::error('La validation du reCAPTCHA a échoué.');
-        return redirect()->back()->withInput();
-    }
-
-    // 2. Trouver l'utilisateur
-    $user = $this->userRepository->findWithoutFail($id);
-    if (empty($user)) {
-        Flash::error('Utilisateur non trouvé');
-        return redirect(route('users.index'));
-    }
-
-    // 3. Se connecter en tant qu'utilisateur
-    auth()->login($user, true);
-
-    // 4. Mettre à jour last_login_at
-    $user->last_login_at = now();
-    $user->save();
-
-    // 5. Rediriger vers le profil
-    return redirect(route('users.profile'));
-}
 
 
     /**
@@ -416,4 +450,61 @@ class UserController extends Controller
             }
         }
     }
+
+
+    public function acceptNewFeatures()
+    {
+        $user = auth()->user();
+
+        // Mark that the user has seen the new features
+        $user->saw_new_features = true;
+        $user->save();
+
+        // Ensure the doctor record exists for this user
+        $doctor = $user->doctor; // Assuming there's a relationship between users and doctors
+
+        if ($doctor) {
+            // If the doctor exists, update availability_mode to "precise"
+            $doctor->availability_mode = 'precise';
+            $doctor->save();
+        } else {
+            // If no doctor record exists, create one with "precise" mode
+            \DB::table('doctors')->insert([
+                'user_id' => $user->id,
+                'availability_mode' => 'precise',
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function rejectNewFeatures()
+    {
+        \Log::info('User rejected new features');
+        $user = auth()->user();
+        $user->saw_new_features = true;
+        $user->save();
+        // Ensure the doctor record exists for this user
+        $doctor = $user->doctor; // Assuming there's a relationship between users and doctors
+
+        if ($doctor) {
+            // If the doctor exists, update availability_mode to "open"
+            $doctor->availability_mode = 'open';
+            $doctor->save();
+        } else {
+            // If no doctor record exists, create one with "open" mode
+            \DB::table('doctors')->insert([
+                'user_id' => $user->id,
+                'availability_mode' => 'open',
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+
+
+
+
+
 }

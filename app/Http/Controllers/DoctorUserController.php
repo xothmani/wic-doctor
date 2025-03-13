@@ -92,11 +92,19 @@ class DoctorUserController extends Controller
         }
 
         $doctorId = $doctor->id;
-
+        $roleTranslations = [
+            'Secretary' => 'Secrétaire',
+            'Telesecretary' => 'Télésecrétaire',
+            'Doctor' => 'Médecin',
+            // add other roles as needed
+        ];
         // Fetch roles created by any user (can refine this later)
         $roles = DB::table('role_for_doctors')
-            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id') // Join with the roles table
-            ->pluck('roles.name', 'roles.name'); // Retrieve role names
+            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id')
+            ->pluck('roles.name', 'roles.name')
+            ->mapWithKeys(function ($label, $key) use ($roleTranslations) {
+                return [$key => $roleTranslations[$key] ?? $key]; // fallback to original if not translated
+            });
         $rolesSelected = []; // No roles selected by default for a new user
 
         // Pass the logged-in doctor's ID to the view
@@ -108,17 +116,22 @@ class DoctorUserController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info("zaaaa", $request->all());
         // Validate the request data
         $request->validate([
-            'name' => 'required|string|max:255', // Ensure name is required
-            'email' => 'required|email|unique:users,email', // Ensure email is unique
-            'password' => 'required|string', // Ensure password is required and strong
-            'phone_number' => 'nullable|numeric|min:8', // Optional phone number
-            'role' => 'required|string|exists:roles,name', // Ensure role exists in the roles table
-            'start_date' => 'required|date', // Optional start date
-            'end_date' => 'required|date|after_or_equal:start_date', // Ensure end_date is after start_date
-            'is_active' => 'nullable|boolean', // Optional boolean field
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string',
+            'phone_number' => 'required',
+            'role' => 'required',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'is_active' => 'nullable|boolean',
         ]);
+
+
+
+        $selectedRoleName = $request->input('role');
 
         // Check if start_date is before the current date
         if ($request->start_date && $request->start_date < now()->toDateString()) {
@@ -152,8 +165,7 @@ class DoctorUserController extends Controller
             // Create the user
             $user = $this->userRepository->create($input);
 
-            // Find the selected role
-            $selectedRoleName = $request->input('role');
+
             $role = Role::where('name', $selectedRoleName)->first();
 
             // If the role doesn't exist, throw an error
@@ -225,11 +237,22 @@ class DoctorUserController extends Controller
         if (!$UserOwnership) {
             abort(403, __('Non autorisé : Vous n\'êtes pas autorisé.'));
         }
-
+        $user->phone_number = preg_replace('/\s+/', '', $user->phone_number);
+        \Log::info($user->phone_number);
         // Fetch roles
+        $roleTranslations = [
+            'Secretary' => 'Secrétaire',
+            'Telesecretary' => 'Télésecrétaire',
+            'Doctor' => 'Médecin',
+            // add more if needed
+        ];
+
         $roles = DB::table('role_for_doctors')
-            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id') // Join with the roles table
-            ->pluck('roles.name', 'roles.name');
+            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id')
+            ->pluck('roles.name', 'roles.name')
+            ->map(function ($value, $key) use ($roleTranslations) {
+                return $roleTranslations[$key] ?? $key;
+            });
 
         $rolesSelected = $user->getRoleNames()->toArray();
 
@@ -299,8 +322,19 @@ class DoctorUserController extends Controller
             $user = $this->userRepository->update($input, $id);
 
             // Update roles
+            $roleMap = [
+                'Secrétaire' => 'Secretary',
+                'Télésecrétaire' => 'Telesecretary',
+                'Médecin' => 'Doctor',
+            ];
+
+            // Map the translated role to the internal one
             if (isset($input['roles'])) {
-                $user->syncRoles($input['roles']);
+                $mappedRoles = collect($input['roles'])->map(function ($r) use ($roleMap) {
+                    return $roleMap[$r] ?? $r;
+                })->toArray();
+
+                $user->syncRoles($mappedRoles);
             }
 
             // Update profile management data
@@ -360,7 +394,10 @@ class DoctorUserController extends Controller
             $this->userRepository->delete($id);
 
             // Remove ownership
-            \DB::table('user_ownership')
+            \DB::table('doctor_associate')
+                ->where('user_id', $id)
+                ->delete();
+            \DB::table('profile_management')
                 ->where('user_id', $id)
                 ->delete();
 

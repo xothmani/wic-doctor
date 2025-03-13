@@ -1,3 +1,5 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.min.css">
 <!-- LEFT COLUMN -->
 <div class="d-flex flex-column col-sm-12 col-md-6">
     <!-- Name Field -->
@@ -22,13 +24,24 @@
         </div>
     </div>
 
+
     <!-- Phone Number Field -->
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-        {!! Form::label('phone_number', trans("lang.user_phone_number"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        {!! Form::label('phone_number', trans("lang.patient_phone_number"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        <span class="text-danger">*</span>
+
         <div class="col-md-9">
-            {!! Form::text('phone_number', null, ['class' => 'form-control', 'placeholder' => trans("lang.user_phone_number_placeholder")]) !!}
+            <div id="phone-number-input">
+                {!! Form::text('phone_number', null, [
+    'class' => 'form-control',
+    'id' => 'phone-input',
+    'placeholder' => trans("lang.patient_phone_number_placeholder"),
+    'style' => 'width: 545px;',
+    'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57'
+]) !!}
+            </div>
             <div class="form-text text-muted">
-                {{ trans("lang.user_phone_number_help") }}
+                {{ trans("lang.patient_phone_number_help") }}
             </div>
         </div>
     </div>
@@ -81,8 +94,10 @@
         {!! Form::label('role', trans("lang.user_role_id"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             <select name="role" class="form-control">
-                @foreach($roles as $role)
-                    <option value="{{ $role }}">{{ $role }}</option>
+                @foreach($roles as $value => $label)
+                    <option value="{{ $value }}" {{ in_array($value, $rolesSelected) ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
                 @endforeach
             </select>
         </div>
@@ -124,3 +139,23 @@
         <i class="fas fa-undo"></i> {{ trans('lang.cancel') }}
     </a>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var input = document.querySelector("#phone-input");
+
+        var phoneInput = window.intlTelInput(input, {
+            initialCountry: "tn",
+            nationalMode: false,               // 📛 Critical
+            formatOnDisplay: false,            // 📛 Critical
+            separateDialCode: false,           // 👌 As you already set
+            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
+        });
+
+        // Ensure submitted value is clean (no spaces, always in international format)
+        document.querySelector('form').addEventListener('submit', function () {
+            let fullNumber = phoneInput.getNumber(); // Get in full international format
+            input.value = fullNumber.replace(/[^\d+]/g, ''); // Keep digits and +
+        });
+    });
+</script>

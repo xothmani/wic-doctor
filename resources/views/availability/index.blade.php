@@ -10,6 +10,7 @@
     @endphp
 
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
+    
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
@@ -49,7 +50,7 @@
                         'type' => ucfirst(session('affected_type'))
                     ]) }}
                 @else
-                    {{ trans('messages.duration_changed_warning', [
+                    {{ trans('messages. _warning', [
                         'old' => session('old_duration'),
                         'new' => session('new_duration'),
                         'type' => ucfirst(session('affected_type'))
@@ -60,7 +61,7 @@
                 </button>
             </div>
         @endif
-
+                        
         @if(session('appointments_adjusted'))
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
                 {{ trans('messages.appointments_adjusted_warning') }}
@@ -694,6 +695,7 @@
             </div>
         </div>
     </div>
+    @endif
         @else
             <div class="content-header">
                 <div class="container-fluid">
@@ -703,7 +705,6 @@
                 </div>
             </div>
         @endif
-    @endif
 @endsection
 
 @section('styles')

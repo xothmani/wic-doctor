@@ -93,17 +93,14 @@ class PatientDataTable extends DataTable
                 ->select("patients.*");
         }
 
-        if ($user->hasRole('Telesecetary')) {
-            $associatedDoctorIds = $user->associatedDoctors->pluck('doctor_id')->toArray();
-
-            if (empty($associatedDoctorIds)) {
-                abort(403, __('Vous n\'êtes associé à aucun médecin.'));
-            }
-
+        if ($user->hasRole('Telesecretary')) {
+            $doctorId = auth()->user()->getDoctorId();
+            \Log::info('Telésécrétariat using doctor id in the datatable:', ['doctorId' => $doctorId]);
+            $doctorIds = is_array($doctorId) ? $doctorId : [$doctorId];
             return $model->newQuery()
                 ->join("doctor_patients", "patient_id", "=", "patients.id")
                 ->join("doctors", "doctors.id", "=", "doctor_patients.doctor_id")
-                ->whereIn('doctors.id', $associatedDoctorIds)
+                ->where('doctors.id', $doctorId)
                 ->groupBy("patients.id")
                 ->select("patients.*");
         }

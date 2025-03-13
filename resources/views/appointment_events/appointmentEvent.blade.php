@@ -557,7 +557,36 @@
                 $('#calendar').fullCalendar('refetchEvents'); // Fetch and reload events
                 console.log("Calendar events refreshed");
             }
+            function resetFormFields() {
+                // Reset patient selection
+                $('#patientDropdown').val(null).trigger('change');
 
+                // Reset pattern display
+                $('#patternDisplay').text('{{ trans("lang.no_pattern_selected") }}')
+                    .css('background-color', '#cccccc');
+                $('#motif_id').val('');
+
+                // Reset time slots
+                $('#timeSlotContainer').empty()
+                    .append('<span class="text-muted">{{ __("lang.no_slots_available") }}</span>');
+                $('#appointmentTime').val('');
+
+                // Reset notes
+                $('#notes').val('');
+
+                // Hide submit button if no slots are available
+                toggleSubmitButton(false);
+            }
+
+            // Function to toggle submit button visibility
+            function toggleSubmitButton(hasSlots) {
+                const submitBtn = $('.save-btn');
+                if (hasSlots) {
+                    submitBtn.show();
+                } else {
+                    submitBtn.hide();
+                }
+            }
             // Set interval to refresh calendar every 30 seconds
             //setInterval(refreshCalendarEvents, 10000);
             ////////////////////////////////
@@ -608,6 +637,8 @@
                 } else {
                     $("#motif_id").val('');
                 }
+                // Reset all fields
+                resetFormFields();
 
                 const availableSlots = data.available_slots || [];
                 const takenSlots = data.taken_slots || [];
@@ -615,24 +646,18 @@
                 const $container = $('#timeSlotContainer');
                 const $hiddenInput = $('#appointmentTime');
                 $container.empty();
-
+                toggleSubmitButton(availableSlots.length > 0);
                 // Get current date and time
                 const currentDate = moment().format("YYYY-MM-DD");
                 const currentTime = moment().format("HH:mm");
 
                 if (availableSlots.length > 0) {
                     availableSlots.forEach(slot => {
+                        //console.log("slots avalble");
                         const isTaken = takenSlots.includes(slot);
                         const isPast = moment(globalSelectedDate + ' ' + slot).isBefore(moment());
 
-                        const $btn = $(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <button type="button"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                data-slot="${slot}"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ${isTaken || isPast ? 'disabled' : ''}>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${slot}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </button>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                        const $btn = $(` <button type="button" class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}" data-slot="${slot}" ${isTaken || isPast ? 'disabled' : ''}> ${slot} </button> `);
 
                         // If it's not taken and not in the past, let the user pick it
                         if (!isTaken && !isPast) {
@@ -645,9 +670,14 @@
 
                         $container.append($btn);
                     });
+
                 } else {
+                    //console.log("No slots available for", apptType);
                     $container.append('<span class="text-muted">{{ __("lang.no_slots_available") }}</span>');
                     $hiddenInput.val('');
+                    $('.save-btn').prop('disabled', true)
+                        .removeClass('btn-primary')
+                        .addClass('btn-secondary');
                 }
             }
             //////////////////////////////////////////////////////////
@@ -911,7 +941,7 @@
             $('#patientDropdown').select2({
                 allowClear: false,
                 ajax: {
-                    url: "{{ route('patients.search') }}",
+                    url: "/appointment-event/search",
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
@@ -986,37 +1016,37 @@
                                     // Create custom label with hover functionality
                                     // Append all elements with proper structure
                                     $(this).append(`
-                                                            <hr class="day-header-divider">
-                                                            <div class="custom-day-label substitute-hover">${substituteName}</div>
-                                                            <hr class="day-header-divider">
-                                                            <div class="custom-number-label">${staticNumber}</div>
-                                                        `);
+                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                        <div class="custom-day-label substitute-hover">${substituteName}</div>
+                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                        <div class="custom-number-label">${staticNumber}</div>
+                                                                                                                                                                                                                                    `);
                                     if (activeSubstitute) {
                                         $(this).find('.custom-day-label').hover(
                                             function (e) {
                                                 let tooltip = $('#substitute-tooltip');
                                                 let tooltipContent = `
-                                                                    <div class="substitute-info-container">
-                                                                        <div class="substitute-info">
-                                                                            <span class="substitute-info-label">Nom:</span>
-                                                                            <span class="substitute-info-value">${activeSubstitute.name}</span>
-                                                                        </div>
-                                                                        <div class="substitute-info">
-                                                                            <span class="substitute-info-label">Début:</span>
-                                                                            <span class="substitute-info-value">${moment(activeSubstitute.start_date).format('DD/MM/YYYY HH:mm')}</span>
-                                                                        </div>
-                                                                        <div class="substitute-info">
-                                                                            <span class="substitute-info-label">Fin:</span>
-                                                                            <span class="substitute-info-value">${moment(activeSubstitute.end_date).format('DD/MM/YYYY HH:mm')}</span>
-                                                                        </div>
-                                                                        ${activeSubstitute.notes ? `
-                                                                            <div class="substitute-info">
-                                                                                <span class="substitute-info-label">Notes:</span>
-                                                                                <span class="substitute-info-value">${activeSubstitute.notes}</span>
-                                                                            </div>
-                                                                        ` : ''}
-                                                                    </div>
-                                                                `;
+                                                                                                                                                                                                                                                <div class="substitute-info-container">
+                                                                                                                                                                                                                                                    <div class="substitute-info">
+                                                                                                                                                                                                                                                        <span class="substitute-info-label">Nom:</span>
+                                                                                                                                                                                                                                                        <span class="substitute-info-value">${activeSubstitute.name}</span>
+                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                    <div class="substitute-info">
+                                                                                                                                                                                                                                                        <span class="substitute-info-label">Début:</span>
+                                                                                                                                                                                                                                                        <span class="substitute-info-value">${moment(activeSubstitute.start_date).format('DD/MM/YYYY HH:mm')}</span>
+                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                    <div class="substitute-info">
+                                                                                                                                                                                                                                                        <span class="substitute-info-label">Fin:</span>
+                                                                                                                                                                                                                                                        <span class="substitute-info-value">${moment(activeSubstitute.end_date).format('DD/MM/YYYY HH:mm')}</span>
+                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                    ${activeSubstitute.notes ? `
+                                                                                                                                                                                                                                                        <div class="substitute-info">
+                                                                                                                                                                                                                                                            <span class="substitute-info-label">Notes:</span>
+                                                                                                                                                                                                                                                            <span class="substitute-info-value">${activeSubstitute.notes}</span>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                    ` : ''}
+                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                            `;
 
                                                 tooltip.html(tooltipContent);
 
@@ -1321,15 +1351,15 @@
 
                     // Base details
                     let detailsHtml = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `;
                     //console.log(event.cancel_reason);
 
                     if (event.status === "Annulé" && event.cancel_reason) {
@@ -1655,7 +1685,7 @@
 
                     teleconsultationButton.classList.remove("d-none");
                     teleconsultationButton.onclick = () => {
-                        const url = `{{ route('teleconsultations.createMeet') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
+                        const url = `{{ route('show.meeting.info.form') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
                         window.location.href = url;
                     };
 

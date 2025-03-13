@@ -48,11 +48,14 @@ use App\Http\Controllers\ParrainerController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\DoctorsGalleryController;
 use App\Http\Controllers\DoctorBlogController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\PhotosCabinetController;
 use App\Http\Controllers\DoctorUserController;
 use App\Http\Controllers\ChatController;
 
+use Illuminate\Http\Request;
 //use App\Http\Controllers\MailController;
+
 
 
 
@@ -391,6 +394,10 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/teleconsultations', [MeetController::class, 'index'])->name('teleconsultations.index');
     Route::get('/teleconsultations/create', [MeetController::class, 'createMeet'])->name('teleconsultations.createMeet');
     Route::post('/teleconsultations/send-meeting-info', [MeetController::class, 'sendMeetingInfo'])->name('send.meeting.info');
+
+    Route::get('/teleconsultations/send-meeting-info-form', [MeetController::class, 'showSendMeetingInfoForm'])->name('show.meeting.info.form');
+    Route::post('/teleconsultations/create-specific-meeting', [MeetController::class, 'createSpecificMeeting'])->name('create.specific.meeting');
+    Route::post('/meet/{id}/status', [MeetController::class, 'updateStatus'])->name('meet.update.status');
     Route::get('/meet', [MeetController::class, 'index'])->name('meet.index');
     Route::post('/meet/create', [MeetController::class, 'createMeet']);
     Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
@@ -407,7 +414,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/prescriptions/{prescription}/pdf', [PrescriptionController::class, 'generatePrescriptionPdf'])->name('prescriptions.pdf');
     Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
 
-   // Route::get('send-mail', [MailController::class, 'index']);
+    // Route::get('send-mail', [MailController::class, 'index']);
 
     Route::get('/appointments/today/completed', [AppointmentController::class, 'getTodayCompletedAppointments'])
         ->name('appointments.today.completed');
@@ -534,9 +541,9 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('doctor_blogs/rejected', [DoctorBlogController::class, 'rejectedBlogs'])->name('doctor_blog.rejected');
 
     Route::get('/doctor_blog/accept/{id}', [DoctorBlogController::class, 'accepterBlog'])
-    ->name('doctor_blog.accept');
+        ->name('doctor_blog.accept');
     Route::post('/doctor_blog/rejet/{id}', [DoctorBlogController::class, 'rejeterBlog'])
-    ->name('doctor_blog.rejet');
+        ->name('doctor_blog.rejet');
 
     Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
     Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
@@ -546,11 +553,11 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/suivi-doctors', [DoctorController::class, 'SuiviDoctorsIndex'])->name('suivi_doctors.index');
     Route::get('/doctor/total-pourcentage', [DoctorController::class, 'getTotalPourcentage'])
         ->name('doctor.total-pourcentage');
-        Route::get('/generate-doctor-url/{doctorId}', [DoctorController::class, 'generateDoctorUrl'])->name('generateDoctorUrl');
-        Route::get('/medecin/generer-url', [DoctorController::class, 'generateConnectedDoctorUrl'])->name('doctors.generateUrl');
+    Route::get('/generate-doctor-url/{doctorId}', [DoctorController::class, 'generateDoctorUrl'])->name('generateDoctorUrl');
+    Route::get('/medecin/generer-url', [DoctorController::class, 'generateConnectedDoctorUrl'])->name('doctors.generateUrl');
 
 
-    
+
 
     Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
     Route::post('/appointmentsEvent/store', [AppointmentEventController::class, 'store'])
@@ -608,5 +615,38 @@ Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages'])
 Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
  
 
+
+
+    Route::post('/users/accept-new-features', [UserController::class, 'acceptNewFeatures'])->name('users.acceptNewFeatures');
+    Route::post('/users/reject-new-features', [UserController::class, 'rejectNewFeatures'])->name('users.rejectNewFeatures');
+
+    Route::get('/tele-get-background-color-agenda', [DoctorTelesecretariatController::class, 'BackgroundColorForAgenda'])->name('get.background.color.agenda');
+    Route::get('/tele-substitutes/{doctorId}', [DoctorTelesecretariatController::class, 'getSubstitutes'])->name('get.tele.substitutes');
+    Route::get('/tele-appointments/stats/{doctorId}/{selectedDate?}', [DoctorTelesecretariatController::class, 'getAppointmentStats'])
+        ->name(name: 'get.tele.AppointmentStats');
+    Route::get('/tele-get-pattern-for-time-slot', [DoctorTelesecretariatController::class, 'telegetPatternForTimeSlot'])->name('tele.get.pattern.for.time.slot');
+    Route::get('/tele-get-pattern-for-time-slot-without-type', [DoctorTelesecretariatController::class, 'telegetPatternForTimeSlotWithoutType'])->name('tele.get.slot.no.type');
+    Route::post('/set-active-doctor', function (Request $request) {
+        $doctorId = $request->input('doctorId');
+        if ($doctorId) {
+            session(['selectedDoctorId' => $doctorId]);
+        }
+        return response()->json(['success' => true]);
+    })->middleware('auth');
+    Route::get('/refresh-active-doctor', function () {
+        $activeDoctor = null;
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->hasRole('Telesecretary')) {
+                $doctorId = session('selectedDoctorId');
+                if ($doctorId) {
+                    $activeDoctor = \App\Models\Doctor::find($doctorId);
+                }
+            } else {
+                $activeDoctor = \App\Models\Doctor::find($user->getDoctorId());
+            }
+        }
+        return view('components.active-doctor', compact('activeDoctor'));
+    })->middleware('auth');
 });
 

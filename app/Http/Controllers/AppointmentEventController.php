@@ -886,21 +886,23 @@ class AppointmentEventController extends Controller
                 $subQuery->where('doctor_id', $doctor->id);
             });
 
+            // Search by name, phone number, or birthdate
             if ($search) {
                 $query->where(function ($subQuery) use ($search) {
                     $subQuery->whereRaw("
-                        (JSON_VALID(first_name) AND JSON_EXTRACT(first_name, '$.fr') LIKE ?)
-                        OR first_name LIKE ?
-                    ", ["%{$search}%", "%{$search}%"])
+                    (JSON_VALID(first_name) AND JSON_EXTRACT(first_name, '$.fr') LIKE ?)
+                    OR first_name LIKE ?
+                ", ["%{$search}%", "%{$search}%"])
                         ->orWhereRaw("
-                        (JSON_VALID(last_name) AND JSON_EXTRACT(last_name, '$.fr') LIKE ?)
-                        OR last_name LIKE ?
-                    ", ["%{$search}%", "%{$search}%"])
-                        ->orWhere('phone_number', 'like', "%{$search}%");
+                    (JSON_VALID(last_name) AND JSON_EXTRACT(last_name, '$.fr') LIKE ?)
+                    OR last_name LIKE ?
+                ", ["%{$search}%", "%{$search}%"])
+                        ->orWhere('phone_number', 'like', "%{$search}%")
+                        ->orWhereRaw("DATE_FORMAT(date_naissance, '%Y-%m-%d') LIKE ?", ["%{$search}%"]); // Search by birthday
                 });
             }
 
-            // Select id and concatenated text fields, limit only if searching
+            // Select id, concatenated text fields with birthday
             $patients = $query->select(
                 'id',
                 DB::raw("
@@ -913,11 +915,12 @@ class AppointmentEventController extends Controller
                         WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
                         ELSE last_name 
                     END, ' - ',
-                    phone_number
+                    phone_number, ' - ',
+                    DATE_FORMAT(date_naissance, '%d/%m/%Y')
                 ) as text
             ")
             )
-                ->when($search, fn($q) => $q->limit(20)) // Limit to 20 results only when searching
+                ->when($search, fn($q) => $q->limit(20)) // Limit results when searching
                 ->get();
 
             return response()->json($patients);
