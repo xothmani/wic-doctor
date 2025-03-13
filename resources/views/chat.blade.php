@@ -11,15 +11,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <div class="chat-header">
 
-    <img src="{{ asset('storage/images/icon-msg-dr.png') }}" 
-     alt="Icône discussion médicale" 
-     class="custom-icon"
-     width="40" 
-     height="40">
-     <h1>Discussion médicale</h1>
+<img src="{{ asset('storage/images/icon-msg-dr.png') }}" alt="Icône discussion médicale"url     alt="Icône discussion médicale" 
+ class="custom-icon"
+ width="40" 
+ height="40">
+ <h1>Discussion médicale</h1>
 
-    </div>
-
+</div>
     <!-- Contenu Principal -->
     <div class="chat-main">
    <!-- Liste des Conversations (Doctors) -->
@@ -33,9 +31,9 @@
         @endphp
  
         <div class="conversation-item {{ $loop->first ? 'active' : '' }}" data-id="{{ $doctor->id }}" data-user-id="{{ $doctor->user_id }}" onclick="loadMessages('{{ $doctor->user_id }}')">
-        <div class="doctor-avatar">
+           <div class="doctor-avatar">
   <i class="fas fa-user-md fa-3x p-3 rounded-circle" 
-     style="color: #00008B; background-color: #00008B20;"></i>
+     style="color:rgb(9, 106, 202);; background-color: #00008B20;"></i>
 </div>
 
             <div class="doctor-info">
