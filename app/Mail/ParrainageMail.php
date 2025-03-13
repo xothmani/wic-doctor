@@ -1,6 +1,5 @@
 <?php
 namespace App\Mail;
-use Illuminate\Support\Facades\Mail;  // Correct import for Mail facade
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -8,20 +7,35 @@ use Illuminate\Queue\SerializesModels;
 
 class ParrainageMail extends Mailable
 {
-    public $link;
+    use Queueable, SerializesModels;
 
-    // Recevoir le lien dans le constructeur
-    public function __construct($link)
+    public $link;
+    public $senderName;
+
+    /**
+     * Create a new message instance.
+     *
+     * @param string $link
+     * @param string $senderName
+     */
+    public function __construct($link, $senderName)
     {
         $this->link = $link;
+        $this->senderName = $senderName;
     }
 
+    /**
+     * Build the message.
+     *
+     * @return $this
+     */
     public function build()
     {
-        return $this->view('parrainers.parrainers') // La vue pour l'email
+        return $this->subject('Invitation à rejoindre WicDoctor')
+                    ->view('parrainers.parrainers')
                     ->with([
-                        'link' => $this->link,  // Passer le lien à la vue
-                    ])
-                    ->subject('Invitation au Parrainage');
+                        'link' => $this->link,
+                        'senderName' => $this->senderName,
+                    ]);
     }
 }
