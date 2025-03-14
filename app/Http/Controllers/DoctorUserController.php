@@ -391,19 +391,40 @@ class DoctorUserController extends Controller
             return redirect()->route('Doctors_users.index');
         }
         try {
-            $this->userRepository->delete($id);
+            $user = $this->userRepository->find($id);
 
-            // Remove ownership
-            \DB::table('doctor_associate')
-                ->where('user_id', $id)
-                ->delete();
-            \DB::table('profile_management')
-                ->where('user_id', $id)
-                ->delete();
+            // Check if user is a telesecretary
+            if ($user->hasRole('Telesecretary')) {
+                // Only remove associations, don't delete the user
+                \DB::table('doctor_associate')
+                    ->where('user_id', $id)
+                    ->where('doctor_id', $doctorId)
+                    ->delete();
 
-            Flash::success(__('User deleted successfully.'));
+                \DB::table('profile_management')
+                    ->where('user_id', $id)
+                    ->where('doctor_id', $doctorId)
+                    ->delete();
+
+                Flash::success(__('Association with telesecretary removed successfully.'));
+            } else {
+                // For non-telesecretaries, delete everything
+                $this->userRepository->delete($id);
+
+                // Remove all associations
+                \DB::table('doctor_associate')
+                    ->where('user_id', $id)
+                    ->delete();
+
+                \DB::table('profile_management')
+                    ->where('user_id', $id)
+                    ->delete();
+
+                Flash::success(__('User deleted successfully.'));
+            }
         } catch (\Exception $e) {
-            Flash::error(__('Error deleting user: ') . $e->getMessage());
+            Flash::error(__('Error processing deletion: ') . $e->getMessage());
+            \Log::error('Error in user deletion: ' . $e->getMessage());
         }
 
         return redirect()->route('Doctors_users.index');

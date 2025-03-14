@@ -58,8 +58,12 @@ class AvailabilityController extends Controller
         } elseif (auth()->user()->hasRole('Telesecretary')) {
             $doctorId = session('selectedDoctorId');
             $doctor = Doctor::find($doctorId);
-            $currentMode = $doctor->availability_mode;
-            \Log::info('Current mode:', ['mode' => $currentMode]);
+            $currentMode = $doctor ? $doctor->availability_mode : null;
+            \Log::info('Current mode (Telesecretary):', ['mode' => $currentMode]);
+        } elseif (auth()->user()->hasRole('Secretary')) {
+            $doctor = Doctor::find($doctorId);
+            $currentMode = $doctor ? $doctor->availability_mode : null;
+            \Log::info('Current mode (Secretary):', ['mode' => $currentMode]);
         }
         \Log::info('Current availability mode:', ['mode' => $currentMode]);
 

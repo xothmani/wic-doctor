@@ -449,6 +449,9 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     Route::get('/specialitiesByPays', [SpecialityController::class, 'getSpecialitiesByCountry']);
 
+    Route::prefix('doctor_telesecretariat')->name('doctor_telesecretariat.')->group(function () {
+        Route::post('store-profile-management', [DoctorTelesecretariatController::class, 'storeProfileManagment'])->name('store_profile_management');
+    });
     Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);
 
     ////////////////////////////
@@ -481,6 +484,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/tele-patterns', [DoctorTelesecretariatController::class, 'getPatterns'])->name('tele_patterns');
 
     Route::get('/tele-get-doctor-availability-data', [DoctorTelesecretariatController::class, 'getDoctorAvailabilityData']);
+    // In routes/web.php
 
 
     Route::resource('newsletters', NewsLatterController::class);
