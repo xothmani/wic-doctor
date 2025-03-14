@@ -1,107 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-
-    <title>Création de vos comptes Télésécrétariat - Wic-Doctor</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-        }
-        .content {
-            margin-top: 20px;
-            font-size: 16px;
-            color: #555;
-        }
-        .credentials {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #007BFF;
-            color: white;
-            text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-top: 15px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #777;
-            text-align: center;
-        }
-        .icon {
-            margin-right: 8px;
-        }
-        .email-info {
-            color: #333;
-        }
-        .icon-inline {
-            display: inline-flex;
-            align-items: center;
-            margin-right: 5px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $details["title"] ?? "Wic-Doctor - Création de comptes Télésécrétariat" }}</title>
 </head>
-<body>
-    <div class="container">
-        <p class="header">Bienvenue sur Wic-Doctor ! <span class="icon-inline">🚀</span></p>
-        <p class="content">Bonjour {{ $details['name'] }},</p>
+<body style="background-color:#ffffff; padding: 20px; font-family: Helvetica, Arial, sans-serif;">
+    <table width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; max-width: 600px; margin: 0 auto;">
+        <!-- Logo -->
+        <tr>
+            <td style="text-align: center;">
+                <img src="https://wic-doctor.com/assets/images/wic-dr-logo.png" alt="Logo WIC Doctor" style="max-width: 150px;">
+            </td>
+        </tr>
 
-        
-        <p class="content">Nous sommes ravis de vous accueillir sur Wic-Doctor ! Voici les détails pour accéder à vos deux comptes :</p>
-        
+        <!-- Message principal -->
+        <tr>
+            <td style="font-weight: bold; color: #565a5c; text-align: left;">
+                <p>🌟 Bonjour {{ $details["name"] ?? "Utilisateur" }},</p>
+                <p>Nous sommes ravis de vous accueillir sur Wic-Doctor ! Voici les informations pour accéder à vos comptes :</p>
+            </td>
+        </tr>
+
         <!-- Compte Wic-Doctor -->
-        <p class="content"><strong>1. Compte Wic-Doctor :</strong></p>
-        <div class="credentials">
-            <p><span class="icon-inline">📧</span><strong>Email :</strong> {{ $details['email'] }}</p>
-            <p><span class="icon-inline">🔑</span><strong>Mot de passe :</strong> {{ $details['password'] }}</p>
-        </div>
-        <p class="content">Pour accéder à votre compte Wic-Doctor, cliquez sur le bouton ci-dessous :</p>
-        <p style="text-align: center;">
-            <a href="https://dashboard.wic-doctor.com/login" class="btn" style="color: white;">Accéder à mon compte Wic-Doctor</a>
-        </p>
+        <tr>
+            <td style="font-weight: bold; color: #565a5c; text-align: left;">
+                <h2>📧 Compte Wic-Doctor :</h2>
+                <p><strong>Email :</strong> {{ $details["email"] ?? "Non spécifié" }}</p>
+                <p><strong>Mot de passe :</strong> {{ $details["password"] ?? "Non spécifié" }}</p>
+                <p>Pour accéder à votre compte Wic-Doctor, veuillez cliquer sur le lien ci-dessous :</p>
+                <p style="text-align: center;">
+                    <a href="https://dashboard.wic-doctor.com/login" style="color: #2d6dfd;">Accéder à mon compte Wic-Doctor</a>
+                </p>
+            </td>
+        </tr>
 
         <!-- Compte Fusion -->
-        <p class="content"><strong>2. Compte Fusion :</strong></p>
-        <div class="credentials">
-            <p><span class="icon-inline">🔑</span><strong>Nom d'utilisateur :</strong> {{ $details['username'] }}</p>
-            <p><span class="icon-inline">🔐</span><strong>Mot de passe :</strong> {{ $details['passwordFusion'] }}</p>
-            <p><span class="icon-inline">🔗</span><strong>Hôte :</strong> {{ $details['host'] }}</p>
-        </div>
-        <p class="content">Pour vous connecter à votre compte Fusion, cliquez sur le bouton ci-dessous :</p>
-        <p style="text-align: center;">
-            <!-- Le lien du compte Fusion utilise l'hôte comme URL -->
-            <a href="{{ $details['host'] }}" class="btn" style="color: white;">Accéder à mon compte Fusion</a>
+        <tr>
+            <td style="font-weight: bold; color: #565a5c; text-align: left;">
+                <h2>🔑 Compte Fusion :</h2>
+                <p><strong>Nom d'utilisateur :</strong> {{ $details["username"] ?? "Non spécifié" }}</p>
+                <p><strong>Mot de passe :</strong> {{ $details["passwordFusion"] ?? "Non spécifié" }}</p>
+                <p><strong>Hôte :</strong> {{ $details["host"] ?? "Non spécifié" }}</p>
+                <p>Pour vous connecter à votre compte Fusion, veuillez cliquer sur le lien ci-dessous :</p>
+                <p style="text-align: center;">
+                    <a href="{{ $details["host"] }}" style="color: #2d6dfd;">Accéder à mon compte Fusion</a>
+                </p>
+            </td>
+        </tr>
 
-        </p>
-
-        <p class="footer">Merci, et à bientôt sur Wic-Doctor !<br>L'équipe de Wic-Doctor.</p>
-    </div>
+        <!-- Remerciements -->
+        <tr>
+            <td style="color: #565a5c; text-align: center;">
+                <br>✨ Merci d'utiliser Wic-Doctor !  
+                🌿 L'équipe WIC Doctor 🌿👨‍⚕
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

@@ -45,6 +45,7 @@
         <div class="card shadow-sm">
             <div class="card-header">
                 <h5 class="card-title">{{ trans('lang.teleconsultation_table') }}</h5>
+
             </div>
             <!-- <div class="card-header">
                                                                                             <div class="d-flex justify-content-between align-items-center">
@@ -167,6 +168,7 @@
                                 <div class="validation-message"></div>
                             </div>
 
+
                             <div class="col-md-6">
                                 <label for="patient_last_name" class="required-field">Nom</label>
                                 <input type="text" id="patient_last_name" class="form-control" name="patient_last_name"
@@ -198,6 +200,7 @@
                                     data-validation-message="Date et heure requises">
                                 <div class="validation-message"></div>
                             </div>
+
 
                             <!-- Payment Information -->
                             <div class="col-12">

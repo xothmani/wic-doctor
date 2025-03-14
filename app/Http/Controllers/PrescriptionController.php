@@ -7,19 +7,21 @@ use App\Models\Prescription;
 use App\Models\Medicament;
 
 use App\Models\Consultation;
-use App\Models\User;
-use App\Models\Patient;
-use App\Models\PrescriptionItem;
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 
-use PDF; // Import the PDF facade
+use PDF; 
 use App\Models\Analyse;
 use App\Models\Radio;
 use Illuminate\Support\Facades\Log;
-
+use App\Mail\SendPrescriptionPdf;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Redirect;
+use App\Models\MedicamentFrance;
+use App\Models\Doctor;
 class PrescriptionController extends Controller
 {
 
@@ -30,17 +32,48 @@ class PrescriptionController extends Controller
      * @return \Illuminate\View\View
      */
 
-    public function create(Request $request)
-    {
-        $consultation_id = $request->query('consultation_id');
-        $medicaments = Medicament::all();
-        $analyses = Analyse::all(); 
-        $radios = Radio::all(); 
-        
-        $customFields = [];      
-        return view('prescriptions.create', compact('medicaments', 'analyses','radios', 'customFields', 'consultation_id'));
-    }
-    
+
+     public function create(Request $request)
+     {
+         $consultation_id = $request->query('consultation_id');
+         
+         // Récupérer le médecin associé à l'utilisateur connecté
+         $doctorId = auth()->user()->getDoctorId();
+         $doctor = Doctor::find($doctorId);
+     
+         if (!$doctor) {
+             Log::error('Médecin non trouvé pour cet utilisateur', ['user_id' => auth()->id()]);
+             return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
+         }
+     
+         // Récupérer l'adresse du médecin
+         $userWithAddress = $doctor->user()->with('address')->first();
+         $address = $userWithAddress->address ?? null;
+     
+         // Extraire le pays depuis l'adresse
+         $pays = $address && $address->pays ? json_decode($address->pays, true) : null;
+         $pays = isset($pays['fr']) ? strtolower($pays['fr']) : (is_array($pays) ? strtolower(reset($pays) ?: '') : ($pays ? strtolower($pays) : null));
+     
+         // Vérifier si le pays est la France
+         $isFrance = $pays === 'france';
+     
+         // Sélectionner les médicaments en fonction du pays
+         $medicaments = $isFrance ? MedicamentFrance::all() : Medicament::all();
+     
+         // Log des médicaments récupérés
+         Log::info('Médicaments récupérés', [
+             'pays' => $pays,
+             'isFrance' => $isFrance,
+             'medicaments' => $medicaments->toArray()
+         ]);
+     
+         $analyses = Analyse::all(); 
+         $radios = Radio::all(); 
+         
+         $customFields = [];      
+         return view('prescriptions.create', compact('medicaments', 'analyses', 'radios', 'customFields', 'consultation_id', 'isFrance'));
+        }
+     
     /**
      * Store a newly created prescription in the database.
      *
@@ -60,7 +93,7 @@ class PrescriptionController extends Controller
         // Validation conditionnelle en fonction du type de traitement
         if ($request->input('type') === 'Médicament') {
             $rules['medicaments'] = 'required|array';
-            $rules['medicaments.*.CODE_PCT'] = 'required|exists:medicaments,CODE_PCT';
+            $rules['medicaments.*.CODE_PCT'] = 'required';
             $rules['medicaments.*.dosage'] = 'required|string';
             $rules['medicaments.*.nb_de_jours'] = 'required|string';
             $rules['medicaments.*.duration_unit'] = 'required|string|in:jours,semaines,mois';
@@ -102,12 +135,45 @@ class PrescriptionController extends Controller
         // Lier les médicaments à la prescription
         if ($request->input('type') === 'Médicament') {
             foreach ($request->medicaments as $medicamentData) {
-                $prescription->medicaments()->attach($medicamentData['CODE_PCT'], [
-                    'dosage' => $medicamentData['dosage'],
-                    'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
-                    'horaire' => $medicamentData['horaire'],
-                    'nb_de_fois' => $medicamentData['nb_de_fois'] . ' fois',
-                ]);
+                $isFrance = MedicamentFrance::where('name', $medicamentData['CODE_PCT'])->exists();
+    
+                if ($isFrance) {
+                    // Si le médicament est de France, utiliser medicament_id
+                    $medicament = MedicamentFrance::where('name', $medicamentData['CODE_PCT'])->first();
+                    if (!$medicament) {
+                        throw new \Exception("Médicament non trouvé dans la table fr_medicament : " . $medicamentData['CODE_PCT']);
+                    }
+    
+                    // Insérer dans medicament_prescription avec medicament_id
+                    DB::table('medicament_prescription')->insert([
+                        'prescription_id' => $prescription->id,
+                        'medicament_id' => $medicament->id, // Référence à fr_medicament
+                        'dosage' => $medicamentData['dosage'],
+                        'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
+                        'horaire' => $medicamentData['horaire'],
+                        'nb_de_fois' => $medicamentData['nb_de_fois'] . ' fois',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                } else {
+                    // Si le médicament n'est pas de France, utiliser medicament_CODE_PCT
+                    $medicament = Medicament::where('CODE_PCT', $medicamentData['CODE_PCT'])->first();
+                    if (!$medicament) {
+                        throw new \Exception("Médicament non trouvé dans la table medicaments : " . $medicamentData['CODE_PCT']);
+                    }
+    
+                    // Insérer dans medicament_prescription avec medicament_CODE_PCT
+                    DB::table('medicament_prescription')->insert([
+                        'prescription_id' => $prescription->id,
+                        'medicament_CODE_PCT' => $medicament->CODE_PCT, // Référence à medicaments
+                        'dosage' => $medicamentData['dosage'],
+                        'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
+                        'horaire' => $medicamentData['horaire'],
+                        'nb_de_fois' => $medicamentData['nb_de_fois'] . ' fois',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         }
         // Lier les analyses à la prescription
@@ -121,17 +187,17 @@ class PrescriptionController extends Controller
                 ]);
             }
         }
-                // Lier les radioq à la prescription
+        // Lier les radios à la prescription
         elseif ($request->input('type') === 'Radio') {
-                    foreach ($request->radios as $radioData) {
-                        DB::table('radio_prescription')->insert([
-                            'prescription_id' => $prescription->id,
-                            'Nom' => $radioData['Nom'],
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
-                }
+            foreach ($request->radios as $radioData) {
+                DB::table('radio_prescription')->insert([
+                    'prescription_id' => $prescription->id,
+                    'Nom' => $radioData['Nom'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
         // Lier un autre traitement à la prescription
         elseif ($request->input('nom_traitement')) {
             foreach ($request->input('nom_traitement') as $traitement) {
@@ -144,21 +210,46 @@ class PrescriptionController extends Controller
             }
         }
     
+        // Générer les deux PDF
+        $pdfs = $this->generatePrescriptionPdf($prescription->id);
+    
+        // Créer le dossier pour la prescription
+        $directory = public_path('storage/prescriptions/' . $prescription->id);
+        if (!file_exists($directory)) {
+            mkdir($directory, 0777, true);
+        }
+    
+        // Noms des fichiers PDF
+        $fileName = $consultation->patient->first_name . '_' . $consultation->patient->last_name . '-' . $prescription->created_at . '.pdf';
+        $fileNameForMail = $consultation->patient->first_name . '_' . $consultation->patient->last_name . '-' . $prescription->created_at . '_for_mail.pdf';
+    
+        // Chemins des fichiers PDF
+        $filePath = $directory . '/' . $fileName;
+        $filePathForMail = $directory . '/' . $fileNameForMail;
+    
+        // Enregistrer les PDF
+        file_put_contents($filePath, $pdfs['pdf']->output());
+        file_put_contents($filePathForMail, $pdfs['pdfForMail']->output());
+    
+        // Stocker le chemin du PDF for mail dans la base de données
+        $prescription->pdf = 'storage/prescriptions/' . $prescription->id . '/' . $fileName; // Chemin relatif pour le stockage
+        $prescription->pdfForMail = 'storage/prescriptions/' . $prescription->id . '/' . $fileNameForMail; // Chemin relatif pour le stockage
+    
+        $prescription->save(); // Sauvegarder la mise à jour
+    
         return redirect()->route('consultation.prescriptions', ['consultation' => $consultation->id])
                          ->with('success', 'Prescription enregistrée avec succès.');
     }
-    
-    
     
     public function generatePrescriptionPdf($prescriptionId)
     {
         // Récupérer la prescription et ses médicaments associés avec les informations de la consultation
         $prescription = Prescription::with(['medicaments', 'consultation.patient', 'consultation.user'])->findOrFail($prescriptionId);
         $consultation = $prescription->consultation;
-        
+    
         // Récupérer l'adresse de l'utilisateur (médecin) à partir de la table addresses
         $address = DB::table('addresses')->where('user_id', $consultation->user_id)->value('address');
-        
+    
         // Récupérer le numéro de téléphone et l'adresse du médecin
         $doctorAddress = $address;  
         $doctorPhone = $consultation->user->phone_number;
@@ -181,20 +272,37 @@ class PrescriptionController extends Controller
     
         // Préparer les données en fonction du type de prescription
         if ($prescription->type === 'Médicament') {
-            foreach ($prescription->medicaments as $medicament) {
-                $nom_commercial = DB::table('medicaments')
-                    ->where('CODE_PCT', $medicament->pivot->medicament_CODE_PCT)
-                    ->value('NOM_COMMERCIAL');
-                
-                $medicamentDataArray[] = [
-                    'nom_commercial' => $nom_commercial,
-                    'dosage' => $medicament->pivot->dosage,
-                    'nb_de_fois' => $medicament->pivot->nb_de_fois,
-                    'horaire' => $medicament->pivot->horaire,
-                    'nb_de_jours' => $medicament->pivot->nb_de_jours,
-                ];
-            }
-        } elseif ($prescription->type === 'Analyse') {
+            // Récupérer les médicaments de France (medicament_id)
+            $medicamentsFrance = DB::table('medicament_prescription')
+                ->join('fr_medicament', 'medicament_prescription.medicament_id', '=', 'fr_medicament.id')
+                ->where('medicament_prescription.prescription_id', $prescription->id)
+                ->select(
+                    'fr_medicament.name as nom_commercial',
+                    'medicament_prescription.dosage',
+                    'medicament_prescription.nb_de_fois',
+                    'medicament_prescription.horaire',
+                    'medicament_prescription.nb_de_jours'
+                )
+                ->get();
+    
+            // Récupérer les médicaments non français (medicament_CODE_PCT)
+            $medicamentsNonFrance = DB::table('medicament_prescription')
+                ->join('medicaments', 'medicament_prescription.medicament_CODE_PCT', '=', 'medicaments.CODE_PCT')
+                ->where('medicament_prescription.prescription_id', $prescription->id)
+                ->select(
+                    'medicaments.NOM_COMMERCIAL as nom_commercial',
+                    'medicament_prescription.dosage',
+                    'medicament_prescription.nb_de_fois',
+                    'medicament_prescription.horaire',
+                    'medicament_prescription.nb_de_jours'
+                )
+                ->get();
+    
+            // Fusionner les deux listes de médicaments
+            $medicamentDataArray = $medicamentsFrance->merge($medicamentsNonFrance)->map(function ($item) {
+                return (array) $item; // Convertir chaque objet en tableau
+            })->toArray();
+                    } elseif ($prescription->type === 'Analyse') {
             $analyseDataArray = DB::table('analyses')
                 ->join('analyse_prescription', 'analyses.Code_Analyse', '=', 'analyse_prescription.Code_Analyse')
                 ->where('analyse_prescription.prescription_id', $prescription->id)
@@ -249,18 +357,21 @@ class PrescriptionController extends Controller
             'numOrdre' => $numOrdre,
         ];
     
-        // Charger la vue et générer le PDF avec les données
-        $pdf = PDF::loadView('prescriptions.pdf', $pdfData);
-        
-        // Diffuser le PDF dans le navigateur
-        return $pdf->stream('prescription_' . $prescription->id . '.pdf');
-    }
-    
+       // Générer les deux PDF avec les deux vues différentes
+    $pdf = PDF::loadView('prescriptions.pdf', $pdfData); // Vue 1
+    $pdfForMail = PDF::loadView('prescriptions.pdfForMail', $pdfData); // Vue 2
+
+    // Retourner les deux PDF
+    return [
+        'pdf' => $pdf,
+        'pdfForMail' => $pdfForMail,
+    ];
+}
 
 public function showDetails($prescriptionId)
 {
-    // Récupérer la prescription et ses médicaments associés avec les informations de la consultation
-    $prescription = Prescription::with(['medicaments', 'consultation.patient', 'consultation.user'])->findOrFail($prescriptionId);
+    // Récupérer la prescription et les informations de la consultation
+    $prescription = Prescription::with(['consultation.patient', 'consultation.user'])->findOrFail($prescriptionId);
     $consultation = $prescription->consultation;
 
     // Préparer les données des médicaments et autres traitements
@@ -271,20 +382,35 @@ public function showDetails($prescriptionId)
 
     // Si la prescription est de type 'Médicament', on récupère les médicaments
     if ($prescription->type === 'Médicament') {
-        foreach ($prescription->medicaments as $medicament) {
-            $nom_commercial = DB::table('medicaments')
-                ->where('CODE_PCT', $medicament->pivot->medicament_CODE_PCT)
-                ->value('NOM_COMMERCIAL');
-            
-            $medicamentDataArray[] = [
-                'nom_commercial' => $nom_commercial,
-                'dosage' => $medicament->pivot->dosage,
-                'nb_de_fois' => $medicament->pivot->nb_de_fois,
-                'horaire' => $medicament->pivot->horaire,
-                'nb_de_jours' => $medicament->pivot->nb_de_jours,
-            ];
-        }
-    }elseif ($prescription->type === 'Analyse') {
+        // Récupérer les médicaments de France (medicament_id)
+        $medicamentsFrance = DB::table('medicament_prescription')
+            ->join('fr_medicament', 'medicament_prescription.medicament_id', '=', 'fr_medicament.id')
+            ->where('medicament_prescription.prescription_id', $prescription->id)
+            ->select(
+                'fr_medicament.name as nom_commercial',
+                'medicament_prescription.dosage',
+                'medicament_prescription.nb_de_fois',
+                'medicament_prescription.horaire',
+                'medicament_prescription.nb_de_jours'
+            )
+            ->get();
+
+        // Récupérer les médicaments non français (medicament_CODE_PCT)
+        $medicamentsNonFrance = DB::table('medicament_prescription')
+            ->join('medicaments', 'medicament_prescription.medicament_CODE_PCT', '=', 'medicaments.CODE_PCT')
+            ->where('medicament_prescription.prescription_id', $prescription->id)
+            ->select(
+                'medicaments.NOM_COMMERCIAL as nom_commercial',
+                'medicament_prescription.dosage',
+                'medicament_prescription.nb_de_fois',
+                'medicament_prescription.horaire',
+                'medicament_prescription.nb_de_jours'
+            )
+            ->get();
+
+        // Fusionner les deux listes de médicaments
+        $medicamentDataArray = $medicamentsFrance->merge($medicamentsNonFrance)->toArray();
+    } elseif ($prescription->type === 'Analyse') {
         $analyseDataArray = DB::table('analyses')
             ->join('analyse_prescription', 'analyses.Code_Analyse', '=', 'analyse_prescription.Code_Analyse')
             ->where('analyse_prescription.prescription_id', $prescription->id)
@@ -300,7 +426,7 @@ public function showDetails($prescriptionId)
                 ];
             })
             ->toArray();
-    }elseif ($prescription->type === 'Radio') {
+    } elseif ($prescription->type === 'Radio') {
         $radioDataArray = DB::table('radios')
             ->join('radio_prescription', 'radios.Nom', '=', 'radio_prescription.Nom')
             ->where('radio_prescription.prescription_id', $prescription->id)
@@ -316,14 +442,14 @@ public function showDetails($prescriptionId)
                 ];
             })
             ->toArray();
-    }  else {
+    } else {
         // Si le type n'est pas "medicament", récupérer les autres traitements
         $otherTreatments = DB::table('autres_traitements')
             ->where('prescription_id', $prescription->id)
             ->pluck('nom_traitement')
             ->toArray();
     }
-    
+
     // Récupérer les autres informations nécessaires
     $doctorAddress = DB::table('addresses')->where('user_id', $consultation->user_id)->value('address');
     $doctorPhone = $consultation->user->phone_number;
@@ -332,7 +458,7 @@ public function showDetails($prescriptionId)
         ->where('doctor_specialities.doctor_id', $consultation->user_id)
         ->pluck('specialities.name')
         ->toArray();
-    
+
     // Préparer les données pour la vue JSON
     $responseData = [
         'date' => $prescription->date,
@@ -353,6 +479,46 @@ public function showDetails($prescriptionId)
     return response()->json($responseData);
 }
 
+
+public function sendEmail(Request $request, $prescriptionId)
+{
+    // Récupérer la prescription
+    $prescription = Prescription::with(['consultation.patient'])->findOrFail($prescriptionId);
+
+    // Vérifier si une adresse e-mail a été fournie par l'utilisateur
+    $email = $request->email ?: $prescription->consultation->patient->email;
+
+    if (!$email) {
+        return Redirect::back()->with('error', 'Aucune adresse e-mail fournie.');
+    }
+
+    if (!$prescription->pdfForMail) {
+        Log::error("Aucune prescription PDF associée à cette prescription.");
+        return Redirect::back()->with('error', "Aucune prescription PDF associée.");
+    }
+
+    $pdfPath = public_path($prescription->pdfForMail);
+
+    if (!file_exists($pdfPath)) {
+        Log::error("Le fichier PDF est introuvable : " . $pdfPath);
+        return Redirect::back()->with('error', "Le fichier PDF n'existe pas.");
+    }
+
+    if (!is_readable($pdfPath)) {
+        Log::error("Le fichier PDF n'est pas lisible : " . $pdfPath);
+        return Redirect::back()->with('error', "Le fichier PDF n'est pas lisible.");
+    }
+
+    // Données pour l'e-mail
+    $patientName = $prescription->consultation->patient->first_name . ' ' . $prescription->consultation->patient->last_name;
+    $prescriptionDate = $prescription->date;
+
+    // Envoyer l'e-mail
+    Mail::to($email)
+        ->send(new SendPrescriptionPdf($pdfPath, $patientName, $prescriptionDate));
+
+    return Redirect::back()->with('success', 'La prescription a été envoyée par e-mail avec succès.');
+}
 
 }
 

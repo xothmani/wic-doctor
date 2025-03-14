@@ -124,7 +124,7 @@
                     <div class="card shadow-sm">
                         <div class="card-header">
                             <h3 class="card-title"><i class="fas fa-user mr-2"></i> {{trans('lang.user_about_me')}}</h3>
-                        </div>
+                                                 </div>
                         <div class="card-body box-profile">
                             <div class="text-center">
                                 <img src="{{auth()->user()->getFirstMediaUrl('avatar', 'icon')}}"
@@ -243,6 +243,7 @@
                 @include('settings.users.fields')
             </div>
 <!-- Vérifier si l'utilisateur a le rôle 'doctor' -->
+<!-- Vérifier si l'utilisateur a le rôle 'doctor' -->
 @hasrole('doctor')
 <!-- Checkbox et texte à ajouter sous le bouton de sauvegarde -->
 <div class="form-group border p-3 mb-3" style="border: 2px solid #f44336; border-radius: 5px;">
@@ -250,7 +251,8 @@
         <!-- Pré-cocher la case si verif_chart est égal à 1 -->
         <input type="checkbox" class="custom-control-input" id="deontologicalCharter" name="deontologicalCharter" 
                onchange="handleCharterAcceptance()" 
-               {{ $user->doctor->verif_chart == 1 ? 'checked' : '' }}>
+               {{ $user->doctor->verif_chart == 1 ? 'checked' : '' }}
+               {{ $user->doctor->verif_chart == 1 ? 'disabled' : '' }}>
         
         <label class="custom-control-label" for="deontologicalCharter">
             En tant que professionnel de santé, je certifie avoir lu et approuvé les conditions de la Charte Déontologique pour les professionnels de santé adhérant à la plateforme WIC Doctor, et m'engage à les respecter.
@@ -264,30 +266,87 @@
         </a>
     </div>
 </div>
+<div class="form-group border p-3 mb-3" style="border: 2px solid #f44336; border-radius: 5px;">
+    <i class="fas fa-calendar-alt mr-2" style="font-size: 1.2rem; color: #f39c12;"></i> <!-- Icône du calendrier -->
+    <b>Votre abonnement expire dans:</b>
+    <span style="background-color: 
+        {{ $badgeColor === 'red' ? ' #f44336' : ($badgeColor === 'green' ? '#28a745' : '#f9c74f') }}; 
+        color: black; 
+        padding: 2px 8px; 
+        border-radius: 10px; 
+        font-size: 15px;">
+        {{ $subscriptionStatus }}
+    </span>
+</div>
+
+
 @endhasrole
 
-<script>
-    // Fonction JavaScript pour traiter l'acceptation de la Charte Déontologique
-    function handleCharterAcceptance() {
-        var checkbox = document.getElementById("deontologicalCharter");
-        var accepted = checkbox.checked ? 1 : 0;  // Déterminer si la case est cochée ou non
 
-        // Appel Ajax pour mettre à jour le champ verif_chart dans la table doctor
-        $.ajax({
-            url: '{{ route('doctor.updateChartStatus') }}',  // Assurez-vous de créer cette route
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',  // Pour protéger la requête
-                accepted: accepted
-            },
-            success: function(response) {
-                console.log('Statut de la Charte Déontologique mis à jour');
-            },
-            error: function(error) {
-                console.error('Erreur lors de la mise à jour du statut de la Charte Déontologique', error);
+
+
+
+<!-- Modale de confirmation -->
+<div class="modal fade" id="charterModal" tabindex="-1" role="dialog" aria-labelledby="charterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="charterModalLabel">Confirmation</h5>
+                
+            </div>
+            <div class="modal-body">
+                Êtes-vous sûr de vouloir accepter la Charte ?  
+                <br><b>Une fois acceptée, vous ne pourrez plus revenir en arrière.</b> 
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="cancelButton">Annuler</button>
+                <button type="button" class="btn bg-{{setting('theme_color')}}" id="confirmCharter">Confirmer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var checkbox = document.getElementById("deontologicalCharter");
+        var confirmButton = document.getElementById("confirmCharter");
+        var cancelButton = document.getElementById("cancelButton");
+
+        // Quand l'utilisateur coche la case, afficher la modale
+        checkbox.addEventListener("change", function () {
+            if (checkbox.checked && checkbox.disabled !== true) { // Ajouter une condition pour s'assurer que la case n'est pas déjà désactivée
+                $("#charterModal").modal("show"); // Affiche la modale Bootstrap
             }
         });
-    }
+
+        // Quand l'utilisateur clique sur "Confirmer" dans la modale
+        confirmButton.addEventListener("click", function () {
+            // Appel Ajax pour mettre à jour le statut dans la base de données
+            $.ajax({
+                url: '{{ route('doctor.updateChartStatus') }}', // Assurez-vous que cette route existe
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    accepted: 1
+                },
+                success: function (response) {
+                    $("#charterModal").modal("hide"); // Fermer la modale
+                    checkbox.disabled = true; // Désactiver la case pour empêcher la modification
+                    checkbox.parentElement.style.opacity = '0.5'; // Griser la case à cocher
+                },
+                error: function (error) {
+                    console.error("Erreur lors de la mise à jour du statut de la Charte Déontologique", error);
+                }
+            });
+        });
+
+        // Quand l'utilisateur clique sur "Annuler" dans la modale
+        cancelButton.addEventListener("click", function () {
+            checkbox.checked = false; // Décocher la case
+            $("#charterModal").modal("hide"); // Fermer la modale
+        });
+    });
 </script>
 
                 
