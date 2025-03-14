@@ -38,7 +38,6 @@ use App\Models\Doctor;
 use App\Models\Speciality;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-
 class DoctorController extends Controller
 {
     /** @var  DoctorRepository */
@@ -593,7 +592,13 @@ private function executeNodeScript($doctor)
 
 public function updateChartStatus(Request $request)
 {
-    $doctor = auth()->user()->doctor; // Récupérer le doctor associé à l'utilisateur connecté
+    // Validation pour s'assurer que 'accepted' est dans la requête
+    $request->validate([
+        'accepted' => 'required|boolean', // On attend une valeur 1 ou 0
+    ]);
+
+    // Récupérer le doctor associé à l'utilisateur connecté
+    $doctor = auth()->user()->doctor;
 
     if ($doctor) {
         // Mettre à jour l'attribut verif_chart
@@ -605,6 +610,7 @@ public function updateChartStatus(Request $request)
 
     return response()->json(['success' => false, 'message' => 'Doctor not found'], 404);
 }
+
     /**
      * Display a listing of the Doctor for commercial.
      *
@@ -742,6 +748,10 @@ public function generateConnectedDoctorUrl()
     // Rediriger vers l'URL générée
     return $url;
 }
+
+
+
+
 
 
 

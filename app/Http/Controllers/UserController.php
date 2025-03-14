@@ -29,6 +29,9 @@ use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Prettus\Validator\Exceptions\ValidatorException;
 use App\Models\Doctor;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
 use App\Models\AvailabilityHour;
 
 class UserController extends Controller
@@ -77,6 +80,7 @@ class UserController extends Controller
      * @param
      * @return Response
      */
+
     public function profile()
     {
 
@@ -141,6 +145,58 @@ class UserController extends Controller
         // Calcul du pourcentage total
         $progressBar = $progressAvatar + $progressAdresse + $progressCV + $progressCabinet + $progressProfil + $progressTags;
 
+  // Récupérer l'abonnement de l'utilisateur
+$subscription = DB::table('membership')
+    ->where('user_id', $user->id)
+    ->select('start_date', 'end_date')
+    ->first();
+
+$subscriptionStatus = '';
+$badgeColor = 'yellow'; // Couleur par défaut
+
+if ($subscription) {
+    $startDate = Carbon::parse($subscription->start_date);
+    $endDate = Carbon::parse($subscription->end_date)->endOfDay(); // Prendre toute la journée en compte
+    $currentDate = Carbon::now();
+
+    // Calculer la différence détaillée
+    $difference = $currentDate->diff($endDate);
+    $yearsRemaining = $difference->y;
+    $monthsRemaining = $difference->m;
+    $daysRemaining = $difference->d;
+    $remainingDays = $currentDate->diffInDays($endDate, false); // Total des jours restants
+
+    // Construire la chaîne en fonction des valeurs
+    $remainingText = [];
+
+    if ($yearsRemaining > 0) {
+        $remainingText[] = "{$yearsRemaining} an(s)";
+    }
+    if ($monthsRemaining > 0) {
+        $remainingText[] = "{$monthsRemaining} mois";
+    }
+    if ($daysRemaining > 0) {
+        $remainingText[] = "{$daysRemaining} jour(s)";
+    }
+
+    // Si l'abonnement expire aujourd'hui
+    if ($remainingDays == 0) {
+        $subscriptionStatus = "Expire aujourd'hui";
+    } elseif ($remainingDays < 0) {
+        $subscriptionStatus = "Expiré";
+    } else {
+        $subscriptionStatus = implode(', ', $remainingText);
+    }
+
+    // Déterminer la couleur du badge
+    if ($remainingDays < 0) {
+        $badgeColor = 'red'; // Abonnement expiré
+    } elseif ($remainingDays <= 3) {
+        $badgeColor = 'red'; // Moins de 3 jours restants
+    } elseif ($remainingDays > 90) {
+        $badgeColor = 'green'; // Plus de 3 mois restants
+    }
+}
         return view('settings.users.profile', compact(
             'user',
             'role',
@@ -157,12 +213,13 @@ class UserController extends Controller
             'progressBar',
             'showNewFeaturesModal',
             'progressTags',
-            'isDoctor'
+            'isDoctor', 'subscriptionStatus', 'badgeColor'
         ));
 
 
 
     }
+
 
 
     /**
