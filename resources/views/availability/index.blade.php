@@ -10,7 +10,7 @@
     @endphp
 
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
-    
+
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
@@ -45,23 +45,23 @@
                 <h5><i class="icon fas fa-info"></i> {{ trans('messages.duration_changed_notice') }}</h5>
                 @if(session('has_existing_appointments'))
                     {{ trans('messages.duration_changed_future', [
-                        'old' => session('old_duration'),
-                        'new' => session('new_duration'),
-                        'type' => ucfirst(session('affected_type'))
-                    ]) }}
+                                'old' => session('old_duration'),
+                                'new' => session('new_duration'),
+                                'type' => ucfirst(session('affected_type'))
+                            ]) }}
                 @else
                     {{ trans('messages. _warning', [
-                        'old' => session('old_duration'),
-                        'new' => session('new_duration'),
-                        'type' => ucfirst(session('affected_type'))
-                    ]) }}
+                                'old' => session('old_duration'),
+                                'new' => session('new_duration'),
+                                'type' => ucfirst(session('affected_type'))
+                            ]) }}
                 @endif
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
         @endif
-                        
+
         @if(session('appointments_adjusted'))
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
                 {{ trans('messages.appointments_adjusted_warning') }}
@@ -116,103 +116,393 @@
 
                         <div class="tab-content" id="typeTabsContent">
                             @foreach(['cabinet', 'teleconsultation', 'home_visit'] as $type)
-                                <div class="tab-pane fade {{ $type === 'cabinet' ? 'show active' : '' }}" id="{{ $type }}"
-                                    role="tabpanel">
-                                    <form action="{{ route('availability.store.open') }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="type" value="{{ $type }}">
+                                    <div class="tab-pane fade {{ $type === 'cabinet' ? 'show active' : '' }}" id="{{ $type }}"
+                                        role="tabpanel">
+                                        <form action="{{ route('availability.store.open') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="type" value="{{ $type }}">
 
-                                        <!-- Session Duration -->
-                                        <div class="form-group d-flex align-items-baseline mb-4">
-                                            {!! Form::label('session_duration', trans("lang.sessionDuration") . ' *', ['class' => 'col-md-2 control-label text-md-right']) !!}
-                                            <div class="col-md-2">
-                                                {!! Form::text('session_duration', $sessionDurations[$type], [
-                                                    'class' => 'form-control',
-                                                    'required' => 'required',
-                                                    'placeholder' => 'e.g., 01:00 (hh:mm)'
-                                                ]) !!}
+                                            <!-- Session Duration -->
+                                            <div class="form-group d-flex align-items-baseline mb-4">
+                                                {!! Form::label('session_duration', trans("lang.sessionDuration") . ' *', ['class' => 'col-md-2 control-label text-md-right']) !!}
+                                                <div class="col-md-2">
+                                                    {!! Form::text('session_duration', $sessionDurations[$type], [
+                                    'class' => 'form-control',
+                                    'required' => 'required',
+                                    'placeholder' => 'e.g., 01:00 (hh:mm)'
+                                ]) !!}
+                                                </div>
+                                            </div>
+
+                                            <!-- Availability Table -->
+                                            <table class="table table-bordered">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th style="width: 10%;">{{ trans("lang.availability") }}</th>
+                                                        <th style="width: 20%;">{{ trans("lang.jourDispo") }}</th>
+                                                        <th style="width: 20%;">{{ trans("lang.from") }} *</th>
+                                                        <th style="width: 20%;">{{ trans("lang.to") }} *</th>
+                                                        <th style="width: 30%;">{{ trans("lang.breaks") }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach(['Lundi' => 'monday', 'Mardi' => 'tuesday', 'Mercredi' => 'wednesday', 'Jeudi' => 'thursday', 'Vendredi' => 'friday', 'Samedi' => 'saturday', 'Dimanche' => 'sunday'] as $frenchDay => $englishDay)
+                                                                        @php
+                                                                            // Add debug output
+                                                                            \Log::info("Processing day data:", [
+                                                                                'day' => $englishDay,
+                                                                                'type' => $type,
+                                                                                'data' => $availabilities[$type][$englishDay] ?? 'not found'
+                                                                            ]);
+
+                                                                            $dayData = $availabilities[$type][$englishDay] ?? ['is_available' => 0];
+                                                                            $isAvailable = $dayData['is_available'] ?? 0;
+                                                                            $startAt = $dayData['start_at'] ?? '09:00';
+                                                                            $endAt = $dayData['end_at'] ?? '17:00';
+                                                                            $pauseFrom = $dayData['pause_from'] ?? '';
+                                                                            $pauseTo = $dayData['pause_to'] ?? '';
+                                                                        @endphp
+                                                                        <tr>
+                                                                            <td class="text-center align-middle">
+                                                                                <label class="switch">
+                                                                                    <input type="checkbox" name="availability[{{ $loop->index }}][is_available]"
+                                                                                        value="1" {{ $isAvailable ? 'checked' : '' }}>
+                                                                                    <span class="slider round"></span>
+                                                                                </label>
+                                                                            </td>
+                                                                            <td class="align-middle">
+                                                                                <input type="hidden" name="availability[{{ $loop->index }}][day]"
+                                                                                    value="{{ $frenchDay }}">
+                                                                                {{ $frenchDay }}
+                                                                            </td>
+                                                                            <td>
+                                                                                <input type="time" class="form-control timepicker"
+                                                                                    name="availability[{{ $loop->index }}][from]" value="{{ $startAt }}"
+                                                                                    data-required="required" required>
+                                                                            </td>
+                                                                            <td>
+                                                                                <input type="time" class="form-control timepicker"
+                                                                                    name="availability[{{ $loop->index }}][to]" value="{{ $endAt }}"
+                                                                                    data-required="required" required>
+                                                                            </td>
+                                                                            <td>
+                                                                                <div class="d-flex">
+                                                                                    <input type="time" class="form-control mr-2 break-time"
+                                                                                        name="availability[{{ $loop->index }}][pause_from]"
+                                                                                        value="{{ $pauseFrom }}" data-pair="pause_to"
+                                                                                        placeholder="{{ trans('lang.break_start') }}">
+                                                                                    <input type="time" class="form-control break-time"
+                                                                                        name="availability[{{ $loop->index }}][pause_to]" value="{{ $pauseTo }}"
+                                                                                        data-pair="pause_from" placeholder="{{ trans('lang.break_end') }}">
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+
+                                            <button type="submit" class="btn bg-{{setting('theme_color')}} mt-4">
+                                                {{ trans("lang.saveDispo") }}
+                                            </button>
+                                        </form>
+                                    </div>
+                            @endforeach
+
+                            <!-- Vacation Tab -->
+                            <div class="tab-pane fade" id="vacation" role="tabpanel">
+                                <form action="{{ route('holidays.store') }}" method="POST">
+                                    @csrf
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4>{{ trans("lang.add_vacation") }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>{{ trans("lang.start_date") }}</label>
+                                                        <input type="date" name="start_date" class="form-control" required
+                                                            min="{{ date('Y-m-d') }}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>{{ trans("lang.end_date") }}</label>
+                                                        <input type="date" name="end_date" class="form-control" required
+                                                            min="{{ date('Y-m-d') }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>{{ trans("lang.reason") }}</label>
+                                                <textarea name="reason" class="form-control" rows="3"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn bg-{{ setting('theme_color') }}">
+                                                {{ trans("lang.save_vacation") }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                @if(isset($vacations) && count($vacations) > 0)
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h4>{{ trans("lang.vacation_list") }}</h4>
+                                        </div>
+                                        <div class="card-body vacation-list-container">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>{{ trans("lang.start_date") }}</th>
+                                                            <th>{{ trans("lang.end_date") }}</th>
+                                                            <th>{{ trans("lang.reason") }}</th>
+                                                            <th>{{ trans("lang.actions") }}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($vacations as $vacation)
+                                                            <tr>
+                                                                <td>{{ \Carbon\Carbon::parse($vacation->start_date)->format('d/m/Y') }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($vacation->end_date)->format('d/m/Y') }}</td>
+                                                                <td>{{ $vacation->reason }}</td>
+                                                                <td>
+                                                                    <form action="{{ route('vacances.destroy', $vacation->id) }}"
+                                                                        method="POST" class="d-inline">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="tab-pane fade" id="substitute" role="tabpanel">
+                                <form action="{{ route('substitute.store') }}" method="POST">
+                                    @csrf
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4>{{ trans('lang.add_substitute') }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label>{{ trans('lang.substitute_name') }}</label>
+                                                <input type="text" name="name" class="form-control" required>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.start_date') }}</label>
+                                                        <input type="datetime-local" name="start_date" class="form-control"
+                                                            required>
+                                                    </div>
+                                                </div>
 
-                                        <!-- Availability Table -->
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.end_date') }}</label>
+                                                        <input type="datetime-local" name="end_date" class="form-control" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>{{ trans('lang.notes') }}</label>
+                                                <textarea name="notes" class="form-control" rows="3"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn bg-{{ setting('theme_color') }}">
+                                                {{ trans('lang.save_substitute') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                @if(isset($substitutes) && count($substitutes) > 0)
+                                        <div class="card mt-4">
+                                            <div class="card-header">
+                                                <h4>{{ trans('lang.substitute_list') }}</h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>{{ trans('lang.substitute_name') }}</th>
+                                                                <th>{{ trans('lang.start_date') }}</th>
+                                                                <th>{{ trans('lang.end_date') }}</th>
+                                                                <th>{{ trans('lang.notes') }}</th>
+                                                                <th>{{ trans('lang.status') }}</th>
+                                                                <th>{{ trans('lang.actions') }}</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach($substitutes as $substitute)
+                                                                                        @php
+                                                                                            $now = now();
+                                                                                            $startDate = \Carbon\Carbon::parse($substitute->start_date);
+                                                                                            $endDate = \Carbon\Carbon::parse($substitute->end_date);
+
+                                                                                            $status = 'inactive';
+                                                                                            if ($now->between($startDate, $endDate)) {
+                                                                                                $status = 'active';
+                                                                                            } elseif ($now->lt($startDate)) {
+                                                                                                $status = 'pending';
+                                                                                            }
+                                                                                        @endphp
+                                                                                        <tr>
+                                                                                            <td>{{ $substitute->name }}</td>
+                                                                                            <td>{{ $substitute->formatted_start_date }}</td>
+                                                                                            <td>{{ $substitute->formatted_end_date }}</td>
+                                                                                            <td>{{ $substitute->notes }}</td>
+                                                                                            <td>
+                                                                                                <span
+                                                                                                    class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">
+                                                                                                    {{ trans('lang.substitute_status_' . $status) }}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <form action="{{ route('substitute.destroy', $substitute->id) }}"
+                                                                                                    method="POST" class="d-inline">
+                                                                                                    @csrf
+                                                                                                    @method('DELETE')
+                                                                                                    <button type="submit" class="btn btn-danger btn-sm">
+                                                                                                        <i class="fas fa-trash"></i>
+                                                                                                    </button>
+                                                                                                </form>
+                                                                                            </td>
+                                                                                        </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @elseif ($currentMode === 'precise')
+            <div class="content">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <!-- Tabs Navigation -->
+                        <ul class="nav nav-tabs mb-3" id="availabilityTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="cabinet-tab" data-toggle="tab" href="#cabinet" role="tab">
+                                    <i class="fas fa-hospital"></i> {{ trans('lang.cabinet') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="teleconsultation-tab" data-toggle="tab" href="#teleconsultation" role="tab">
+                                    <i class="fas fa-video"></i> {{ trans('lang.teleconsultation') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="home_visit-tab" data-toggle="tab" href="#home_visit" role="tab">
+                                    <i class="fas fa-home"></i> {{ trans('lang.home_visit') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="vacation-tab" data-toggle="tab" href="#vacation" role="tab">
+                                    <i class="fas fa-umbrella-beach"></i> {{ trans('lang.vacation') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="substitute-tab" data-toggle="tab" href="#substitute" role="tab">
+                                    <i class="fas fa-user-md"></i> {{ trans('lang.substitute') }}
+                                </a>
+                            </li>
+                        </ul>
+
+                        <!-- Availability Form -->
+                        <div class="tab-content" id="availabilityTabContent">
+                            @foreach(['cabinet' => 'Cabinet', 'teleconsultation' => 'Téléconsultation', 'home_visit' => 'Visite à domicile'] as $type => $label)
+                                <div class="tab-pane fade {{ $type === 'cabinet' ? 'show active' : '' }}" id="{{ $type }}"
+                                    role="tabpanel">
+                                    <form action="{{ route('availability.store') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="type" value="{{ $type }}">
+                                        <input type="hidden" name="mode" value="{{ $currentMode }}">
+
                                         <table class="table table-bordered">
                                             <thead class="thead-light">
                                                 <tr>
-                                                    <th style="width: 10%;">{{ trans("lang.availability") }}</th>
-                                                    <th style="width: 20%;">{{ trans("lang.jourDispo") }}</th>
-                                                    <th style="width: 20%;">{{ trans("lang.from") }} *</th>
-                                                    <th style="width: 20%;">{{ trans("lang.to") }} *</th>
-                                                    <th style="width: 30%;">{{ trans("lang.breaks") }}</th>
+                                                    <th style="width: 10%;">{{ trans('lang.availability') }}</th>
+                                                    <th style="width: 20%;">{{ trans('lang.day') }}</th>
+                                                    <th style="width: 70%;">{{ trans('lang.timeSlots') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach(['Lundi' => 'monday', 'Mardi' => 'tuesday', 'Mercredi' => 'wednesday', 'Jeudi' => 'thursday', 'Vendredi' => 'friday', 'Samedi' => 'saturday', 'Dimanche' => 'sunday'] as $frenchDay => $englishDay)
-                                                    @php
-                                                        // Add debug output
-                                                        \Log::info("Processing day data:", [
-                                                            'day' => $englishDay,
-                                                            'type' => $type,
-                                                            'data' => $availabilities[$type][$englishDay] ?? 'not found'
-                                                        ]);
-                                                        
-                                                        $dayData = $availabilities[$type][$englishDay] ?? ['is_available' => 0];
-                                                        $isAvailable = $dayData['is_available'] ?? 0;
-                                                        $startAt = $dayData['start_at'] ?? '09:00';
-                                                        $endAt = $dayData['end_at'] ?? '17:00';
-                                                        $pauseFrom = $dayData['pause_from'] ?? '';
-                                                        $pauseTo = $dayData['pause_to'] ?? '';
-                                                    @endphp
-                                                    <tr>
-                                                        <td class="text-center align-middle">
-                                                            <label class="switch">
-                                                                <input type="checkbox" name="availability[{{ $loop->index }}][is_available]"
-                                                                    value="1" {{ $isAvailable ? 'checked' : '' }}>
-                                                                <span class="slider round"></span>
-                                                            </label>
-                                                        </td>
-                                                        <td class="align-middle">
-                                                            <input type="hidden" name="availability[{{ $loop->index }}][day]"
-                                                                value="{{ $frenchDay }}">
-                                                            {{ $frenchDay }}
-                                                        </td>
-                                                        <td>
-                                                            <input type="time" 
-                                                                class="form-control timepicker"
-                                                                name="availability[{{ $loop->index }}][from]" 
-                                                                value="{{ $startAt }}"
-                                                                data-required="required"
-                                                                required>
-                                                        </td>
-                                                        <td>
-                                                            <input type="time" 
-                                                                class="form-control timepicker"
-                                                                name="availability[{{ $loop->index }}][to]" 
-                                                                value="{{ $endAt }}" 
-                                                                data-required="required"
-                                                                required>
-                                                        </td>
-                                                        <td>
-                                                            <div class="d-flex">
-                                                                <input type="time" 
-                                                                    class="form-control mr-2 break-time"
-                                                                    name="availability[{{ $loop->index }}][pause_from]"
-                                                                    value="{{ $pauseFrom }}" 
-                                                                    data-pair="pause_to"
-                                                                    placeholder="{{ trans('lang.break_start') }}">
-                                                                <input type="time" 
-                                                                    class="form-control break-time"
-                                                                    name="availability[{{ $loop->index }}][pause_to]" 
-                                                                    value="{{ $pauseTo }}"
-                                                                    data-pair="pause_from"
-                                                                    placeholder="{{ trans('lang.break_end') }}">
-                                                            </div>
-                                                        </td>
-                                                    </tr>
+                                                @foreach($days as $dayIndex => $day)
+                                                                    <tr>
+                                                                        <td class="text-center align-middle">
+                                                                            <label class="switch">
+                                                                                <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]"
+                                                                                    value="1" @if(isset($availabilities[$type][$day]) && $availabilities[$type][$day]->contains('is_available', true)) checked
+                                                                                    @endif>
+                                                                                <span class="slider round"></span>
+                                                                            </label>
+                                                                            <input type="hidden" name="availability[{{ $dayIndex }}][day]"
+                                                                                value="{{ $day }}">
+                                                                        </td>
+                                                                        <td class="align-middle">
+                                                                            {{ trans('lang.' . strtolower($day)) }}
+                                                                        </td>
+                                                                        <td>
+                                                                            <div id="{{ $type }}-slots-{{ $dayIndex }}" class="slots-container">
+                                                                                @php
+                                                                                    $daySlots = $availabilities[$type][$day] ?? collect();
+                                                                                @endphp
+
+                                                                                @if($daySlots->isNotEmpty())
+                                                                                    @foreach($daySlots as $slot)
+                                                                                        <div class="slot-entry d-flex align-items-center mb-2">
+                                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][start][]"
+                                                                                                class="form-control mr-2" required
+                                                                                                value="{{ \Carbon\Carbon::parse($slot->start_at)->format('H:i') }}">
+                                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][end][]"
+                                                                                                class="form-control mr-2" required
+                                                                                                value="{{ \Carbon\Carbon::parse($slot->end_at)->format('H:i') }}">
+                                                                                            <select name="availability[{{ $dayIndex }}][slots][pattern][]"
+                                                                                                class="form-control mr-2" required>
+                                                                                                <option value="">{{ trans('lang.select_pattern') }}</option>
+                                                                                                @foreach($doctorPatterns as $pattern)
+                                                                                                    <option value="{{ $pattern->id }}" {{ $slot->patern_id == $pattern->id ? 'selected' : '' }}>
+                                                                                                        {{ $pattern->nom }}
+                                                                                                    </option>
+                                                                                                @endforeach
+                                                                                            </select>
+                                                                                            <input type="number"
+                                                                                                name="availability[{{ $dayIndex }}][slots][duration][]"
+                                                                                                class="form-control mr-2" placeholder="{{ trans('lang.duration') }}"
+                                                                                                required min="15" value="{{ $slot->session_duration ?? 30 }}">
+                                                                                            <button type="button" class="btn btn-danger btn-sm"
+                                                                                                onclick="removeSlot(this)">
+                                                                                                <i class="fas fa-trash"></i>
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    @endforeach
+                                                                                @endif
+                                                                                <button type="button" class="btn btn-primary btn-sm mt-2"
+                                                                                    onclick="addSlot('{{ $type }}', {{ $dayIndex }})">
+                                                                                    <i class="fas fa-plus"></i> {{ trans('lang.add_slot') }}
+                                                                                </button>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
-
-                                        <button type="submit" class="btn bg-{{setting('theme_color')}} mt-4">
+                                        <button type="submit" class="btn bg-{{ setting('theme_color') }} mt-4">
                                             {{ trans("lang.saveDispo") }}
                                         </button>
                                     </form>
@@ -312,7 +602,8 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label>{{ trans('lang.start_date') }}</label>
-                                                        <input type="datetime-local" name="start_date" class="form-control" required>
+                                                        <input type="datetime-local" name="start_date" class="form-control"
+                                                            required>
                                                     </div>
                                                 </div>
 
@@ -333,389 +624,94 @@
                                         </div>
                                     </div>
                                 </form>
-                            
+
                                 @if(isset($substitutes) && count($substitutes) > 0)
-                                    <div class="card mt-4">
-                                        <div class="card-header">
-                                            <h4>{{ trans('lang.substitute_list') }}</h4>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="table-responsive">
-                                                <table class="table table-hover">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>{{ trans('lang.substitute_name') }}</th>
-                                                            <th>{{ trans('lang.start_date') }}</th>
-                                                            <th>{{ trans('lang.end_date') }}</th>
-                                                            <th>{{ trans('lang.notes') }}</th>
-                                                            <th>{{ trans('lang.status') }}</th>
-                                                            <th>{{ trans('lang.actions') }}</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($substitutes as $substitute)
-                                                            @php
-                                                                $now = now();
-                                                                $startDate = \Carbon\Carbon::parse($substitute->start_date);
-                                                                $endDate = \Carbon\Carbon::parse($substitute->end_date);
-                                                                
-                                                                $status = 'inactive';
-                                                                if ($now->between($startDate, $endDate)) {
-                                                                    $status = 'active';
-                                                                } elseif ($now->lt($startDate)) {
-                                                                    $status = 'pending';
-                                                                }
-                                                            @endphp
+                                        <div class="card mt-4">
+                                            <div class="card-header">
+                                                <h4>{{ trans('lang.substitute_list') }}</h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover">
+                                                        <thead>
                                                             <tr>
-                                                                <td>{{ $substitute->name }}</td>
-                                                                <td>{{ $substitute->formatted_start_date }}</td>
-                                                                <td>{{ $substitute->formatted_end_date }}</td>
-                                                                <td>{{ $substitute->notes }}</td>
-                                                                <td>
-                                                                    <span class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">
-                                                                        {{ trans('lang.substitute_status_' . $status) }}
-                                                                    </span>
-                                                                </td>
-                                                                <td>
-                                                                    <form action="{{ route('substitute.destroy', $substitute->id) }}"
-                                                                        method="POST" class="d-inline">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                        <button type="submit" class="btn btn-danger btn-sm">
-                                                                            <i class="fas fa-trash"></i>
-                                                                        </button>
-                                                                    </form>
-                                                                </td>
+                                                                <th>{{ trans('lang.substitute_name') }}</th>
+                                                                <th>{{ trans('lang.start_date') }}</th>
+                                                                <th>{{ trans('lang.end_date') }}</th>
+                                                                <th>{{ trans('lang.notes') }}</th>
+                                                                <th>{{ trans('lang.status') }}</th>
+                                                                <th>{{ trans('lang.actions') }}</th>
                                                             </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach($substitutes as $substitute)
+                                                                                        @php
+                                                                                            $now = now();
+                                                                                            $startDate = \Carbon\Carbon::parse($substitute->start_date);
+                                                                                            $endDate = \Carbon\Carbon::parse($substitute->end_date);
+
+                                                                                            $status = 'inactive';
+                                                                                            if ($now->between($startDate, $endDate)) {
+                                                                                                $status = 'active';
+                                                                                            } elseif ($now->lt($startDate)) {
+                                                                                                $status = 'pending';
+                                                                                            }
+                                                                                        @endphp
+                                                                                        <tr>
+                                                                                            <td>{{ $substitute->name }}</td>
+                                                                                            <td>{{ $substitute->formatted_start_date }}</td>
+                                                                                            <td>{{ $substitute->formatted_end_date }}</td>
+                                                                                            <td>{{ $substitute->notes }}</td>
+                                                                                            <td>
+                                                                                                <span
+                                                                                                    class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">
+                                                                                                    {{ trans('lang.substitute_status_' . $status) }}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <form action="{{ route('substitute.destroy', $substitute->id) }}"
+                                                                                                    method="POST" class="d-inline">
+                                                                                                    @csrf
+                                                                                                    @method('DELETE')
+                                                                                                    <button type="submit" class="btn btn-danger btn-sm">
+                                                                                                        <i class="fas fa-trash"></i>
+                                                                                                    </button>
+                                                                                                </form>
+                                                                                            </td>
+                                                                                        </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
                                 @endif
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        @elseif ($currentMode === 'precise')
-    <div class="content">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <!-- Tabs Navigation -->
-                <ul class="nav nav-tabs mb-3" id="availabilityTabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="cabinet-tab" data-toggle="tab" href="#cabinet" role="tab">
-                            <i class="fas fa-hospital"></i> {{ trans('lang.cabinet') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="teleconsultation-tab" data-toggle="tab" href="#teleconsultation" role="tab">
-                            <i class="fas fa-video"></i> {{ trans('lang.teleconsultation') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="home_visit-tab" data-toggle="tab" href="#home_visit" role="tab">
-                            <i class="fas fa-home"></i> {{ trans('lang.home_visit') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="vacation-tab" data-toggle="tab" href="#vacation" role="tab">
-                            <i class="fas fa-umbrella-beach"></i> {{ trans('lang.vacation') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="substitute-tab" data-toggle="tab" href="#substitute" role="tab">
-                            <i class="fas fa-user-md"></i> {{ trans('lang.substitute') }}
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Availability Form -->
-                <div class="tab-content" id="availabilityTabContent">
-                    @foreach(['cabinet' => 'Cabinet', 'teleconsultation' => 'Téléconsultation', 'home_visit' => 'Visite à domicile'] as $type => $label)
-                        <div class="tab-pane fade {{ $type === 'cabinet' ? 'show active' : '' }}" id="{{ $type }}" role="tabpanel">
-                            <form action="{{ route('availability.store') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="type" value="{{ $type }}">
-                                <input type="hidden" name="mode" value="{{ $currentMode }}">
-
-                                <table class="table table-bordered">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th style="width: 10%;">{{ trans('lang.availability') }}</th>
-                                            <th style="width: 20%;">{{ trans('lang.day') }}</th>
-                                            <th style="width: 70%;">{{ trans('lang.timeSlots') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($days as $dayIndex => $day)
-                                            <tr>
-                                                <td class="text-center align-middle">
-                                                    <label class="switch">
-                                                        <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]"
-                                                            value="1" @if(isset($availabilities[$type][$day]) && $availabilities[$type][$day]->contains('is_available', true)) checked @endif>
-                                                        <span class="slider round"></span>
-                                                    </label>
-                                                    <input type="hidden" name="availability[{{ $dayIndex }}][day]" value="{{ $day }}">
-                                                </td>
-                                                <td class="align-middle">
-                                                    {{ trans('lang.' . strtolower($day)) }}
-                                                </td>
-                                                <td>
-                                                    <div id="{{ $type }}-slots-{{ $dayIndex }}" class="slots-container">
-                                                        @php
-                                                            $daySlots = $availabilities[$type][$day] ?? collect();
-                                                        @endphp
-
-                                                        @if($daySlots->isNotEmpty())
-                                                            @foreach($daySlots as $slot)
-                                                                <div class="slot-entry d-flex align-items-center mb-2">
-                                                                    <input type="time" name="availability[{{ $dayIndex }}][slots][start][]"
-                                                                        class="form-control mr-2" required
-                                                                        value="{{ \Carbon\Carbon::parse($slot->start_at)->format('H:i') }}">
-                                                                    <input type="time" name="availability[{{ $dayIndex }}][slots][end][]"
-                                                                        class="form-control mr-2" required
-                                                                        value="{{ \Carbon\Carbon::parse($slot->end_at)->format('H:i') }}">
-                                                                    <select name="availability[{{ $dayIndex }}][slots][pattern][]"
-                                                                        class="form-control mr-2" required>
-                                                                        <option value="">{{ trans('lang.select_pattern') }}</option>
-                                                                        @foreach($doctorPatterns as $pattern)
-                                                                            <option value="{{ $pattern->id }}" {{ $slot->patern_id == $pattern->id ? 'selected' : '' }}>
-                                                                                {{ $pattern->nom }}
-                                                                            </option>
-                                                                        @endforeach
-                                                                    </select>
-                                                                    <input type="number"
-                                                                        name="availability[{{ $dayIndex }}][slots][duration][]"
-                                                                        class="form-control mr-2" placeholder="{{ trans('lang.duration') }}"
-                                                                        required min="15" value="{{ $slot->session_duration ?? 30 }}">
-                                                                    <button type="button" class="btn btn-danger btn-sm"
-                                                                        onclick="removeSlot(this)">
-                                                                        <i class="fas fa-trash"></i>
-                                                                    </button>
-                                                                </div>
-                                                            @endforeach
-                                                        @endif
-                                                        <button type="button" class="btn btn-primary btn-sm mt-2"
-                                                            onclick="addSlot('{{ $type }}', {{ $dayIndex }})">
-                                                            <i class="fas fa-plus"></i> {{ trans('lang.add_slot') }}
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                                <button type="submit" class="btn bg-{{ setting('theme_color') }} mt-4">
-                                    {{ trans("lang.saveDispo") }}
-                                </button>
-                            </form>
-                        </div>
-                    @endforeach
-                    
-                    <!-- Vacation Tab -->
-                    <div class="tab-pane fade" id="vacation" role="tabpanel">
-                        <form action="{{ route('holidays.store') }}" method="POST">
-                            @csrf
-                            <div class="card">
-                                <div class="card-header">
-                                    <h4>{{ trans("lang.add_vacation") }}</h4>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>{{ trans("lang.start_date") }}</label>
-                                                <input type="date" name="start_date" class="form-control" required
-                                                    min="{{ date('Y-m-d') }}">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>{{ trans("lang.end_date") }}</label>
-                                                <input type="date" name="end_date" class="form-control" required
-                                                    min="{{ date('Y-m-d') }}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>{{ trans("lang.reason") }}</label>
-                                        <textarea name="reason" class="form-control" rows="3"></textarea>
-                                    </div>
-                                    <button type="submit" class="btn bg-{{ setting('theme_color') }}">
-                                        {{ trans("lang.save_vacation") }}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-
-                        @if(isset($vacations) && count($vacations) > 0)
-                            <div class="card mt-4">
-                                <div class="card-header">
-                                    <h4>{{ trans("lang.vacation_list") }}</h4>
-                                </div>
-                                <div class="card-body vacation-list-container">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>{{ trans("lang.start_date") }}</th>
-                                                    <th>{{ trans("lang.end_date") }}</th>
-                                                    <th>{{ trans("lang.reason") }}</th>
-                                                    <th>{{ trans("lang.actions") }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($vacations as $vacation)
-                                                    <tr>
-                                                        <td>{{ \Carbon\Carbon::parse($vacation->start_date)->format('d/m/Y') }}</td>
-                                                        <td>{{ \Carbon\Carbon::parse($vacation->end_date)->format('d/m/Y') }}</td>
-                                                        <td>{{ $vacation->reason }}</td>
-                                                        <td>
-                                                            <form action="{{ route('vacances.destroy', $vacation->id) }}"
-                                                                method="POST" class="d-inline">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-danger btn-sm">
-                                                                    <i class="fas fa-trash"></i>
-                                                                </button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-                    <div class="tab-pane fade" id="substitute" role="tabpanel">
-                        <form action="{{ route('substitute.store') }}" method="POST">
-                            @csrf
-                            <div class="card">
-                                <div class="card-header">
-                                    <h4>{{ trans('lang.add_substitute') }}</h4>
-                                </div>
-                                <div class="card-body">
-                                    <div class="form-group">
-                                        <label>{{ trans('lang.substitute_name') }}</label>
-                                        <input type="text" name="name" class="form-control" required>
-                                    </div>
-                                    <div class="row">
-                                    <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>{{ trans('lang.start_date') }}</label>
-                                                <input type="datetime-local" name="start_date" class="form-control" required>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>{{ trans('lang.end_date') }}</label>
-                                                <input type="datetime-local" name="end_date" class="form-control" required>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>{{ trans('lang.notes') }}</label>
-                                        <textarea name="notes" class="form-control" rows="3"></textarea>
-                                    </div>
-                                    <button type="submit" class="btn bg-{{ setting('theme_color') }}">
-                                        {{ trans('lang.save_substitute') }}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    
-                        @if(isset($substitutes) && count($substitutes) > 0)
-                            <div class="card mt-4">
-                                <div class="card-header">
-                                    <h4>{{ trans('lang.substitute_list') }}</h4>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>{{ trans('lang.substitute_name') }}</th>
-                                                    <th>{{ trans('lang.start_date') }}</th>
-                                                    <th>{{ trans('lang.end_date') }}</th>
-                                                    <th>{{ trans('lang.notes') }}</th>
-                                                    <th>{{ trans('lang.status') }}</th>
-                                                    <th>{{ trans('lang.actions') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($substitutes as $substitute)
-                                                    @php
-                                                        $now = now();
-                                                        $startDate = \Carbon\Carbon::parse($substitute->start_date);
-                                                        $endDate = \Carbon\Carbon::parse($substitute->end_date);
-                                                        
-                                                        $status = 'inactive';
-                                                        if ($now->between($startDate, $endDate)) {
-                                                            $status = 'active';
-                                                        } elseif ($now->lt($startDate)) {
-                                                            $status = 'pending';
-                                                        }
-                                                    @endphp
-                                                    <tr>
-                                                        <td>{{ $substitute->name }}</td>
-                                                        <td>{{ $substitute->formatted_start_date }}</td>
-                                                        <td>{{ $substitute->formatted_end_date }}</td>
-                                                        <td>{{ $substitute->notes }}</td>
-                                                        <td>
-                                                            <span class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">
-                                                                {{ trans('lang.substitute_status_' . $status) }}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <form action="{{ route('substitute.destroy', $substitute->id) }}"
-                                                                method="POST" class="d-inline">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-danger btn-sm">
-                                                                    <i class="fas fa-trash"></i>
-                                                                </button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
+        @endif
+    @else
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="alert alert-danger">
+                    {{ __('Vous n’avez pas la permission (:permission) d’accéder à cette page.', ['permission' => $readablePermission]) }}
                 </div>
             </div>
         </div>
-    </div>
     @endif
-        @else
-            <div class="content-header">
-                <div class="container-fluid">
-                    <div class="alert alert-danger">
-                        {{ __('Vous n’avez pas la permission (:permission) d’accéder à cette page.', ['permission' => $readablePermission]) }}
-                    </div>
-                </div>
-            </div>
-        @endif
 @endsection
 
 @section('styles')
     <link href="{{ asset('css/availability.css') }}" rel="stylesheet">
     <style>
         /* Modern Table Styles */
-        
+
         .table {
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             border-collapse: collapse;
         }
 
@@ -734,7 +730,7 @@
         }
 
         .table tbody tr:hover {
-            background-color: rgba(0,0,0,0.02);
+            background-color: rgba(0, 0, 0, 0.02);
         }
 
         .table td {
@@ -743,7 +739,7 @@
             border-bottom: 1px solid #dee2e6;
         }
 
-        
+
 
         .mode-switch label {
             position: relative;
@@ -755,14 +751,14 @@
         }
 
         .mode-switch label:hover {
-            background: rgba(0,0,0,0.05);
+            background: rgba(0, 0, 0, 0.05);
         }
 
         .mode-switch input[type="radio"] {
             display: none;
         }
 
-        .mode-switch input[type="radio"]:checked + label {
+        .mode-switch input[type="radio"]:checked+label {
             background-color: var(--primary);
             color: white;
         }
@@ -831,11 +827,11 @@
             border-radius: 50%;
         }
 
-        input:checked + .slider {
+        input:checked+.slider {
             background-color: var(--primary);
         }
 
-        input:checked + .slider:before {
+        input:checked+.slider:before {
             transform: translateX(26px);
         }
 
@@ -885,7 +881,7 @@
 <div class="mode-switch mb-4">
     <input type="radio" id="openMode" name="mode" value="open" {{ $currentMode === 'open' ? 'checked' : '' }}>
     <label for="openMode">Mode Ouvert</label>
-    
+
     <input type="radio" id="preciseMode" name="mode" value="precise" {{ $currentMode === 'precise' ? 'checked' : '' }}>
     <label for="preciseMode">Mode Précis</label>
 </div>
@@ -960,20 +956,20 @@
             });
 
             div.innerHTML = `
-                    <input type="time" name="availability[${dayIndex}][slots][start][]" 
-                        class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                    <input type="time" name="availability[${dayIndex}][slots][end][]" 
-                        class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                    <select name="availability[${dayIndex}][slots][pattern][]" class="form-control mr-2" required>
-                        <option value="">{{ trans('lang.select_pattern') }}</option>
-                        ${options}
-                    </select>
-                    <input type="number" name="availability[${dayIndex}][slots][duration][]" 
-                        class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" required min="15" value="30">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
+                        <input type="time" name="availability[${dayIndex}][slots][start][]" 
+                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                        <input type="time" name="availability[${dayIndex}][slots][end][]" 
+                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                        <select name="availability[${dayIndex}][slots][pattern][]" class="form-control mr-2" required>
+                            <option value="">{{ trans('lang.select_pattern') }}</option>
+                            ${options}
+                        </select>
+                        <input type="number" name="availability[${dayIndex}][slots][duration][]" 
+                            class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" required min="15" value="30">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
 
             container.insertBefore(div, container.lastElementChild);
         }
@@ -1005,7 +1001,7 @@
     </script>
     @parent
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Add tooltip for home visits
             const homeVisitTab = document.getElementById('home-visit-tab');
             if (homeVisitTab) {
@@ -1071,39 +1067,39 @@
 @endsection
 
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Make time inputs required when checkbox is checked
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const row = this.closest('tr');
-            const timeInputs = row.querySelectorAll('input[type="time"]');
-            timeInputs.forEach(input => {
-                if (!input.classList.contains('break-time')) {
-                    input.required = this.checked;
-                }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Make time inputs required when checkbox is checked
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const row = this.closest('tr');
+                    const timeInputs = row.querySelectorAll('input[type="time"]');
+                    timeInputs.forEach(input => {
+                        if (!input.classList.contains('break-time')) {
+                            input.required = this.checked;
+                        }
+                    });
+                });
+            });
+
+            // Break time validation
+            const breakInputs = document.querySelectorAll('.break-time');
+            breakInputs.forEach(input => {
+                input.addEventListener('change', function () {
+                    const pairType = this.dataset.pair;
+                    const row = this.closest('tr');
+                    const pairInput = row.querySelector(`[name$="[${pairType}]"]`);
+
+                    if (this.value && !pairInput.value) {
+                        pairInput.required = true;
+                        this.required = true;
+                    } else {
+                        pairInput.required = false;
+                        this.required = false;
+                    }
+                });
             });
         });
-    });
-
-    // Break time validation
-    const breakInputs = document.querySelectorAll('.break-time');
-    breakInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            const pairType = this.dataset.pair;
-            const row = this.closest('tr');
-            const pairInput = row.querySelector(`[name$="[${pairType}]"]`);
-            
-            if (this.value && !pairInput.value) {
-                pairInput.required = true;
-                this.required = true;
-            } else {
-                pairInput.required = false;
-                this.required = false;
-            }
-        });
-    });
-});
-</script>
+    </script>
 @endpush

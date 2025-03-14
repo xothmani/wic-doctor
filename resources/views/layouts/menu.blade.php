@@ -1,4 +1,4 @@
-    @can('dashboard')
+@can('dashboard')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('dashboard*') ? 'active' : '' }}" href="{!! url('dashboard') !!}">@if($icons)
         <i class="nav-icon fas fa-tachometer-alt"></i>@endif
@@ -58,20 +58,20 @@
                 </li>
             @endcan
             {{-- @can('appointment-events.index')
-                            <li class="nav-item">
-                                <a class="nav-link {{ Request::is('appointment-event*') ? 'active' : '' }}"
-                                    href="{!! route('appointment-events.index') !!}">
-                                    @if($icons)
-                                        <i class="nav-icon fas fa-calendar-alt"></i>
-                                    @endif
-                                    <p>{{ trans('lang.agenda') }}</p>
-                                </a>
-                            </li>
-                        @endcan --}}    
+            <li class="nav-item">
+                <a class="nav-link {{ Request::is('appointment-event*') ? 'active' : '' }}"
+                    href="{!! route('appointment-events.index') !!}">
+                    @if($icons)
+                    <i class="nav-icon fas fa-calendar-alt"></i>
+                    @endif
+                    <p>{{ trans('lang.agenda') }}</p>
+                </a>
+            </li>
+            @endcan --}}
             @if(Auth::check() && Auth::user()->hasRole('Telesecretary'))
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('doctor-telesecretariat*') ? 'active' : '' }}"
-                    href="{!! route('doctor_telesecretariat.index') !!}">
+                        href="{!! route('doctor_telesecretariat.index') !!}">
                         @if($icons)
                             <i class="nav-icon fas fa-calendar-alt"></i>
                         @endif
@@ -81,7 +81,7 @@
             @elseif(Auth::check() && Gate::allows('appointment-events.index'))
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('appointment-event*') ? 'active' : '' }}"
-                    href="{!! route('appointment-events.index') !!}">
+                        href="{!! route('appointment-events.index') !!}">
                         @if($icons)
                             <i class="nav-icon fas fa-calendar-alt"></i>
                         @endif
@@ -162,17 +162,6 @@
             <p>{{ trans('lang.profile_management') }} <i class="right fas fa-angle-left"></i></p>
         </a>
         <ul class="nav nav-treeview">
-            @can('Doctors_permissions.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('profile_management/Doctors_permissions*') ? 'active' : '' }}"
-                        href="{!! route('Doctors_permissions.index') !!}">
-                        @if($icons)
-                            <i class="nav-icon fas fa-lock"></i>
-                        @endif
-                        <p>{{ trans('lang.permission_management') }}</p>
-                    </a>
-                </li>
-            @endcan
             @can('Doctors_users.index')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('profile_management/Doctors_users*') ? 'active' : '' }}"
@@ -181,6 +170,17 @@
                             <i class="nav-icon fas fa-users"></i>
                         @endif
                         <p>{{ trans('lang.user_management') }}</p>
+                    </a>
+                </li>
+            @endcan
+            @can('Doctors_permissions.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('profile_management/Doctors_permissions*') ? 'active' : '' }}"
+                        href="{!! route('Doctors_permissions.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-lock"></i>
+                        @endif
+                        <p>{{ trans('lang.permission_management') }}</p>
                     </a>
                 </li>
             @endcan
@@ -226,15 +226,15 @@
 @endcan
 
 {{--@can('doctor_telesecretariat.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : '' }}"
-            href="{!! route('doctor_telesecretariat.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-calendar-check"></i>
-            @endif
-            <p>{{ trans('lang.agenda_des_medecins') }}</p>
-        </a>
-    </li>
+<li class="nav-item">
+    <a class="nav-link {{ Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : '' }}"
+        href="{!! route('doctor_telesecretariat.index') !!}">
+        @if($icons)
+        <i class="nav-icon fas fa-calendar-check"></i>
+        @endif
+        <p>{{ trans('lang.agenda_des_medecins') }}</p>
+    </a>
+</li>
 @endcan --}}
 
 @can('doctor_telesecretariat.create')
@@ -412,19 +412,22 @@
 @can('doctor_blog.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('doctor_blog') ? 'active' : '' }}" href="{!! route('doctor_blog.index') !!}">
-        @if($icons)
-            <i class="nav-icon fas fa-blog"></i> <!-- Icône de blog -->
-        @endif
-        <p>{{ trans('lang.my_blog_plural') }}</p></a>
+            @if($icons)
+                <i class="nav-icon fas fa-blog"></i> <!-- Icône de blog -->
+            @endif
+            <p>{{ trans('lang.my_blog_plural') }}</p>
+        </a>
     </li>
 @endcan
 @can('photos_cabinet.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('photos_cabinet') ? 'active' : '' }}" href="{!! route('photos_cabinet.index') !!}">
-        @if($icons)
-        <i class="nav-icon fas fa-images"></i> <!-- Icône de galerie -->
-        @endif
-        <p>{{ trans('lang.photos_cabinet') }}</p></a>
+        <a class="nav-link {{ Request::is('photos_cabinet') ? 'active' : '' }}"
+            href="{!! route('photos_cabinet.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-images"></i> <!-- Icône de galerie -->
+            @endif
+            <p>{{ trans('lang.photos_cabinet') }}</p>
+        </a>
     </li>
 @endcan
 @can('suivi_doctors.index')

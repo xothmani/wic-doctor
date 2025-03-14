@@ -1,140 +1,150 @@
 @extends('layouts.app')
 
 @push('css_lib')
-    <link rel="stylesheet" href="{{ asset('vendor/icheck-bootstrap/icheck-bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/summernote/summernote-bs4.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/dropzone/min/dropzone.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
+    <!-- ...existing css imports... -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+
+    <style>
+        .form-section {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .intro-card {
+            background: linear-gradient(135deg, #5C6BC0, #3F51B5);
+            color: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            height: auto;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #5C6BC0;
+            box-shadow: 0 0 0 0.2rem rgba(92, 107, 192, 0.15);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .btn-primary-custom {
+            background: #5C6BC0;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background: #3F51B5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(92, 107, 192, 0.2);
+        }
+
+        .custom-switch .custom-control-label::before {
+            width: 45px;
+            height: 24px;
+        }
+
+        .custom-switch .custom-control-label::after {
+            width: 18px;
+            height: 18px;
+        }
+    </style>
 @endpush
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0 text-bold">{{ trans('lang.doctor_telesecretariat') }}
-                        <small class="mx-3">|</small><small>{{ trans('lang.doctor_telesecretariat_add') }}</small>
-                    </h1>
-                </div><!-- /.col -->
-                <div class="col-sm-6">
-                    <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-                        <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i class="fas fa-tachometer-alt"></i>
-                                {{ trans('lang.dashboard') }}</a></li>
-                        <li class="breadcrumb-item">
-                            <a href="{!! route('doctor_requests.index') !!}">{{ trans('lang.doctor_telesecretariat') }}</a>
-                        </li>
-                        <li class="breadcrumb-item active">{{ trans('lang.doctor_telesecretariat_add') }}</li>
-                    </ol>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
-
-    @if(session('success'))
-        <div id="success-alert" class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div id="error-alert" class="alert alert-danger">
-            {{ session('error') }}
-        </div>
-    @endif
-
     <div class="content">
-        <div class="clearfix"></div>
-        @include('flash::message')
-        @include('adminlte-templates::common.errors')
-        <div class="clearfix"></div>
+        <div class="container-fluid">
+            @if(session('success'))
+                <div id="success-alert" class="alert alert-success fade show">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <ul class="nav nav-tabs d-flex flex-row align-items-start card-header-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{!! url()->current() !!}"><i
-                                class="fa fa-plus mr-2"></i>{{ trans('lang.doctor_telesecretariat_add') }}</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="card-body">
-                {!! Form::open(['route' => 'doctor_telesecretariat.store']) !!}
+            @if(session('error'))
+                <div id="error-alert" class="alert alert-danger fade show">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <div class="form-section">
+                <!-- Introduction Card -->
+                <div class="intro-card mb-5">
+                    <h3 class="mb-3">Télésécrétariat</h3>
+                    <p class="mb-2">
+                        Le télésécrétariat vous permet de déléguer la gestion de votre agenda à un professionnel de
+                        manière sécurisée et personnalisée.
+                    </p>
+                    <p class="mb-0">
+                        Le télésecrétaire aura un accès direct à votre agenda avec des permissions personnalisées
+                        pour gérer vos rendez-vous tout en respectant vos préférences.
+                    </p>
+                </div>
+
+                {!! Form::open(['route' => 'doctor_telesecretariat.store_profile_management', 'method' => 'POST']) !!}
+                <!-- Email Field -->
+                <div class="mb-4">
+                    <label for="email" class="form-label">Adresse email</label>
+                    <input type="email" id="email" name="email" class="form-control"
+                        placeholder="Entrez l'email du télésecrétaire" required>
+                </div>
+
                 <div class="row">
-                    @include('doctor_telesecretariat.fields')
+                    <!-- Start Date -->
+                    <div class="col-md-4 mb-4">
+                        <label for="start_date" class="form-label">Date de début</label>
+                        <input type="date" id="start_date" name="start_date" class="form-control">
+                    </div>
+
+                    <!-- End Date -->
+                    <div class="col-md-4 mb-4">
+                        <label for="end_date" class="form-label">Date de fin</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control">
+                    </div>
+
+                    <!-- Active Switch -->
+                    <div class="col-md-4 mb-4">
+                        <label class="form-label d-block">Statut</label>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" value="1">
+                            <label class="custom-control-label" for="is_active">Actif</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="{{ route('doctor_requests.index') }}" class="btn btn-light border me-2">
+                        <i class="fa fa-undo me-1"></i> {{ trans('lang.cancel') }}
+                    </a>
+                    <button type="submit" class="btn btn-primary-custom">
+                        <i class="fa fa-save me-1"></i> {{ trans('lang.save') }}
+                    </button>
                 </div>
                 {!! Form::close() !!}
-                <div class="clearfix"></div>
             </div>
         </div>
     </div>
-
-    <!-- Add this modal markup -->
-    <div class="modal fade" id="userSetupModal" tabindex="-1" role="dialog" aria-labelledby="userSetupModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="userSetupModalLabel">
-                        <i class="fas fa-user-plus mr-2"></i>{{ trans('lang.setup_user_account') }}
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="userSetupForm">
-                        <!-- Email from previous form (readonly) -->
-                        <div class="form-group">
-                            <label>{{ trans('lang.user_email') }}</label>
-                            <input type="email" class="form-control" id="setupEmail" readonly>
-                        </div>
-
-                        <!-- Name Field -->
-                        <div class="form-group">
-                            <label>{{ trans('lang.user_name') }} *</label>
-                            <input type="text" class="form-control" id="setupName" required>
-                        </div>
-
-                        <!-- Password Field -->
-                        <div class="form-group">
-                            <label>{{ trans('lang.user_password') }} *</label>
-                            <input type="password" class="form-control" id="setupPassword" required>
-                        </div>
-
-                        <!-- Phone Field -->
-                        <div class="form-group">
-                            <label>{{ trans('lang.phone_number') }}</label>
-                            <input type="tel" class="form-control" id="setupPhone">
-                        </div>
-
-                        <!-- Role Selection -->
-                        <div class="form-group">
-                            <label>{{ trans('lang.user_role') }} *</label>
-                            <select class="form-control select2" id="setupRole" required>
-                                <option value="telesecretariat">{{ trans('lang.telesecretariat') }}</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times mr-2"></i>{{ trans('lang.cancel') }}
-                    </button>
-                    <button type="button" class="btn btn-primary" id="saveUserSetup">
-                        <i class="fas fa-save mr-2"></i>{{ trans('lang.save') }}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    @include('layouts.media_modal')
 @endsection
 
 @push('scripts_lib')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <script src="{{ asset('vendor/select2/js/select2.full.min.js') }}"></script>
     <script src="{{ asset('vendor/summernote/summernote.min.js') }}"></script>
     <script src="{{ asset('vendor/dropzone/min/dropzone.min.js') }}"></script>
@@ -172,73 +182,50 @@
                 width: '100%'
             });
 
-            $('form[route="doctor_telesecretariat.store"]').on('submit', function (e) {
-                e.preventDefault();
-                let form = $(this);
-                let formData = new FormData(form[0]);
+            const today = new Date().toISOString().split('T')[0];
+            $('#start_date').attr('min', today);
 
-                $.ajax({
-                    url: form.attr('action'),
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        if (response.success) {
-                            // Pre-fill email in modal
-                            $('#setupEmail').val(response.email);
+            // Date validation handlers
+            $('#start_date').on('change', function () {
+                const startDate = $(this).val();
+                $('#end_date').attr('min', startDate);
 
-                            // Show the modal
-                            $('#userSetupModal').modal('show');
-                        }
-                    },
-                    error: function (xhr) {
-                        // Show error message from server
-                        Swal.fire({
-                            icon: 'error',
-                            title: '{{ trans("lang.error") }}',
-                            text: xhr.responseJSON.message || '{{ trans("lang.error_saving") }}'
-                        });
-                    }
-                });
+                // If end date is before start date, clear it
+                if ($('#end_date').val() && $('#end_date').val() < startDate) {
+                    $('#end_date').val('');
+                }
             });
-            // Handle user setup form submission
-            $('#saveUserSetup').click(function () {
-                let userData = {
-                    email: $('#setupEmail').val(),
-                    name: $('#setupName').val(),
-                    password: $('#setupPassword').val(),
-                    phone_number: $('#setupPhone').val(),
-                    role: $('#setupRole').val(),
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                };
 
-                $.ajax({
-                    url: '{{ route("Doctors_users.store") }}',
-                    method: 'POST',
-                    data: userData,
-                    success: function (response) {
-                        if (response.success) {
-                            $('#userSetupModal').modal('hide');
-                            Swal.fire({
-                                icon: 'success',
-                                title: '{{ trans("lang.user_created_successfully") }}',
-                                showConfirmButton: false,
-                                timer: 1500
-                            }).then(() => {
-                                window.location.href = '{{ route("doctor_telesecretariat.index") }}';
-                            });
-                        }
-                    },
-                    error: function (xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: '{{ trans("lang.error") }}',
-                            text: xhr.responseJSON.message || '{{ trans("lang.error_creating_user") }}'
-                        });
-                    }
-                });
+            // Form submission validation
+            $('form').on('submit', function (e) {
+                const startDate = $('#start_date').val();
+                const endDate = $('#end_date').val();
+
+                if (!startDate) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Erreur de validation',
+                        text: 'La date de début est obligatoire',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#5C6BC0'
+                    });
+                    return false;
+                }
+
+                if (endDate && endDate < startDate) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Erreur de validation',
+                        text: 'La date de fin doit être postérieure à la date de début',
+                        icon: 'error',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#5C6BC0'
+                    });
+                    return false;
+                }
             });
+
         });
     </script>
 @endpush
