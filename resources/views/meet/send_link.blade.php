@@ -379,6 +379,7 @@
             const form = document.getElementById('sendMeetingForm');
             const inputs = form.querySelectorAll('input[required]');
 
+
             // Real-time validation
             inputs.forEach(input => {
                 ['blur', 'input'].forEach(eventType => {
@@ -397,63 +398,63 @@
                 }
             }
             function validatePrices() {
-    const paymentMode = document.getElementById('paymentMode').value;
-    const tndPrice = parseFloat(document.getElementById('tele_price_tnd').value) || 0;
-    const eurPrice = parseFloat(document.getElementById('tele_price_eur').value) || 0;
+                const paymentMode = document.getElementById('paymentMode').value;
+                const tndPrice = parseFloat(document.getElementById('tele_price_tnd').value) || 0;
+                const eurPrice = parseFloat(document.getElementById('tele_price_eur').value) || 0;
 
-    // First check if payment mode is selected
-    if (!paymentMode) {
-        Swal.fire({
-            title: 'Erreur de validation',
-            text: 'Veuillez sélectionner un mode de paiement',
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
-        return false;
-    }
+                // First check if payment mode is selected
+                if (!paymentMode) {
+                    Swal.fire({
+                        title: 'Erreur de validation',
+                        text: 'Veuillez sélectionner un mode de paiement',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                    return false;
+                }
 
-    switch (paymentMode) {
-        case 'TND':
-            if (!document.getElementById('tele_price_tnd').value || tndPrice <= 0) {
-                Swal.fire({
-                    title: 'Erreur de validation',
-                    text: 'Le montant en TND doit être supérieur à 0',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                return false;
+                switch (paymentMode) {
+                    case 'TND':
+                        if (!document.getElementById('tele_price_tnd').value || tndPrice <= 0) {
+                            Swal.fire({
+                                title: 'Erreur de validation',
+                                text: 'Le montant en TND doit être supérieur à 0',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                            return false;
+                        }
+                        break;
+
+                    case 'EUR':
+                        if (!document.getElementById('tele_price_eur').value || eurPrice <= 0) {
+                            Swal.fire({
+                                title: 'Erreur de validation',
+                                text: 'Le montant en EUR doit être supérieur à 0',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                            return false;
+                        }
+                        break;
+
+                    case 'SPLIT':
+                        if (!document.getElementById('tele_price_tnd').value ||
+                            !document.getElementById('tele_price_eur').value ||
+                            tndPrice <= 0 ||
+                            eurPrice <= 0) {
+                            Swal.fire({
+                                title: 'Erreur de validation',
+                                text: 'Pour un paiement mixte, les deux montants doivent être supérieurs à 0',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                            return false;
+                        }
+                        break;
+                }
+                return true;
             }
-            break;
-
-        case 'EUR':
-            if (!document.getElementById('tele_price_eur').value || eurPrice <= 0) {
-                Swal.fire({
-                    title: 'Erreur de validation',
-                    text: 'Le montant en EUR doit être supérieur à 0',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                return false;
-            }
-            break;
-
-        case 'SPLIT':
-            if (!document.getElementById('tele_price_tnd').value || 
-                !document.getElementById('tele_price_eur').value || 
-                tndPrice <= 0 || 
-                eurPrice <= 0) {
-                Swal.fire({
-                    title: 'Erreur de validation',
-                    text: 'Pour un paiement mixte, les deux montants doivent être supérieurs à 0',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-                return false;
-            }
-            break;
-    }
-    return true;
-}
             // Form submission
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
@@ -491,51 +492,53 @@
                 Swal.fire({
                     title: 'Vérification des informations',
                     html: `
-                                                                                                                                                                                                                                                                                                                                            <div class="text-left">
-                                                                                                                                                                                                                                                                                                                                                <div class="card mb-3" style="border-color: #5c6bc0">
-                                                                                                                                                                                                                                                                                                                                                    <div class="card-header text-white" style="background-color: #5c6bc0">
-                                                                                                                                                                                                                                                                                                                                                        <i class="fas fa-user-circle"></i> Informations
-                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                    <div class="card-body p-3">
-                                                                                                                                                                                                                                                                                                                                                        <div class="row">
-                                                                                                                                                                                                                                                                                                                                                            <div class="col-12 mb-2">
-                                                                                                                                                                                                                                                                                                                                                                <strong>Patient :</strong> 
-                                                                                                                                                                                                                                                                                                                                                                ${document.getElementById('patient_first_name').value} 
-                                                                                                                                                                                                                                                                                                                                                                ${document.getElementById('patient_last_name').value}
-                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                            <div class="col-md-6">
-                                                                                                                                                                                                                                                                                                                                                                <strong>Contact :</strong><br>
-                                                                                                                                                                                                                                                                                                                                                                📧 ${document.getElementById('patientEmail').value}<br>
-                                                                                                                                                                                                                                                                                                                                                                📞 ${document.getElementById('patientPhone').value}
-                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                            <div class="col-md-6">
-                                                                                                                                                                                                                                                                                                                                                                <strong>Rendez-vous :</strong><br>
-                                                                                                                                                                                                                                                                                                                                                                📅 ${new Date(document.getElementById('startAt').value).toLocaleString('fr-FR')}
-                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                </div>
 
-                                                                                                                                                                                                                                                                                                                                                <div class="card mb-3" style="border-color: #5c6bc0">
-                                                                                                                                                                                                                                                                                                                                                    <div class="card-header text-white" style="background-color: #5c6bc0">
-                                                                                                                                                                                                                                                                                                                                                        <i class="fas fa-money-bill"></i> Prix & Lien
-                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                    <div class="card-body p-3">
-                                                                                                                                                                                                                                                                                                                                                        <div class="mb-2">
-                                                                                                                                                                                                                                                                                                                                                            <strong>Prix :</strong><br>
-                                                                                                                                                                                                                                                                                                                                                            🇹🇳 ${document.getElementById('tele_price_tnd').value} TND
-                                                                                                                                                                                                                                                                                                                                                            🇪🇺 ${document.getElementById('tele_price_eur').value} EUR
-                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                <div class="text-left">
+                                                                                                                                                                                                                                                                                                                                                                                    <div class="card mb-3" style="border-color: #5c6bc0">
+                                                                                                                                                                                                                                                                                                                                                                                        <div class="card-header text-white" style="background-color: #5c6bc0">
+                                                                                                                                                                                                                                                                                                                                                                                            <i class="fas fa-user-circle"></i> Informations
+                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                        <div class="card-body p-3">
+                                                                                                                                                                                                                                                                                                                                                                                            <div class="row">
+                                                                                                                                                                                                                                                                                                                                                                                                <div class="col-12 mb-2">
+                                                                                                                                                                                                                                                                                                                                                                                                    <strong>Patient :</strong> 
+                                                                                                                                                                                                                                                                                                                                                                                                    ${document.getElementById('patient_first_name').value} 
+                                                                                                                                                                                                                                                                                                                                                                                                    ${document.getElementById('patient_last_name').value}
+                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                <div class="col-md-6">
+                                                                                                                                                                                                                                                                                                                                                                                                    <strong>Contact :</strong><br>
+                                                                                                                                                                                                                                                                                                                                                                                                    📧 ${document.getElementById('patientEmail').value}<br>
+                                                                                                                                                                                                                                                                                                                                                                                                    📞 ${document.getElementById('patientPhone').value}
+                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                                <div class="col-md-6">
+                                                                                                                                                                                                                                                                                                                                                                                                    <strong>Rendez-vous :</strong><br>
+                                                                                                                                                                                                                                                                                                                                                                                                    📅 ${new Date(document.getElementById('startAt').value).toLocaleString('fr-FR')}
+                                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                    </div>
 
-                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                                    <div class="card mb-3" style="border-color: #5c6bc0">
+                                                                                                                                                                                                                                                                                                                                                                                        <div class="card-header text-white" style="background-color: #5c6bc0">
+                                                                                                                                                                                                                                                                                                                                                                                            <i class="fas fa-money-bill"></i> Prix & Lien
+                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                        <div class="card-body p-3">
+                                                                                                                                                                                                                                                                                                                                                                                            <div class="mb-2">
+                                                                                                                                                                                                                                                                                                                                                                                                <strong>Prix :</strong><br>
+                                                                                                                                                                                                                                                                                                                                                                                                🇹🇳 ${document.getElementById('tele_price_tnd').value} TND
+                                                                                                                                                                                                                                                                                                                                                                                                🇪🇺 ${document.getElementById('tele_price_eur').value} EUR
+                                                                                                                                                                                                                                                                                                                                                                                            </div>
 
-                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info border-left border-primary py-2">
-                                                                                                                                                                                                                                                                                                                                                    <i class="fas fa-info-circle"></i>
-                                                                                                                                                                                                                                                                                                                                                    Un email sera envoyé au patient avec ces informations.
-                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                        `,
+                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                    </div>
+
+                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-info border-left border-primary py-2">
+                                                                                                                                                                                                                                                                                                                                                                                        <i class="fas fa-info-circle"></i>
+                                                                                                                                                                                                                                                                                                                                                                                        Un email sera envoyé au patient avec ces informations.
+                                                                                                                                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                                                                                                                                            `,
+
                     width: '600px',
                     padding: '1rem',
                     icon: 'info',
@@ -564,7 +567,7 @@
             });
         });
 
-       
+
         function copyToClipboard() {
             const meetLink = document.getElementById('meetLink');
             navigator.clipboard.writeText(meetLink.value).then(() => {

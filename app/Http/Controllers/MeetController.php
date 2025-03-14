@@ -208,7 +208,7 @@ class MeetController extends Controller
             $validated = $request->validate([
                 'patient_first_name' => 'required|string|min:2',
                 'patient_last_name' => 'required|string|min:2',
-                'phone' => 'required|string|regex:/^\+?[0-9]{8,}$/',
+                'phone' => 'required',
                 'email' => 'required|email',
                 'start_at' => 'required|date',
                 'patient_id' => 'required|integer',
@@ -719,7 +719,9 @@ class MeetController extends Controller
 
             // Update appointment status if needed
             if ($room->appointment) {
-                $appointmentStatus = $request->status === 'completed' ? 6 : 7; // 5 for completed, 6 for failed
+
+
+                $appointmentStatus = $request->status === 'completed' ? 6 : 7;
                 $room->appointment->update(['appointment_status_id' => $appointmentStatus]);
             }
 

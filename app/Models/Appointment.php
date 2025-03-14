@@ -81,10 +81,11 @@ class Appointment extends Model
         'hint',
         'online',
         'cancel',
-	'motif_id', // Nouvelle colonne
+	    'motif_id', // Nouvelle colonne
         'clinic_id', // Nouvelle colonne
         'quantity',
-	'patient_id',
+        'patient_id',
+        'cancel_reason',
     ];
     /**
      * The attributes that should be casted to native types.

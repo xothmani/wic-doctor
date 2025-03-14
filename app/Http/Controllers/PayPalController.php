@@ -141,7 +141,9 @@ class PayPalController extends Controller
 
 
             // Fetch patient details using the Patient model
-            $patient = Patient::where('user_id', $user_id)->first();
+
+            $patient = Patient::where('id', $user_id)->first();
+
             if (!$patient) {
                 \Log::error("Patient not found for ID: " . $user_id);
                 return response()->json(['error' => 'Patient not found.'], 404);

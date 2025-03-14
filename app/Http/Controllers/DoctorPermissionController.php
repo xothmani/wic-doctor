@@ -27,18 +27,18 @@ class DoctorPermissionController extends Controller
 
         $selectedUserId = $request->input('selected_user', null);
 
-        // Fetch all permissions with readable names
+        /* // Fetch all permissions with readable names
         $permissions = DB::table('permissions')
             ->leftJoin('readable_permissions', 'permissions.id', '=', 'readable_permissions.permission_id')
             ->select(
                 'permissions.id as permission_id',
                 DB::raw('COALESCE(readable_permissions.readable_name, permissions.name) as display_name')
             )
-            ->get();
+            ->get(); */
 
         return view('profile_management.permissions.index', [
             'associatedUsers' => $associatedUsers,
-            'permissions' => $permissions,
+            /* 'permissions' => $permissions, */
             'doctorId' => $doctor->id,
             'selectedUserId' => $selectedUserId,
         ]);
