@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log; // Add this line to import Log
 use App\Models\DoctorSubstitute;
 use App\Models\ProfileManagement;
+use App\Models\DoctorAssociate;
 
 
 class DoctorTelesecretariatController extends Controller
@@ -27,15 +28,15 @@ class DoctorTelesecretariatController extends Controller
         try {
             $user = auth()->user();
             $telesecretariat = Telesecretariat::where('user_id', $user->id)->first();
+            \Log::info("tele", ['telesecretariat' => $telesecretariat]);
             // Vérifier si cet utilisateur est un télésécrétariat
             if ($user->hasRole('Telesecretary')) {
                 // Récupérer la liste des médecins associés via doctor_associate
-                $doctors = DoctorTelesecretariat::with(['doctor', 'telesecretariat'])
-                    ->join('doctors', 'doctor_telesecretariat.doctor_id', '=', 'doctors.id') // Jointure sur la table doctor
-                    ->where('telesecretariat_id', $telesecretariat->id)
-                    ->orderBy('doctors.name', 'asc') // Trier par nom du médecin
-                    ->get();
-
+                $doctors = ProfileManagement::where('user_id', $user->id)
+                    ->with(['doctor'])
+                    ->get()
+                    ->pluck('doctor');
+                \Log::info('Doctors fetched', ['doctors' => $doctors]);
                 // Vérifier si un doctor_id sélectionné existe dans la session
                 $selectedDoctorId = session('selectedDoctorId');
                 \Log::info('Selected Doctor ID: ' . $selectedDoctorId);
@@ -1065,7 +1066,6 @@ class DoctorTelesecretariatController extends Controller
             'email' => 'required|email',
         ]);
 
-        // Rechercher l'utilisateur par adresse email
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
@@ -1075,17 +1075,6 @@ class DoctorTelesecretariatController extends Controller
             ], 404);
         }
 
-        // Vérifier si cet utilisateur est un télésécrétariat
-        $telesecretariat = Telesecretariat::where('user_id', $user->id)->first();
-
-        if (!$telesecretariat) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cet utilisateur n\'est pas lié à un télésécrétariat.'
-            ], 400);
-        }
-
-        // Récupérer l'ID du médecin connecté
         $doctor = Auth::user()->doctor;
         if (!$doctor) {
             return response()->json([
@@ -1094,72 +1083,51 @@ class DoctorTelesecretariatController extends Controller
             ], 400);
         }
 
-        // =========== LOG THE DOCTOR ID ==========
-        //Log::info('Doctor ID from Auth user:', ['doctor_id' => $doctor->id]);
-
-        // ENREGISTRER AUSSI DANS LA TABLE doctor_associate
-        $alreadyAssociated = \DB::table('doctor_associate')
-            ->where('doctor_id', $doctor->id)
-            ->where('user_id', $user->id)
-            ->exists();
-
-        if (!$alreadyAssociated) {
-            \DB::table('doctor_associate')->insert([
-                'doctor_id' => $doctor->id,
-                'user_id' => $user->id,
-            ]);
-            //Log::info('Store method called just now!');
-
-        }
-
-        // Redirect + show the ProfileManagement modal
-        return redirect()
-            ->route('doctor_telesecretariat.create')
-            ->with('success', 'Association créée avec succès!')
-            ->with('show_modal', true)
-            ->with('profile_user_id', $user->id)
-            ->with('profile_user_email', $user->email);
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone_number' => $user->phone_number
+            ]
+        ]);
     }
+
 
     public function storeProfileManagment(Request $request)
     {
-        // 1) Validate the incoming data
+        \Log::info("store_profile", $request->all());
+
         $validatedData = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
+            'email' => 'required|email',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'is_active' => 'sometimes|boolean',
         ]);
 
-        // 2) Find the user
-        $user = User::findOrFail($validatedData['user_id']);
-
-        // 3) Get the doctor from the currently logged in user
+        $user = User::where('email', $validatedData['email'])->firstOrFail();
         $doctor = Auth::user()->doctor;
+
         if (!$doctor) {
-            return redirect()
-                ->route('doctor_telesecretariat.create')
-                ->with('error', 'Vous n\'êtes pas enregistré comme médecin.');
+            return redirect()->back()->with('error', 'Vous n\'êtes pas enregistré comme médecin.');
         }
 
+        ProfileManagement::create([
+            'user_id' => $user->id,
+            'doctor_id' => $doctor->id,
+            'start_date' => $validatedData['start_date'],
+            'end_date' => $validatedData['end_date'],
+            'is_active' => $request->boolean('is_active'),
+        ]);
 
-        // 4) Create and save the new ProfileManagement record
-        $profile = new ProfileManagement();
-        $profile->user_id = $user->id;
-        $profile->doctor_id = $doctor->id;
-        $profile->start_date = $validatedData['start_date'] ?? null;
-        $profile->end_date = $validatedData['end_date'] ?? null;
-        $profile->is_active = $request->has('is_active');
-        // or: $profile->is_active = $request->boolean('is_active'); // if you prefer
+        DoctorAssociate::firstOrCreate([
+            'doctor_id' => $doctor->id,
+            'user_id' => $user->id,
+        ]);
 
-        $profile->save();
-
-        // 5) Redirect back (or wherever you want) with a success message
-        return redirect()
-            ->route('doctor_telesecretariat.create')
-            ->with('success', 'Profile Management créé avec succès!');
+        return redirect()->back()->with('success', 'Votre compte est désormais lié à ce télésécrétariat !');
     }
-
     public function BackgroundColorForAgenda(Request $request)
     {
         $doctorId = $request->input('doctor_id'); // Use doctor_id from request

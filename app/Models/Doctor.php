@@ -124,6 +124,7 @@ class Doctor extends Model implements HasMedia, Castable
         'pourcentage_profil',
         'pourcentage_tags',
         'verif_chart',
+        'availability_mode',
 
 
     ];
