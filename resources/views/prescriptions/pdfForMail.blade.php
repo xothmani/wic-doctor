@@ -76,7 +76,7 @@
             <h1>Dr. {{ $user_name }}</h1>
             <table>
                 <tr>
-                    <td style="text-align: left;">Médecin {{ json_decode($doctor_speciality)->{app()->getLocale()} ?? '' }}</td>
+                    <td style="text-align: left;">{{ json_decode($doctor_speciality)->{app()->getLocale()} ?? '' }}</td>
                     <td style="text-align: right;">{{ json_decode($doctor_address)->{app()->getLocale()} ?? '' }}</td>
                 </tr>
             </table>
@@ -86,9 +86,7 @@
                         <td style="text-align: left;">{{ $diplome }}</td>
                         <td style="text-align: right;"><strong>{{ trans('lang.tel') }}</strong>{{ $doctor_phone }}</td>
                     </tr>
-                    <tr>
-                        <td style="text-align: left;">{{ trans('lang.numOrdre') }}: {{ $numOrdre }}</td>
-                    </tr>
+                   
                 </table>
             </div>
         </div>

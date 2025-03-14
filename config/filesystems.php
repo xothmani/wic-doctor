@@ -46,45 +46,33 @@ return [
     | Supported Drivers: "local", "ftp", "sftp", "s3"
     |
     */
-'disks' => [
-    'local' => [
-        'driver' => 'local',
-        'root' => '/mnt/doctor',
-    ],
 
-    'public' => [
-        'driver' => 'local',
-        'root' => storage_path('app/public'),
-        'url' => env('APP_URL') . 'storage',
-        'visibility' => 'public',
-    ],
+    'disks' => [
 
-    's3' => [
-        'driver' => 's3',
-        'key' => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
-        'region' => env('AWS_DEFAULT_REGION'),
-        'bucket' => env('AWS_BUCKET'),
-        'url' => env('AWS_URL'),
-        'endpoint' => env('AWS_ENDPOINT'),
-    ],
-    'doctor_sharing' => [
-        'driver' => 'local',
-        'root' => '/mnt/doctor',
-        'permissions' => [
-            'file' => [
-                'public' => 0777,
-                'private' => 0777,
-            ],
-            'dir' => [
-                'public' => 0777,
-                'private' => 0777,
-            ],
+        'local' => [
+            'driver' => 'local',
+            'root' => storage_path('app'),
         ],
+
+        'public' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL') . 'storage',
+            'visibility' => 'public',
+        ],
+
+        's3' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+        ],
+
     ],
 
-
-],
     /*
     |--------------------------------------------------------------------------
     | Symbolic Links

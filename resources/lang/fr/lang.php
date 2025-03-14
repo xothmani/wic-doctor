@@ -1833,7 +1833,7 @@ return [
     'prescription' => 'Préscription',
     'prescription' => 'Préscription',
     'phone_number' => 'Téléphone',
-    'prescription_medicament_frequency' => 'Nombre de fois/Jour',
+    'prescription_medicament_frequency' => 'Nb/Jour',
     'prescription_select_frequency' => 'Sélectionner le nbr de fois/J',
     'fiche_details' => 'Fiche Patient',
     'patient_details' => 'Détails du patient',
