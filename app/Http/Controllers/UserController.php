@@ -79,7 +79,9 @@ class UserController extends Controller
      */
     public function profile()
     {
-
+        if (auth()->check() && auth()->user()->hasRole('Telesecretary')) {
+            return redirect()->route('tele-appointment-events.index'); // ← ta route spécifique
+        }
         $user = auth()->user();
         //$showNewFeaturesModal = !$user->saw_new_features;
         $showNewFeaturesModal = false;

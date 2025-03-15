@@ -12,7 +12,7 @@ use App\Models\Appointment;
 use App\Models\DoctorSubstitute;
 use App\Models\AvailabilityHour;
 use Carbon\Carbon;
-
+use Flash;
 
 
 class AvailabilityController extends Controller
@@ -48,8 +48,9 @@ class AvailabilityController extends Controller
         // Récupérer l'ID du médecin lié à l'utilisateur connecté
         $doctorId = auth()->user()->getDoctorId();
 
+        
         if (!$doctorId) {
-            return redirect()->route('users.profile');
+            session()->flash('error', 'Veuillez d\'abord sélectionner un médecin.');
         }
         $currentMode = null;
         if (auth()->user()->hasRole('doctor')) {

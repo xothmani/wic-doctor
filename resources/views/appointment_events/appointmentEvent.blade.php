@@ -1007,7 +1007,9 @@
 
                                 // Fetch and set the dynamic number
                                 fetchAppointmentStats(doctorId, dayDate).then(stats => {
-                                    let staticNumber = `${stats.appointments_taken}/${stats.total_appointments}`;
+                                    let totalAppointments = stats && stats.total_appointments ? stats.total_appointments : 0;
+                                    let appointmentsTaken = stats && stats.appointments_taken ? stats.appointments_taken : 0;
+                                    let staticNumber = `${appointmentsTaken}/${totalAppointments}`;
                                     let substituteName = activeSubstitute ? activeSubstitute.name : "&nbsp;";
 
                                     // Create custom label with hover functionality

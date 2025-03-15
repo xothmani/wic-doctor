@@ -1,7 +1,8 @@
 @extends('layouts.app')
+
 @php
     $doctorId = auth()->user()->getDoctorId();
-    $permissionKey = 'patients.index';
+    $permissionKey = 'appointments.index';
     // Retrieve the permission with its related readable record
     $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
         ->with('readable')
