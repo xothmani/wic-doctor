@@ -329,7 +329,7 @@ class DoctorUserController extends Controller
             $roleMap = [
                 'Secrétaire' => 'Secretary',
                 'Télésecrétaire' => 'Telesecretary',
-                'Médecin' => 'Doctor',
+                'Substitue' => 'Remplaçant',
             ];
 
             // Map the translated role to the internal one
