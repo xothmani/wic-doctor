@@ -874,6 +874,52 @@
         .btn i {
             margin-right: 4px;
         }
+
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 5px #fff, 0 0 10px var(--primary);
+            }
+
+            50% {
+                box-shadow: 0 0 20px #fff, 0 0 30px var(--primary);
+            }
+
+            100% {
+                box-shadow: 0 0 5px #fff, 0 0 10px var(--primary);
+            }
+        }
+
+        .btn-glow {
+            animation: glow 2s infinite;
+        }
+
+        .unsaved-warning {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff4444;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            display: none;
+            z-index: 9999;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .unsaved-warning.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
     </style>
 @endsection
 
@@ -955,27 +1001,19 @@
                 options += `<option value="${pattern.id}">${pattern.nom}</option>`;
             });
 
-            div.innerHTML = `
-                        <input type="time" name="availability[${dayIndex}][slots][start][]" 
-                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                        <input type="time" name="availability[${dayIndex}][slots][end][]" 
-                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                        <select name="availability[${dayIndex}][slots][pattern][]" class="form-control mr-2" required>
-                            <option value="">{{ trans('lang.select_pattern') }}</option>
-                            ${options}
-                        </select>
-                        <input type="number" name="availability[${dayIndex}][slots][duration][]" 
-                            class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" required min="15" value="30">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    `;
+            div.innerHTML = ` <input type="time" name="availability[${dayIndex}][slots][start][]" class="form-control mr-2" required onchange="validateTimeSlot(this)"> <input type="time" name="availability[${dayIndex}][slots][end][]" class="form-control mr-2" required onchange="validateTimeSlot(this)"> <select name="availability[${dayIndex}][slots][pattern][]" class="form-control mr-2" required> <option value="">{{ trans('lang.select_pattern') }}</option> ${options} </select> <input type="number" name="availability[${dayIndex}][slots][duration][]" class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" required min="15" value="30"> <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)"> <i class="fas fa-trash"></i> </button> `;
 
             container.insertBefore(div, container.lastElementChild);
         }
 
         function removeSlot(button) {
-            button.parentElement.remove();
+            const confirmDeletion = confirm("Voulez-vous vraiment supprimer ce slot ?");
+
+            if (confirmDeletion) {
+                button.parentElement.remove();
+            }
+
+            return confirmDeletion;
         }
 
         // Add form submission validation
@@ -1067,7 +1105,116 @@
 @endsection
 
 @push('scripts')
+
     <script>
+        function updateCheckboxState(container) {
+            const dayRow = container.closest('tr');
+            const checkbox = dayRow.querySelector('input[type="checkbox"]');
+            const slots = container.querySelectorAll('.slot-entry');
+
+            // Set checkbox state based on whether there are any slots
+            checkbox.checked = slots.length > 0;
+        }
+
+        function addSlot(type, dayIndex) {
+            const container = document.getElementById(`${type}-slots-${dayIndex}`);
+            const div = document.createElement('div');
+            div.classList.add('slot-entry', 'd-flex', 'align-items-center', 'mb-2');
+
+            let options = '';
+            doctorPatterns.forEach(function (pattern) {
+                options += `<option value="${pattern.id}">${pattern.nom}</option>`;
+            });
+
+            div.innerHTML = `
+                                                                                        <input type="time" name="availability[${dayIndex}][slots][start][]" 
+                                                                                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                                                                                        <input type="time" name="availability[${dayIndex}][slots][end][]" 
+                                                                                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                                                                                        <select name="availability[${dayIndex}][slots][pattern][]" 
+                                                                                            class="form-control mr-2" required>
+                                                                                            <option value="">{{ trans('lang.select_pattern') }}</option>
+                                                                                            ${options}
+                                                                                        </select>
+                                                                                        <input type="number" name="availability[${dayIndex}][slots][duration][]" 
+                                                                                            class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" 
+                                                                                            required min="15" value="30">
+                                                                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
+                                                                                            <i class="fas fa-trash"></i>
+                                                                                        </button>
+                                                                                    `;
+
+            container.insertBefore(div, container.lastElementChild);
+
+            // Update checkbox state after adding slot
+            updateCheckboxState(container);
+        }
+
+        function removeSlot(button) {
+            const slotEntry = button.closest('.slot-entry');
+            const container = slotEntry.closest('.slots-container');
+            const form = container.closest('form');
+
+            Swal.fire({
+                title: 'Confirmation',
+                text: 'Voulez-vous vraiment supprimer ce créneau ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Oui, supprimer et sauvegarder',
+                cancelButtonText: 'Annuler',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Set a flag to indicate intentional form submission
+                    window.removeSlotSubmission = true;
+
+                    // Remove the slot
+                    slotEntry.remove();
+
+                    // Update checkbox state
+                    updateCheckboxState(container);
+
+                    // Automatically submit the form
+                    form.submit();
+                }
+            });
+        }
+
+        // Modify the beforeunload event listener
+        window.addEventListener('beforeunload', (e) => {
+            // Only show warning if there are unsaved changes and it's not a removeSlot submission
+            if (hasChanges && !window.removeSlotSubmission) {
+                e.preventDefault();
+                e.returnValue = 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?';
+            }
+            // Reset the flag
+            window.removeSlotSubmission = false;
+        });
+
+        // Add this to your DOMContentLoaded event listener
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize checkbox states for all days and types
+            document.querySelectorAll('.slots-container').forEach(container => {
+                updateCheckboxState(container);
+            });
+
+            // Add event listeners to checkboxes
+            document.querySelectorAll('input[type="checkbox"][name*="[is_available]"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function (e) {
+                    const row = this.closest('tr');
+                    const container = row.querySelector('.slots-container');
+                    const slots = container.querySelectorAll('.slot-entry');
+
+                    if (this.checked && slots.length === 0) {
+                        // If checking the box and no slots exist, automatically add one
+                        const dayIndex = this.name.match(/\[(\d+)\]/)[1];
+                        const type = container.id.split('-slots-')[0];
+                        addSlot(type, dayIndex);
+                    }
+                });
+            });
+        });
         document.addEventListener('DOMContentLoaded', function () {
             // Make time inputs required when checkbox is checked
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -1099,6 +1246,120 @@
                         this.required = false;
                     }
                 });
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let hasChanges = false;
+            let isIntentionalSubmit = false; // New flag to track intentional submissions
+            const forms = document.querySelectorAll('form');
+            const submitButtons = document.querySelectorAll('button[type="submit"]');
+
+            // Create warning element
+            const warning = document.createElement('div');
+            warning.className = 'unsaved-warning';
+            warning.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <div>
+                                N'oubliez pas d'enregistrer vos disponibilités !<br>
+                        <small>Cliquez sur le bouton "Sauver Disponibilité" en bas de page pour ne pas perdre vos modifications</small>
+                    </div>
+                        </div>`;
+            document.body.appendChild(warning);
+
+            // Function to show warning and glow button
+            function showWarning() {
+                warning.classList.add('show');
+                submitButtons.forEach(btn => btn.classList.add('btn-glow'));
+                // Scroll to the first submit button
+            }
+
+            // Function to hide warning and remove glow
+            function hideWarning() {
+                warning.classList.remove('show');
+                submitButtons.forEach(btn => btn.classList.remove('btn-glow'));
+            }
+
+            // Track changes on all form inputs
+            forms.forEach(form => {
+                // Track all input changes
+                form.addEventListener('input', () => {
+                    hasChanges = true;
+                    showWarning();
+                });
+
+                // Track changes when adding/removing slots
+                form.addEventListener('click', (e) => {
+                    if (e.target.matches('button[onclick*="addSlot"], button[onclick*="removeSlot"]')) {
+                        hasChanges = true;
+                        showWarning();
+                    }
+                });
+
+                // Reset on form submit
+                form.addEventListener('submit', () => {
+                    hasChanges = false;
+                    hideWarning();
+                });
+            });
+
+            // Handle tab navigation
+            document.querySelectorAll('.nav-link').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    if (hasChanges) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        Swal.fire({
+                            title: 'Attention !',
+                            text: 'Vous avez des modifications non sauvegardées. Voulez-vous sauvegarder avant de changer d\'onglet ?',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Oui, sauvegarder',
+                            cancelButtonText: 'Non, ignorer',
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Set intentional submit flag
+                                isIntentionalSubmit = true;
+                                // Submit current form
+                                const activeTab = document.querySelector('.tab-pane.active');
+                                const currentForm = activeTab.querySelector('form');
+                                if (currentForm) {
+                                    currentForm.submit();
+                                }
+                            } else {
+                                // Discard changes and switch tab
+                                hasChanges = false;
+                                hideWarning();
+                                const tabInstance = new bootstrap.Tab(tab);
+                                tabInstance.show();
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Modify form submit handling
+            forms.forEach(form => {
+                form.addEventListener('submit', () => {
+                    isIntentionalSubmit = true;
+                    hasChanges = false;
+                    hideWarning();
+                });
+            });
+
+            // Modify beforeunload event
+            window.addEventListener('beforeunload', (e) => {
+                if (hasChanges && !isIntentionalSubmit) {
+                    e.preventDefault();
+                    e.returnValue = 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?';
+                }
+                // Reset intentional submit flag after handling the event
+                isIntentionalSubmit = false;
             });
         });
     </script>

@@ -48,7 +48,7 @@ class AvailabilityController extends Controller
         // Récupérer l'ID du médecin lié à l'utilisateur connecté
         $doctorId = auth()->user()->getDoctorId();
 
-        
+
         if (!$doctorId) {
             session()->flash('error', 'Veuillez d\'abord sélectionner un médecin.');
         }
@@ -837,34 +837,46 @@ class AvailabilityController extends Controller
 
     private function checkOverlappingSlots($doctorId, $day, $startTime, $endTime, $currentType = null, $currentId = null)
     {
-        // Don't check overlaps for home visits
-        if ($currentType === 'home_visit') {
+        // Get doctor's current mode
+        $doctor = DB::table('doctors')->where('id', $doctorId)->first();
+        if (!$doctor) {
+            \Log::error("Doctor not found for ID: $doctorId");
             return false;
         }
+
+        $doctorMode = $doctor->availability_mode;
 
         // Original overlap checking logic
         $query = AvailabilityHour::where('doctor_id', $doctorId)
             ->where('day', $day)
             ->where('is_available', true)
-            ->where('type', '!=', 'home_visit'); // Exclude home visits from overlap checks
+            ->where('mode', $doctorMode); // 🔥 Only check conflicts within the same mode
 
         // Exclude current record if updating
         if ($currentId) {
             $query->where('id', '!=', $currentId);
         }
 
-        // Check other consultation types if specified
+        // Check other consultation types only if needed
         if ($currentType) {
             $query->where('type', '!=', $currentType);
         }
 
-        return $query->where(function ($query) use ($startTime, $endTime) {
-            $query->where(function ($q) use ($startTime, $endTime) {
-                $q->where('start_at', '<', $endTime)
-                    ->where('end_at', '>', $startTime);
-            });
+        // Check for time overlap
+        $hasConflict = $query->where(function ($q) use ($startTime, $endTime) {
+            $q->where('start_at', '<', $endTime)
+                ->where('end_at', '>', $startTime);
         })->exists();
+
+        if ($hasConflict) {
+            \Log::info("Conflict detected for Doctor ID $doctorId, Mode: $doctorMode, Type: $currentType, Day: $day, Time: $startTime - $endTime");
+        } else {
+            \Log::info("✅ No conflict for Doctor ID $doctorId, Mode: $doctorMode, Type: $currentType, Day: $day, Time: $startTime - $endTime");
+        }
+
+        return $hasConflict;
     }
+
 
     public function storeSubstitute(Request $request)
     {

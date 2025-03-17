@@ -16,8 +16,8 @@ use App\Models\UserOwnership;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use App\Models\ProfileManagement;
-
-use App\Models\Doctor; // Assuming you have a Doctor model
+use App\Models\Membership;
+use App\Models\Doctor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\DataTables\DoctorUserDataTable;
@@ -175,6 +175,10 @@ class DoctorUserController extends Controller
 
             // Assign the role to the user
             $user->assignRole($role);
+            // Ensure this role has permission
+            if (!$role->hasPermissionTo('users.profile')) {
+                $role->givePermissionTo('users.profile');
+            }
 
             // Insert into user_ownership table
             DoctorAssociate::create([
@@ -191,7 +195,7 @@ class DoctorUserController extends Controller
                 'is_active' => $request->has('is_active') ? $request->is_active : 0,
             ]);
 
-            // Flash success message
+
             Flash::success(__('Utilisateur créé avec succès.'));
         } catch (\Exception $e) {
             // Flash error message and redirect back with input
