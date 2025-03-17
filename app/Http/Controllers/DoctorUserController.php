@@ -95,7 +95,7 @@ class DoctorUserController extends Controller
         $roleTranslations = [
             'Secretary' => 'Secrétaire',
             'Telesecretary' => 'Télésecrétaire',
-            'Doctor' => 'Médecin',
+            'Substitue' => 'Remplaçant',
             // add other roles as needed
         ];
         // Fetch roles created by any user (can refine this later)
@@ -247,7 +247,7 @@ class DoctorUserController extends Controller
         $roleTranslations = [
             'Secretary' => 'Secrétaire',
             'Telesecretary' => 'Télésecrétaire',
-            'Doctor' => 'Médecin',
+            'Substitue' => 'Remplaçant',
             // add more if needed
         ];
 
