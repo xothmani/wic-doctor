@@ -53,7 +53,7 @@ class CheckMembership
             }
 
             // Check for 'Replacement' role
-            if ($user->hasRole('Replacement')) {
+            if ($user->hasRole('Substitue')) {
                 $this->checkAccess($userId, $today);
                 return $next($request);
             }

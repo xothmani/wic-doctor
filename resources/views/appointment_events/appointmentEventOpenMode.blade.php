@@ -662,31 +662,43 @@
                     allDayText: '',
                     eventLimit: true,
                     viewRender: function (view) {
-                        if (view.name === 'agendaWeek') {
-                            console.log("remplacent");
-                            const doctorId = {{ auth()->user()->getDoctorId() }};
 
-                            // Create tooltip container once
-                            if (!$('#substitute-tooltip').length) {
-                                $('body').append('<div id="substitute-tooltip" class="substitute-tooltip"></div>');
-                            }
+                    if (view.name === 'agendaWeek') {
+                        const doctorId = {{ auth()->user()->getDoctorId() }};
 
-                            fetchSubstitutes(doctorId).then(substitutes => {
-                                $('.fc-day-header').each(function () {
-                                    let dayDate = $(this).data('date');
-                                    let dayMoment = moment(dayDate);
+                        // Create tooltip container once
+                        if (!$('#substitute-tooltip').length) {
+                            $('body').append('<div id="substitute-tooltip" class="substitute-tooltip"></div>');
+                        }
 
-                                    // Find the substitute active on this day
-                                    let activeSubstitute = substitutes.find(sub => {
-                                        let startDate = moment(sub.start_date);
-                                        let endDate = moment(sub.end_date);
-                                        return dayMoment.isBetween(startDate, endDate, 'day', '[]');
-                                    });
+                        fetchSubstitutes(doctorId).then(substitutes => {
+                            //console.log("Substitutes:", substitutes);
+                            $('.fc-day-header').each(function () {
+                                let dayDate = $(this).data('date');
+                                let dayMoment = moment(dayDate);
 
-                                    // Show only the substitute name (NO STATS)
+                                // Find the substitute active on this day
+                                let activeSubstitute = substitutes.find(sub => {
+                                    let startDate = moment(sub.start_date);
+                                    let endDate = moment(sub.end_date);
+                                    return dayMoment.isBetween(startDate, endDate, 'day', '[]');
+                                });
+
+                                // Fetch and set the dynamic number
+                                fetchAppointmentStats(doctorId, dayDate).then(stats => {
+                                    let totalAppointments = stats && stats.total_appointments ? stats.total_appointments : 0;
+                                    let appointmentsTaken = stats && stats.appointments_taken ? stats.appointments_taken : 0;
+                                    let staticNumber = `${appointmentsTaken}/${totalAppointments}`;
                                     let substituteName = activeSubstitute ? activeSubstitute.name : "&nbsp;";
-                                    $(this).append(` <hr class="day-header-divider"> <div class="custom-day-label substitute-hover">${substituteName}</div> `);
 
+                                    // Create custom label with hover functionality
+                                    // Append all elements with proper structure
+                                    $(this).append(`
+                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                        <div class="custom-day-label substitute-hover">${substituteName}</div>
+                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                        <div class="custom-number-label">${staticNumber}</div>
+                                                                                                                                                                                                                                                                                                                                                    `);
                                     if (activeSubstitute) {
                                         $(this).find('.custom-day-label').hover(
                                             function (e) {
@@ -694,6 +706,8 @@
                                                 let tooltipContent = ` <div class="substitute-info-container"> <div class="substitute-info"> <span class="substitute-info-label">Nom:</span> <span class="substitute-info-value">${activeSubstitute.name}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Début:</span> <span class="substitute-info-value">${moment(activeSubstitute.start_date).format('DD/MM/YYYY HH:mm')}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Fin:</span> <span class="substitute-info-value">${moment(activeSubstitute.end_date).format('DD/MM/YYYY HH:mm')}</span> </div> ${activeSubstitute.notes ? ` <div class="substitute-info"> <span class="substitute-info-label">Notes:</span> <span class="substitute-info-value">${activeSubstitute.notes}</span> </div> ` : ''} </div> `;
 
                                                 tooltip.html(tooltipContent);
+
+                                                // Position the tooltip
                                                 let pos = $(this).offset();
                                                 tooltip.css({
                                                     top: pos.top + $(this).outerHeight() + 5,
@@ -705,12 +719,17 @@
                                             }
                                         );
                                     }
+
+
+                                }).catch(error => {
+                                    console.error("Error fetching appointment stats:", error);
                                 });
-                            }).catch(error => {
-                                console.error("Error fetching substitutes:", error);
                             });
-                        }
-                    },
+                        }).catch(error => {
+                            console.error("Error fetching substitutes:", error);
+                        });
+                    }
+                },
                     dayRender: function (date, cell) {
                         console.log("Day Rendered:", date.format());
                         const formattedDayName = date.locale('en').format('dddd').toLowerCase();

@@ -341,4 +341,9 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->hasOne(Address::class, 'user_id', 'id');
     }
+    public function memberships()
+    {
+        return $this->hasMany(Membership::class);
+    }
+
 }
