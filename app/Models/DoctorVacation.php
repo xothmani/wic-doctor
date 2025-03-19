@@ -30,26 +30,16 @@ class DoctorVacation extends Model
      *
      * @var array
      */
-    public static array $rules = [
-        'type' => 'required|in:journée,période',
-        'raison' => 'nullable|max:255',
-        'dateDebut' => 'required|date_format:Y-m-d',
-        'dateFin' => 'nullable|date_format:Y-m-d|required_if:type,période', // Date de fin obligatoire uniquement si 'type' est 'période'
-    ];
 
-    public array $translatable = [
-        'raison', // raison peut être traduit
-    ];
 
     public $timestamps = false;
     public $table = 'vacance';
-    
+
     protected $fillable = [
-        'type',
-        'raison',
-        'dateDebut',
-        'dateFin',
         'doctor_id',
+        'reason',
+        'start_date',
+        'end_date'
     ];
 
     /**
