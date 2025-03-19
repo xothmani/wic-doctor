@@ -13,7 +13,10 @@ class Prescription extends Model
         'date',
         'observation',
         'type',
-        'consultation_id'
+        'consultation_id',
+        'pdf',
+        'pdfForMail',
+
     ];
 
     public function medicaments()

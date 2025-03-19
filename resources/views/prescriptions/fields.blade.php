@@ -89,17 +89,20 @@
 
 <div id="medicament-fields" class="form-group" style="display: none;">
     <div class="form-row align-items-center medicament-row">
-        <div class="col-md">
-            {!! Form::label('medicaments[0][CODE_PCT]', trans("lang.prescription_medicament_code")) !!}
-            <span class="text-danger">*</span>
+    <div class="col-md">
+    {!! Form::label('medicaments[0][CODE_PCT]', trans("lang.prescription_medicament_code")) !!}
+    <span class="text-danger">*</span>
 
-            <select name="medicaments[0][CODE_PCT]" required class="form-control">
-                <option value="" disabled selected>{{ trans('lang.prescription_select_medicament') }}</option>
-                @foreach($medicaments as $medicament)
-                    <option value="{{ $medicament->CODE_PCT }}">{{ $medicament->NOM_COMMERCIAL }}</option>
-                @endforeach
-            </select>
-        </div>
+    <select name="medicaments[0][CODE_PCT]" required class="form-control">
+        <option value="" disabled selected>{{ trans('lang.prescription_select_medicament') }}</option>
+        @foreach($medicaments as $medicament)
+            <option value="{{ $isFrance ? $medicament->name : $medicament->CODE_PCT }}">
+                {{ $isFrance ? $medicament->name : $medicament->NOM_COMMERCIAL }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
 
         <div class="col-md">
             {!! Form::label('medicaments[0][dosage]', trans("lang.prescription_medicament_dosage")) !!}

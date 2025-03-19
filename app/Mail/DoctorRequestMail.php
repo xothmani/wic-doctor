@@ -35,7 +35,7 @@ class DoctorRequestMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Details de vos Comptes',
+            subject: 'Création de votre compte chez Wic-Doctor',
         );
     }
 

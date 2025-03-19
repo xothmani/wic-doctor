@@ -2,6 +2,9 @@
 
 @section('content')
 <!-- Content Header (Page header) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <div class="content-header">
   <div class="container-fluid">
     <div class="row mb-2">
@@ -86,9 +89,75 @@
   <i class="fa fa-envelope"></i>
 </a> -->
 
-<a href="{{ route('prescriptions.pdf', ['prescription' => $prescription->id]) }}" class="btn btn-link">
+<a href="{{ asset($prescription->pdf) }}" class="btn btn-link" target="_blank">
     <i class="fa fa-print"></i>
 </a>
+<!-- Bouton pour envoyer le PDF par e-mail -->
+<!-- Bouton qui ouvre le modal avec l'ID de la prescription -->
+<button type="button" class="btn btn-link sendEmailBtn" 
+        data-bs-toggle="modal" 
+        data-bs-target="#confirmSendEmailModal" 
+        data-id="{{ $prescription->id }}"
+        data-email="{{ $prescription->consultation->patient->email ?? '' }}">
+    <i class="fa fa-envelope"></i>
+</button>
+
+
+<!-- Modal de confirmation -->
+<div class="modal fade" id="confirmSendEmailModal" tabindex="-1" aria-labelledby="confirmSendEmailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmSendEmailModalLabel">Confirmer l'envoi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <p>Voulez-vous vraiment envoyer la prescription par mail à :</p>
+                <input type="email" id="emailInput" name="email" class="form-control" placeholder="Saisissez l'email" required>
+                <small id="emailError" class="text-danger d-none">Email obligatoire.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form id="sendEmailForm" method="POST">
+                    @csrf
+                    <input type="hidden" id="emailHiddenInput" name="email">
+                    <button type="submit" class="btn btn-primary">Confirmer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".sendEmailBtn").forEach(button => {
+            button.addEventListener("click", function () {
+                let prescriptionId = this.getAttribute("data-id");
+                let email = this.getAttribute("data-email") || ""; // Récupère l'email s'il existe
+                let emailInput = document.getElementById("emailInput");
+                let form = document.getElementById("sendEmailForm");
+
+                form.setAttribute("action", `/prescriptions/${prescriptionId}/send-email`);
+                emailInput.value = email; // Pré-remplit l'email s'il existe
+            });
+        });
+
+        document.getElementById("sendEmailForm").addEventListener("submit", function (event) {
+            let emailInput = document.getElementById("emailInput");
+            let emailError = document.getElementById("emailError");
+
+            if (!emailInput.value.trim()) {
+                event.preventDefault(); // Empêche l'envoi
+                emailError.classList.remove("d-none"); // Affiche l'erreur
+            } else {
+                emailError.classList.add("d-none"); // Cache l'erreur si valide
+                document.getElementById("emailHiddenInput").value = emailInput.value; // Transmet l'email dans le champ hidden
+            }
+        });
+    });
+</script>
+
+
 
               </td>
             </tr>
