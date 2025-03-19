@@ -27,21 +27,17 @@ class DoctorUrgency extends Model
      *
      * @var array
      */
-    public static array $rules = [
-        'doctor_id' => 'required|integer|exists:doctors,id',
-        'jour' => 'required|date_format:Y-m-d',
-        'heurDebut' => 'required|date_format:H:i',
-        'heurFin' => 'required|date_format:H:i|after:heurDebut', // L'heure de fin doit être après l'heure de début
-    ];
+
 
     public $timestamps = false;
     public $table = 'doctor_urgency';
-    
+
     protected $fillable = [
         'doctor_id',
+        'reason',
         'jour',
         'heurDebut',
-        'heurFin',
+        'heurFin'
     ];
 
     /**

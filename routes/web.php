@@ -95,9 +95,10 @@ Route::post('/availability/store-open', [AvailabilityController::class, 'storeOp
     ->name('availability.store.open');
 Route::post('/availability/substitute', [AvailabilityController::class, 'storeSubstitute'])->name('substitute.store');
 Route::delete('/availability/substitute/{id}', [AvailabilityController::class, 'deleteSubstitute'])->name('substitute.destroy');
+Route::put('/vacances/{id}', [AvailabilityController::class, 'updateVacation'])
+    ->name('vacances.update');
 
 Route::delete('vacances/{id}', [DoctorVacationController::class, 'destroy'])->name('vacances.destroy');
-Route::put('/vacances/{id}', [DoctorVacationController::class, 'update'])->name('vacances.update');
 Route::get('/availability-tele', [AvailabilityController::class, 'indexTele'])->name('availability.tele');
 Route::post('/availability-tele', [AvailabilityController::class, 'storeTele'])->name('availabilityTele.store');
 Route::post('/availability-tele/store', [AvailabilityController::class, 'storeTele'])->name('availabilityTele.store');
@@ -576,7 +577,19 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/substitutes/{doctorId}', [AppointmentEventController::class, 'getSubstitutes'])->name('get.substitutes');
     Route::get('/appointments/stats/{doctorId}/{selectedDate?}', [AppointmentEventController::class, 'getAppointmentStats'])
         ->name('appointment.stats');
+    Route::prefix('availability')->group(function () {
+        // ... existing availability routes ...
 
+        // Add these new closure routes
+        Route::post('/closures/store', [AvailabilityController::class, 'storeClosures'])
+            ->name('availability.closures.store');
+        Route::delete('/closures/{id}', [AvailabilityController::class, 'destroyClosures'])
+            ->name('availability.closures.destroy');
+        Route::get('/closures', [AvailabilityController::class, 'getClosures'])
+            ->name('availability.closures.index');
+        Route::put('/closures/{id}', [AvailabilityController::class, 'updateClosures'])
+            ->name('availability.closures.update');  // Add this line
+    });
 
 
     Route::post('/users/accept-new-features', [UserController::class, 'acceptNewFeatures'])->name('users.acceptNewFeatures');
