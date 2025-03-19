@@ -103,6 +103,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" id="closures-tab" data-toggle="tab" href="#closures" role="tab">
+                                    <i class="fas fa-clock"></i> {{ trans('lang.early_closures') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" id="vacation-tab" data-toggle="tab" href="#vacation" role="tab">
                                     <i class="fas fa-umbrella-beach"></i> {{ trans('lang.vacation') }}
                                 </a>
@@ -148,12 +153,6 @@
                                                 <tbody>
                                                     @foreach(['Lundi' => 'monday', 'Mardi' => 'tuesday', 'Mercredi' => 'wednesday', 'Jeudi' => 'thursday', 'Vendredi' => 'friday', 'Samedi' => 'saturday', 'Dimanche' => 'sunday'] as $frenchDay => $englishDay)
                                                                         @php
-                                                                            // Add debug output
-                                                                            \Log::info("Processing day data:", [
-                                                                                'day' => $englishDay,
-                                                                                'type' => $type,
-                                                                                'data' => $availabilities[$type][$englishDay] ?? 'not found'
-                                                                            ]);
 
                                                                             $dayData = $availabilities[$type][$englishDay] ?? ['is_available' => 0];
                                                                             $isAvailable = $dayData['is_available'] ?? 0;
@@ -177,13 +176,11 @@
                                                                             </td>
                                                                             <td>
                                                                                 <input type="time" class="form-control timepicker"
-                                                                                    name="availability[{{ $loop->index }}][from]" value="{{ $startAt }}"
-                                                                                    data-required="required" required>
+                                                                                    name="availability[{{ $loop->index }}][from]" value="{{ $startAt }}">
                                                                             </td>
                                                                             <td>
                                                                                 <input type="time" class="form-control timepicker"
-                                                                                    name="availability[{{ $loop->index }}][to]" value="{{ $endAt }}"
-                                                                                    data-required="required" required>
+                                                                                    name="availability[{{ $loop->index }}][to]" value="{{ $endAt }}">
                                                                             </td>
                                                                             <td>
                                                                                 <div class="d-flex">
@@ -207,35 +204,140 @@
                                         </form>
                                     </div>
                             @endforeach
+                            <div class="tab-pane fade" id="closures" role="tabpanel">
+                                <form action="{{ route('availability.closures.store') }}" method="POST">
+                                    @csrf
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4>{{ trans('lang.add_closure') }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.date') }} *</label>
+                                                        <input type="date" name="jour" class="form-control"
+                                                            min="{{ date('Y-m-d') }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.start_time') }} *</label>
+                                                        <input type="time" name="heurDebut" class="form-control" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.end_time') }} *</label>
+                                                        <input type="time" name="heurFin" class="form-control" required>
+                                                    </div>
+                                                </div>
+                                            </div>
 
+                                            <!-- Reason Field -->
+                                            <div class="form-group">
+                                                <label>{{ trans('lang.reason') }} *</label>
+                                                <textarea name="reason" class="form-control" rows="2" required></textarea>
+                                            </div>
+
+                                            <button type="submit" class="btn bg-{{ setting('theme_color') }}">
+                                                {{ trans('lang.save_closure') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <!-- Closures List -->
+                                @if(isset($dailyClosures) && $dailyClosures->count() > 0)
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h4>{{ trans('lang.closure_list') }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>{{ trans('lang.date') }}</th>
+                                                            <th>{{ trans('lang.start_time') }}</th>
+                                                            <th>{{ trans('lang.end_time') }}</th>
+                                                            <th>{{ trans('lang.reason') }}</th>
+                                                            <th>{{ trans('lang.actions') }}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($dailyClosures as $closure)
+                                                            <tr>
+                                                                <td>{{ \Carbon\Carbon::parse($closure->jour)->format('d/m/Y') }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($closure->heurDebut)->format('H:i') }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($closure->heurFin)->format('H:i') }}</td>
+                                                                <td>{{ $closure->reason }}</td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-primary btn-sm mr-2"
+                                                                        onclick="editClosure('{{ $closure->id }}', '{{ $closure->jour }}', '{{ $closure->heurDebut }}', '{{ $closure->heurFin }}', '{{ $closure->reason }}')">
+                                                                        <i class="fas fa-edit"></i>
+                                                                    </button>
+                                                                    <form
+                                                                        action="{{ route('availability.closures.destroy', $closure->id) }}"
+                                                                        method="POST" class="d-inline">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <input type="hidden" name="closure_id" value="{{ $closure->id }}">
+                                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                                            onclick="confirmDelete(this)">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
                             <!-- Vacation Tab -->
                             <div class="tab-pane fade" id="vacation" role="tabpanel">
-                                <form action="{{ route('holidays.store') }}" method="POST">
+                                <form action="{{ route('holidays.store') }}" method="POST" id="vacationForm"
+                                    onsubmit="return validateVacationForm()">
                                     @csrf
                                     <div class="card">
                                         <div class="card-header">
                                             <h4>{{ trans("lang.add_vacation") }}</h4>
                                         </div>
                                         <div class="card-body">
+                                            <!-- Add hidden method field for PUT -->
+                                            <input type="hidden" name="_method" value="POST">
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>{{ trans("lang.start_date") }}</label>
+                                                        <label class="required">{{ trans("lang.start_date") }} *</label>
                                                         <input type="date" name="start_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}">
+                                                            min="{{ date('Y-m-d') }}"
+                                                            oninvalid="this.setCustomValidity('{{ trans("lang.start_date_required") }}')"
+                                                            oninput="this.setCustomValidity('')">
+                                                        <div class="invalid-feedback">{{ trans("lang.start_date_required") }}</div>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>{{ trans("lang.end_date") }}</label>
+                                                        <label class="required">{{ trans("lang.end_date") }} *</label>
                                                         <input type="date" name="end_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}">
+                                                            min="{{ date('Y-m-d') }}"
+                                                            oninvalid="this.setCustomValidity('{{ trans("lang.end_date_required") }}')"
+                                                            oninput="this.setCustomValidity('')">
+                                                        <div class="invalid-feedback">{{ trans("lang.end_date_required") }}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="form-group">
-                                                <label>{{ trans("lang.reason") }}</label>
-                                                <textarea name="reason" class="form-control" rows="3"></textarea>
+                                                <label class="required">{{ trans("lang.reason") }} *</label>
+                                                <textarea name="reason" class="form-control" rows="3" required
+                                                    oninvalid="this.setCustomValidity('{{ trans("lang.reason_required") }}')"
+                                                    oninput="this.setCustomValidity('')"></textarea>
+                                                <div class="invalid-feedback">{{ trans("lang.reason_required") }}</div>
                                             </div>
                                             <button type="submit" class="btn bg-{{ setting('theme_color') }}">
                                                 {{ trans("lang.save_vacation") }}
@@ -243,7 +345,6 @@
                                         </div>
                                     </div>
                                 </form>
-
                                 @if(isset($vacations) && count($vacations) > 0)
                                     <div class="card mt-4">
                                         <div class="card-header">
@@ -267,11 +368,16 @@
                                                                 <td>{{ \Carbon\Carbon::parse($vacation->end_date)->format('d/m/Y') }}</td>
                                                                 <td>{{ $vacation->reason }}</td>
                                                                 <td>
+                                                                    <button type="button" class="btn btn-primary btn-sm mr-2"
+                                                                        onclick="editVacation('{{ $vacation->id }}', '{{ $vacation->start_date }}', '{{ $vacation->end_date }}', '{{ $vacation->reason }}')">
+                                                                        <i class="fas fa-edit"></i>
+                                                                    </button>
                                                                     <form action="{{ route('vacances.destroy', $vacation->id) }}"
                                                                         method="POST" class="d-inline">
                                                                         @csrf
                                                                         @method('DELETE')
-                                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                                            onclick="confirmDelete(this)">
                                                                             <i class="fas fa-trash"></i>
                                                                         </button>
                                                                     </form>
@@ -412,6 +518,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" id="closures-tab" data-toggle="tab" href="#closures" role="tab">
+                                    <i class="fas fa-clock"></i> {{ trans('lang.early_closures') }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" id="vacation-tab" data-toggle="tab" href="#vacation" role="tab">
                                     <i class="fas fa-umbrella-beach"></i> {{ trans('lang.vacation') }}
                                 </a>
@@ -489,6 +600,7 @@
                                                                                                 onclick="removeSlot(this)">
                                                                                                 <i class="fas fa-trash"></i>
                                                                                             </button>
+
                                                                                         </div>
                                                                                     @endforeach
                                                                                 @endif
@@ -508,35 +620,140 @@
                                     </form>
                                 </div>
                             @endforeach
+                            <div class="tab-pane fade" id="closures" role="tabpanel">
+                                <form action="{{ route('availability.closures.store') }}" method="POST">
+                                    @csrf
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h4>{{ trans('lang.add_closure') }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.date') }} *</label>
+                                                        <input type="date" name="jour" class="form-control"
+                                                            min="{{ date('Y-m-d') }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.start_time') }} *</label>
+                                                        <input type="time" name="heurDebut" class="form-control" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>{{ trans('lang.end_time') }} *</label>
+                                                        <input type="time" name="heurFin" class="form-control" required>
+                                                    </div>
+                                                </div>
+                                            </div>
 
+                                            <!-- Reason Field -->
+                                            <div class="form-group">
+                                                <label>{{ trans('lang.reason') }} *</label>
+                                                <textarea name="reason" class="form-control" rows="2" required></textarea>
+                                            </div>
+
+                                            <button type="submit" class="btn bg-{{ setting('theme_color') }}">
+                                                {{ trans('lang.save_closure') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <!-- Closures List -->
+                                @if(isset($dailyClosures) && $dailyClosures->count() > 0)
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h4>{{ trans('lang.closure_list') }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>{{ trans('lang.date') }}</th>
+                                                            <th>{{ trans('lang.start_time') }}</th>
+                                                            <th>{{ trans('lang.end_time') }}</th>
+                                                            <th>{{ trans('lang.reason') }}</th>
+                                                            <th>{{ trans('lang.actions') }}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($dailyClosures as $closure)
+                                                            <tr>
+                                                                <td>{{ \Carbon\Carbon::parse($closure->jour)->format('d/m/Y') }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($closure->heurDebut)->format('H:i') }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($closure->heurFin)->format('H:i') }}</td>
+                                                                <td>{{ $closure->reason }}</td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-primary btn-sm mr-2"
+                                                                        onclick="editClosure('{{ $closure->id }}', '{{ $closure->jour }}', '{{ $closure->heurDebut }}', '{{ $closure->heurFin }}', '{{ $closure->reason }}')">
+                                                                        <i class="fas fa-edit"></i>
+                                                                    </button>
+                                                                    <form
+                                                                        action="{{ route('availability.closures.destroy', $closure->id) }}"
+                                                                        method="POST" class="d-inline">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <input type="hidden" name="closure_id" value="{{ $closure->id }}">
+                                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                                            onclick="confirmDelete(this)">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
                             <!-- Vacation Tab -->
                             <div class="tab-pane fade" id="vacation" role="tabpanel">
-                                <form action="{{ route('holidays.store') }}" method="POST">
+                                <form action="{{ route('holidays.store') }}" method="POST" id="vacationForm"
+                                    onsubmit="return validateVacationForm()">
                                     @csrf
                                     <div class="card">
                                         <div class="card-header">
                                             <h4>{{ trans("lang.add_vacation") }}</h4>
                                         </div>
                                         <div class="card-body">
+                                            <!-- Add hidden method field for PUT -->
+                                            <input type="hidden" name="_method" value="POST">
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>{{ trans("lang.start_date") }}</label>
+                                                        <label class="required">{{ trans("lang.start_date") }} *</label>
                                                         <input type="date" name="start_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}">
+                                                            min="{{ date('Y-m-d') }}"
+                                                            oninvalid="this.setCustomValidity('{{ trans("lang.start_date_required") }}')"
+                                                            oninput="this.setCustomValidity('')">
+                                                        <div class="invalid-feedback">{{ trans("lang.start_date_required") }}</div>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>{{ trans("lang.end_date") }}</label>
+                                                        <label class="required">{{ trans("lang.end_date") }} *</label>
                                                         <input type="date" name="end_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}">
+                                                            min="{{ date('Y-m-d') }}"
+                                                            oninvalid="this.setCustomValidity('{{ trans("lang.end_date_required") }}')"
+                                                            oninput="this.setCustomValidity('')">
+                                                        <div class="invalid-feedback">{{ trans("lang.end_date_required") }}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div class="form-group">
-                                                <label>{{ trans("lang.reason") }}</label>
-                                                <textarea name="reason" class="form-control" rows="3"></textarea>
+                                                <label class="required">{{ trans("lang.reason") }} *</label>
+                                                <textarea name="reason" class="form-control" rows="3" required
+                                                    oninvalid="this.setCustomValidity('{{ trans("lang.reason_required") }}')"
+                                                    oninput="this.setCustomValidity('')"></textarea>
+                                                <div class="invalid-feedback">{{ trans("lang.reason_required") }}</div>
                                             </div>
                                             <button type="submit" class="btn bg-{{ setting('theme_color') }}">
                                                 {{ trans("lang.save_vacation") }}
@@ -544,7 +761,6 @@
                                         </div>
                                     </div>
                                 </form>
-
                                 @if(isset($vacations) && count($vacations) > 0)
                                     <div class="card mt-4">
                                         <div class="card-header">
@@ -568,11 +784,16 @@
                                                                 <td>{{ \Carbon\Carbon::parse($vacation->end_date)->format('d/m/Y') }}</td>
                                                                 <td>{{ $vacation->reason }}</td>
                                                                 <td>
+                                                                    <button type="button" class="btn btn-primary btn-sm mr-2"
+                                                                        onclick="editVacation('{{ $vacation->id }}', '{{ $vacation->start_date }}', '{{ $vacation->end_date }}', '{{ $vacation->reason }}')">
+                                                                        <i class="fas fa-edit"></i>
+                                                                    </button>
                                                                     <form action="{{ route('vacances.destroy', $vacation->id) }}"
                                                                         method="POST" class="d-inline">
                                                                         @csrf
                                                                         @method('DELETE')
-                                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                                        <button type="button" class="btn btn-danger btn-sm"
+                                                                            onclick="confirmDelete(this)">
                                                                             <i class="fas fa-trash"></i>
                                                                         </button>
                                                                     </form>
@@ -920,6 +1141,34 @@
                 transform: translateX(0);
             }
         }
+
+        .field-editing {
+            animation: glowField 2s infinite;
+            border-color: var(--primary) !important;
+            background-color: rgba(var(--primary-rgb), 0.05) !important;
+        }
+
+        @keyframes glowField {
+            0% {
+                box-shadow: 0 0 5px rgba(var(--primary-rgb), 0.2);
+            }
+
+            50% {
+                box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(var(--primary-rgb), 0.2);
+            }
+        }
+
+        .editing-mode-header {
+            background-color: rgba(var(--primary-rgb), 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 10px;
+            margin-bottom: 15px;
+            display: none;
+        }
     </style>
 @endsection
 
@@ -1127,22 +1376,22 @@
             });
 
             div.innerHTML = `
-                                                                                        <input type="time" name="availability[${dayIndex}][slots][start][]" 
-                                                                                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                                                                                        <input type="time" name="availability[${dayIndex}][slots][end][]" 
-                                                                                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                                                                                        <select name="availability[${dayIndex}][slots][pattern][]" 
-                                                                                            class="form-control mr-2" required>
-                                                                                            <option value="">{{ trans('lang.select_pattern') }}</option>
-                                                                                            ${options}
-                                                                                        </select>
-                                                                                        <input type="number" name="availability[${dayIndex}][slots][duration][]" 
-                                                                                            class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" 
-                                                                                            required min="15" value="30">
-                                                                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
-                                                                                            <i class="fas fa-trash"></i>
-                                                                                        </button>
-                                                                                    `;
+                                                                                                                                                                                                                                                                                                                                                                                <input type="time" name="availability[${dayIndex}][slots][start][]" 
+                                                                                                                                                                                                                                                                                                                                                                                    class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                                                                                                                                                                                                                                                                                                                                                                                <input type="time" name="availability[${dayIndex}][slots][end][]" 
+                                                                                                                                                                                                                                                                                                                                                                                    class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                                                                                                                                                                                                                                                                                                                                                                                <select name="availability[${dayIndex}][slots][pattern][]" 
+                                                                                                                                                                                                                                                                                                                                                                                    class="form-control mr-2" required>
+                                                                                                                                                                                                                                                                                                                                                                                    <option value="">{{ trans('lang.select_pattern') }}</option>
+                                                                                                                                                                                                                                                                                                                                                                                    ${options}
+                                                                                                                                                                                                                                                                                                                                                                                </select>
+                                                                                                                                                                                                                                                                                                                                                                                <input type="number" name="availability[${dayIndex}][slots][duration][]" 
+                                                                                                                                                                                                                                                                                                                                                                                    class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" 
+                                                                                                                                                                                                                                                                                                                                                                                    required min="15" value="30">
+                                                                                                                                                                                                                                                                                                                                                                                <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
+                                                                                                                                                                                                                                                                                                                                                                                    <i class="fas fa-trash"></i>
+                                                                                                                                                                                                                                                                                                                                                                                </button>
+                                                                                                                                                                                                                                                                                                                                                                            `;
 
             container.insertBefore(div, container.lastElementChild);
 
@@ -1260,13 +1509,13 @@
             const warning = document.createElement('div');
             warning.className = 'unsaved-warning';
             warning.innerHTML = `
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            <div>
-                                N'oubliez pas d'enregistrer vos disponibilités !<br>
-                        <small>Cliquez sur le bouton "Sauver Disponibilité" en bas de page pour ne pas perdre vos modifications</small>
-                    </div>
-                        </div>`;
+                                                                                                                                                                                                                                                                                                                <div class="d-flex align-items-center">
+                                                                                                                                                                                                                                                                                                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                                                                                                                                                                                                                                                                                    <div>
+                                                                                                                                                                                                                                                                                                                        N'oubliez pas d'enregistrer vos disponibilités !<br>
+                                                                                                                                                                                                                                                                                                                <small>Cliquez sur le bouton "Sauver Disponibilité" en bas de page pour ne pas perdre vos modifications</small>
+                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                </div>`;
             document.body.appendChild(warning);
 
             // Function to show warning and glow button
@@ -1362,5 +1611,295 @@
                 isIntentionalSubmit = false;
             });
         });
+        function toggleClosureFields() {
+            const closureType = document.getElementById('closure_type').value;
+            const singleDayFields = document.getElementById('single_day_fields');
+            const periodFields = document.getElementById('period_fields');
+
+            // Reset form fields
+            singleDayFields.querySelectorAll('input').forEach(input => {
+                input.required = false;
+                if (!closureType) input.value = '';
+            });
+
+            periodFields.querySelectorAll('input').forEach(input => {
+                input.required = false;
+                if (!closureType) input.value = '';
+            });
+
+            if (closureType === 'day') {
+                singleDayFields.classList.remove('d-none');
+                periodFields.classList.add('d-none');
+                singleDayFields.querySelectorAll('input').forEach(input => input.required = true);
+            } else if (closureType === 'period') {
+                singleDayFields.classList.add('d-none');
+                periodFields.classList.remove('d-none');
+                periodFields.querySelectorAll('input').forEach(input => input.required = true);
+            } else {
+                singleDayFields.classList.add('d-none');
+                periodFields.classList.add('d-none');
+            }
+        }
+        function confirmDelete(button) {
+            Swal.fire({
+                title: '{{ trans("lang.confirm_deletion") }}',
+                text: '{{ trans("lang.confirm_closure_deletion_text") }}',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: '{{ trans("lang.yes_delete") }}',
+                cancelButtonText: '{{ trans("lang.cancel") }}'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = button.closest('form');
+                    if (form) {
+                        form.submit();
+                    }
+                }
+            });
+        }
+        function editClosure(id, date, startTime, endTime, reason) {
+            // Update form action to update route
+            const form = document.querySelector('#closures form');
+            const cardHeader = form.querySelector('.card-header');
+            form.action = "{{ route('availability.closures.update', '') }}/" + id;
+
+            // Add editing mode header if it doesn't exist
+            let editingHeader = form.querySelector('.editing-mode-header');
+            if (!editingHeader) {
+                editingHeader = document.createElement('div');
+                editingHeader.className = 'editing-mode-header';
+                editingHeader.innerHTML = '<i class="fas fa-edit"></i> {{ trans("lang.editing_mode") }}';
+                cardHeader.after(editingHeader);
+            }
+            editingHeader.style.display = 'block';
+
+            // Add method spoofing for PUT
+            let methodField = form.querySelector('input[name="_method"]');
+            if (!methodField) {
+                methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                form.appendChild(methodField);
+            }
+            methodField.value = 'PUT';
+
+            // Fill in and highlight the form fields
+            const fields = {
+                'jour': date,
+                'heurDebut': startTime,
+                'heurFin': endTime,
+                'reason': reason
+            };
+
+            Object.entries(fields).forEach(([name, value]) => {
+                const field = form.querySelector(`[name="${name}"]`);
+                if (field) {
+                    field.value = value;
+                    field.classList.add('field-editing');
+
+                    // Add floating label effect
+                    const label = field.previousElementSibling;
+                    if (label && label.tagName === 'LABEL') {
+                        label.classList.add('field-editing');
+                    }
+                }
+            });
+
+            // Change button text and style
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.innerHTML = '<i class="fas fa-save"></i> {{ trans("lang.update_closure") }}';
+            submitButton.classList.add('btn-primary');
+
+            // Add cancel button if it doesn't exist
+            let cancelButton = form.querySelector('.btn-cancel');
+            if (!cancelButton) {
+                cancelButton = document.createElement('button');
+                cancelButton.type = 'button';
+                cancelButton.className = 'btn btn-secondary ml-2 btn-cancel';
+                cancelButton.innerHTML = '<i class="fas fa-times"></i> {{ trans("lang.cancel") }}';
+                cancelButton.onclick = resetForm;
+                submitButton.parentNode.insertBefore(cancelButton, submitButton.nextSibling);
+            }
+
+            // Scroll to form with highlight effect
+            form.scrollIntoView({ behavior: 'smooth' });
+            form.classList.add('field-editing');
+            setTimeout(() => form.classList.remove('field-editing'), 1000);
+        }
+
+        function resetForm() {
+            const form = document.querySelector('#closures form');
+
+            // Remove all editing highlights
+            form.querySelectorAll('.field-editing').forEach(el => {
+                el.classList.remove('field-editing');
+            });
+
+            // Hide editing mode header
+            const editingHeader = form.querySelector('.editing-mode-header');
+            if (editingHeader) {
+                editingHeader.style.display = 'none';
+            }
+
+            // Reset to store route
+            form.action = "{{ route('availability.closures.store') }}";
+
+            // Remove method spoofing
+            const methodField = form.querySelector('input[name="_method"]');
+            if (methodField) {
+                methodField.value = 'POST';
+            }
+
+            // Clear form fields
+            form.reset();
+
+            // Reset button text and style
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.innerHTML = '<i class="fas fa-save"></i> ' + '{{ trans("lang.save_closure") }}';
+            submitButton.classList.remove('btn-primary');
+
+            // Remove cancel button
+            const cancelButton = form.querySelector('.btn-cancel');
+            if (cancelButton) {
+                cancelButton.remove();
+            }
+        }
+        function editVacation(id, startDate, endDate, reason) {
+            const form = document.getElementById('vacationForm');
+            const cardHeader = form.querySelector('.card-header');
+
+            // Update form action to update route
+            form.action = `/vacances/${id}`;
+
+            // Add editing mode header
+            let editingHeader = form.querySelector('.editing-mode-header');
+            if (!editingHeader) {
+                editingHeader = document.createElement('div');
+                editingHeader.className = 'editing-mode-header';
+                editingHeader.innerHTML = '<i class="fas fa-edit"></i> {{ trans("lang.editing_vacation") }}';
+                cardHeader.after(editingHeader);
+            }
+            editingHeader.style.display = 'block';
+
+            // Update method to PUT
+            let methodField = form.querySelector('input[name="_method"]');
+            methodField.value = 'PUT';
+
+            // Fill in the form fields
+            form.querySelector('input[name="start_date"]').value = startDate;
+            form.querySelector('input[name="end_date"]').value = endDate;
+            form.querySelector('textarea[name="reason"]').value = reason;
+
+            // Change button text and style
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.innerHTML = '<i class="fas fa-save"></i> {{ trans("lang.update_vacation") }}';
+            submitButton.classList.add('btn-primary');
+
+            // Add cancel button
+            let cancelButton = form.querySelector('.btn-cancel');
+            if (!cancelButton) {
+                cancelButton = document.createElement('button');
+                cancelButton.type = 'button';
+                cancelButton.className = 'btn btn-secondary ml-2 btn-cancel';
+                cancelButton.innerHTML = '<i class="fas fa-times"></i> {{ trans("lang.cancel") }}';
+                cancelButton.onclick = resetVacationForm;
+                submitButton.parentNode.insertBefore(cancelButton, submitButton.nextSibling);
+            }
+
+            // Add visual feedback
+            form.querySelectorAll('input, textarea').forEach(field => {
+                field.classList.add('field-editing');
+            });
+
+            // Scroll to form
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetVacationForm() {
+            const form = document.getElementById('vacationForm');
+
+            // Reset form action
+            form.action = "{{ route('holidays.store') }}";
+
+            // Reset method to POST
+            form.querySelector('input[name="_method"]').value = 'POST';
+
+            // Clear fields
+            form.reset();
+
+            // Remove editing styles
+            form.querySelectorAll('.field-editing').forEach(el => {
+                el.classList.remove('field-editing');
+            });
+
+            // Hide editing header
+            const editingHeader = form.querySelector('.editing-mode-header');
+            if (editingHeader) {
+                editingHeader.style.display = 'none';
+            }
+
+            // Reset button
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.innerHTML = '<i class="fas fa-save"></i> {{ trans("lang.save_vacation") }}';
+            submitButton.classList.remove('btn-primary');
+
+            // Remove cancel button
+            const cancelButton = form.querySelector('.btn-cancel');
+            if (cancelButton) {
+                cancelButton.remove();
+            }
+        }
+        function validateVacationForm() {
+            const form = document.getElementById('vacationForm');
+            const startDate = form.querySelector('input[name="start_date"]');
+            const endDate = form.querySelector('input[name="end_date"]');
+            const reason = form.querySelector('textarea[name="reason"]');
+
+            // Reset previous error states
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+            let isValid = true;
+
+            // Validate start date
+            if (!startDate.value) {
+                startDate.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            // Validate end date
+            if (!endDate.value) {
+                endDate.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            // Validate that end date is after start date
+            if (startDate.value && endDate.value && endDate.value < startDate.value) {
+                endDate.classList.add('is-invalid');
+                Swal.fire({
+                    icon: 'error',
+                    title: '{{ trans("lang.error") }}',
+                    text: '{{ trans("lang.end_date_after_start_date") }}'
+                });
+                isValid = false;
+            }
+
+            // Validate reason
+            if (!reason.value.trim()) {
+                reason.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                Swal.fire({
+                    icon: 'error',
+                    title: '{{ trans("lang.form_error") }}',
+                    text: '{{ trans("lang.please_fill_required_fields") }}'
+                });
+            }
+
+            return isValid;
+        }
     </script>
 @endpush
