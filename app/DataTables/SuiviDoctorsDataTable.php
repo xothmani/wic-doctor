@@ -85,27 +85,29 @@ class SuiviDoctorsDataTable extends DataTable
      * Get the query source of dataTable.
      */
     public function query(Doctor $model): QueryBuilder
-    {
-        return $model->newQuery()
-            ->select(
-                "doctors.*",
-                "specialities.name as speciality_name",
-                "users.email",
-                "users.phone_number",
-                \DB::raw('(
-                    COALESCE(doctors.pourcentage_avatar, 0) +
-                    COALESCE(doctors.pourcentage_adresse, 0) +
-                    COALESCE(doctors.pourcentage_cv, 0) +
-                    COALESCE(doctors.pourcentage_cabinet, 0) +
-                    COALESCE(doctors.pourcentage_tags, 0) +
-                    COALESCE(doctors.pourcentage_profil, 0)
-                ) AS total_pourcentage') // Calcul du pourcentage total
-            )
-            ->leftJoin("doctor_specialities", "doctors.id", "=", "doctor_specialities.doctor_id")
-            ->leftJoin("specialities", "doctor_specialities.speciality_id", "=", "specialities.id")
-            ->leftJoin("users", "doctors.user_id", "=", "users.id")
-            ->orderBy('total_pourcentage', 'asc'); // Tri par pourcentage croissant
-    }
+{
+    return $model->newQuery()
+        ->select(
+            "doctors.*",
+            "specialities.name as speciality_name",
+            "users.email",
+            "users.phone_number",
+            \DB::raw('(
+                COALESCE(doctors.pourcentage_avatar, 0) +
+                COALESCE(doctors.pourcentage_adresse, 0) +
+                COALESCE(doctors.pourcentage_cv, 0) +
+                COALESCE(doctors.pourcentage_cabinet, 0) +
+                COALESCE(doctors.pourcentage_tags, 0) +
+                COALESCE(doctors.pourcentage_profil, 0)
+            ) AS total_pourcentage'),
+            \DB::raw('(SELECT COUNT(*) FROM doctor_patients WHERE doctor_patients.doctor_id = doctors.id) AS nb_patient') // Calcul du nombre de patients
+        )
+        ->leftJoin("doctor_specialities", "doctors.id", "=", "doctor_specialities.doctor_id")
+        ->leftJoin("specialities", "doctor_specialities.speciality_id", "=", "specialities.id")
+        ->leftJoin("users", "doctors.user_id", "=", "users.id")
+        ->orderBy('total_pourcentage', 'asc'); // Tri par pourcentage croissant
+}
+
 
     /**
      * Optional method if you want to use html builder.
@@ -167,6 +169,10 @@ class SuiviDoctorsDataTable extends DataTable
         [
             'data' => 'verif_chart',
             'title' => trans('lang.verif_chart'),
+        ],
+        [
+            'data' => 'nb_patient',
+            'title' => trans('lang.nb_patient'),
         ],
     ];
 }

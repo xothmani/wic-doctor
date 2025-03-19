@@ -29,7 +29,7 @@ class PaymentSuccessMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Payment Successful')
+        return $this->subject('Paiement Réussi')
             ->view('emails.payment_success')
             ->with('paymentDetails', $this->paymentDetails);
     }

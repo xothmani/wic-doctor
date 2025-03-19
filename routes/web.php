@@ -51,9 +51,12 @@ use App\Http\Controllers\DoctorBlogController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PhotosCabinetController;
 use App\Http\Controllers\DoctorUserController;
+use App\Http\Controllers\ChatController;
+
 use Illuminate\Http\Request;
 //use App\Http\Controllers\MailController;
-
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Route;
 
 
 
@@ -397,6 +400,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/teleconsultations/send-meeting-info-form', [MeetController::class, 'showSendMeetingInfoForm'])->name('show.meeting.info.form');
     Route::post('/teleconsultations/create-specific-meeting', [MeetController::class, 'createSpecificMeeting'])->name('create.specific.meeting');
     Route::post('/meet/{id}/status', [MeetController::class, 'updateStatus'])->name('meet.update.status');
+
     Route::get('/meet', [MeetController::class, 'index'])->name('meet.index');
     Route::post('/meet/create', [MeetController::class, 'createMeet']);
     Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
@@ -411,6 +415,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     // Route pour afficher toutes les prescriptions liées à une consultation
     Route::get('/consultation/{consultation}/prescriptions', [ConsultationController::class, 'showPrescriptions'])->name('consultation.prescriptions');
     Route::get('/prescriptions/{prescription}/pdf', [PrescriptionController::class, 'generatePrescriptionPdf'])->name('prescriptions.pdf');
+
     Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
 
     // Route::get('send-mail', [MailController::class, 'index']);
@@ -559,6 +564,21 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/generate-doctor-url/{doctorId}', [DoctorController::class, 'generateDoctorUrl'])->name('generateDoctorUrl');
     Route::get('/medecin/generer-url', [DoctorController::class, 'generateConnectedDoctorUrl'])->name('doctors.generateUrl');
 
+    Route::post('/prescriptions/{prescription}/send-email', [PrescriptionController::class, 'sendEmail'])
+    ->name('prescriptions.sendEmail');
+    Route::post('/teleconsultations/create-specific-meeting', [MeetController::class, 'createSpecificMeeting'])->name('create.specific.meeting');
+
+    
+    Route::get('/serve-file/{doctorId}/{category}/{status}/{fileName}', function ($doctorId, $category, $status, $fileName) {
+        $filePath = "/mnt/doctor/{$doctorId}/{$category}/{$status}/{$fileName}";
+    
+        if (!file_exists($filePath)) {
+            abort(404);
+        }
+    
+        return Response::file($filePath);
+    })->name('serveFile');
+    
 
 
 
@@ -577,6 +597,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/substitutes/{doctorId}', [AppointmentEventController::class, 'getSubstitutes'])->name('get.substitutes');
     Route::get('/appointments/stats/{doctorId}/{selectedDate?}', [AppointmentEventController::class, 'getAppointmentStats'])
         ->name('appointment.stats');
+
     Route::prefix('availability')->group(function () {
         // ... existing availability routes ...
 
@@ -590,6 +611,47 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         Route::put('/closures/{id}', [AvailabilityController::class, 'updateClosures'])
             ->name('availability.closures.update');  // Add this line
     });
+
+
+        
+Route::get('/messages/{doctorId}', [ChatController::class, 'getMessagesForDoctor']);
+Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
+Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
+Route::get('/chat', [ChatController::class, 'showForm']);
+Route::get('storage/{file}', function ($file) {
+    $path = storage_path('app/public/' . $file);
+
+    if (!File::exists($path)) {                                                     
+        abort(404);
+    }
+
+    return response()->file($path);
+});
+Route::get('/download/{filename}', function ($filename) {
+    $path = storage_path('app/public/chat_files/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->download($path);
+})->name('download.file');
+
+
+Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
+    Route::get('/last-message', [ChatController::class, 'getLastMessage']);
+Route::delete('/messages/{chatId}/{messageId}', [ChatController::class, 'deleteMessage'])->name('chat.deleteMessage');
+Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
+Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
+
+    Route::get('/chat/{userId}/{doctorId}', [ChatController::class, 'showChat']);
+
+Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
+
+Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
+ 
+
 
 
     Route::post('/users/accept-new-features', [UserController::class, 'acceptNewFeatures'])->name('users.acceptNewFeatures');

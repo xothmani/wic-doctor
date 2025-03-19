@@ -379,6 +379,7 @@
             const form = document.getElementById('sendMeetingForm');
             const inputs = form.querySelectorAll('input[required]');
 
+
             // Real-time validation
             inputs.forEach(input => {
                 ['blur', 'input'].forEach(eventType => {
@@ -491,6 +492,7 @@
                 Swal.fire({
                     title: 'Vérification des informations',
                     html: `
+
                                                                                                                                                                                                                                                                                                                                                                                 <div class="text-left">
                                                                                                                                                                                                                                                                                                                                                                                     <div class="card mb-3" style="border-color: #5c6bc0">
                                                                                                                                                                                                                                                                                                                                                                                         <div class="card-header text-white" style="background-color: #5c6bc0">
@@ -536,6 +538,7 @@
                                                                                                                                                                                                                                                                                                                                                                                     </div>
                                                                                                                                                                                                                                                                                                                                                                                 </div>
                                                                                                                                                                                                                                                                                                                                                                             `,
+
                     width: '600px',
                     padding: '1rem',
                     icon: 'info',
@@ -563,9 +566,6 @@
                 });
             });
         });
-
-        // Add validation for split payment
-
 
 
         function copyToClipboard() {

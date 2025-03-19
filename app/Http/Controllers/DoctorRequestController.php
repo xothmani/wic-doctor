@@ -225,218 +225,110 @@ public function store(Request $request)
 
 public function createUserFromDoctorRequest($doctorRequestId)
 {
+    // Récupérer la demande de docteur
     $doctorRequest = DoctorRequest::findOrFail($doctorRequestId);
 
+    // Vérifier que la demande est de type "Docteur"
     if ($doctorRequest->type !== 'Docteur') {
         return redirect()->back()->with('error', 'Seules les demandes de type "Docteur" sont autorisées.');
     }
 
+    Log::info('Traitement de la demande de docteur', ['id' => $doctorRequestId]);
+
     try {
-        $doctorPassword = Str::random(8); // Toujours générer un mot de passe pour le docteur
-        $patientPassword = null; // Initialiser la variable pour le mot de passe patient
+        // Générer un mot de passe aléatoire pour le docteur
+        $doctorPassword = Str::random(8);
+        $patientPassword = null;
 
-        // Rechercher un utilisateur existant
-    $user = User::where('email', $doctorRequest->email)
-        ->when($doctorRequest->Phone, function ($query, $phone) {
-            $query->orWhere('phone_number', $phone);
-        })
-        ->first();
+        Log::info('Génération du mot de passe du docteur');
 
+        // Vérifier si l'utilisateur existe déjà
+        $user = User::where('email', $doctorRequest->email)->first();
 
-    Log::info('Vérification de l\'utilisateur existant.', [
-        'email_recherche' => $doctorRequest->email,
-        'phone_recherche' => $doctorRequest->Phone,
-        'user_retourne' => $user ? $user->toArray() : 'Aucun utilisateur trouvé',
-    ]);
+        if ($user) {
+            Log::info('Utilisateur existant trouvé', ['email' => $user->email]);
+        } else {
+            Log::info('Utilisateur non trouvé, création dans Firebase et SQL');
+        }
 
+        // Si l'utilisateur n'existe pas, le créer dans Firebase et SQL
         if (!$user) {
-            // Création d'un nouvel utilisateur
-            $patientPassword = Str::random(8); // Générer un nouveau mot de passe patient
+            $patientPassword = Str::random(8);
+
+            // 🔹 Créer l'utilisateur dans Firebase
+            $auth = app(FirebaseAuth::class);
+            try {
+                Log::info('Création de l\'utilisateur dans Firebase');
+
+                $firebaseUser = $auth->createUser([
+                    'email' => $doctorRequest->email,
+                    'password' => $doctorPassword,
+                    'displayName' => $doctorRequest->name . ' ' . $doctorRequest->lastname,
+                    'phoneNumber' => $doctorRequest->phone,
+                ]);
+
+                // Récupérer l'UID Firebase
+                $firebaseUid = $firebaseUser->uid;
+                Log::info('Utilisateur créé dans Firebase avec UID : ' . $firebaseUid);
+            } catch (FirebaseEmailExists $e) {
+                Log::error('Utilisateur déjà existant dans Firebase.');
+                return redirect()->back()->with('error', 'Cet utilisateur existe déjà dans Firebase.');
+            } catch (\Exception $e) {
+                Log::error('Erreur Firebase : ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Erreur lors de la création Firebase.');
+            }
+
+            // 🔹 Créer l'utilisateur dans la base de données SQL
             $user = User::create([
                 'name' => $doctorRequest->name,
                 'lastname' => $doctorRequest->lastname,
                 'email' => $doctorRequest->email,
-                'phone_number' => $doctorRequest->Phone,
+                'phone_number' => $doctorRequest->phone,
                 'password' => bcrypt($doctorPassword),
                 'passwordpatient' => Hash::make($patientPassword),
+                'firebase_uid' => $firebaseUid, // Stocker l'UID Firebase
             ]);
-
-            // Logguer le dernier utilisateur créé
-            Log::info('Nouvel utilisateur créé.', ['user_id' => $user->id]);
         } else {
-            // Si l'utilisateur existe déjà
-            if ($user->passwordpatient) {
-                $patientPassword = 'Mot de passe déjà défini';
-            } else {
-                $patientPassword = Str::random(8);
-                $user->passwordpatient = Hash::make($patientPassword);
-            }
-
+            // Mettre à jour les mots de passe si nécessaire
             if (!$user->password) {
                 $user->password = bcrypt($doctorPassword);
             }
+            if (!$user->passwordpatient) {
+                $patientPassword = Str::random(8);
+                $user->passwordpatient = Hash::make($patientPassword);
+            }
             $user->save();
-
-            // Logguer l'utilisateur existant
-            Log::info('Utilisateur existant utilisé.', ['user_id' => $user->id]);
         }
 
-        // Vérifier si l'utilisateur est déjà associé à un docteur
+        // Vérifier si un docteur existe déjà pour cet utilisateur
         $existingDoctor = Doctor::where('user_id', $user->id)->first();
         if ($existingDoctor) {
-            // Logguer une tentative de doublon
-            Log::warning('Tentative de conventionnement pour un utilisateur déjà existant.', [
-                'user_id' => $user->id,
-                'doctorRequestId' => $doctorRequestId,
-            ]);
             return redirect()->back()->with('error', 'Docteur déjà conventionné pour cet utilisateur.');
         }
 
         // Créer le docteur
         $doctor = $this->createDoctor($user, $doctorRequest);
 
-        // Vérifier si le patient existe déjà
+        // Créer le patient si nécessaire
         $existingPatient = Patient::where('user_id', $user->id)->first();
         if (!$existingPatient) {
             $this->createPatient($user, $doctorRequest);
         }
 
-                    // Changer le statut de la demande à "accepté"
-                    $doctorRequest->status = 'accepté';
-                    $doctorRequest->save(); // Sauvegarder la mise à jour
-
-        Log::info('Mot de passe du docteur : ' . $doctorPassword);
-
-        // Envoi de l'email avec les mots de passe
-        $doctor = Doctor::where('user_id', function ($query) use ($doctorRequest) {
-            $query->select('id')->from('users')->where('email', $doctorRequest->email);
-        })->first();
-        
-        if (!$doctor) {
-            return redirect()->back()->with('error', 'Le docteur n\'existe pas.');
-        }
-        
+        // Envoyer un e-mail avec les informations de connexion
         Mail::to($doctorRequest->email)->send(new DoctorRequestMail(
             $doctorPassword,
             $patientPassword,
             $doctor
         ));
-        
 
-
-        return redirect()->route('doctor_requests.index')->with('success', 'Utilisateur, docteur et patient créés avec succès. Les informations ont été envoyées par e-mail.');
+        return redirect()->route('doctor_requests.index')->with('success', 'Utilisateur, docteur et patient créés avec succès. Informations envoyées par e-mail.');
     } catch (\Exception $e) {
         Log::error('Erreur lors de la création : ' . $e->getMessage(), [
             'doctorRequestId' => $doctorRequestId,
         ]);
         return redirect()->back()->with('error', 'Une erreur est survenue.');
     }
-}
-
- 
-
-private function createDoctor($user, $doctorRequest)
-{
-        $randomId = random_int(1000000000, 9999999999);
-        while (Doctor::where('id_aleatoire', $randomId)->exists()) {
-            $randomId = random_int(1000000000, 9999999999);
-        }
-
-        $formattedName = ['fr' => $user->lastname . ' ' . $user->name];
-
-       // Créer le docteur
-       $doctor = Doctor::create([
-        'name' => $formattedName,
-        'user_id' => $user->id,
-        'id_aleatoire' => $randomId,
-        'sexe' => $doctorRequest->sexe,
-        'code_doctor' => $doctorRequest->code_doctor,
-    ]);
-
-    // Définir l'image par défaut selon le sexe
-    $defaultAvatar = $doctorRequest->sexe === 'homme' 
-
-        ? '/var/www/doctor.way-interactive-convergence.com/public/images/avatarHomme.png' 
-        : '/var/www/doctor.way-interactive-convergence.com/public/images/avatarFemme.png';
-
-
-    if (!file_exists($defaultAvatar)) {
-        Log::error("L'image par défaut est introuvable", ['path' => $defaultAvatar]);
-        return back()->withErrors(['image' => 'L\'image par défaut est introuvable.']);
-    }
-
-    // 1️⃣ Ajouter l'image au modèle Doctor
-    $doctorMedia = $doctor->addMedia($defaultAvatar)->preservingOriginal()->toMediaCollection('image');
-    Log::info('Image ajoutée au doctor', ['id' => $doctor->id, 'image' => $doctorMedia->getUrl()]);
-
-    // 2️⃣ Ajouter l'image au modèle User
-    $userMedia = $user->addMedia($defaultAvatar)->preservingOriginal()->toMediaCollection('avatar');
-    Log::info('Image ajoutée à l\'utilisateur', ['id' => $user->id, 'image' => $userMedia->getUrl()]);
-
-    // 3️⃣ Ajouter l'image au modèle Upload
-    $upload = Upload::create([
-        'uuid' => Str::uuid(),
-        'user_id' => $user->id,
-        'file_name' => basename($defaultAvatar),
-        'mime_type' => 'image/png',
-        'disk' => 'public',
-        'size' => filesize($defaultAvatar),
-        'model_type' => 'App\Models\Upload',
-        'model_id' => $doctor->id,
-        'collection_name' => 'image',
-    ]);
-    $uploadMedia = $upload->addMedia($defaultAvatar)->preservingOriginal()->toMediaCollection('image');
-    Log::info('Image ajoutée à Upload', ['id' => $upload->id, 'image' => $uploadMedia->getUrl()]);
-        if (!DB::table('model_has_roles')->where('model_id', $user->id)->where('role_id', 5)->exists()) {
-            DB::table('model_has_roles')->insert([
-                'role_id' => 5,
-                'model_type' => 'App\Models\User',
-                'model_id' => $user->id,
-            ]);
-        }
-
-        DB::table('membership')->insert([
-            'user_id' => $user->id,
-            'pack_id' => 1,
-            'start_date' => now(),
-            'end_date' => now()->addDays(10),
-            'payment_amount' => 0.00,
-            'payment_date' => now(),
-        ]);
-
-        if ($doctorRequest->speciality_id) {
-            DB::table('doctor_specialities')->insert([
-                'doctor_id' => $doctor->id,
-                'speciality_id' => $doctorRequest->speciality_id,
-            ]);
-        }
-
-        $addressData = [
-            'user_id' => $user->id,
-            'description' => json_encode(['fr' => $doctorRequest->adresse], JSON_UNESCAPED_UNICODE),
-            'address' => json_encode(['fr' => $doctorRequest->adresse], JSON_UNESCAPED_UNICODE),
-            'pays' => json_encode(['fr' => $doctorRequest->pays], JSON_UNESCAPED_UNICODE),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
-    if ($doctorRequest->pays === 'tunisie') {
-        $addressData['gouvernorat'] = json_encode(['fr' => $doctorRequest->gouvernorat]);
-        $addressData['ville'] = json_encode(['fr' => $doctorRequest->ville]);
-    } elseif ($doctorRequest->pays === 'france') {
-        $addressData['Département'] = json_encode(['fr' => $doctorRequest->departement]);
-        $addressData['Région'] = json_encode(['fr' => $doctorRequest->region]);
-    }
-
-        DB::table('addresses')->insert($addressData);
-        // Modifier les permissions avant d'exécuter le script Node.js
-        shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
-        shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/WicDoctor/medecin/');
-
-        // Exécuter le script Node.js
-        $this->executeNodeScript($doctor);
-
-
-        return $doctor;
 }
 
 private function executeNodeScript($doctor)

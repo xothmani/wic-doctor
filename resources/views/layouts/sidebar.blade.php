@@ -12,6 +12,18 @@
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column nav-flat" data-widget="treeview" role="menu" data-accordion="false">
                 @include('layouts.menu', ['icons' => true])
+                <li class="nav-item mb-0">
+            @unless(auth()->user()->hasRole('admin'))
+            <a class="nav-link {{ Request::is('users.profile') ? 'active' : '' }}" href="{!! route('users.profile') !!}">
+    <i class="nav-icon fas fa-user"></i> <!-- Icône de profil -->
+    <p>{{ trans('lang.my_profile') }}</p>
+
+</a>
+
+            @endunless
+
+
+</li>
             </ul>
         </nav>
         <!-- /.sidebar-menu -->
@@ -19,16 +31,7 @@
         <!-- Footer for extra links (Profile, Photos Cabinet) -->
         <div class="sidebar-footer mt-auto">
             <ul class="nav nav-pills nav-sidebar flex-column nav-flat">
-            <li class="nav-item">
-            @unless(auth()->user()->hasRole('admin'))
-                <a class="nav-link {{ Request::is('users.profile') ? 'active' : '' }}" href="{!! route('users.profile') !!}">
-                    <i class="nav-icon fas fa-user"></i> <!-- Icône de profil -->
-                    <p>{{ trans('lang.my_profile') }}</p>
-                </a>
-            @endunless
-
-
-</li>
+            
 
             </ul>
         </div>
