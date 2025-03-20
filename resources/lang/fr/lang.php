@@ -2074,6 +2074,7 @@ return [
     'appointment_information' => 'Rendez-vous',
     'payment_information' => 'Paiement',
     'send' => 'Envoyer',
+    'create_user' => 'Créer compte',
     
 
 
