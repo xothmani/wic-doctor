@@ -257,29 +257,6 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
         if (!$user) {
             $patientPassword = Str::random(8);
 
-            // 🔹 Créer l'utilisateur dans Firebase
-            //$auth = app(abstract: FirebaseAuth::class);
-/*             try {
-                Log::info('Création de l\'utilisateur dans Firebase');
-
-                $firebaseUser = $auth->createUser([
-                    'email' => $doctorRequest->email,
-                    'password' => $doctorPassword,
-                    'displayName' => $doctorRequest->name . ' ' . $doctorRequest->lastname,
-                    'phoneNumber' => $doctorRequest->phone,
-                ]);
-
-                // Récupérer l'UID Firebase
-                $firebaseUid = $firebaseUser->uid;
-                Log::info('Utilisateur créé dans Firebase avec UID : ' . $firebaseUid);
-            } catch (FirebaseEmailExists $e) {
-                Log::error('Utilisateur déjà existant dans Firebase.');
-                return redirect()->back()->with('error', 'Cet utilisateur existe déjà dans Firebase.');
-            } catch (\Exception $e) {
-                Log::error('Erreur Firebase : ' . $e->getMessage());
-                return redirect()->back()->with('error', 'Erreur lors de la création Firebase.');
-            } */
-
             // 🔹 Créer l'utilisateur dans la base de données SQL
             $user = User::create([
                 'name' => $doctorRequest->name,
@@ -288,7 +265,6 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
                 'phone_number' => $doctorRequest->phone,
                 'password' => bcrypt($doctorPassword),
                 'passwordpatient' => Hash::make($patientPassword),
-                //'firebase_uid' => $firebaseUid, // Stocker l'UID Firebase
             ]);
         } else {
             // Mettre à jour les mots de passe si nécessaire
@@ -310,6 +286,7 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
 
         // Créer le docteur
         $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode);
+
         // Vérifier si le patient existe déjà
         $existingPatient = Patient::where('user_id', $user->id)->first();
         if (!$existingPatient) {
@@ -328,40 +305,39 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
         Log::error('Erreur lors de la création : ' . $e->getMessage(), [
             'doctorRequestId' => $doctorRequestId,
         ]);
-        return redirect()->back()->with('error', 'Une erreur est survenue.');
+        return redirect()->back()->with('error', 'Une erreur est survenue: ' . $e->getMessage());
     }
 }
 
  
 
-private function createDoctor($user, $doctorRequest, $availabilityMode){
+private function createDoctor($user, $doctorRequest, $availabilityMode)
+{
+    $randomId = random_int(1000000000, 9999999999);
+    while (Doctor::where('id_aleatoire', $randomId)->exists()) {
         $randomId = random_int(1000000000, 9999999999);
-        while (Doctor::where('id_aleatoire', $randomId)->exists()) {
-            $randomId = random_int(1000000000, 9999999999);
-        }
+    }
 
-        $formattedName = ['fr' => $user->lastname . ' ' . $user->name];
+    $formattedName = ['fr' => $user->lastname . ' ' . $user->name];
 
-       // Créer le docteur
-       $doctor = Doctor::create([
+    // Créer le docteur
+    $doctor = Doctor::create([
         'name' => $formattedName,
         'user_id' => $user->id,
         'id_aleatoire' => $randomId,
         'sexe' => $doctorRequest->sexe,
         'code_doctor' => $doctorRequest->code_doctor,
-        'availability_mode' => $availabilityMode, 
+        'availability_mode' => $availabilityMode,
     ]);
 
     // Définir l'image par défaut selon le sexe
-    $defaultAvatar = $doctorRequest->sexe === 'homme' 
-
-        ? '/var/www/doctor.way-interactive-convergence.com/public/images/avatarHomme.png' 
+    $defaultAvatar = $doctorRequest->sexe === 'homme'
+        ? '/var/www/doctor.way-interactive-convergence.com/public/images/avatarHomme.png'
         : '/var/www/doctor.way-interactive-convergence.com/public/images/avatarFemme.png';
-
 
     if (!file_exists($defaultAvatar)) {
         Log::error("L'image par défaut est introuvable", ['path' => $defaultAvatar]);
-        return back()->withErrors(['image' => 'L\'image par défaut est introuvable.']);
+        throw new \Exception("L'image par défaut est introuvable.");
     }
 
     // 1️⃣ Ajouter l'image au modèle Doctor
@@ -386,38 +362,40 @@ private function createDoctor($user, $doctorRequest, $availabilityMode){
     ]);
     $uploadMedia = $upload->addMedia($defaultAvatar)->preservingOriginal()->toMediaCollection('image');
     Log::info('Image ajoutée à Upload', ['id' => $upload->id, 'image' => $uploadMedia->getUrl()]);
-        if (!DB::table('model_has_roles')->where('model_id', $user->id)->where('role_id', 5)->exists()) {
-            DB::table('model_has_roles')->insert([
-                'role_id' => 5,
-                'model_type' => 'App\Models\User',
-                'model_id' => $user->id,
-            ]);
-        }
 
-        DB::table('membership')->insert([
-            'user_id' => $user->id,
-            'pack_id' => 1,
-            'start_date' => now(),
-            'end_date' => now()->addDays(10),
-            'payment_amount' => 0.00,
-            'payment_date' => now(),
+    if (!DB::table('model_has_roles')->where('model_id', $user->id)->where('role_id', 5)->exists()) {
+        DB::table('model_has_roles')->insert([
+            'role_id' => 5,
+            'model_type' => 'App\Models\User',
+            'model_id' => $user->id,
         ]);
+    }
 
-        if ($doctorRequest->speciality_id) {
-            DB::table('doctor_specialities')->insert([
-                'doctor_id' => $doctor->id,
-                'speciality_id' => $doctorRequest->speciality_id,
-            ]);
-        }
+    DB::table('membership')->insert([
+        'user_id' => $user->id,
+        'pack_id' => 1,
+        'start_date' => now(),
+        'end_date' => now()->addDays(10),
+        'payment_amount' => 0.00,
+        'payment_date' => now(),
+    ]);
 
-        $addressData = [
-            'user_id' => $user->id,
-            'description' => json_encode(['fr' => $doctorRequest->adresse], JSON_UNESCAPED_UNICODE),
-            'address' => json_encode(['fr' => $doctorRequest->adresse], JSON_UNESCAPED_UNICODE),
-            'pays' => json_encode(['fr' => $doctorRequest->pays], JSON_UNESCAPED_UNICODE),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
+    if ($doctorRequest->speciality_id) {
+        DB::table('doctor_specialities')->insert([
+            'doctor_id' => $doctor->id,
+            'speciality_id' => $doctorRequest->speciality_id,
+        ]);
+    }
+
+    $addressData = [
+        'user_id' => $user->id,
+        'description' => json_encode(['fr' => $doctorRequest->adresse], JSON_UNESCAPED_UNICODE),
+        'address' => json_encode(['fr' => $doctorRequest->adresse], JSON_UNESCAPED_UNICODE),
+        'pays' => json_encode(['fr' => $doctorRequest->pays], JSON_UNESCAPED_UNICODE),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ];
+
     if ($doctorRequest->pays === 'tunisie') {
         $addressData['gouvernorat'] = json_encode(['fr' => $doctorRequest->gouvernorat]);
         $addressData['ville'] = json_encode(['fr' => $doctorRequest->ville]);
@@ -426,16 +404,16 @@ private function createDoctor($user, $doctorRequest, $availabilityMode){
         $addressData['Région'] = json_encode(['fr' => $doctorRequest->region]);
     }
 
-        DB::table('addresses')->insert($addressData);
-        // Modifier les permissions avant d'exécuter le script Node.js
-        shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
-        shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/WicDoctor/medecin/');
+    DB::table('addresses')->insert($addressData);
 
-        // Exécuter le script Node.js
-        $this->executeNodeScript($doctor);
+    // Modifier les permissions avant d'exécuter le script Node.js
+    shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
+    shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/WicDoctor/medecin/');
 
+    // Exécuter le script Node.js
+    $this->executeNodeScript($doctor);
 
-        return $doctor;
+    return $doctor;
 }
 
 private function executeNodeScript($doctor)
