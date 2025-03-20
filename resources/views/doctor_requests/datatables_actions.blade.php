@@ -10,16 +10,73 @@
     @endcan
 
     @if ($doctorRequest && $doctorRequest->status === 'en cours')  <!-- Vérification du statut -->
-        @can('doctor_requests.createUserFromDoctorRequest')
-            <a href="{{ route('doctor_requests.createUserFromDoctorRequest', ['id' => $id]) }}"  
-               data-toggle="tooltip" 
-               data-placement="left" 
-               title="{{ trans('lang.create_user') }}" 
-               class='btn btn-link text-success'>
-               <i class="fas fa-user-plus"></i> 
-            </a>
-        @endcan
-    @endif
+    @can('doctor_requests.createUserFromDoctorRequest')
+        <!-- Bouton pour ouvrir la modal -->
+        <a href="#"  
+           data-toggle="modal" 
+           data-target="#doctorRequestModal"
+           data-placement="left" 
+           title="{{ trans('lang.create_user') }}" 
+           class='btn btn-link text-success'>
+           <i class="fas fa-user-plus"></i> 
+        </a>
+    @endcan
+@endif
+
+<!-- Modal -->
+<div class="modal fade" id="doctorRequestModal" tabindex="-1" role="dialog" aria-labelledby="doctorRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="doctorRequestModalLabel">Choisir une option</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Veuillez sélectionner une option :</p>
+                <form id="doctorRequestForm" method="POST" action="{{ route('doctor_requests.createUserFromDoctorRequest', ['id' => $id]) }}">
+                    @csrf
+                    <div class="form-group">
+                        <label for="availability_mode">Mode de disponibilité :</label>
+                        <select class="form-control" name="availability_mode" id="availability_mode" required>
+                            <option value="" disabled selected>Sélectionner votre mode</option> <!-- Option par défaut -->
+                            <option value="precise">precise</option>
+                            <option value="open">open</option>
+                        </select>
+                    </div>
+                </form>
+                <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('doctorRequestForm');
+        if (form) {
+            form.addEventListener('submit', function (event) {
+                const select = document.getElementById('availability_mode');
+                if (select.value === "") {
+                    alert("Veuillez sélectionner un mode de disponibilité.");
+                    event.preventDefault(); // Empêche la soumission du formulaire
+                }
+            });
+        }
+    });
+</script>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary" form="doctorRequestForm">Confirmer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script pour soumettre le formulaire -->
+<script>
+    function submitDoctorRequestForm() {
+        document.getElementById('doctorRequestForm').submit();
+    }
+</script>
+
     @if ($doctorRequest && $doctorRequest->status === 'en cours')  <!-- Vérification du statut -->
         @can('doctor_requests.destroy')
             <button type="button" class="btn btn-link text-danger" onclick="confirmDelete('{{ $id }}')">

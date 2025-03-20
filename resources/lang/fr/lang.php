@@ -2076,12 +2076,7 @@ return [
     'appointment_information' => 'Rendez-vous',
     'payment_information' => 'Paiement',
     'send' => 'Envoyer',
-
-
-
-
-
-
+    'create_user' => 'Créer compte',
     'add_vacation' => 'Ajouter des vacances',
     'vacation_list' => 'Liste des vacances',
     'start_date' => 'Date de début',
