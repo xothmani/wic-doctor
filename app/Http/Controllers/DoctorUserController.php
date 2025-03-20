@@ -16,8 +16,8 @@ use App\Models\UserOwnership;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use App\Models\ProfileManagement;
-
-use App\Models\Doctor; // Assuming you have a Doctor model
+use App\Models\Membership;
+use App\Models\Doctor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\DataTables\DoctorUserDataTable;
@@ -92,19 +92,11 @@ class DoctorUserController extends Controller
         }
 
         $doctorId = $doctor->id;
-        $roleTranslations = [
-            'Secretary' => 'Secrétaire',
-            'Telesecretary' => 'Télésecrétaire',
-            'Doctor' => 'Médecin',
-            // add other roles as needed
-        ];
+
         // Fetch roles created by any user (can refine this later)
         $roles = DB::table('role_for_doctors')
-            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id')
-            ->pluck('roles.name', 'roles.name')
-            ->mapWithKeys(function ($label, $key) use ($roleTranslations) {
-                return [$key => $roleTranslations[$key] ?? $key]; // fallback to original if not translated
-            });
+            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id') // Join with the roles table
+            ->pluck('roles.name', 'roles.name'); // Retrieve role names
         $rolesSelected = []; // No roles selected by default for a new user
 
         // Pass the logged-in doctor's ID to the view
@@ -175,6 +167,10 @@ class DoctorUserController extends Controller
 
             // Assign the role to the user
             $user->assignRole($role);
+            // Ensure this role has permission
+            if (!$role->hasPermissionTo('users.profile')) {
+                $role->givePermissionTo('users.profile');
+            }
 
             // Insert into user_ownership table
             DoctorAssociate::create([
@@ -191,7 +187,7 @@ class DoctorUserController extends Controller
                 'is_active' => $request->has('is_active') ? $request->is_active : 0,
             ]);
 
-            // Flash success message
+
             Flash::success(__('Utilisateur créé avec succès.'));
         } catch (\Exception $e) {
             // Flash error message and redirect back with input
@@ -243,7 +239,7 @@ class DoctorUserController extends Controller
         $roleTranslations = [
             'Secretary' => 'Secrétaire',
             'Telesecretary' => 'Télésecrétaire',
-            'Doctor' => 'Médecin',
+            'Substitue' => 'Remplaçant',
             // add more if needed
         ];
 
@@ -285,6 +281,7 @@ class DoctorUserController extends Controller
      */
     public function update($id, UpdateUserRequest $request)
     {
+        \Log::info("baaaaa", $request->all());
         $request->validate([
             'name' => 'required|string|max:255', // Ensure name is required
             'email' => 'required|email|unique:users,email,' . $id, // Unique email, excluding current user
@@ -322,19 +319,8 @@ class DoctorUserController extends Controller
             $user = $this->userRepository->update($input, $id);
 
             // Update roles
-            $roleMap = [
-                'Secrétaire' => 'Secretary',
-                'Télésecrétaire' => 'Telesecretary',
-                'Médecin' => 'Doctor',
-            ];
-
-            // Map the translated role to the internal one
-            if (isset($input['roles'])) {
-                $mappedRoles = collect($input['roles'])->map(function ($r) use ($roleMap) {
-                    return $roleMap[$r] ?? $r;
-                })->toArray();
-
-                $user->syncRoles($mappedRoles);
+            if (isset($input['role'])) {
+                $user->syncRoles($input['role']);
             }
 
             // Update profile management data
@@ -355,7 +341,6 @@ class DoctorUserController extends Controller
 
         return redirect()->route('Doctors_users.index');
     }
-
 
 
 

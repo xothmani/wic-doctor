@@ -16,7 +16,6 @@ class ActiveDoctor extends Component
         $user = Auth::user();
         if ($user) {
             if ($user->hasRole('Telesecretary')) {
-                // For tele-secretaries, get the doctor id from the session.
                 $doctorId = session('selectedDoctorId');
                 \Log::info('DoctorId: ' . $doctorId);
                 $this->activeDoctor = $doctorId ? Doctor::find($doctorId) : null;

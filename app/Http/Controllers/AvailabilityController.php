@@ -11,8 +11,10 @@ use App\Models\Pattern;
 use App\Models\Appointment;
 use App\Models\DoctorSubstitute;
 use App\Models\AvailabilityHour;
+use App\Models\DoctorUrgency;
+use App\Models\DoctorVacation;
 use Carbon\Carbon;
-
+use Flash;
 
 
 class AvailabilityController extends Controller
@@ -31,8 +33,8 @@ class AvailabilityController extends Controller
             'break_end' => null
         ],
         'home_visit' => [
-            'start' => '00:00',
-            'end' => '00:00',
+            'start' => null,
+            'end' => null,
             'break_start' => null,
             'break_end' => null
         ]
@@ -48,8 +50,9 @@ class AvailabilityController extends Controller
         // Récupérer l'ID du médecin lié à l'utilisateur connecté
         $doctorId = auth()->user()->getDoctorId();
 
+
         if (!$doctorId) {
-            return redirect()->route('users.profile');
+            session()->flash('error', 'Veuillez d\'abord sélectionner un médecin.');
         }
         $currentMode = null;
         if (auth()->user()->hasRole('doctor')) {
@@ -161,7 +164,11 @@ class AvailabilityController extends Controller
             $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
                 ->orderBy('start_date', 'desc')
                 ->get();
-
+            $dailyClosures = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->where('jour', '>=', now()->startOfDay())
+                ->orderBy('jour', 'asc')
+                ->get();
             return view('availability.index', compact(
                 'availabilities',
                 'sessionDurations', // Replace sessionDurationFormatted with sessionDurations
@@ -169,7 +176,8 @@ class AvailabilityController extends Controller
                 'doctorPatterns',
                 'breakTime',
                 'vacations',
-                'substitutes' // Add this line
+                'substitutes',
+                'dailyClosures',
             ));
         } elseif ($currentMode == 'precise') {
 
@@ -226,6 +234,17 @@ class AvailabilityController extends Controller
             $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
                 ->orderBy('start_date', 'desc')
                 ->get();
+            $dailyClosures = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->where('jour', '>=', now()->startOfDay())
+                ->orderBy('jour', 'asc')
+                ->get();
+
+            $periodClosures = DB::table('vacance')
+                ->where('doctor_id', $doctorId)
+                ->where('end_date', '>=', now()->startOfDay())
+                ->orderBy('start_date', 'asc')
+                ->get();
             // For debugging
             \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
             return view('availability.index', compact(
@@ -234,7 +253,9 @@ class AvailabilityController extends Controller
                 'days',
                 'vacations',
                 'substitutes',
-                'doctorPatterns'
+                'doctorPatterns',
+                'dailyClosures',
+                'periodClosures'
             ));
         }
     }
@@ -460,6 +481,7 @@ class AvailabilityController extends Controller
 
     public function storeOpen(Request $request)
     {
+        \Log::info('Request store received:', ['request' => $request->all()]);
         $doctorId = auth()->user()->getDoctorId();
         $type = $request->input('type', 'cabinet');
 
@@ -499,7 +521,7 @@ class AvailabilityController extends Controller
                     'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday'
                 ],
                 'availability.*.from' => [
-                    'required_with:availability.*.is_available',
+                    'required_if:availability.*.is_available,1',
                     'date_format:H:i',
                     function ($attribute, $value, $fail) use ($request) {
                         $index = explode('.', $attribute)[1];
@@ -509,9 +531,9 @@ class AvailabilityController extends Controller
                     }
                 ],
                 'availability.*.to' => [
-                    'required_with:availability.*.is_available',
+                    'required_if:availability.*.is_available,1',
                     'date_format:H:i',
-                    'after:availability.*.from'
+                    'after:availability.*.from',
                 ],
                 'availability.*.pause_from' => 'nullable|required_with:availability.*.pause_to|date_format:H:i',
                 'availability.*.pause_to' => 'nullable|required_with:availability.*.pause_from|date_format:H:i|after:availability.*.pause_from',
@@ -744,6 +766,7 @@ class AvailabilityController extends Controller
 
     public function storeVacation(Request $request)
     {
+        \Log::info('Request received:', ['request' => $request->all()]);
         $doctorId = auth()->user()->getDoctorId();
 
         try {
@@ -783,9 +806,68 @@ class AvailabilityController extends Controller
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
     }
+    public function updateVacation($id, Request $request)
+    {
+        \Log::info('Update vacation request received:', ['request' => $request->all()]);
+        $doctorId = auth()->user()->getDoctorId();
 
+        try {
+            DB::beginTransaction();
+
+            $validated = $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'reason' => 'nullable|string|max:255'
+            ]);
+
+            // Check if vacation exists and belongs to doctor
+            $vacation = DB::table('vacance')
+                ->where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->first();
+
+            if (!$vacation) {
+                DB::rollBack();
+                \Log::warning('Vacation not found:', ['id' => $id]);
+                return redirect()->back()
+                    ->with('error', trans('messages.vacation_not_found'))
+                    ->withInput();
+            }
+
+            // Update the vacation
+            $updated = DB::table('vacance')
+                ->where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->update([
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                    'reason' => $validated['reason']
+                ]);
+
+            DB::commit();
+
+            \Log::info('Vacation updated successfully:', [
+                'id' => $id,
+                'data' => $validated
+            ]);
+
+            return redirect()->back()
+                ->with('success', trans('messages.vacation_updated_successfully'));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating vacation:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()
+                ->with('error', trans('messages.vacation_update_failed'))
+                ->withInput();
+        }
+    }
     public function storeBreaks(Request $request)
     {
+
         $doctorId = auth()->user()->getDoctorId();
 
         try {
@@ -836,34 +918,46 @@ class AvailabilityController extends Controller
 
     private function checkOverlappingSlots($doctorId, $day, $startTime, $endTime, $currentType = null, $currentId = null)
     {
-        // Don't check overlaps for home visits
-        if ($currentType === 'home_visit') {
+        // Get doctor's current mode
+        $doctor = DB::table('doctors')->where('id', $doctorId)->first();
+        if (!$doctor) {
+            \Log::error("Doctor not found for ID: $doctorId");
             return false;
         }
+
+        $doctorMode = $doctor->availability_mode;
 
         // Original overlap checking logic
         $query = AvailabilityHour::where('doctor_id', $doctorId)
             ->where('day', $day)
             ->where('is_available', true)
-            ->where('type', '!=', 'home_visit'); // Exclude home visits from overlap checks
+            ->where('mode', $doctorMode); // 🔥 Only check conflicts within the same mode
 
         // Exclude current record if updating
         if ($currentId) {
             $query->where('id', '!=', $currentId);
         }
 
-        // Check other consultation types if specified
+        // Check other consultation types only if needed
         if ($currentType) {
             $query->where('type', '!=', $currentType);
         }
 
-        return $query->where(function ($query) use ($startTime, $endTime) {
-            $query->where(function ($q) use ($startTime, $endTime) {
-                $q->where('start_at', '<', $endTime)
-                    ->where('end_at', '>', $startTime);
-            });
+        // Check for time overlap
+        $hasConflict = $query->where(function ($q) use ($startTime, $endTime) {
+            $q->where('start_at', '<', $endTime)
+                ->where('end_at', '>', $startTime);
         })->exists();
+
+        if ($hasConflict) {
+            \Log::info("Conflict detected for Doctor ID $doctorId, Mode: $doctorMode, Type: $currentType, Day: $day, Time: $startTime - $endTime");
+        } else {
+            \Log::info("✅ No conflict for Doctor ID $doctorId, Mode: $doctorMode, Type: $currentType, Day: $day, Time: $startTime - $endTime");
+        }
+
+        return $hasConflict;
     }
+
 
     public function storeSubstitute(Request $request)
     {
@@ -959,5 +1053,99 @@ class AvailabilityController extends Controller
             'total' => $total,
             'completed' => $completed
         ]);
+    }
+
+    public function storeClosures(Request $request)
+    {
+        $validated = $request->validate([
+            'jour' => 'required|date|after_or_equal:today',
+            'heurDebut' => 'required|date_format:H:i',
+            'heurFin' => 'required|date_format:H:i|after:heurDebut',
+            'reason' => 'required|string'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $doctorId = auth()->user()->getDoctorId();
+
+            DoctorUrgency::create([
+                'doctor_id' => $doctorId,
+                'jour' => $validated['jour'],
+                'heurDebut' => $validated['heurDebut'],
+                'heurFin' => $validated['heurFin'],
+                'reason' => $validated['reason']
+            ]);
+
+            DB::commit();
+            return redirect()->back()->with('success', trans('messages.closure_created_successfully'));
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', trans('messages.closure_creation_failed'));
+        }
+    }
+
+    public function getClosures()
+    {
+
+        $doctorId = auth()->user()->getDoctorId();
+
+        $dailyClosures = DoctorUrgency::where('doctor_id', $doctorId)
+            ->where('jour', '>=', now()->startOfDay())
+            ->orderBy('jour', 'asc')
+            ->orderBy('heurDebut', 'asc')
+            ->get();
+
+        return view('availability.index', compact('dailyClosures'));
+    }
+    public function destroyClosures($id, Request $request)
+    {
+        \Log::info('Attempting to delete closure:', ['closure_id' => $id]);
+
+        try {
+            $doctorId = auth()->user()->getDoctorId();
+
+            $deleted = DoctorUrgency::where('doctor_id', $doctorId)
+                ->where('id', $id)
+                ->delete();
+
+            \Log::info('Deletion result:', ['deleted' => $deleted]);
+
+            if ($deleted) {
+                return redirect()->back()->with('success', trans('messages.closure_deleted_successfully'));
+            }
+
+            return redirect()->back()->with('error', trans('messages.closure_not_found'));
+
+        } catch (\Exception $e) {
+            \Log::error('Deletion failed:', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', trans('messages.closure_deletion_failed'));
+        }
+    }
+    public function updateClosures($id, Request $request)
+    {
+        $validated = $request->validate([
+            'jour' => 'required|date',
+            'heurDebut' => 'required',
+            'heurFin' => 'required|after:heurDebut',
+            'reason' => 'required|string'
+        ]);
+
+        try {
+            $closure = DoctorUrgency::where('doctor_id', auth()->user()->getDoctorId())
+                ->where('id', $id)
+                ->firstOrFail();
+
+            $closure->update([
+                'jour' => $validated['jour'],
+                'heurDebut' => $validated['heurDebut'],
+                'heurFin' => $validated['heurFin'],
+                'reason' => $validated['reason']
+            ]);
+
+            return redirect()->back()->with('success', trans('messages.closure_updated_successfully'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', trans('messages.closure_update_failed'));
+        }
     }
 }
