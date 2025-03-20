@@ -136,7 +136,7 @@ class MeetController extends Controller
         $patient_first_name = str_replace(' ', '_', $patient_first_name);
         $patient_last_name = str_replace(' ', '_', $patient_last_name);
         $room_name = "{$patient_first_name}_{$patient_last_name}_{$patient_phone}_{$date}_{$time}";
-        $meet_link = "https://meet.jit.si/{$room_name}";
+        $meet_link = "https://meet.wic-doctor.com/{$room_name}";
 
         $user_id = auth()->id();
         $purchased_numbers = PurchasedNumber::where('user_id', $user_id)->pluck('phone_number');
