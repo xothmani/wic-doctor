@@ -239,7 +239,7 @@ class User extends Authenticatable implements HasMedia
         }
 
         // If the user is an admin, allow all permissions
-        if ($this->hasRole('admin')) {
+        if ($this->hasRole('admin') || $this->hasRole('commercial')) {
             \Log::info('Permission granted for admin role', ['user_id' => $this->id]);
             return true;
         }
