@@ -436,7 +436,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::resource('doctor_requests', DoctorRequestController::class);
     Route::post('/doctor-request/{id}/create-user', [DoctorRequestController::class, 'createUserFromDoctorRequest'])->name('doctor_requests.createUserFromDoctorRequest');
     Route::get('/doctor-requests/{id}', [DoctorRequestController::class, 'show']);
-    Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
+    //Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
 
     Route::resource('telesecretariats', TelesecretariatController::class);
     Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);
