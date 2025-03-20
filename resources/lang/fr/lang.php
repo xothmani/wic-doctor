@@ -19,6 +19,8 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
+    'doctor_user_edit' => 'Modifier l’utilisateur',
+    'manage_users_desc' => 'Gérer les utilisateurs associés au médecin.',
     'start_date_required' => 'La date de début est obligatoire',
     'end_date_required' => 'La date de fin est obligatoire',
     'reason_required' => 'Le motif est obligatoire',
@@ -2074,7 +2076,7 @@ return [
     'appointment_information' => 'Rendez-vous',
     'payment_information' => 'Paiement',
     'send' => 'Envoyer',
-    
+
 
 
 
