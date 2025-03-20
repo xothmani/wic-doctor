@@ -409,20 +409,20 @@
                 // Handle vacation case
                 if (response.vacation) {
                     timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
                     return;
                 }
 
                 // If no slots available for this type
                 if (!all_slots || all_slots.length === 0) {
                     timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible pour ${getTypeLabel(type)}.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible pour ${getTypeLabel(type)}.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
                     return;
                 }
 
@@ -566,10 +566,10 @@
                         if (!response.all_slots || response.all_slots.length === 0) {
                             // No available slots → Show a message inside the modal
                             $("#time-slots").html(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucune disponibilité pour ce type de rendez-vous à cette date.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucune disponibilité pour ce type de rendez-vous à cette date.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
                             return;
                         }
 
@@ -593,10 +593,10 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
             }
             //////////////////////////////////////////////////////////////////////////////
             function fetchSubstitutes(doctorId) {
@@ -663,73 +663,73 @@
                     eventLimit: true,
                     viewRender: function (view) {
 
-                    if (view.name === 'agendaWeek') {
-                        const doctorId = {{ auth()->user()->getDoctorId() }};
+                        if (view.name === 'agendaWeek') {
+                            const doctorId = {{ auth()->user()->getDoctorId() }};
 
-                        // Create tooltip container once
-                        if (!$('#substitute-tooltip').length) {
-                            $('body').append('<div id="substitute-tooltip" class="substitute-tooltip"></div>');
-                        }
+                            // Create tooltip container once
+                            if (!$('#substitute-tooltip').length) {
+                                $('body').append('<div id="substitute-tooltip" class="substitute-tooltip"></div>');
+                            }
 
-                        fetchSubstitutes(doctorId).then(substitutes => {
-                            //console.log("Substitutes:", substitutes);
-                            $('.fc-day-header').each(function () {
-                                let dayDate = $(this).data('date');
-                                let dayMoment = moment(dayDate);
+                            fetchSubstitutes(doctorId).then(substitutes => {
+                                //console.log("Substitutes:", substitutes);
+                                $('.fc-day-header').each(function () {
+                                    let dayDate = $(this).data('date');
+                                    let dayMoment = moment(dayDate);
 
-                                // Find the substitute active on this day
-                                let activeSubstitute = substitutes.find(sub => {
-                                    let startDate = moment(sub.start_date);
-                                    let endDate = moment(sub.end_date);
-                                    return dayMoment.isBetween(startDate, endDate, 'day', '[]');
+                                    // Find the substitute active on this day
+                                    let activeSubstitute = substitutes.find(sub => {
+                                        let startDate = moment(sub.start_date);
+                                        let endDate = moment(sub.end_date);
+                                        return dayMoment.isBetween(startDate, endDate, 'day', '[]');
+                                    });
+
+                                    // Fetch and set the dynamic number
+                                    fetchAppointmentStats(doctorId, dayDate).then(stats => {
+                                        let totalAppointments = stats && stats.total_appointments ? stats.total_appointments : 0;
+                                        let appointmentsTaken = stats && stats.appointments_taken ? stats.appointments_taken : 0;
+                                        let staticNumber = `${appointmentsTaken}/${totalAppointments}`;
+                                        let substituteName = activeSubstitute ? activeSubstitute.name : "&nbsp;";
+
+                                        // Create custom label with hover functionality
+                                        // Append all elements with proper structure
+                                        $(this).append(`
+                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-day-label substitute-hover">${substituteName}</div>
+                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-number-label">${staticNumber}</div>
+                                                                                                                                                                                                                                                                                                                                                                    `);
+                                        if (activeSubstitute) {
+                                            $(this).find('.custom-day-label').hover(
+                                                function (e) {
+                                                    let tooltip = $('#substitute-tooltip');
+                                                    let tooltipContent = ` <div class="substitute-info-container"> <div class="substitute-info"> <span class="substitute-info-label">Nom:</span> <span class="substitute-info-value">${activeSubstitute.name}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Début:</span> <span class="substitute-info-value">${moment(activeSubstitute.start_date).format('DD/MM/YYYY HH:mm')}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Fin:</span> <span class="substitute-info-value">${moment(activeSubstitute.end_date).format('DD/MM/YYYY HH:mm')}</span> </div> ${activeSubstitute.notes ? ` <div class="substitute-info"> <span class="substitute-info-label">Notes:</span> <span class="substitute-info-value">${activeSubstitute.notes}</span> </div> ` : ''} </div> `;
+
+                                                    tooltip.html(tooltipContent);
+
+                                                    // Position the tooltip
+                                                    let pos = $(this).offset();
+                                                    tooltip.css({
+                                                        top: pos.top + $(this).outerHeight() + 5,
+                                                        left: pos.left
+                                                    }).fadeIn(200);
+                                                },
+                                                function () {
+                                                    $('#substitute-tooltip').fadeOut(200);
+                                                }
+                                            );
+                                        }
+
+
+                                    }).catch(error => {
+                                        console.error("Error fetching appointment stats:", error);
+                                    });
                                 });
-
-                                // Fetch and set the dynamic number
-                                fetchAppointmentStats(doctorId, dayDate).then(stats => {
-                                    let totalAppointments = stats && stats.total_appointments ? stats.total_appointments : 0;
-                                    let appointmentsTaken = stats && stats.appointments_taken ? stats.appointments_taken : 0;
-                                    let staticNumber = `${appointmentsTaken}/${totalAppointments}`;
-                                    let substituteName = activeSubstitute ? activeSubstitute.name : "&nbsp;";
-
-                                    // Create custom label with hover functionality
-                                    // Append all elements with proper structure
-                                    $(this).append(`
-                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                        <div class="custom-day-label substitute-hover">${substituteName}</div>
-                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                        <div class="custom-number-label">${staticNumber}</div>
-                                                                                                                                                                                                                                                                                                                                                    `);
-                                    if (activeSubstitute) {
-                                        $(this).find('.custom-day-label').hover(
-                                            function (e) {
-                                                let tooltip = $('#substitute-tooltip');
-                                                let tooltipContent = ` <div class="substitute-info-container"> <div class="substitute-info"> <span class="substitute-info-label">Nom:</span> <span class="substitute-info-value">${activeSubstitute.name}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Début:</span> <span class="substitute-info-value">${moment(activeSubstitute.start_date).format('DD/MM/YYYY HH:mm')}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Fin:</span> <span class="substitute-info-value">${moment(activeSubstitute.end_date).format('DD/MM/YYYY HH:mm')}</span> </div> ${activeSubstitute.notes ? ` <div class="substitute-info"> <span class="substitute-info-label">Notes:</span> <span class="substitute-info-value">${activeSubstitute.notes}</span> </div> ` : ''} </div> `;
-
-                                                tooltip.html(tooltipContent);
-
-                                                // Position the tooltip
-                                                let pos = $(this).offset();
-                                                tooltip.css({
-                                                    top: pos.top + $(this).outerHeight() + 5,
-                                                    left: pos.left
-                                                }).fadeIn(200);
-                                            },
-                                            function () {
-                                                $('#substitute-tooltip').fadeOut(200);
-                                            }
-                                        );
-                                    }
-
-
-                                }).catch(error => {
-                                    console.error("Error fetching appointment stats:", error);
-                                });
+                            }).catch(error => {
+                                console.error("Error fetching substitutes:", error);
                             });
-                        }).catch(error => {
-                            console.error("Error fetching substitutes:", error);
-                        });
-                    }
-                },
+                        }
+                    },
                     dayRender: function (date, cell) {
                         console.log("Day Rendered:", date.format());
                         const formattedDayName = date.locale('en').format('dddd').toLowerCase();
@@ -881,19 +881,22 @@
                         // Determine the icon based on the `online` field
                         switch (event.online) {
                             case 'cabinet':
-                                icon = '<i class="fas fa-clinic-medical" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Blue clinic icon
+                                icon = '<i class="fas fa-briefcase-medical" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
-                            case 'teleconsultation':
-                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: 1A1A1D;"></i>'; // Green video icon
+                            case 'Téléconsultation':
+                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Video icon
+                                break;
+                            case 'home_visit':
+                                icon = '<i class="fas fa-home" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Home visit icon
                                 break;
                             case 'web':
-                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Orange globe icon
+                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Web icon
                                 break;
                             case 'mobile':
-                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Purple mobile icon
+                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Mobile icon
                                 break;
                             default:
-                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default gray icon
+                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default icon
                                 break;
                         }
                         element.find('.fc-title').prepend(icon);

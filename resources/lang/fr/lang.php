@@ -19,6 +19,8 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
+    'doctor_user_edit' => 'Modifier l’utilisateur',
+    'manage_users_desc' => 'Gérer les utilisateurs associés au médecin.',
     'start_date_required' => 'La date de début est obligatoire',
     'end_date_required' => 'La date de fin est obligatoire',
     'reason_required' => 'Le motif est obligatoire',
@@ -2075,12 +2077,6 @@ return [
     'payment_information' => 'Paiement',
     'send' => 'Envoyer',
     'create_user' => 'Créer compte',
-    
-
-
-
-
-
     'add_vacation' => 'Ajouter des vacances',
     'vacation_list' => 'Liste des vacances',
     'start_date' => 'Date de début',

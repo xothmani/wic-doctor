@@ -1106,13 +1106,36 @@ class DoctorTelesecretariatController extends Controller
             'is_active' => 'sometimes|boolean',
         ]);
 
-        $user = User::where('email', $validatedData['email'])->firstOrFail();
-        $doctor = Auth::user()->doctor;
-
-        if (!$doctor) {
-            return redirect()->back()->with('error', 'Vous n\'êtes pas enregistré comme médecin.');
+        // 1) Check if user with given email exists
+        $user = User::where('email', $validatedData['email'])->first();
+        if (!$user) {
+            // If no user found, flash an error instead of throwing 404
+            return redirect()->back()->with('error', "Aucun utilisateur trouvé pour l'email : {$validatedData['email']}");
         }
 
+        // 2) Check if user actually is in the telesecretariat table
+        //    i.e., has a row in telesecretariat.user_id = $user->id
+        $telesecretary = DB::table('telesecretariat')->where('user_id', $user->id)->first();
+        if (!$telesecretary) {
+            // If no record found, user is NOT in telesecretariat
+            return redirect()->back()->with('error', "Cet utilisateur n'est pas enregistré comme télésécrétaire.");
+        }
+
+        // 3) Current doctor must exist
+        $doctor = Auth::user()->doctor;
+        if (!$doctor) {
+            return redirect()->back()->with('error', "Vous n'êtes pas enregistré comme médecin.");
+        }
+
+        // 4) Check if this user is already associated with the doctor
+        $alreadyAssociated = DoctorAssociate::where('doctor_id', $doctor->id)
+            ->where('user_id', $user->id)
+            ->exists();
+        if ($alreadyAssociated) {
+            return redirect()->back()->with('error', 'Ce télésécrétaire est déjà associé à votre compte.');
+        }
+
+        // 5) Create ProfileManagement
         ProfileManagement::create([
             'user_id' => $user->id,
             'doctor_id' => $doctor->id,
@@ -1121,13 +1144,15 @@ class DoctorTelesecretariatController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        DoctorAssociate::firstOrCreate([
+        // 6) Create the DoctorAssociate link
+        DoctorAssociate::create([
             'doctor_id' => $doctor->id,
             'user_id' => $user->id,
         ]);
 
         return redirect()->back()->with('success', 'Votre compte est désormais lié à ce télésécrétariat !');
     }
+
     public function BackgroundColorForAgenda(Request $request)
     {
         $doctorId = $request->input('doctor_id'); // Use doctor_id from request
