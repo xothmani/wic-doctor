@@ -258,8 +258,8 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
             $patientPassword = Str::random(8);
 
             // 🔹 Créer l'utilisateur dans Firebase
-            $auth = app(FirebaseAuth::class);
-            try {
+            //$auth = app(abstract: FirebaseAuth::class);
+/*             try {
                 Log::info('Création de l\'utilisateur dans Firebase');
 
                 $firebaseUser = $auth->createUser([
@@ -278,7 +278,7 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
             } catch (\Exception $e) {
                 Log::error('Erreur Firebase : ' . $e->getMessage());
                 return redirect()->back()->with('error', 'Erreur lors de la création Firebase.');
-            }
+            } */
 
             // 🔹 Créer l'utilisateur dans la base de données SQL
             $user = User::create([
@@ -288,7 +288,7 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
                 'phone_number' => $doctorRequest->phone,
                 'password' => bcrypt($doctorPassword),
                 'passwordpatient' => Hash::make($patientPassword),
-                'firebase_uid' => $firebaseUid, // Stocker l'UID Firebase
+                //'firebase_uid' => $firebaseUid, // Stocker l'UID Firebase
             ]);
         } else {
             // Mettre à jour les mots de passe si nécessaire
