@@ -23,8 +23,8 @@ class AvailabilityController extends Controller
         'cabinet' => [
             'start' => '09:00',
             'end' => '17:00',
-            'break_start' => '14:00',
-            'break_end' => '15:00'
+            'break_start' => null,
+            'break_end' => null,
         ],
         'teleconsultation' => [
             'start' => '19:00',
