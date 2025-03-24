@@ -93,9 +93,22 @@ class AppointmentController extends Controller
      */
     private PaymentStatusRepository $paymentStatusRepository;
 
-    public function __construct(AppointmentRepository $appointmentRepo, CustomFieldRepository $customFieldRepo, UserRepository $userRepo
-        , AppointmentStatusRepository                 $appointmentStatusRepo, NotificationRepository $notificationRepo, PaymentRepository $paymentRepo, AddressRepository $addressRepository, TaxRepository $taxRepository, DoctorRepository $doctorRepository, ClinicRepository $clinicRepository, CouponRepository $couponRepository, PatientRepository $patientRepository, PaymentStatusRepository $paymentStatusRepository)
-    {
+    public function __construct(
+        AppointmentRepository $appointmentRepo,
+        CustomFieldRepository $customFieldRepo,
+        UserRepository $userRepo
+        ,
+        AppointmentStatusRepository $appointmentStatusRepo,
+        NotificationRepository $notificationRepo,
+        PaymentRepository $paymentRepo,
+        AddressRepository $addressRepository,
+        TaxRepository $taxRepository,
+        DoctorRepository $doctorRepository,
+        ClinicRepository $clinicRepository,
+        CouponRepository $couponRepository,
+        PatientRepository $patientRepository,
+        PaymentStatusRepository $paymentStatusRepository
+    ) {
         parent::__construct();
         $this->appointmentRepository = $appointmentRepo;
         $this->customFieldRepository = $customFieldRepo;
@@ -131,7 +144,7 @@ class AppointmentController extends Controller
      * @return RedirectResponse|View
      * @throws RepositoryException
      */
-        public function show(int $id): RedirectResponse|View
+    public function show(int $id): RedirectResponse|View
     {
         $this->appointmentRepository->pushCriteria(new AppointmentsOfPatientCriteria(auth()->id()));
         $appointment = $this->appointmentRepository->findWithoutFail($id);
@@ -236,7 +249,7 @@ class AppointmentController extends Controller
      *
      * @return RedirectResponse
      */
-    public function destroy(int $id):RedirectResponse
+    public function destroy(int $id): RedirectResponse
     {
         if (!config('installer.demo_app')) {
             $this->appointmentRepository->pushCriteria(new AppointmentsOfPatientCriteria(auth()->id()));
@@ -258,10 +271,10 @@ class AppointmentController extends Controller
         return redirect(route('appointments.index'));
     }
 
-public function getTodayCompletedAppointments(): \Illuminate\View\View
+    public function getTodayCompletedAppointments(): \Illuminate\View\View
     {
         $userId = auth()->user()->id;
-    
+
         $appointments = \DB::table('appointments')
             ->join('users', 'appointments.user_id', '=', 'users.id')
             ->join('patients', 'appointments.patient_id', '=', 'patients.id') // Jointure patient
@@ -284,12 +297,12 @@ public function getTodayCompletedAppointments(): \Illuminate\View\View
                 'pattern.nom as motif_name' // Sélection du nom du motif
             )
             ->paginate(10); // Limite à 10 par page
-    
+
         return view('todayAppointment.show', compact('appointments'));
-    }    
-    
-    
-    
-    
+    }
+
+
+
+
 
 }

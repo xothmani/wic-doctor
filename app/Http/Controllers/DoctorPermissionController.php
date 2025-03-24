@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
+use App\Models\User;
 
 class DoctorPermissionController extends Controller
 {
@@ -27,22 +28,20 @@ class DoctorPermissionController extends Controller
 
         $selectedUserId = $request->input('selected_user', null);
 
-        /* // Fetch all permissions with readable names
-        $permissions = DB::table('permissions')
-            ->leftJoin('readable_permissions', 'permissions.id', '=', 'readable_permissions.permission_id')
-            ->select(
-                'permissions.id as permission_id',
-                DB::raw('COALESCE(readable_permissions.readable_name, permissions.name) as display_name')
-            )
-            ->get(); */
+        // ✅ Add this logic to find the selected user if provided
+        $user = null;
+        if ($selectedUserId) {
+            $user = User::find($selectedUserId);
+        }
 
         return view('profile_management.permissions.index', [
             'associatedUsers' => $associatedUsers,
-            /* 'permissions' => $permissions, */
             'doctorId' => $doctor->id,
             'selectedUserId' => $selectedUserId,
+            'user' => $user, // ✅ Pass the user to the view
         ]);
     }
+
 
     public function fetchUserRoles(Request $request)
     {

@@ -405,7 +405,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::post('/meet/create', [MeetController::class, 'createMeet']);
     Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
     Route::resource('patterns', PatternController::class);
-    Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name('appointments.getAvailableTimeSlots');
+    Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name(name: 'appointments.getAvailableTimeSlots');
     Route::get('/get-available-time-slots-presice', [AppointmentEventController::class, 'getAvailableTimeSlotsPresice'])->name('appointments.getAvailableTimeSlotsPresice');
     Route::get('/get-available-For-open', [AppointmentEventController::class, 'getAvailableForOpen'])->name('appointments.getAvailableForOpen');
     Route::get('/get-available-time-slots-open', [AppointmentEventController::class, 'getAvailableTimeSlotsForOpen'])->name('appointments.getAvailableTimeSlotsForOpen');
@@ -565,20 +565,20 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/medecin/generer-url', [DoctorController::class, 'generateConnectedDoctorUrl'])->name('doctors.generateUrl');
 
     Route::post('/prescriptions/{prescription}/send-email', [PrescriptionController::class, 'sendEmail'])
-    ->name('prescriptions.sendEmail');
+        ->name('prescriptions.sendEmail');
     Route::post('/teleconsultations/create-specific-meeting', [MeetController::class, 'createSpecificMeeting'])->name('create.specific.meeting');
 
-    
+
     Route::get('/serve-file/{doctorId}/{category}/{status}/{fileName}', function ($doctorId, $category, $status, $fileName) {
         $filePath = "/mnt/doctor/{$doctorId}/{$category}/{$status}/{$fileName}";
-    
+
         if (!file_exists($filePath)) {
             abort(404);
         }
-    
+
         return Response::file($filePath);
     })->name('serveFile');
-    
+
 
 
 
@@ -613,44 +613,44 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     });
 
 
-        
-Route::get('/messages/{doctorId}', [ChatController::class, 'getMessagesForDoctor']);
-Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
-Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
-Route::get('/chat', [ChatController::class, 'showForm']);
-Route::get('storage/{file}', function ($file) {
-    $path = storage_path('app/public/' . $file);
 
-    if (!File::exists($path)) {                                                     
-        abort(404);
-    }
+    Route::get('/messages/{doctorId}', [ChatController::class, 'getMessagesForDoctor']);
+    Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
+    Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
+    Route::get('/chat', [ChatController::class, 'showForm']);
+    Route::get('storage/{file}', function ($file) {
+        $path = storage_path('app/public/' . $file);
 
-    return response()->file($path);
-});
-Route::get('/download/{filename}', function ($filename) {
-    $path = storage_path('app/public/chat_files/' . $filename);
+        if (!File::exists($path)) {
+            abort(404);
+        }
 
-    if (!file_exists($path)) {
-        abort(404);
-    }
+        return response()->file($path);
+    });
+    Route::get('/download/{filename}', function ($filename) {
+        $path = storage_path('app/public/chat_files/' . $filename);
 
-    return response()->download($path);
-})->name('download.file');
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->download($path);
+    })->name('download.file');
 
 
-Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
+    Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
     Route::get('/last-message', [ChatController::class, 'getLastMessage']);
-Route::delete('/messages/{chatId}/{messageId}', [ChatController::class, 'deleteMessage'])->name('chat.deleteMessage');
-Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
-Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
-Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
+    Route::delete('/messages/{chatId}/{messageId}', [ChatController::class, 'deleteMessage'])->name('chat.deleteMessage');
+    Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
 
     Route::get('/chat/{userId}/{doctorId}', [ChatController::class, 'showChat']);
 
-Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
+    Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
 
-Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
- 
+    Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
+
 
 
 
