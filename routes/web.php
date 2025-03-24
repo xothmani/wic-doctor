@@ -20,6 +20,7 @@ use App\Http\Controllers\AppointmentController;
 //use App\Http\Controllers\PharmacyController;
 //use App\Http\Controllers\PharmacyTypeController;
 use App\Http\Controllers\MessagerieController;
+use App\Http\Controllers\PatientDoctorChatController;
 
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\PrescriptionController;
@@ -580,7 +581,20 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     })->name('serveFile');
     
 
-
+    Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
+    Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
+         ->name('chatDP.show')
+         ->where(['doctorUserId' => '[0-9]+', 'patientUserId' => '[0-9]+']);Route::get('/get-patients-by-letter', [ChatController::class, 'getPatientsByLetter']);
+    // routes/web.php
+    Route::post('/chatDP/send', [PatientDoctorChatController::class, 'sendMessage'])->name('chatDP.send');
+    // Afficher la page d'index du chat (pour les médecins)
+    Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
+    Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
+        ->name('chatDP.show');  
+    // Envoyer un message (pour les médecins et les patients)
+    // Chemin corrigé avec 'chats'
+    Route::delete('/messages/{chatId}/chats/{messageId}', [PatientDoctorChatController::class, 'deleteMessage']);
+     
 
     Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
     Route::post('/appointmentsEvent/store', [AppointmentEventController::class, 'store'])
