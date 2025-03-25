@@ -16,27 +16,7 @@
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
 
         <!-- Content Header (Page header) -->
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-md-6">
-                        <h1 class="m-0 text-bold">{{ trans('lang.appointment_plural') }}
-                            <small class="mx-3">|</small><small>{{ trans('lang.appointment_desc') }}</small>
-                        </h1>
-                    </div>
-                    <div class="col-md-6">
-                        <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-                            <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i
-                                        class="fas fa-tachometer-alt mx-1"></i> {{ trans('lang.dashboard') }}</a></li>
-                            <li class="breadcrumb-item">
-                                <a href="{!! route('appointments.index') !!}">{{ trans('lang.appointment_plural') }}</a>
-                            </li>
-                            <li class="breadcrumb-item active">{{ trans('lang.calendar_view') }}</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
+
         <!-- Second Modal -->
         <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
             aria-hidden="true">
@@ -180,23 +160,34 @@
                                     </div>
 
                                     <!-- Pattern Selection -->
-                                    <div class="form-group">
-                                        <label for="patern_id"
-                                            class="font-weight-bold">{{ trans('lang.availability_hour_pattern') }}</label>
-                                        <div class="d-flex align-items-center">
-                                            <select id="patern_id" name="patern_id" class="form-control select2-ajax" required
-                                                style="flex-grow: 1;">
-                                                <option value="" disabled selected>{{ trans('lang.select_pattern') }}</option>
-                                                @foreach($patterns as $id => $nom)
-                                                    <option value="{{ $id }}">{{ $nom }}</option>
-                                                @endforeach
-                                            </select>
-                                            <a href="{{ route('patterns.create') }}" class="btn btn-success d-flex"
-                                                id="addNewPatient">
-                                                <i class="fa fa-user-plus"></i>
-                                            </a>
-                                        </div>
+                                    <div class="form-group pattern-select-group" data-type="cabinet">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_cabinet" class="form-control">
+                                            @foreach($patternsByType[1] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
+
+                                    <div class="form-group pattern-select-group d-none" data-type="teleconsultation">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_teleconsultation" class="form-control">
+                                            @foreach($patternsByType[4] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group pattern-select-group d-none" data-type="home_visit">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_home_visit" class="form-control">
+                                            @foreach($patternsByType[3] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+
                                     <!-- Add this after the Pattern Selection div -->
                                     <div class="form-group">
                                         <label for="appointment_notes" class="font-weight-bold">{{ trans('lang.notes') }}</label>
@@ -269,16 +260,7 @@
             <div class="clearfix"></div>
             @include('flash::message')
             <div class="card shadow-sm">
-                <div class="card-header">
-                    <ul class="nav nav-tabs d-flex flex-md-row flex-column-reverse align-items-start card-header-tabs">
-                        <div class="d-flex flex-row">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="{!! url()->current() !!}"><i
-                                        class="fa fa-calendar mr-2"></i>{{ trans('lang.calendar_view') }}</a>
-                            </li>
-                        </div>
-                    </ul>
-                </div>
+
                 <div class="card-body">
                     <!-- Calendar Container -->
                     <div id="calendar-container">
@@ -408,21 +390,15 @@
 
                 // Handle vacation case
                 if (response.vacation) {
-                    timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                    timeSlotsWrapper.append(` <div class="alert alert-warning text-center"> Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible. </div> `);
+
                     return;
                 }
 
                 // If no slots available for this type
                 if (!all_slots || all_slots.length === 0) {
-                    timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible pour ${getTypeLabel(type)}.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                    timeSlotsWrapper.append(` <div class="alert alert-info text-center"> Aucun créneau disponible pour ${getTypeLabel(type)}. </div> `);
+
                     return;
                 }
 
@@ -492,6 +468,9 @@
                 // Reset hidden type input
                 $('#appointmentType').val('cabinet');
                 $('#patientDropdown').val(null).trigger('change');
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_cabinet').closest('.pattern-select-group').removeClass('d-none');
+
             });
             ///////////////////////////////////////////////
             $("#appointmentTypeTabs a").on("click", function (e) {
@@ -506,6 +485,9 @@
                 // Show this tab
                 $(this).tab('show');
                 console.log("Selected Type:", selectedType);
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_' + selectedType).closest('.pattern-select-group').removeClass('d-none');
+
                 if (selectedDate) {
                     fetchTimeSlotsForType(selectedDate, selectedType);
                 }
@@ -514,6 +496,9 @@
                 console.log("Tab Shown:", e.target);
                 const selectedType = $(e.target).data('type');
                 const selectedDate = $('#appointmentDate').val();
+                $('#appointmentType').val(selectedType);
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_' + selectedType).closest('.pattern-select-group').removeClass('d-none');
 
                 if (selectedDate) {
                     fetchTimeSlotsForType(selectedDate, selectedType);
@@ -565,11 +550,7 @@
 
                         if (!response.all_slots || response.all_slots.length === 0) {
                             // No available slots → Show a message inside the modal
-                            $("#time-slots").html(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Aucune disponibilité pour ce type de rendez-vous à cette date.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `);
+                           $("#time-slots").html(` <div class="alert alert-warning text-center"> Aucune disponibilité pour ce type de rendez-vous à cette date. </div> `);
                             return;
                         }
 
@@ -592,11 +573,8 @@
             function clearTimeSlots() {
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
-                timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `);
+                timeSlotsWrapper.append(` <div class="alert alert-info text-center"> Aucun créneau disponible trouvé. </div> `);
+
             }
             //////////////////////////////////////////////////////////////////////////////
             function fetchSubstitutes(doctorId) {
@@ -650,7 +628,7 @@
                 calendar = $('#calendar').fullCalendar({
                     locale: 'fr',
                     editable: true,
-                    height: 600,
+                    height: 670,
                     header: {
                         left: 'prev,next today',
                         center: 'title',
@@ -693,12 +671,8 @@
 
                                         // Create custom label with hover functionality
                                         // Append all elements with proper structure
-                                        $(this).append(`
-                                                                                                                                                                                                                                                                                                                                                                                                    <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                    <div class="custom-day-label substitute-hover">${substituteName}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                    <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                    <div class="custom-number-label">${staticNumber}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                `);
+                                        $(this).append(` <hr class="day-header-divider"> <div class="custom-day-label substitute-hover">${substituteName}</div> <hr class="day-header-divider"> <div class="custom-number-label">${staticNumber}</div> `);
+
                                         if (activeSubstitute) {
                                             $(this).find('.custom-day-label').hover(
                                                 function (e) {
@@ -1102,13 +1076,13 @@
                 const activeTab = $('#appointmentTypeTabs .nav-link.active');
                 const appointmentType = activeTab.data('type');
                 console.log('Active tab type:', appointmentType); // Debug log
-
+                const patternSelectId = '#patern_id_' + appointmentType;
                 // Get form data
                 const appointmentData = {
                     patient_id: $('#patientDropdown').val(),
                     appointment_date: $('#appointmentDate').val(),
                     appointment_time: $('#appointment_time').val(),
-                    patern_id: $('#patern_id').val(),
+                    patern_id: $(patternSelectId).val(),
                     appointment_type: appointmentType, // Use the active tab's type
                     notes: $('#appointment_notes').val(), // Add notes field
                     _token: $('meta[name="csrf-token"]').attr('content')

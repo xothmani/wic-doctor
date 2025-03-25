@@ -113,7 +113,6 @@ class AppointmentEventController extends Controller
                     ];
                 }));
             }
-
             $patterns = DB::table('pattern')
                 ->select('id', 'nom')
                 ->where('doctor_id', $doctorId)
@@ -123,6 +122,17 @@ class AppointmentEventController extends Controller
                     return [$pattern->id => $name[app()->getLocale()] ?? $name['fr']];
                 })
                 ->toArray();
+            $patternsByType = DB::table('pattern')
+                ->select('id', 'nom', 'type')
+                ->where('doctor_id', $doctorId)
+                ->get()
+                ->groupBy('type')
+                ->map(function ($group) {
+                    return $group->mapWithKeys(function ($pattern) {
+                        $name = json_decode($pattern->nom, true);
+                        return [$pattern->id => $name[app()->getLocale()] ?? $name['fr']];
+                    });
+                });
 
             // Retrieve patients related to the doctor
             $patients = Patient::whereHas('doctors', function ($query) use ($doctorId) {
@@ -132,7 +142,7 @@ class AppointmentEventController extends Controller
             //Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
 
             // Pass availabilityDays and vacations to the view
-            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations'));
+            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations', 'patternsByType', ));
 
 
         } else {

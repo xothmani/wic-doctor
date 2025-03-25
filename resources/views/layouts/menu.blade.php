@@ -395,16 +395,47 @@
     </li>
 @endcan
 
+
 @can('chat.index')
-<li class="nav-item">
-
-    <a class="nav-link {{ Request::is('chat*') ? 'active' : '' }}" href="{{ url('/chat') }}">
-        @if($icons)
-            <i class="nav-icon fas fa-comments"></i> <!-- Remplacez avec l'icône de votre choix -->
-        @endif
-        <p>Messagerie</p>
-    </a>    </li>
-
+    <li class="nav-item has-treeview {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'menu-open' : '' }}">
+        <a href="#" class="nav-link {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'active' : '' }}">
+            @if($icons)
+                <i class="nav-icon fas fa-comments"></i>
+            @endif
+            <p>Messagerie <i class="right fas fa-angle-left"></i></p>
+        </a>
+        <ul class="nav nav-treeview">
+            @can('chat.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('chat*') ? 'active' : '' }}" href="{{ url('/chat') }}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-user-md"></i>
+                        @endif
+                        <p>Docteur & Docteur</p>
+                    </a>
+                </li>
+            @endcan
+            @can('chatDP.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('chatDP*') ? 'active' : '' }}" href="{{ url('/chatDP') }}">
+                        @if($icons)
+                        <i class="fas fa-stethoscope"></i>                        @endif
+                        <p>Docteur & Patient</p>
+                    </a>
+                </li>
+            @endcan
+            @can('chatTE.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('*') ? 'active' : '' }}" href="{{ url('') }}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-headset"></i>
+                        @endif
+                        <p>Télésecrétariat&Docteur</p>
+                    </a>
+                </li>
+            @endcan
+        </ul>
+    </li>
 @endcan
 <!-- @can('addresses.index')
     <li class="nav-item">
