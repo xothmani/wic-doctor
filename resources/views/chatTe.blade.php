@@ -7,109 +7,62 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- En-tête du Chat -->
-    <div class="chat-header">
-        <div class="header-content">
-            <i class="fa-comments"></i>
-            <h1>Telesecretariat_Doctor Chat</h1>
-        </div>
+  <div class="chat-header">
+
+        <img src="{{ asset('storage/images/a.png') }}" alt="Icône discussion médicale" class="custom-icon" width="40" height="40">
+        <h2>Docteur & Télésecrétariat Discussion </h2>
     </div>
+
 
     <!-- Contenu Principal -->
     <div class="chat-main">
-    <div class="conversation-list">
+        <!-- Liste des Conversations (Doctors) -->
+        <div class="conversation-list">
     <div class="conversation-header">
-        @if(auth()->user()->doctor)
-            <h3>Télésecrétariats</h3>
-        @elseif(auth()->user()->telesecretariat)
-            <h3>Doctors</h3>
-        @endif
+        <h6>La liste des télésecrétariats</h6>
     </div>
-    @php
-    // Récupérer l'utilisateur authentifié
-    $user = auth()->user();
-    $isDoctor = $user->doctor !== null;
-    $isTeleSecretariat = $user->telesecretariat !== null;
-
-    // Tableau pour stocker les conversations avec le dernier message
-    $formattedConversations = [];
-
-    if ($isDoctor && $teleSecretariats->count() > 0) {
-        // Pour un médecin, récupérer les télésecrétariats associés
-        foreach ($teleSecretariats as $doctorTelesecretariat) {
-            if ($doctorTelesecretariat->telesecretariat) {
-                $lastMessage = $lastMessages[$doctorTelesecretariat->telesecretariat->user_id] ?? null;
-
-                $formattedConversations[] = [
-                    'id' => $doctorTelesecretariat->telesecretariat->id,
-                    'user_id' => $doctorTelesecretariat->telesecretariat->user_id,
-                    'name' => $doctorTelesecretariat->telesecretariat->nomCentre,
-                    'last_message' => $lastMessage ? [
-                        'content' => $lastMessage['content'],
-                        'timestamp' => $lastMessage['timestamp'],
-                        'time' => date('H:i', $lastMessage['timestamp']),
-                    ] : null,
-                ];
-            }
-        }
-    } elseif ($isTeleSecretariat && $doctors->count() > 0) {
-        // Pour un télésecrétariat, récupérer les médecins associés
-        foreach ($doctors as $doctor) {
-            if ($doctor->doctor) {
-                $lastMessage = $lastMessages[$doctor->doctor->user_id] ?? null;
-
-                $formattedConversations[] = [
-                    'id' => $doctor->doctor->id,
-                    'user_id' => $doctor->doctor->user_id,
-                    'name' => $doctor->doctor->name,
-                    'last_message' => $lastMessage ? [
-                        'content' => $lastMessage['content'],
-                        'timestamp' => $lastMessage['timestamp'],
-                        'time' => date('H:i', $lastMessage['timestamp']),
-                    ] : null,
-                ];
-            }
-        }
-    }
-
-    // Trier les conversations par timestamp du dernier message (du plus récent au plus ancien)
-    usort($formattedConversations, function ($a, $b) {
-        $timeA = $a['last_message']['timestamp'] ?? 0;
-        $timeB = $b['last_message']['timestamp'] ?? 0;
-        return $timeB <=> $timeA;
-    });
-@endphp
-
-@if(count($formattedConversations) > 0)
-    <div class="conversation-list">
-        @foreach($formattedConversations as $conversation)
-            <a href="{{ route('chatT.show', [
-                'doctorUserId' => $isDoctor ? auth()->id() : $conversation['user_id'],
-                'teleSecretariatUserId' => $isDoctor ? $conversation['user_id'] : auth()->id()
-            ]) }}" class="conversation-item" data-id="{{ $conversation['id'] }}" data-user-id="{{ $conversation['user_id'] }}">
-                <div class="avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="info">
-                    <span class="name">{{ $conversation['name'] }}</span>
-                    <span class="status online"></span>
-                    @if($conversation['last_message'])
-                        <div class="last-message">
-                            <p class="last-message-text">{{ $conversation['last_message']['content'] }}</p>
-                            <span class="last-message-time">{{ $conversation['last_message']['time'] }}</span>
-                        </div>
-                    @else
-                        <div class="no-message">No messages yet</div>
-                    @endif
-                </div>
-            </a>
-        @endforeach
+    @if(isset($teleSecretariats) && $teleSecretariats->count() > 0)
+        @foreach($teleSecretariats as $doctorTelesecretariat)
+            @if($doctorTelesecretariat->telesecretariat)
+            @php
+                    // Correction clé d'accès avec user_id
+                    $teleUserId = $doctorTelesecretariat->telesecretariat->user_id;
+                    $lastMessageForTele = $lastMessages[$teleUserId] ?? null; // <-- Clé correcte
+                    @endphp
+<a href="{{ route('chatT.show', ['doctorUserId' => auth()->id(), 'teleSecretariatUserId' => $teleUserId]) }}" 
+   class="conversation-item" 
+   data-id="{{ $doctorTelesecretariat->telesecretariat->id }}" 
+   data-user-id="{{ $teleUserId }}">
+    <div class="telesecretariat-avatar">
+        <i class="fas fa-user"></i>
+    </div>
+    <div class="telesecretariat-info">
+        <span class="name">{{ $doctorTelesecretariat->telesecretariat->nomCentre }}</span>
+        <span class="status online"></span>
+        @if($lastMessageForTele)
+    <div class="last-message">
+        <p class="last-message-text">
+            {{ $lastMessageForTele['content'] ?? '[Fichier joint]' }}
+        </p>
+        <span class="last-message-time">
+            {{ \Carbon\Carbon::parse($lastMessageForTele['timestamp'])->format('H:i') }}
+        </span>
     </div>
 @else
-    <div class="empty-state">
-        <i class="fas fa-comment-slash"></i>
-        <p>No télésecrétariats available</p>
-    </div>
+    <div class="no-message">No messages yet</div>
 @endif
+
+    </div>
+</a>
+
+            @endif
+        @endforeach
+    @else
+        <div class="empty-state">
+            <i class="fas fa-comment-slash"></i>
+            <p>No télésecrétariats available</p>
+        </div>
+    @endif
 </div>
 <div class="chat-area">
 <div class="chat-messages" id="chat-messages">
@@ -170,41 +123,42 @@ $(document).ready(function() {
 
     // Fonction pour charger les messages
     function loadMessages(receiverId) {
-    const senderId = {{ auth()->id() }};
-    const chatId = senderId < receiverId ? `${senderId}-${receiverId}` : `${receiverId}-${senderId}`;
+        const senderId = {{ auth()->id() }};
+        const chatId = senderId < receiverId ? `${senderId}-${receiverId}` : `${receiverId}-${senderId}`;
 
-    $.get(`/chatT/fetch-messages/${receiverId}`, function(response) {
-        const chatMessages = $('#chat-messages');
-        chatMessages.empty();
+        $.get(`/chatT/fetch-messages/${receiverId}`, function(response) {
+            const chatMessages = $('#chat-messages');
+            chatMessages.empty();
 
-        if (response.messages.length > 0) {
-            response.messages.forEach(message => {
-                const messageClass = message.sender_id == senderId ? 'sent' : 'received';
-                const messageContent = `
-                    <div class="message ${messageClass}">
-                        <div class="message-content">
-                            <div class="message-header">
-                                <span class="sender">${message.sender_name}</span>
-                                <span class="time">${new Date(message.timestamp * 1000).toLocaleTimeString()}</span>
-                                ${message.sender_id == senderId ? `
-                                    <button class="delete-btn" onclick="deleteMessage('${message.id}', this)" title="Supprimer le message">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                ` : ''}
+            if (response.messages.length > 0) {
+                response.messages.forEach(message => {
+                    const messageClass = message.sender_id == senderId ? 'sent' : 'received';
+                    const messageContent = `
+                        <div class="message ${messageClass}">
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="sender">${message.sender_name}</span>
+                                    <span class="time">${new Date(message.timestamp * 1000).toLocaleTimeString()}</span>
+                                    ${message.sender_id == senderId ? `
+                                        <button class="delete-btn" onclick="deleteMessage('${message.id}', this)" title="Supprimer le message">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                                <p class="text">${message.content}</p>
+                                ${message.file_url ? `<a href="${message.file_url}" target="_blank" class="file-link">Voir le fichier</a>` : ''}
                             </div>
-                            <p class="text">${message.content}</p>
-                            ${message.file_url ? `<a href="${message.file_url}" target="_blank" class="file-link">Voir le fichier</a>` : ''}
                         </div>
-                    </div>
-                `;
-                chatMessages.append(messageContent);
-            });
-        } else {
-            chatMessages.html('<div class="empty-state"><i class="fas fa-comment-slash"></i><p>No messages yet</p></div>');
-        }
-        chatMessages.scrollTop(chatMessages[0].scrollHeight);
-    });
-}
+                    `;
+                    chatMessages.append(messageContent);
+                });
+            } else {
+                chatMessages.html('<div class="empty-state"><i class="fas fa-comment-slash"></i><p>No messages yet</p></div>');
+            }
+            chatMessages.scrollTop(chatMessages[0].scrollHeight);
+        });
+    }
+
     // Vérifier les nouveaux messages toutes les 5 secondes
     setInterval(() => {
         const teleSecretariatUserId = {{ $teleSecretariatUserId ?? 'null' }};
@@ -238,35 +192,7 @@ $(document).ready(function() {
    
 
 /* Chat Header */
-.chat-header {
-    background-color: #ffffff; /* Fond blanc pour un look propre */
-    padding: 10px 15px;
-    border-bottom: 1px solid #e0e0e0; /* Bordure légère pour séparer l'en-tête */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Ombre légère pour la profondeur */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.last-message {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-}
 
-.last-message-text {
-    margin: 0;
-}
-
-.last-message-time {
-    font-size: 10px;
-    color: #999;
-}
-
-.no-message {
-    font-size: 12px;
-    color: #999;
-    font-style: italic;
-}
 .header-content {
     display: flex;
     align-items: center;
@@ -329,6 +255,17 @@ $(document).ready(function() {
         display: flex;
         align-items: center;
         justify-content: center;
+    }   .chat-header {
+        position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    height: 60px;
+    display: flex; /* Ajouté */
+    align-items: center; /* Ajouté */
+    justify-content: center; /* Ajouté */
+    width: 100%; /* Assure la pleine largeur */
     }
 
     .chat-header i {
@@ -486,11 +423,6 @@ $(document).ready(function() {
 
 
 
-.input-container {
-    position: relative;
-    flex: 1;
-    margin-right: 10px;
-}
 
 .send-button {
     position: absolute;
@@ -527,16 +459,7 @@ $(document).ready(function() {
     width: 100%;
 }
 
-.input-container {
-    position: relative;
-    flex: 1;
-    display: flex;
-    align-items: center;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 25px; /* Arrondir les coins */
-    padding: 5px 10px; /* Espace interne */
-}
+
 
 .file-icon {
     cursor: pointer;
@@ -575,18 +498,52 @@ $(document).ready(function() {
     background-color: #0056b3;
 }
 
-    .chat-input input[type="text"] {
-        flex: 1;
-        width: 450px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        margin-right: 10px;
-    }
+input[type="file"] {
+    display: none;
+}
+.input-container {
+                                                position: relative;
+                                                flex: 1;
+                                                display: flex;
+                                                align-items: center;
+                                                background-color: white;
+                                                border: 1px solid #ddd;
+                                                border-radius: 25px; /* Arrondir les coins */
+                                                padding: 5px 10px; /* Espace interne */
+                                            }
 
-    .chat-input input[type="file"] {
-        margin-right: 10px;
-    }
+                                            
+
+/* Conteneur flex pour aligner les éléments */
+
+.input-container {
+                                                position: relative;
+                                                flex: 1;
+                                                margin-right: 10px;
+                                            }
+                                            .chat-input input[type="file"] {
+                                                    margin-right: 10px;
+                                                }
+
+.input-container {
+                                                position: relative;
+                                                flex: 1;
+                                                margin-right: 10px;
+                                            }
+
+                                            
+                                            .input-container {
+                                                position: relative;
+                                                flex: 1;
+                                                display: flex;
+                                                align-items: center;
+                                                background-color: white;
+                                                border: 1px solid #ddd;
+                                                border-radius: 25px; /* Arrondir les coins */
+                                                padding: 5px 10px; /* Espace interne */
+                                            }
+
+
 
     .chat-input button {
         background-color: #007bff;

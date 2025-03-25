@@ -658,30 +658,8 @@ document.addEventListener('DOMContentLoaded', () => {
         background-color: #f0f2f5;
     }
 
-    .chat-input input[type="file"] {
-                                                    margin-right: 10px;
-                                                }
+  
 /* Styles pour le conteneur de l'input */
-.input-container {
-                                                position: relative;
-                                                flex: 1;
-                                                display: flex;
-                                                align-items: center;
-                                                background-color: white;
-                                                border: 1px solid #ddd;
-                                                border-radius: 25px; /* Arrondir les coins */
-                                                padding: 5px 10px; /* Espace interne */
-                                            }
-
-                                            
-
-/* Conteneur flex pour aligner les éléments */
-
-.input-container {
-                                                position: relative;
-                                                flex: 1;
-                                                margin-right: 10px;
-                                            }
 
 /* Style de l'input texte */
 #message-input {
@@ -740,6 +718,30 @@ document.addEventListener('DOMContentLoaded', () => {
 input[type="file"] {
     display: none;
 }
+.input-container {
+                                                position: relative;
+                                                flex: 1;
+                                                display: flex;
+                                                align-items: center;
+                                                background-color: white;
+                                                border: 1px solid #ddd;
+                                                border-radius: 25px; /* Arrondir les coins */
+                                                padding: 5px 10px; /* Espace interne */
+                                            }
+
+                                            
+
+/* Conteneur flex pour aligner les éléments */
+
+.input-container {
+                                                position: relative;
+                                                flex: 1;
+                                                margin-right: 10px;
+                                            }
+                                            .chat-input input[type="file"] {
+                                                    margin-right: 10px;
+                                                }
+
 .input-container {
                                                 position: relative;
                                                 flex: 1;

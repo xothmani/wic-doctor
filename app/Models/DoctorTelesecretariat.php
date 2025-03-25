@@ -40,9 +40,9 @@ public function doctor()
          return $this->hasMany(DoctorTelesecretariat::class, 'doctor_id');
      }
  
-     
-     public function telesecretariat()
-     {
-        return $this->belongsTo(Telesecretariat::class, 'telesecretariat_id');
-    }
+public function telesecretariat()
+{
+    return $this->belongsTo(Telesecretariat::class, 'telesecretariat_id');
+}
+    
 }

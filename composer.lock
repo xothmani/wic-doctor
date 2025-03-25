@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "734b3feeb1b09b8432ce91cec1338a43",
+    "content-hash": "6d098d54eaf1e000c00eea250c1f61ff",
     "packages": [
         {
             "name": "anhskohbo/no-captcha",
@@ -1765,7 +1765,64 @@
             "support": {
                 "source": "https://github.com/googleapis/google-cloud-php-core/tree/v1.62.1"
             },
-            "time": "2025-02-22T00:57:16+00:00"
+            "time": "2025-01-11T02:14:50+00:00"
+        },
+        {
+            "name": "google/cloud-firestore",
+            "version": "v1.48.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/googleapis/google-cloud-php-firestore.git",
+                "reference": "c0b7cabb310be70f1f55a26039c3a5f1bb87a1b6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-firestore/zipball/c0b7cabb310be70f1f55a26039c3a5f1bb87a1b6",
+                "reference": "c0b7cabb310be70f1f55a26039c3a5f1bb87a1b6",
+                "shasum": ""
+            },
+            "require": {
+                "ext-grpc": "*",
+                "google/cloud-core": "^1.57",
+                "google/gax": "^1.36.0",
+                "php": "^8.0",
+                "ramsey/uuid": "^3.0|^4.0"
+            },
+            "require-dev": {
+                "erusev/parsedown": "^1.6",
+                "phpdocumentor/reflection": "^5.3.3||^6.0",
+                "phpdocumentor/reflection-docblock": "^5.3",
+                "phpspec/prophecy-phpunit": "^2.0",
+                "phpunit/phpunit": "^9.0",
+                "squizlabs/php_codesniffer": "2.*"
+            },
+            "suggest": {
+                "ext-protobuf": "Provides a significant increase in throughput over the pure PHP protobuf implementation. See https://cloud.google.com/php/grpc for installation instructions."
+            },
+            "type": "library",
+            "extra": {
+                "component": {
+                    "id": "cloud-firestore",
+                    "path": "Firestore",
+                    "entry": "src/FirestoreClient.php",
+                    "target": "googleapis/google-cloud-php-firestore.git"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Google\\Cloud\\Firestore\\": "src",
+                    "GPBMetadata\\Google\\Firestore\\": "metadata"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Cloud Firestore Client for PHP",
+            "support": {
+                "source": "https://github.com/googleapis/google-cloud-php-firestore/tree/v1.48.1"
+            },
+            "time": "2025-03-01T00:35:30+00:00"
         },
         {
             "name": "google/cloud-storage",

@@ -215,6 +215,8 @@ public function telesecretariat()
 {
     return $this->hasOne(Telesecretariat::class, 'user_id');
 }
+// app/Models/Telesecretariat.php
+
 
     /**
      * @return HasMany

@@ -581,7 +581,7 @@ Route::get('/download/{filename}', function ($filename) {
 Broadcast::routes();         
                                                                                   
 Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
-Route::get('/telesecretariats', [TelesecretariatController::class, 'index']);
+                                                                                                                            Route::get('/telesecretariats', [TelesecretariatController::class, 'index']);
 Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
     Route::get('/last-message', [ChatController::class, 'getLastMessage']);
    
@@ -589,25 +589,14 @@ Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
 Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
                                                                                             
 Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+
 Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
 // routes/web.php
 
     Route::get('/chat/{userId}/{doctorId}', [ChatController::class, 'showChat']);
 
 Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
-Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
-Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
-     ->name('chatDP.show')
-     ->where(['doctorUserId' => '[0-9]+', 'patientUserId' => '[0-9]+']);Route::get('/get-patients-by-letter', [ChatController::class, 'getPatientsByLetter']);
-// routes/web.php
-Route::post('/chatDP/send', [PatientDoctorChatController::class, 'sendMessage'])->name('chatDP.send');
-// Afficher la page d'index du chat (pour les médecins)
-Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
-Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
-    ->name('chatDP.show');  
-// Envoyer un message (pour les médecins et les patients)
-// Chemin corrigé avec 'chats'
-Route::delete('/messages/{chatId}/chats/{messageId}', [PatientDoctorChatController::class, 'deleteMessage']);
+
 
 // Envoyer un message (pour les médecins et les patients)
 
@@ -674,13 +663,30 @@ Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoct
 
  */
 Route::get('/test-send-message', action: [PatientDoctorChatController::class, 'testSendMessage']);
+Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
+Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
+     ->name('chatDP.show')
+     ->where(['doctorUserId' => '[0-9]+', 'patientUserId' => '[0-9]+']);Route::get('/get-patients-by-letter', [ChatController::class, 'getPatientsByLetter']);
+// routes/web.php
+Route::post('/chatDP/send', [PatientDoctorChatController::class, 'sendMessage'])->name('chatDP.send');
+// Afficher la page d'index du chat (pour les médecins)
+Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
+Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
+    ->name('chatDP.show');  
+// Envoyer un message (pour les médecins et les patients)
+// Chemin corrigé avec 'chats'
+Route::delete('/messages/{chatId}/chats/{messageId}', [PatientDoctorChatController::class, 'deleteMessage']);
 
- 
-Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'index'])->name('chatTe');
+Route::get('/last-messages', [TeleseceteriatDoctorsController::class, 'getLastMessage']);
+
+Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'index']);
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
- Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
- Route::delete('/messages/{messageId}', [ChatController::class, 'deleteMessage'])->name('messages.delete');Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
+ Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
+Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
-Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chatT.fetch');
+Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
+
 });
 
