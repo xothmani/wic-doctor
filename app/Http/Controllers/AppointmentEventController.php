@@ -425,9 +425,9 @@ class AppointmentEventController extends Controller
                 $appointment->user->notify(new StatusChangedAppointment($appointment));
             }
 
-            Log::info('Creating message for appointment status update');
+            //Log::info('Creating message for appointment status update');
             // Log the message creation
-            Log::info('Creating message for appointment status update');
+            //Log::info('Creating message for appointment status update');
             if ($appointment->appointment_status_id < 2) {
                 $message = $this->createMessageForAppointment($appointment, $appointment->doctor_id);
             } else {
