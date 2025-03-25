@@ -1,0 +1,29 @@
+[90m= [39m[
+    "[34mname[39m" => "[32mprojects/wic-doctor-b83e0/databases/(default)/documents/messages/121-156/chats/twUROLDEBGXuImCidMmh[39m",
+    "[34mfields[39m" => [
+      "[34mfile_url[39m" => [
+        "[34mstringValue[39m" => "[32mhttp://127.0.0.1:8000/storage/chat_files/fleur.jpeg[39m",
+      ],
+      "[34mtext[39m" => [
+        "[34mstringValue[39m" => "[32mtest fom web[39m",
+      ],
+      "[34msender_name[39m" => [
+        "[34mstringValue[39m" => "[32msamiDoc[39m",
+      ],
+      "[34mreceiver_name[39m" => [
+        "[34mstringValue[39m" => "[32mHatemPatient[39m",
+      ],
+      "[34msender_id[39m" => [
+        "[34mstringValue[39m" => "[32m121[39m",
+      ],
+      "[34mreceiver_id[39m" => [
+        "[34mstringValue[39m" => "[32m156[39m",
+      ],
+      "[34mtime[39m" => [
+        "[34mintegerValue[39m" => "[32m1742282989[39m",
+      ],
+    ],
+    "[34mcreateTime[39m" => "[32m2025-03-18T07:29:50.160967Z[39m",
+    "[34mupdateTime[39m" => "[32m2025-03-18T07:29:50.160967Z[39m",
+  ]
+

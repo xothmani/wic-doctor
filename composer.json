@@ -9,7 +9,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
-        "grpc/grpc": "^1.43",
         "ext-curl": "*",
         "ext-json": "*",
         "anhskohbo/no-captcha": "^3.6",
@@ -19,6 +18,7 @@
         "fruitcake/laravel-cors": "dev-develop",
         "google/auth": "^1.45",
         "google/cloud-firestore": "^1.48",
+        "grpc/grpc": "^1.43",
         "guzzlehttp/guzzle": "^7.8.1",
         "infyomlabs/adminlte-templates": "^v6.0.0",
         "kreait/firebase-bundle": "^5.6",

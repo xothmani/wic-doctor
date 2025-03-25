@@ -103,7 +103,10 @@ class PatientDoctorChatController extends Controller
         });
     
         return view('chatPD', compact('conversations', 'isDoctor'));
-    }    private function generateChatId($id1, $id2)
+    }  
+    
+    
+    private function generateChatId($id1, $id2)
     {
         $sorted = [$id1, $id2];
         sort($sorted);
@@ -378,7 +381,48 @@ class PatientDoctorChatController extends Controller
             }
         }
     } 
+    public function getLastMessage(Request $request)
+    {
+        try {
+            $userId = auth()->id(); // Récupérer l'ID de l'utilisateur connecté
+            $firebaseUrl = 'https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats.json';
     
+            // Récupérer tous les chats depuis Firebase
+            $response = Http::get($firebaseUrl);
+            $chats = $response->json();
+    
+            if (!$chats) {
+                return response()->json(['error' => 'Aucun chat trouvé'], 404);
+            }
+    
+            // Trouver le dernier message destiné à l'utilisateur connecté
+            $lastMessage = null;
+            foreach ($chats as $chatId => $chat) {
+                if (isset($chat['messages'])) {
+                    foreach ($chat['messages'] as $message) {
+                        if ($message['receiver_id'] == $userId) {
+                            if (!$lastMessage || $message['timestamp'] > $lastMessage['timestamp']) {
+                                $lastMessage = $message;
+                            }
+                        }
+                    }
+                }
+            }
+    
+            if ($lastMessage) {
+                return response()->json([
+                    'content' => $lastMessage['content'],
+                    'sender_name' => $lastMessage['sender_name'],
+                ]);
+            } else {
+                return response()->json(['error' => 'Aucun message trouvé'], 404);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Erreur dans getLastMessage:', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Erreur interne du serveur'], 500);
+        }
+    }
+   
     
     public function index(Request $request)
 {

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8454f2afaf66013cf87a7ed8b2ccadbe",
+    "content-hash": "6d098d54eaf1e000c00eea250c1f61ff",
     "packages": [
         {
             "name": "anhskohbo/no-captcha",
@@ -1769,16 +1769,16 @@
         },
         {
             "name": "google/cloud-firestore",
-            "version": "v1.48.0",
+            "version": "v1.48.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-cloud-php-firestore.git",
-                "reference": "3f2cbd6ea3a2201f83eda220117d80d404e4d76d"
+                "reference": "c0b7cabb310be70f1f55a26039c3a5f1bb87a1b6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-cloud-php-firestore/zipball/3f2cbd6ea3a2201f83eda220117d80d404e4d76d",
-                "reference": "3f2cbd6ea3a2201f83eda220117d80d404e4d76d",
+                "url": "https://api.github.com/repos/googleapis/google-cloud-php-firestore/zipball/c0b7cabb310be70f1f55a26039c3a5f1bb87a1b6",
+                "reference": "c0b7cabb310be70f1f55a26039c3a5f1bb87a1b6",
                 "shasum": ""
             },
             "require": {
@@ -1820,9 +1820,9 @@
             ],
             "description": "Cloud Firestore Client for PHP",
             "support": {
-                "source": "https://github.com/googleapis/google-cloud-php-firestore/tree/v1.48.0"
+                "source": "https://github.com/googleapis/google-cloud-php-firestore/tree/v1.48.1"
             },
-            "time": "2025-01-24T21:24:06+00:00"
+            "time": "2025-03-01T00:35:30+00:00"
         },
         {
             "name": "google/cloud-storage",
