@@ -135,6 +135,7 @@ protected function generateJWT($serviceAccount)
         $response = $this->client->delete("$collection/$documentId");
         return $response->getStatusCode() === 204;
     }
+    
 
     protected function formatDataForFirestore($data)
     {

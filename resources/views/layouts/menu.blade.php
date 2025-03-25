@@ -418,7 +418,7 @@
             @endcan
             @can('chatTE.index')
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('*') ? 'active' : '' }}" href="{{ url('') }}">
+                    <a class="nav-link {{ Request::is('chatTE*') ? 'active' : '' }}" href="{{ url('/chatTE') }}">
                         @if($icons)
                             <i class="nav-icon fas fa-headset"></i>
                         @endif
@@ -428,17 +428,6 @@
             @endcan
         </ul>
     </li>
-@endcan
-<!-- @can('addresses.index')
-<li class="nav-item">
-
-    <a class="nav-link {{ Request::is('chat*') ? 'active' : '' }}" href="{{ url('/chat') }}">
-        @if($icons)
-            <i class="nav-icon fas fa-comments"></i> <!-- Remplacez avec l'icône de votre choix -->
-        @endif
-        <p>Messagerie</p>
-    </a>    </li>
-
 @endcan
 
 
