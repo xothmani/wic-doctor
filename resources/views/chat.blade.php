@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <div class="chat-header">
 
-    <img src="{{ asset('storage/images/icon-msg-dr.png') }}" 
+    <img src="{{ asset('storage/images/e.png') }}" 
      alt="Icône discussion médicale" 
      class="custom-icon"
      width="40" 
@@ -22,7 +22,6 @@
 
     <!-- Contenu Principal -->
     <div class="chat-main">
-   <!-- Liste des Conversations (Doctors) -->
 <div class="conversation-list">
     <div class="conversation-header">
     <h4>Listes des médecins </h4> 
@@ -34,21 +33,33 @@
  
         <div class="conversation-item {{ $loop->first ? 'active' : '' }}" data-id="{{ $doctor->id }}" data-user-id="{{ $doctor->user_id }}" onclick="loadMessages('{{ $doctor->user_id }}')">
         <div class="doctor-avatar">
-  <i class="fas fa-user-md fa-3x p-3 rounded-circle" 
-     style="color: #00008B; background-color: #00008B20;"></i>
+  <i class="fas fa-user-md" 
+     style="width: 40px;
+            height: 40px;
+            background-color: rgb(51, 99, 151);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 10px;"></i>
 </div>
 
             <div class="doctor-info">
                 <span class="name">{{ $doctor->name }}</span>
                 <span class="specialty">{{ $doctor->specialty }}</span>
                 @if($lastMessage)
-                    <div class="last-message">
-                        <p class="last-message-text">{{ $lastMessage['content'] }}</p>
-                        <span class="last-message-time">{{ date('H:i', $lastMessage['timestamp']) }}</span>
-                    </div>
-                @else
-                    <div class="no-message">No messages yet</div>
-                @endif
+    <div class="last-message">
+        <p class="last-message-text">
+            {{ $lastMessage['content'] ?? '[Fichier joint]' }} <!-- Solution ici -->
+        </p>
+        <span class="last-message-time">
+            {{ date('H:i', $lastMessage['timestamp'] ?? now()->timestamp) }}
+        </span>
+    </div>
+@else
+    <div class="no-message">No messages yet</div>
+@endif
             </div>
         </div>
     @endforeach
@@ -118,28 +129,31 @@
         @endif
     </div>
 
-    <!-- Formulaire d'Envoi de Message -->
-   <!-- Modifier le formulaire d'envoi -->
-<div class="chat-input">
+    <div class="chat-input">
     <form action="{{ route('chat.send') }}" method="POST" enctype="multipart/form-data" id="chat-form">
         @csrf
         <input type="hidden" name="receiver_id" id="receiver_id" value="{{ $doctorUserId ?? '' }}" required>
-        
+
         <div class="input-container">
-            <label for="file-input" class="file-icon">
-                <i class="fas fa-paperclip"></i>
-            </label>
-            <input type="file" name="file" id="file-input" style="display: none;">
+            <!-- Icône pour attacher un fichier -->
+     
+
+            <input type="file" name="file" id="file-input" >
+            <!-- Zone d'affichage des fichiers attachés -->
+            <div id="output"></div>
+
+            <!-- Champ de message -->
             <input type="text" name="message" id="message-input" placeholder="Écrire un message..." required>
+            <div id="output"></div>
+
+            <!-- Bouton d'envoi -->
             <button type="submit" class="send-button">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
-        
-        <!-- Prévisualisation du fichier -->
     </form>
-    <div id="output"></div>
 </div>
+
 
 </div>
     </div>
@@ -182,7 +196,7 @@
     }
     setTimeout(() => {
     location.reload(true); // Recharge la page depuis le serveur sans utiliser le cache
-}, 8000); // Rafraîchit après 8 secondes
+}, 80000); // Rafraîchit après 
 
     // Fonction pour charger les nouveaux messages
     function loadMessages(userId) {
@@ -397,36 +411,20 @@ function listenForDeletedMessages(chatId) {
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
 <script>
     // Gestion de la prévisualisation des fichiers
-    document.getElementById('file-input').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const previewContainer = document.getElementById('file-preview-container');
-        previewContainer.innerHTML = '';
+    document.getElementById('file-input').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = ''; // Nettoyer avant d'afficher
 
         if (file) {
-            const reader = new FileReader();
-            const fileType = file.type.split('/')[0];
-            
-            if (fileType === 'image') {
-                reader.onload = (e) => {
-                    previewContainer.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview">
-                        <div class="file-info">
-                            <div>${file.name}</div>
-                            <small>${(file.size/1024).toFixed(2)} KB</small>
-                        </div>
-                        <span class="remove-file" onclick="clearFileInput()">&times;</span>
-                    `;
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    outputDiv.innerHTML = `<img src="${e.target.result}" alt="Aperçu" style="max-width: 100px; max-height: 100px;">`;
                 };
                 reader.readAsDataURL(file);
             } else {
-                previewContainer.innerHTML = `
-                    <i class="fas fa-file-alt fa-2x"></i>
-                    <div class="file-info">
-                        <div>${file.name}</div>
-                        <small>${(file.size/1024).toFixed(2)} KB</small>
-                    </div>
-                    <span class="remove-file" onclick="clearFileInput()">&times;</span>
-                `;
+                outputDiv.innerHTML = `<p><i class="fas fa-file"></i> ${file.name}</p>`;
             }
         }
     });
@@ -534,9 +532,6 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
     }            .file-icon:hover {
                                                 color: #0056b3;
                                             }
-                                            .chat-input input[type="file"] {
-                                                    margin-right: 10px;
-                                                }
 
                                             /* Chat Header */
                                           
@@ -559,12 +554,10 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
                                             }
 /* Fichiers et images - Style amélioré */
 .message-file {
-    margin: 15px 0;
-    padding: 15px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  margin-top: 5px;
 }
 
 .message-file:hover {
@@ -639,6 +632,8 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
 
 .remove-file:hover {
     transform: scale(1.2);
+}.file-link:hover {
+  text-decoration: underline;
 }
 
 /* Animation de téléchargement */
@@ -942,8 +937,20 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
 
                                                 /* Chat Area */
                                             
-                                           
-                                                .message {
+                            
+
+/* Masquer l'input file */
+.file-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 12px;
+    background-color:rgb(10, 9, 9);
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    transition: all 0.3s ease;
+}                                      .message {
                                                     display: flex;
                                                     margin-bottom: 10px;
                                                 }
@@ -1016,7 +1023,53 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
                                                 flex: 1;
                                                 margin-right: 10px;
                                             }
+                                            .chat-input input[type="file"] {
+                                                    margin-right: 10px;
+                                                }
+                                                .file-name-display {
+        margin: 0 10px;
+        color: #666;
+        font-size: 14px;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .download-link:hover {
+        text-decoration: underline;
+    }
+ .chat-input button {
+                                                    background-color: #007bff;
+                                                    border: none;
+                                                    color: white;
+                                                    padding: 10px;
+                                                    border-radius: 5px;
+                                                    cursor: pointer;
+                                                } 
 
+.chat-input input[type="file"] {
+        margin-right: 10px;
+    }html::-webkit-scrollbar {
+    display: none;
+}
+
+.chat-input {
+position: sticky;
+bottom: 0;
+background: white;
+padding: 15px;
+box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+z-index: 1000;
+}
+.chat-input input[type="text"] {
+        flex: 1;
+        width: 450px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-right: 10px;
+    }
+    
                                             .send-button {
                                                 position: absolute;
                                                 right: 10px;
@@ -1090,15 +1143,7 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
                                                 background-color: white;
                                                 z-index: 1000;
                                             }
-                                                .chat-input input[type="text"] {
-                                                    flex: 1;
-                                                    width: 450px;
-                                                    padding: 10px;
-                                                    border: 1px solid #ddd;
-                                                    border-radius: 5px;
-                                                    margin-right: 10px;
-                                                }
-                                                
+                                               
 
 /* Fixed header */
 
@@ -1140,22 +1185,15 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
     display: flex;
     flex-direction: column;
 }
-
 .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    height: calc(100vh - 120px); /* Hauteur totale - header - input */
-}
+        flex: 1;
+        padding: 15px;
+        padding-bottom: 60px; /* Réduit de 80px à 60px */
 
-.chat-input {
-    position: sticky;
-    bottom: 0;
-    background: white;
-    padding: 15px;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    z-index: 1000;
-}
+        overflow-y: auto;
+        background-color: #f0f2f5;
+    }
+
 
 /* Supprimer les marges existantes */
 .chat-main {
@@ -1164,37 +1202,11 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
 }
 
 /* Ajuster le padding des messages pour l'espace vertical */
-.chat-messages {
-    padding-bottom: 10px;
-    padding-top: 10px;
-}
 
 /* Assurer que les éléments sticky restent collés */
 .conversation-list {
     position: sticky;
     top: 60px;
     height: calc(100vh - 60px);
-}                                      .chat-input input[type="file"] {
-                                                    margin-right: 10px;
-                                                }
-                                                .file-name-display {
-        margin: 0 10px;
-        color: #666;
-        font-size: 14px;
-        max-width: 100px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .download-link:hover {
-        text-decoration: underline;
-    }
- .chat-input button {
-                                                    background-color: #007bff;
-                                                    border: none;
-                                                    color: white;
-                                                    padding: 10px;
-                                                    border-radius: 5px;
-                                                    cursor: pointer;
-                                                } 
+}                                     
                                             </style>

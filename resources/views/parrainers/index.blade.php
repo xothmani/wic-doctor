@@ -57,7 +57,7 @@
                     @can('parrainers.parrainer') 
     <li class="nav-item">
         <a class="nav-link {{ request()->is('parrainers/parrainer') ? 'active-tab' : '' }}" href="{!! route('parrainers.parrainer') !!}">
-            <i class="fa fa-plus mr-2"></i>{{trans('Créer un filleul')}}
+            <i class="fa fa-plus mr-2"></i>{{trans('Créer un parrain')}}
         </a>
     </li>
 @endcan
