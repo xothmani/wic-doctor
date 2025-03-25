@@ -50,13 +50,22 @@ class PatternController extends Controller
         $doctorSpecialityId = $doctor && $doctor->specialities->isNotEmpty()
             ? $doctor->specialities->first()->id
             : null;
-
+        $pattern = new \App\Models\Pattern();
         $clinics = $this->clinicRepository->pluck('name', 'id');
         $customFields = '';
         $isClinicSet = false;
         $isAdomicileSet = false;
+        $isTeleconsultationSet = false; // ← Add this line
 
-        return view('patterns.create', compact('doctorSpecialityId', 'clinics', 'customFields', 'isClinicSet', 'isAdomicileSet'));
+        return view('patterns.create', compact(
+            'doctorSpecialityId',
+            'clinics',
+            'customFields',
+            'isClinicSet',
+            'isAdomicileSet',
+            'isTeleconsultationSet',
+            'pattern'
+        ));
     }
 
 
@@ -72,21 +81,42 @@ class PatternController extends Controller
 
         $input = $request->all();
         $input['doctor_id'] = $doctorId;
-
         $language = app()->getLocale();
         $input['nom'] = json_encode([$language => $input['nom']]);
+
         $typeMapping = [
             'cabinet' => 1,
             'clinique' => 2,
             'adomicile' => 3,
+            'teleconsultation' => 4,
         ];
-        $input['type'] = $typeMapping[$input['type']] ?? null;
 
-        $this->patternRepository->create($input);
+        if ($input['type'] === 'all') {
+            $typesToInsert = ['cabinet', 'adomicile', 'teleconsultation'];
 
-        Flash::success(__('Motif enregistré avec succès.'));
+            foreach ($typesToInsert as $typeKey) {
+                $inputCopy = $input;
+                $inputCopy['type'] = $typeMapping[$typeKey];
+                // Optional: Add specific logic if needed per type, like clinic_id = null
+                if ($inputCopy['type'] !== 2) {
+                    $inputCopy['clinic_id'] = null;
+                }
+                $this->patternRepository->create($inputCopy);
+            }
+
+        } else {
+            $input['type'] = $typeMapping[$input['type']] ?? null;
+            if ($input['type'] !== 2) {
+                $input['clinic_id'] = null;
+            }
+
+            $this->patternRepository->create($input);
+        }
+
+        Flash::success(__('Motif(s) enregistré(s) avec succès.'));
         return redirect(route('patterns.index'));
     }
+
     public function edit($id)
     {
         $pattern = $this->patternRepository->findWithoutFail($id);
@@ -108,6 +138,8 @@ class PatternController extends Controller
         $selectedClinicId = $pattern->clinic_id;
         $isClinicSet = $pattern->type == 2;
         $isAdomicileSet = $pattern->type == 3;
+        $isTeleconsultationSet = $pattern->type == 4;
+
 
         return view('patterns.edit', compact(
             'pattern',
@@ -116,6 +148,7 @@ class PatternController extends Controller
             'doctorSpecialityId',
             'isClinicSet',
             'isAdomicileSet',
+            'isTeleconsultationSet',
             'selectedClinicId'
         ));
     }
@@ -148,13 +181,14 @@ class PatternController extends Controller
             'cabinet' => 1,
             'clinique' => 2,
             'adomicile' => 3,
+            'teleconsultation' => 4,
         ];
 
         if (isset($input['type'])) {
             $input['type'] = $typeMapping[$input['type']] ?? $pattern->type;
         }
 
-        if ($input['type'] === 1 || $input['type'] === 3) {
+        if ($input['type'] === 1 || $input['type'] === 3 || $input['type'] === 4) {
             $input['clinic_id'] = null;
         }
 
