@@ -297,7 +297,7 @@
                                     <li class="nav-item">
                                         <a class="nav-link" id="home-tab" data-toggle="tab" href="#home-pane" data-type="home_visit"
                                             role="tab" aria-controls="home-pane" aria-selected="false">
-                                            {{ __('Home Visit') }}
+                                            {{ __('Visite à domicile') }}
                                         </a>
                                     </li>
                                 </ul>
@@ -412,8 +412,49 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
+            </div>
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <!-- Left Section (Legend Boxes) -->
+                <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center me-4">
+                        <span class="legend-box" style="background-color: #9FCDA8;"></span>
+                        <span class="ms-1">Accepté&nbsp;</span>
+                    </div>
+                    <div class="d-flex align-items-center me-4">
+                        <span class="legend-box" style="background-color: #7DC2A5;"></span>
+                        <span class="ms-1">Terminé&nbsp;</span>
+                    </div>
+                    <div class="d-flex align-items-center me-4">
+                        <span class="legend-box" style="background-color: #9EDF9C;"></span>
+                        <span class="ms-1">Prêt&nbsp;</span>
+                    </div>
+                    <div class="d-flex align-items-center me-4">
+                        <span class="legend-box" style="background-color: #F5DF4D;"></span>
+                        <span class="ms-1">En cours&nbsp;</span>
+                    </div>
+                    <div class="d-flex align-items-center me-4">
+                        <span class="legend-box" style="background-color: #F38071;"></span>
+                        <span class="ms-1">Annulé&nbsp;</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="legend-box" style="background-color: #A594F9;"></span>
+                        <span class="ms-1">Reçu</span>
+                    </div>
+                </div>
+
+                <!-- Right Section (Circles) -->
+                <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center me-4">
+                        <span class="circle-indicator" style="background-color: #28a745;"></span>
+                        <span class="ms-2">Disponible&nbsp;&nbsp;</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="circle-indicator" style="background-color: #dc3545;"></span>
+                        <span class="ms-2">Non Disponible</span>
+                    </div>
+                </div>
+            </div>
 
         </div>
     @else
@@ -1016,11 +1057,6 @@
                                     // Create custom label with hover functionality
                                     // Append all elements with proper structure
                                     $(this).append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="custom-day-label substitute-hover">${substituteName}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="custom-number-label">${staticNumber}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `);
                                     if (activeSubstitute) {
                                         $(this).find('.custom-day-label').hover(
                                             function (e) {
@@ -1335,16 +1371,8 @@
                     }
 
                     // Base details
-                    let detailsHtml = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `;
+                    let detailsHtml = ` <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p> <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p> <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p> <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p> <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p> <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p> <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p> <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p> `;
+
                     //console.log(event.cancel_reason);
 
                     if (event.status === "Annulé" && event.cancel_reason) {
