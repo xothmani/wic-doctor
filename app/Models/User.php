@@ -330,6 +330,11 @@ class User extends Authenticatable implements HasMedia
 {
     return $this->hasMany(DoctorPatient::class, 'patient_id');
 }
+        public function doctor()
+    {
+        return $this->hasOne(Doctor::class, 'user_id');
+    }
+
 
     public function getActiveDoctorId(): ?int
     {
