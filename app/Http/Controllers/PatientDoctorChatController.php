@@ -103,90 +103,95 @@ class PatientDoctorChatController extends Controller
         });
     
         return view('chatPD', compact('conversations', 'isDoctor'));
-    }    private function generateChatId($id1, $id2)
+    }  
+    
+    
+    private function generateChatId($id1, $id2)
     {
         $sorted = [$id1, $id2];
         sort($sorted);
         return hash('sha256', implode('_', $sorted));
     }
     public function showChat($doctorUserId, $patientUserId)
-    {
-        $user = auth()->user();
-        $patients = $patients ?? collect();
+{
+    $user = auth()->user();
+    $patients = $patients ?? collect();
     $doctors = $doctors ?? collect();
-        // Vérifier l'authentification
-        if (!$user) {
-            abort(403, 'Unauthorized access.');
-        }
 
-    
-        // Déterminer le rôle de l'utilisateur
-        $isDoctor = $user->doctor !== null;
-        $isPatient = $user->patient !== null;
-    
-        if (!$isDoctor && !$isPatient) {
-            abort(403, 'Unauthorized access. You must be a doctor or a patient.');
-        }
-    
-        // Récupérer les relations associées
-        if ($isDoctor) {
-            $patients = DoctorPatients::where('doctor_id', $user->doctor->id)
-                ->with('patient')
-                ->get();
-            $doctors = null;
-        } else {
-            $doctors = DoctorPatients::where('patient_id', $user->patient->id)
-                ->with('doctor')
-                ->get();
-            $patients = DoctorPatients::where('patient_id', $user->patient->id)
-                ->with('doctor')
-                ->get();
-        }
-    
-        // Générer le chat ID
-        $chatId = $this->getChatId($doctorUserId, $patientUserId);
-    
-        // Récupérer les messages depuis Firestore
-        $messages = $this->firestore->getDocuments("messages/$chatId/chats");
-    
-        // Formatage et tri des messages
-        $messagesArray = collect($messages)->map(function ($message) {
-            $fields = $message['fields'] ?? [];
-    
-            // Nouvelle structure de données
-            return [
-                'id' => $fields['id']['stringValue'] ?? '',
-                'text' => $fields['text']['stringValue'] ?? '',
-                'fileUrl' => $fields['fileUrl']['stringValue'] ?? null,
-                'time' => $fields['time']['integerValue'] ?? 0,
-                'sender' => [
-                    'id' => $fields['sender']['mapValue']['fields']['id']['stringValue'] ?? '',
-                    'name' => $fields['sender']['mapValue']['fields']['name']['stringValue'] ?? '',
-                    'imageUrl' => $fields['sender']['mapValue']['fields']['imageUrl']['stringValue'] ?? ''
-                ],
-                'receiver' => [
-                    'id' => $fields['receiver']['mapValue']['fields']['id']['stringValue'] ?? '',
-                    'name' => $fields['receiver']['mapValue']['fields']['name']['stringValue'] ?? '',
-                    'imageUrl' => $fields['receiver']['mapValue']['fields']['imageUrl']['stringValue'] ?? ''
-                ]
-            ];
-        })->sortBy('time')->values()->all();
-    
-        // Récupérer les informations du patient sélectionné
-        $patientUser = User::find($patientUserId);
-        $patient = DoctorPatients::where('patient_id', $patientUserId)->first();
-    
-        return view('chatDP', [
-            'chatId' => $chatId,
-            'messages' => $messagesArray,
-            'patient' => $patient,
-            'patientUser' => $patientUser,
-            'patients' => $patients,
-            'doctors' => $doctors,
-            'doctorUserId' => $doctorUserId,
-            'patientUserId' => $patientUserId,
-        ]);
-    }      private function getChatId($senderId, $receiverId)
+    // Vérifier l'authentification
+    if (!$user) {
+        abort(403, 'Unauthorized access.');
+    }
+
+    // Déterminer le rôle de l'utilisateur
+    $isDoctor = $user->doctor !== null;
+    $isPatient = $user->patient !== null;
+
+    if (!$isDoctor && !$isPatient) {
+        abort(403, 'Unauthorized access. You must be a doctor or a patient.');
+    }
+
+    // Récupérer les relations associées
+    if ($isDoctor) {
+        $patients = DoctorPatients::where('doctor_id', $user->doctor->id)
+            ->with('patient')
+            ->get();
+        $doctors = null;
+    } else {
+        $doctors = DoctorPatients::where('patient_id', $user->patient->id)
+            ->with('doctor')
+            ->get();
+        $patients = DoctorPatients::where('patient_id', $user->patient->id)
+            ->with('doctor')
+            ->get();
+    }
+
+    // Générer le chat ID
+    $chatId = $this->getChatId($doctorUserId, $patientUserId);
+
+    // Récupérer les messages depuis Firestore
+    $messages = $this->firestore->getDocuments("messages/$chatId/chats");
+
+    // Formatage et tri des messages
+    $messagesArray = collect($messages)->map(function ($message) {
+        $fields = $message['fields'] ?? [];
+
+        // Nouvelle structure de données avec firestoreId
+        return [
+            'firestoreId' => $message['name'] ? basename($message['name']) : Str::random(20), // Ajout de l'ID Firestore
+            'id' => $fields['id']['stringValue'] ?? '',
+            'text' => $fields['text']['stringValue'] ?? '',
+            'fileUrl' => $fields['fileUrl']['stringValue'] ?? null,
+            'time' => $fields['time']['integerValue'] ?? 0,
+            'sender' => [
+                'id' => $fields['sender']['mapValue']['fields']['id']['stringValue'] ?? '',
+                'name' => $fields['sender']['mapValue']['fields']['name']['stringValue'] ?? '',
+                'imageUrl' => $fields['sender']['mapValue']['fields']['imageUrl']['stringValue'] ?? ''
+            ],
+            'receiver' => [
+                'id' => $fields['receiver']['mapValue']['fields']['id']['stringValue'] ?? '',
+                'name' => $fields['receiver']['mapValue']['fields']['name']['stringValue'] ?? '',
+                'imageUrl' => $fields['receiver']['mapValue']['fields']['imageUrl']['stringValue'] ?? ''
+            ]
+        ];
+    })->sortBy('time')->values()->all();
+
+    // Récupérer les informations du patient sélectionné
+    $patientUser = User::find($patientUserId);
+    $patient = DoctorPatients::where('patient_id', $patientUserId)->first();
+
+    return view('chatDP', [
+        'chatId' => $chatId,
+        'messages' => $messagesArray,
+        'patient' => $patient,
+        'patientUser' => $patientUser,
+        'patients' => $patients,
+        'doctors' => $doctors,
+        'doctorUserId' => $doctorUserId,
+        'patientUserId' => $patientUserId,
+    ]);
+}
+     private function getChatId($senderId, $receiverId)
     {
         return $senderId < $receiverId
             ? $senderId . '-' . $receiverId
@@ -245,39 +250,7 @@ class PatientDoctorChatController extends Controller
     }
 
     
-    public function deleteMessage($chatId, $messageId)
-    {
-        try {
-            // Authentification avec Service Account
-            $client = new Client();
-            $client->setAuthConfig(storage_path(env('FIREBASE_CREDENTIALS', 'app/firebase-credentials.json')));
-            $client->addScope(Firestore::CLOUD_PLATFORM);
-            $token = $client->fetchAccessTokenWithAssertion();
-    
-            $firestoreUrl = "https://firestore.googleapis.com/v1/projects/wic-doctor-b83e0/databases/(default)/documents/messages/".urlencode($chatId)."/chats/".urlencode($messageId);
-    
-            // Vérifier l'existence
-            $response = Http::withToken($token['access_token'])->get($firestoreUrl);
-            
-            if ($response->status() === 404) {
-                return response()->json(['success' => false, 'message' => 'Message non trouvé'], 404);
-            }
-    
-            // Suppression
-            $deleteResponse = Http::withToken($token['access_token'])->delete($firestoreUrl);
-    
-            return $deleteResponse->successful() 
-                ? response()->json(['success' => true])
-                : response()->json(['success' => false, 'message' => 'Erreur Firestore'], 500);
-    
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur serveur: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-    public function sendMessage(Request $request)
+        public function sendMessage(Request $request)
     {
         $request->validate([
             'message' => 'nullable|string|max:255',
@@ -378,7 +351,48 @@ class PatientDoctorChatController extends Controller
             }
         }
     } 
+    public function getLastMessage(Request $request)
+    {
+        try {
+            $userId = auth()->id(); // Récupérer l'ID de l'utilisateur connecté
+            $firebaseUrl = 'https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats.json';
     
+            // Récupérer tous les chats depuis Firebase
+            $response = Http::get($firebaseUrl);
+            $chats = $response->json();
+    
+            if (!$chats) {
+                return response()->json(['error' => 'Aucun chat trouvé'], 404);
+            }
+    
+            // Trouver le dernier message destiné à l'utilisateur connecté
+            $lastMessage = null;
+            foreach ($chats as $chatId => $chat) {
+                if (isset($chat['messages'])) {
+                    foreach ($chat['messages'] as $message) {
+                        if ($message['receiver_id'] == $userId) {
+                            if (!$lastMessage || $message['timestamp'] > $lastMessage['timestamp']) {
+                                $lastMessage = $message;
+                            }
+                        }
+                    }
+                }
+            }
+    
+            if ($lastMessage) {
+                return response()->json([
+                    'content' => $lastMessage['content'],
+                    'sender_name' => $lastMessage['sender_name'],
+                ]);
+            } else {
+                return response()->json(['error' => 'Aucun message trouvé'], 404);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Erreur dans getLastMessage:', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Erreur interne du serveur'], 500);
+        }
+    }
+   
     
     public function index(Request $request)
 {
