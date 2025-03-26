@@ -413,12 +413,7 @@ class PatientDoctorChatController extends Controller
         $patients = $relationships->map(function ($rel) {
             return $rel->patient;
         });
-    } else {
-        $relationships = DoctorPatients::where('patient_id', $user->patient->id)
-            ->with(['doctor.user'])
-            ->get();
-    }
-
+    } 
     foreach ($relationships as $rel) {
         $target = $isDoctor ? $rel->patient : $rel->doctor;
         $otherUser = $target->user;
