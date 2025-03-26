@@ -634,21 +634,9 @@ class AppointmentAPIController extends Controller
         $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
         $appointment->patient = $patient;
         $appointment->save();
-        event(new AppointmentStatusChangedEvent($appointment, $new_status_id, $deviceToken));
-        $body = "Votre rendez-vous avec le Dr. {$appointment->doctor->name} a été mis à jour. Consultez les nouvelles informations dans votre espace personnel.";
-        $data = $data = ['appointment_id' => $appointment->id];
-        /*\App\Models\Notification::create([
-            'notifiable_id' => $user->id,  // Utilise l'ID de l'utilisateur
-            'notifiable_type' => get_class($user), // Utilise le nom de la classe de l'utilisateur
-            'data' => $data, // Utilise json_encode pour formater les données
-            'type' => 'App\Notifications\StatusChangedAppointment',
-            'read_at' => null,
-            'read' => false,
-            'body' => $body,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);*/
-        //Notification::send([$user], new StatusChangedAppointment($appointment));
+
+        //Send notification to phone
+        event(new AppointmentStatusChangedEvent($appointment,$new_status_id,$deviceToken));
         return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
     }
 
@@ -713,9 +701,8 @@ class AppointmentAPIController extends Controller
                 "success" => true,
                 "data" => "Tu as passé la date limite pour cette opération"
             ]);
-        }*/
 
-
+        }*/ 
     }
 
 
