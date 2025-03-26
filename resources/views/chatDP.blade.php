@@ -174,7 +174,7 @@
 @else
             <div class="empty-state">
                 <i class="fas fa-comment-slash"></i>
-                <p>No messages yet</p>
+                <p>Aucun message</p>
             </div>
         @endif
 @endif
@@ -185,9 +185,9 @@
     <div class="chat-messages" id="chat-messages">
         @if(isset($messages) && count($messages) > 0)
             @foreach($messages as $message)
-                <div class="message {{ ((string)$message['sender']['id'] === (string)auth()->id()) ? 'sent' : 'received' }}" 
-                     data-time="{{ $message['time'] }}" 
-                     data-message-id="{{ $message['id'] }}">
+            <div class="message {{ ((string)$message['sender']['id'] === (string)auth()->id()) ? 'sent' : 'received' }}" 
+     data-time="{{ $message['time'] }}" 
+     data-message-id="{{ $message['firestoreId'] }}">
                     <div class="message-content">
                         <div class="message-header">
                             <span class="sender">{{ $message['sender']['name'] }}</span>
@@ -198,11 +198,10 @@
                             @if(((string)$message['sender']['id']) === ((string)auth()->id()))
                             <!-- REMPLACER TOUS LES onclick PAR data-attributes -->
                             <button class="delete-btn" 
-        onclick="deleteMessage('{{ $chatId }}', '{{ $message['id'] }}', this)">
-    <i class="fas fa-trash-alt"></i> 
-</button>
-
-                            @endif
+        data-message-id="{{ $message['firestoreId'] }}"
+        title="Supprimer le message">
+    <i class="fas fa-trash-alt"></i>
+</button>        @endif
                         </div>
                         <p class="text">{{ $message['text'] }}</p>
                         @if(!empty($message['fileUrl']))
@@ -277,34 +276,74 @@
     </div>
 </div>
 @endsection
-
 @section('scripts')
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script>
-  window.deleteMessage = function(chatId, messageId, button) {
-    if (!confirm('Supprimer ce message définitivement ?')) return;
 
-    fetch(`/messages/${chatId}/chats/${messageId}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json'
+@section('scripts')
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+@endsection
+@endsection
+@section('scripts')
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+@section('scripts')
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script>
+    // Configuration Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyA8T2qplVSv9ZwXBW_rKOkOFjQv2hA1UKY",
+        authDomain: "wic-doctor-b83e0.firebaseapp.com",
+        projectId: "wic-doctor-b83e0",
+        storageBucket: "wic-doctor-b83e0.appspot.com",
+        messagingSenderId: "895957208558",
+        appId: "1:895957208558:web:322c25347af966f5f512ff"
+    };
+
+    // Initialiser Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const firestore = firebase.firestore();
+
+    // Fonction de suppression pour Firestore
+   
+</script>
+@endsection
+<script>
+  // Configuration Firebase
+  const firebaseConfig = {
+        apiKey: "AIzaSyA8T2qplVSv9ZwXBW_rKOkOFjQv2hA1UKY",
+        authDomain: "wic-doctor-b83e0.firebaseapp.com",
+        projectId: "wic-doctor-b83e0",
+        storageBucket: "wic-doctor-b83e0.appspot.com",
+        messagingSenderId: "895957208558",
+        appId: "1:895957208558:web:322c25347af966f5f512ff"
+    };
+
+    // Initialiser Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const firestore = firebase.firestore();
+
+  
+
+        // Écoute des suppressions en temps réel
+        const chatId = document.getElementById('chatId')?.value;
+        if (chatId) {
+            firestore.collection(`messages/${chatId}/chats`)
+                .onSnapshot((snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "removed") {
+                            const messageElement = document.querySelector(
+                                `[data-message-id="${change.doc.id}"]`
+                            );
+                            if (messageElement) messageElement.remove();
+                        }
+                    });
+                });
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            button.closest('.message').remove();
-        } else {
-            alert('Erreur: ' + (data.message || 'Action impossible'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Erreur réseau');
     });
-};
     // Configuration Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyA8T2qplVSv9ZwXBW_rKOkOFjQv2hA1UKY",
@@ -355,6 +394,7 @@
         alert('Une erreur s\'est produite lors de l\'envoi du message.');
     }
 });
+
 
 
     // Fonctions utilitaires
@@ -431,12 +471,6 @@ const firestore = firebase.firestore(firebaseApp); // <-- Spécifier l'instance
 // 3. Déclarer la fonction AVANT son utilisation
 
 // 4. Gestionnaire d'événements MODERN
-function setupDeleteHandlers() {
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.removeEventListener('click', handleDelete); // Nettoyage
-        button.addEventListener('click', handleDelete);
-    });
-}
 
 // 5. Handler séparé pour meilleur contrôle
 
@@ -445,6 +479,120 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDeleteHandlers();
 });
 </script>
+
+<script>
+// Configuration Firebase
+// Configuration Firebase pour Firestore
+const firebaseConfig = {
+    apiKey: "AIzaSyA8T2qplVSv9ZwXBW_rKOkOFjQv2hA1UKY",
+    authDomain: "wic-doctor-b83e0.firebaseapp.com",
+    projectId: "wic-doctor-b83e0",
+    storageBucket: "wic-doctor-b83e0.appspot.com",
+    messagingSenderId: "895957208558",
+    appId: "1:895957208558:web:322c25347af966f5f512ff"
+};
+
+// Initialiser Firebase avec Firestore
+const app = firebase.initializeApp(firebaseConfig);
+const firestore = firebase.firestore();
+
+// Fonction de suppression pour Firestore
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+    const chatId = document.getElementById('chatId')?.value;
+    if (chatId) {
+        listenForDeletedMessages(chatId);
+    }
+});
+
+// Initialisation après chargement
+document.addEventListener('DOMContentLoaded', () => {
+    const chatId = document.getElementById('chatId').value;
+    if (chatId) setupRealtimeDeletionListener(chatId);
+});
+</script>
+@section('scripts')
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script>
+    // Configuration Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyA8T2qplVSv9ZwXBW_rKOkOFjQv2hA1UKY",
+        authDomain: "wic-doctor-b83e0.firebaseapp.com",
+        projectId: "wic-doctor-b83e0",
+        storageBucket: "wic-doctor-b83e0.appspot.com",
+        messagingSenderId: "895957208558",
+        appId: "1:895957208558:web:322c25347af966f5f512ff"
+    };
+
+    // Initialiser Firebase une seule fois
+    const app = firebase.initializeApp(firebaseConfig);
+    const firestore = firebase.firestore();
+
+    // Fonction de suppression
+    async function deleteMessage(chatId, messageId, buttonElement) {
+        if (!confirm('Voulez-vous vraiment supprimer ce message ?')) {
+            return;
+        }
+
+        try {
+            console.log(`Tentative de suppression: messages/${chatId}/chats/${messageId}`);
+            
+            // Référence au document
+            const docRef = firestore.doc(`messages/${chatId}/chats/${messageId}`);
+            
+            // Suppression
+            await docRef.delete();
+            
+            // Suppression visuelle
+            const messageElement = buttonElement.closest('.message');
+            if (messageElement) {
+                messageElement.remove();
+                console.log('Message supprimé avec succès');
+            }
+        } catch (error) {
+            console.error('Erreur de suppression:', error);
+            alert('Erreur lors de la suppression: ' + error.message);
+        }
+    }
+
+    // Gestionnaire d'événements
+    document.addEventListener('DOMContentLoaded', () => {
+        // Écouteur délégué pour tous les boutons de suppression
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.delete-btn')) {
+                const button = e.target.closest('.delete-btn');
+                const chatId = document.getElementById('chatId').value;
+                const messageId = button.getAttribute('data-message-id');
+                
+                console.log('Clic sur suppression:', {chatId, messageId});
+                
+                if (chatId && messageId) {
+                    deleteMessage(chatId, messageId, button);
+                }
+            }
+        });
+
+        // Écoute des suppressions en temps réel
+        const chatId = document.getElementById('chatId')?.value;
+        if (chatId) {
+            firestore.collection(`messages/${chatId}/chats`)
+                .onSnapshot((snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "removed") {
+                            const deletedId = change.doc.id;
+                            const messageElement = document.querySelector(`[data-message-id="${deletedId}"]`);
+                            if (messageElement) {
+                                messageElement.remove();
+                            }
+                        }
+                    });
+                });
+        }
+    });
+</script>
+@endsection
 @endsection
 @section('styles')
 <style>
@@ -658,30 +806,8 @@ document.addEventListener('DOMContentLoaded', () => {
         background-color: #f0f2f5;
     }
 
-    .chat-input input[type="file"] {
-                                                    margin-right: 10px;
-                                                }
+  
 /* Styles pour le conteneur de l'input */
-.input-container {
-                                                position: relative;
-                                                flex: 1;
-                                                display: flex;
-                                                align-items: center;
-                                                background-color: white;
-                                                border: 1px solid #ddd;
-                                                border-radius: 25px; /* Arrondir les coins */
-                                                padding: 5px 10px; /* Espace interne */
-                                            }
-
-                                            
-
-/* Conteneur flex pour aligner les éléments */
-
-.input-container {
-                                                position: relative;
-                                                flex: 1;
-                                                margin-right: 10px;
-                                            }
 
 /* Style de l'input texte */
 #message-input {
@@ -740,6 +866,30 @@ document.addEventListener('DOMContentLoaded', () => {
 input[type="file"] {
     display: none;
 }
+.input-container {
+                                                position: relative;
+                                                flex: 1;
+                                                display: flex;
+                                                align-items: center;
+                                                background-color: white;
+                                                border: 1px solid #ddd;
+                                                border-radius: 25px; /* Arrondir les coins */
+                                                padding: 5px 10px; /* Espace interne */
+                                            }
+
+                                            
+
+/* Conteneur flex pour aligner les éléments */
+
+.input-container {
+                                                position: relative;
+                                                flex: 1;
+                                                margin-right: 10px;
+                                            }
+                                            .chat-input input[type="file"] {
+                                                    margin-right: 10px;
+                                                }
+
 .input-container {
                                                 position: relative;
                                                 flex: 1;
