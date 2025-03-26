@@ -438,8 +438,8 @@ private function createDoctor($user, $doctorRequest, $availabilityMode){
         $addressData['Région'] = json_encode(['fr' => $doctorRequest->region]);
         DB::table('addresses')->insert($addressData);
         // Modifier les permissions avant d'exécuter le script Node.js
-        shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
-        shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/WicDoctor/medecin/');
+        shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/france/medecin/');
+        shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/france/medecin/');
 
         // Exécuter le script Node.js
         $this->executeNodeScriptFrance($doctor);
