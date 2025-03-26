@@ -635,7 +635,10 @@ class AppointmentAPIController extends Controller
         $appointment->patient = $patient;
         $appointment->save();
 
+        Log::info("Update Appointment Request Lunch Event");
+
         //Send notification to phone
+        Log::info("Update Appointment Listen event");
         event(new AppointmentStatusChangedEvent($appointment,$new_status_id,$deviceToken));
         return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
     }

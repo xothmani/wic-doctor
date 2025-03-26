@@ -72,15 +72,26 @@
       'Image' => 'Intervention\\Image\\Facades\\Image',
     ),
   ),
-  'laracasts/flash' => 
+  'kreait/laravel-firebase' => 
   array (
+    'aliases' => 
+    array (
+      'Firebase' => 'Kreait\\Laravel\\Firebase\\Facades\\Firebase',
+    ),
     'providers' => 
     array (
-      0 => 'Laracasts\\Flash\\FlashServiceProvider',
+      0 => 'Kreait\\Laravel\\Firebase\\ServiceProvider',
     ),
+  ),
+  'laracasts/flash' => 
+  array (
     'aliases' => 
     array (
       'Flash' => 'Laracasts\\Flash\\Flash',
+    ),
+    'providers' => 
+    array (
+      0 => 'Laracasts\\Flash\\FlashServiceProvider',
     ),
   ),
   'laravel/cashier' => 
@@ -136,13 +147,13 @@
   ),
   'maatwebsite/excel' => 
   array (
-    'providers' => 
-    array (
-      0 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
-    ),
     'aliases' => 
     array (
       'Excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
+    ),
+    'providers' => 
+    array (
+      0 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
     ),
   ),
   'nesbot/carbon' => 
@@ -228,13 +239,13 @@
   ),
   'spatie/laravel-html' => 
   array (
-    'providers' => 
-    array (
-      0 => 'Spatie\\Html\\HtmlServiceProvider',
-    ),
     'aliases' => 
     array (
       'Html' => 'Spatie\\Html\\Facades\\Html',
+    ),
+    'providers' => 
+    array (
+      0 => 'Spatie\\Html\\HtmlServiceProvider',
     ),
   ),
   'spatie/laravel-medialibrary' => 
@@ -260,13 +271,13 @@
   ),
   'srmklive/paypal' => 
   array (
-    'providers' => 
-    array (
-      0 => 'Srmklive\\PayPal\\Providers\\PayPalServiceProvider',
-    ),
     'aliases' => 
     array (
       'PayPal' => 'Srmklive\\PayPal\\Facades\\PayPal',
+    ),
+    'providers' => 
+    array (
+      0 => 'Srmklive\\PayPal\\Providers\\PayPalServiceProvider',
     ),
   ),
   'yajra/laravel-datatables-buttons' => 

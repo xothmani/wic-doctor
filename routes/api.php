@@ -22,11 +22,11 @@ use App\Http\Controllers\API\NotificationAPIController;
 use App\Http\Controllers\API\RoomAPIController;
 
 /*********************** Route ajouté par Hamza ********************* */
-Route::get('hamza', 'API\DoctorAPIController@indexFiltreHamza');
-Route::get('doctors/recomended', 'API\DoctorAPIController@recommandedDoctor');
-Route::get('appointment/{id}', 'API\AppointmentAPIController@getAppointmentById');
-Route::middleware('auth:api')->patch('update-appoi-hamza/{id}', 'API\AppointmentAPIController@updateDateAndTime');
-Route::middleware('auth:api')->patch('update-appoi-status/{id}', 'API\AppointmentAPIController@updateStatus');
+Route::get('doctors/search','API\DoctorAPIController@indexFiltreHamza');
+Route::get('doctors/recomended','API\DoctorAPIController@recommandedDoctor');
+Route::get('appointment/{id}','API\AppointmentAPIController@getAppointmentById');
+Route::middleware('auth:api')->patch('update-appoi-hamza/{id}','API\AppointmentAPIController@updateDateAndTime');
+Route::middleware('auth:api')->patch('update-appoi-status/{id}','API\AppointmentAPIController@updateStatus');
 Route::post('/send-notification', [NotificationAPIController::class, 'send']);
 Route::post('/store-notification', [NotificationAPIController::class, 'storeReminderAppointment']);
 //khater notification feha patch w mé najmouch na3mlou 2 patch fi nafes l url
