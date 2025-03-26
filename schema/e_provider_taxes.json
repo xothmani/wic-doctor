@@ -1,0 +1,16 @@
+[
+  {
+    "name": "clinic_id",
+    "dbType": "integer:unsigned:foreign,clinics,id",
+    "htmlType": "number",
+    "validations": "exists:clinics,id",
+    "primary": true
+  },
+  {
+    "name": "tax_id",
+    "dbType": "integer:unsigned:foreign,taxes,id",
+    "htmlType": "number",
+    "validations": "exists:taxes,id",
+    "primary": true
+  }
+]

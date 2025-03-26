@@ -48,9 +48,21 @@ use App\Http\Controllers\ParrainerController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\DoctorsGalleryController;
 use App\Http\Controllers\DoctorBlogController;
+<<<<<<< HEAD
 use App\Http\Controllers\PhotosCabinetController;
 use App\Http\Controllers\DoctorUserController;
 //use App\Http\Controllers\MailController;
+=======
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\PhotosCabinetController;
+use App\Http\Controllers\DoctorUserController;
+use App\Http\Controllers\ChatController;
+
+use Illuminate\Http\Request;
+//use App\Http\Controllers\MailController;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Route;
+>>>>>>> merging_dev_agendabranch
 
 
 
@@ -92,9 +104,16 @@ Route::post('/availability/store-open', [AvailabilityController::class, 'storeOp
     ->name('availability.store.open');
 Route::post('/availability/substitute', [AvailabilityController::class, 'storeSubstitute'])->name('substitute.store');
 Route::delete('/availability/substitute/{id}', [AvailabilityController::class, 'deleteSubstitute'])->name('substitute.destroy');
+<<<<<<< HEAD
 
 Route::delete('vacances/{id}', [DoctorVacationController::class, 'destroy'])->name('vacances.destroy');
 Route::put('/vacances/{id}', [DoctorVacationController::class, 'update'])->name('vacances.update');
+=======
+Route::put('/vacances/{id}', [AvailabilityController::class, 'updateVacation'])
+    ->name('vacances.update');
+
+Route::delete('vacances/{id}', [DoctorVacationController::class, 'destroy'])->name('vacances.destroy');
+>>>>>>> merging_dev_agendabranch
 Route::get('/availability-tele', [AvailabilityController::class, 'indexTele'])->name('availability.tele');
 Route::post('/availability-tele', [AvailabilityController::class, 'storeTele'])->name('availabilityTele.store');
 Route::post('/availability-tele/store', [AvailabilityController::class, 'storeTele'])->name('availabilityTele.store');
@@ -131,8 +150,11 @@ Route::get('payments/paystack', 'PayStackController@index');
 
 Route::get('payments/paypal/express-checkout', 'PayPalController@getExpressCheckout')->name('paypal.express-checkout');
 Route::get('payments/paypal/express-checkout-success', 'PayPalController@getExpressCheckoutSuccess');
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> merging_dev_agendabranch
 Route::get('payments/paypal', 'PayPalController@index')->name('paypal.index');
 
 Route::get('firebase/sw-js', 'AppSettingController@initFirebase');
@@ -391,11 +413,23 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/teleconsultations', [MeetController::class, 'index'])->name('teleconsultations.index');
     Route::get('/teleconsultations/create', [MeetController::class, 'createMeet'])->name('teleconsultations.createMeet');
     Route::post('/teleconsultations/send-meeting-info', [MeetController::class, 'sendMeetingInfo'])->name('send.meeting.info');
+<<<<<<< HEAD
+=======
+
+    Route::get('/teleconsultations/send-meeting-info-form', [MeetController::class, 'showSendMeetingInfoForm'])->name('show.meeting.info.form');
+    Route::post('/teleconsultations/create-specific-meeting', [MeetController::class, 'createSpecificMeeting'])->name('create.specific.meeting');
+    Route::post('/meet/{id}/status', [MeetController::class, 'updateStatus'])->name('meet.update.status');
+
+>>>>>>> merging_dev_agendabranch
     Route::get('/meet', [MeetController::class, 'index'])->name('meet.index');
     Route::post('/meet/create', [MeetController::class, 'createMeet']);
     Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
     Route::resource('patterns', PatternController::class);
+<<<<<<< HEAD
     Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name('appointments.getAvailableTimeSlots');
+=======
+    Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name(name: 'appointments.getAvailableTimeSlots');
+>>>>>>> merging_dev_agendabranch
     Route::get('/get-available-time-slots-presice', [AppointmentEventController::class, 'getAvailableTimeSlotsPresice'])->name('appointments.getAvailableTimeSlotsPresice');
     Route::get('/get-available-For-open', [AppointmentEventController::class, 'getAvailableForOpen'])->name('appointments.getAvailableForOpen');
     Route::get('/get-available-time-slots-open', [AppointmentEventController::class, 'getAvailableTimeSlotsForOpen'])->name('appointments.getAvailableTimeSlotsForOpen');
@@ -405,9 +439,16 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     // Route pour afficher toutes les prescriptions liées à une consultation
     Route::get('/consultation/{consultation}/prescriptions', [ConsultationController::class, 'showPrescriptions'])->name('consultation.prescriptions');
     Route::get('/prescriptions/{prescription}/pdf', [PrescriptionController::class, 'generatePrescriptionPdf'])->name('prescriptions.pdf');
+<<<<<<< HEAD
     Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
 
    // Route::get('send-mail', [MailController::class, 'index']);
+=======
+
+    Route::get('/prescriptions/details/{prescriptionId}', 'PrescriptionController@showDetails');
+
+    // Route::get('send-mail', [MailController::class, 'index']);
+>>>>>>> merging_dev_agendabranch
 
     Route::get('/appointments/today/completed', [AppointmentController::class, 'getTodayCompletedAppointments'])
         ->name('appointments.today.completed');
@@ -423,7 +464,11 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::resource('assurances', AssuranceController::class);
 
     Route::resource('doctor_requests', DoctorRequestController::class);
+<<<<<<< HEAD
     Route::get('/doctor-request/{id}/create-user', [DoctorRequestController::class, 'createUserFromDoctorRequest'])->name('doctor_requests.createUserFromDoctorRequest');
+=======
+    Route::post('/doctor-request/{id}/create-user', [DoctorRequestController::class, 'createUserFromDoctorRequest'])->name('doctor_requests.createUserFromDoctorRequest');
+>>>>>>> merging_dev_agendabranch
     Route::get('/doctor-requests/{id}', [DoctorRequestController::class, 'show']);
     Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
 
@@ -442,6 +487,12 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     Route::get('/specialitiesByPays', [SpecialityController::class, 'getSpecialitiesByCountry']);
 
+<<<<<<< HEAD
+=======
+    Route::prefix('doctor_telesecretariat')->name('doctor_telesecretariat.')->group(function () {
+        Route::post('store-profile-management', [DoctorTelesecretariatController::class, 'storeProfileManagment'])->name('store_profile_management');
+    });
+>>>>>>> merging_dev_agendabranch
     Route::resource('doctor_telesecretariat', DoctorTelesecretariatController::class);
 
     ////////////////////////////
@@ -474,6 +525,10 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/tele-patterns', [DoctorTelesecretariatController::class, 'getPatterns'])->name('tele_patterns');
 
     Route::get('/tele-get-doctor-availability-data', [DoctorTelesecretariatController::class, 'getDoctorAvailabilityData']);
+<<<<<<< HEAD
+=======
+    // In routes/web.php
+>>>>>>> merging_dev_agendabranch
 
 
     Route::resource('newsletters', NewsLatterController::class);
@@ -534,9 +589,15 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('doctor_blogs/rejected', [DoctorBlogController::class, 'rejectedBlogs'])->name('doctor_blog.rejected');
 
     Route::get('/doctor_blog/accept/{id}', [DoctorBlogController::class, 'accepterBlog'])
+<<<<<<< HEAD
     ->name('doctor_blog.accept');
     Route::post('/doctor_blog/rejet/{id}', [DoctorBlogController::class, 'rejeterBlog'])
     ->name('doctor_blog.rejet');
+=======
+        ->name('doctor_blog.accept');
+    Route::post('/doctor_blog/rejet/{id}', [DoctorBlogController::class, 'rejeterBlog'])
+        ->name('doctor_blog.rejet');
+>>>>>>> merging_dev_agendabranch
 
     Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
     Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
@@ -546,11 +607,34 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/suivi-doctors', [DoctorController::class, 'SuiviDoctorsIndex'])->name('suivi_doctors.index');
     Route::get('/doctor/total-pourcentage', [DoctorController::class, 'getTotalPourcentage'])
         ->name('doctor.total-pourcentage');
+<<<<<<< HEAD
         Route::get('/generate-doctor-url/{doctorId}', [DoctorController::class, 'generateDoctorUrl'])->name('generateDoctorUrl');
         Route::get('/medecin/generer-url', [DoctorController::class, 'generateConnectedDoctorUrl'])->name('doctors.generateUrl');
 
 
     
+=======
+    Route::get('/generate-doctor-url/{doctorId}', [DoctorController::class, 'generateDoctorUrl'])->name('generateDoctorUrl');
+    Route::get('/medecin/generer-url', [DoctorController::class, 'generateConnectedDoctorUrl'])->name('doctors.generateUrl');
+
+    Route::post('/prescriptions/{prescription}/send-email', [PrescriptionController::class, 'sendEmail'])
+        ->name('prescriptions.sendEmail');
+    Route::post('/teleconsultations/create-specific-meeting', [MeetController::class, 'createSpecificMeeting'])->name('create.specific.meeting');
+
+
+    Route::get('/serve-file/{doctorId}/{category}/{status}/{fileName}', function ($doctorId, $category, $status, $fileName) {
+        $filePath = "/mnt/doctor/{$doctorId}/{$category}/{$status}/{$fileName}";
+
+        if (!file_exists($filePath)) {
+            abort(404);
+        }
+
+        return Response::file($filePath);
+    })->name('serveFile');
+
+
+
+>>>>>>> merging_dev_agendabranch
 
     Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
     Route::post('/appointmentsEvent/store', [AppointmentEventController::class, 'store'])
@@ -568,5 +652,95 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/appointments/stats/{doctorId}/{selectedDate?}', [AppointmentEventController::class, 'getAppointmentStats'])
         ->name('appointment.stats');
 
+<<<<<<< HEAD
+=======
+    Route::prefix('availability')->group(function () {
+        // ... existing availability routes ...
+
+        // Add these new closure routes
+        Route::post('/closures/store', [AvailabilityController::class, 'storeClosures'])
+            ->name('availability.closures.store');
+        Route::delete('/closures/{id}', [AvailabilityController::class, 'destroyClosures'])
+            ->name('availability.closures.destroy');
+        Route::get('/closures', [AvailabilityController::class, 'getClosures'])
+            ->name('availability.closures.index');
+        Route::put('/closures/{id}', [AvailabilityController::class, 'updateClosures'])
+            ->name('availability.closures.update');  // Add this line
+    });
+
+
+
+    Route::get('/messages/{doctorId}', [ChatController::class, 'getMessagesForDoctor']);
+    Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
+    Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
+    Route::get('/chat', [ChatController::class, 'showForm']);
+    Route::get('storage/{file}', function ($file) {
+        $path = storage_path('app/public/' . $file);
+
+        if (!File::exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($path);
+    });
+    Route::get('/download/{filename}', function ($filename) {
+        $path = storage_path('app/public/chat_files/' . $filename);
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->download($path);
+    })->name('download.file');
+
+
+    Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
+    Route::get('/last-message', [ChatController::class, 'getLastMessage']);
+    Route::delete('/messages/{chatId}/{messageId}', [ChatController::class, 'deleteMessage'])->name('chat.deleteMessage');
+    Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
+
+    Route::get('/chat/{userId}/{doctorId}', [ChatController::class, 'showChat']);
+
+    Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
+
+    Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
+
+
+
+
+    Route::post('/users/accept-new-features', [UserController::class, 'acceptNewFeatures'])->name('users.acceptNewFeatures');
+    Route::post('/users/reject-new-features', [UserController::class, 'rejectNewFeatures'])->name('users.rejectNewFeatures');
+
+    Route::get('/tele-get-background-color-agenda', [DoctorTelesecretariatController::class, 'BackgroundColorForAgenda'])->name('get.background.color.agenda');
+    Route::get('/tele-substitutes/{doctorId}', [DoctorTelesecretariatController::class, 'getSubstitutes'])->name('get.tele.substitutes');
+    Route::get('/tele-appointments/stats/{doctorId}/{selectedDate?}', [DoctorTelesecretariatController::class, 'getAppointmentStats'])
+        ->name(name: 'get.tele.AppointmentStats');
+    Route::get('/tele-get-pattern-for-time-slot', [DoctorTelesecretariatController::class, 'telegetPatternForTimeSlot'])->name('tele.get.pattern.for.time.slot');
+    Route::get('/tele-get-pattern-for-time-slot-without-type', [DoctorTelesecretariatController::class, 'telegetPatternForTimeSlotWithoutType'])->name('tele.get.slot.no.type');
+    Route::post('/set-active-doctor', function (Request $request) {
+        $doctorId = $request->input('doctorId');
+        if ($doctorId) {
+            session(['selectedDoctorId' => $doctorId]);
+        }
+        return response()->json(['success' => true]);
+    })->middleware('auth');
+    Route::get('/refresh-active-doctor', function () {
+        $activeDoctor = null;
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->hasRole('Telesecretary')) {
+                $doctorId = session('selectedDoctorId');
+                if ($doctorId) {
+                    $activeDoctor = \App\Models\Doctor::find($doctorId);
+                }
+            } else {
+                $activeDoctor = \App\Models\Doctor::find($user->getDoctorId());
+            }
+        }
+        return view('components.active-doctor', compact('activeDoctor'));
+    })->middleware('auth');
+>>>>>>> merging_dev_agendabranch
 });
 

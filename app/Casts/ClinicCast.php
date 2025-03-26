@@ -10,7 +10,10 @@ namespace App\Casts;
 
 use App\Models\Clinic;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+<<<<<<< HEAD
 use Illuminate\Support\Facades\Log;
+=======
+>>>>>>> merging_dev_agendabranch
 
 /**
  * Class ClinicCast
@@ -26,7 +29,11 @@ class ClinicCast implements CastsAttributes
 {
     // Decode the JSON value
     $decodedValue = json_decode($value, true);
+<<<<<<< HEAD
     Log::info("ClinicCast", ["decodedValue" => $decodedValue]);
+=======
+
+>>>>>>> merging_dev_agendabranch
     // Check if the decoded value is null or doesn't contain the 'id' key
     if (is_null($decodedValue) || !isset($decodedValue['id'])) {
         // Handle the error or return a default value if necessary

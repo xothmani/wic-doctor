@@ -66,6 +66,11 @@ class Appointment extends Model
     ];
     public $table = 'appointments';
     public $fillable = [
+<<<<<<< HEAD
+=======
+        'doctor',
+        'patient',
+>>>>>>> merging_dev_agendabranch
         'user_id',
         'doctor_id',
         'appointment_status_id',
@@ -84,7 +89,10 @@ class Appointment extends Model
         'quantity',
         'patient_id',
         'cancel_reason',
+<<<<<<< HEAD
         'type'
+=======
+>>>>>>> merging_dev_agendabranch
     ];
     /**
      * The attributes that should be casted to native types.
@@ -92,6 +100,13 @@ class Appointment extends Model
      * @var array
      */
     protected $casts = [
+<<<<<<< HEAD
+=======
+        'clinic' => Clinic::class,
+        'doctor' => Doctor::class,
+        'patient' => Patient::class,
+        'address' => Address::class,
+>>>>>>> merging_dev_agendabranch
         'coupon' => Coupon::class,
         'taxes' => TaxCollectionCast::class,
         'appointment_status_id' => 'integer',
@@ -104,10 +119,16 @@ class Appointment extends Model
         'hint' => 'string',
         'online' => 'string',
         'cancel' => 'boolean',
+<<<<<<< HEAD
 	    'motif_id' => 'integer', // Nouvelle colonne
         'clinic_id' => 'integer', // Nouvelle colonne
         'quantity' => 'integer',
         'type' => 'string'
+=======
+	'motif_id' => 'integer', // Nouvelle colonne
+        'clinic_id' => 'integer', // Nouvelle colonne
+        'quantity' => 'integer'
+>>>>>>> merging_dev_agendabranch
     ];
     /**
      * New Attributes

@@ -1,0 +1,72 @@
+[
+    {
+        "name": "id",
+        "dbType": "increments",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "primary": true,
+        "fillable": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "name",
+        "dbType": "string,127",
+        "htmlType": "text",
+        "validations": "required|max:127"
+    },
+    {
+        "name": "color",
+        "dbType": "string,36",
+        "htmlType": "text",
+        "validations": "required|max:36"
+    },
+    {
+        "name": "description",
+        "dbType": "text:nullable",
+        "htmlType": "textarea",
+        "validations": "nullable"
+    },
+    {
+        "name": "image",
+        "dbType": "string",
+        "htmlType": "file",
+        "fillable": false,
+        "searchable": false,
+        "inForm": true,
+        "orderable": false,
+        "exportable": false,
+        "printable": false
+    },
+    {
+        "name": "parent_id",
+        "title": "speciality.name",
+        "dbType": "integer:unsigned:foreign,specialities,id,parent_id",
+        "htmlType": "select,$category",
+        "validations": "required|exists:specialities,id",
+        "relation": "mt1,Speciality,parent_id,id"
+    },
+    {
+        "name": "created_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "updated_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": true
+    }
+]

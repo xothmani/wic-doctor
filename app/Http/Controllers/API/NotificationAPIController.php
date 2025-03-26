@@ -12,8 +12,12 @@ namespace App\Http\Controllers\API;
 use App\Criteria\Notifications\UnReadCriteria;
 use App\Http\Controllers\Controller;
 use App\Models\Notification;
+<<<<<<< HEAD
 use App\Models\User;
 use App\Notifications\FCMServices;
+=======
+use App\Notifications\NewMessage;
+>>>>>>> merging_dev_agendabranch
 use App\Repositories\NotificationRepository;
 use App\Repositories\UserRepository;
 use Carbon\Carbon;
@@ -24,7 +28,10 @@ use InfyOm\Generator\Criteria\LimitOffsetCriteria;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Prettus\Repository\Exceptions\RepositoryException;
 use Prettus\Validator\Exceptions\ValidatorException;
+<<<<<<< HEAD
 use Illuminate\Support\Facades\Log;
+=======
+>>>>>>> merging_dev_agendabranch
 
 /**
  * Class NotificationController
@@ -37,6 +44,7 @@ class NotificationAPIController extends Controller
 
     /** @var UserRepository */
     private UserRepository $userRepository;
+<<<<<<< HEAD
     protected $fcmService;
 
 
@@ -85,6 +93,16 @@ class NotificationAPIController extends Controller
     }
 
 
+=======
+
+    public function __construct(NotificationRepository $notificationRepo, UserRepository $userRepository)
+    {
+        $this->notificationRepository = $notificationRepo;
+        $this->userRepository = $userRepository;
+        parent::__construct();
+    }
+
+>>>>>>> merging_dev_agendabranch
     /**
      * Display a listing of the Notification.
      * GET|HEAD /notifications
@@ -121,9 +139,13 @@ class NotificationAPIController extends Controller
         } catch (RepositoryException $e) {
             return $this->sendError($e->getMessage(), 200);
         }
+<<<<<<< HEAD
 
         //count seulement les notifications non lues (NB: lues pas open)
         $count = $this->notificationRepository->where('read', false)->count();
+=======
+        $count = $this->notificationRepository->count();
+>>>>>>> merging_dev_agendabranch
 
         return $this->sendResponse($count, 'Notifications count retrieved successfully');
     }
@@ -139,12 +161,16 @@ class NotificationAPIController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
+<<<<<<< HEAD
             Log::info("Store function");
+=======
+>>>>>>> merging_dev_agendabranch
             $usersId = $request->get('users');
             $fromId = $request->get('from');
             $text = $request->get('text');
             $messageId = $request->get('id');
             $users = $this->userRepository->findWhereIn('id', $usersId);
+<<<<<<< HEAD
             Log::info("Store function", ["user device token" => $users->first()->device_token]);
             $from = $this->userRepository->find($fromId);
             Log::info("Store function", ["from" => $from, "users" => $users]);
@@ -213,6 +239,14 @@ class NotificationAPIController extends Controller
         }
 
         return response()->json(['success' => true]);
+=======
+            $from = $this->userRepository->find($fromId);
+            \Illuminate\Support\Facades\Notification::send($users, new NewMessage($from, $text, $messageId));
+        } catch (Exception $e) {
+            return $this->sendError($e->getMessage());
+        }
+        return $this->sendResponse(true, __('lang.saved_successfully', ['operator' => __('lang.notification')]));
+>>>>>>> merging_dev_agendabranch
     }
 
     /**
@@ -247,6 +281,7 @@ class NotificationAPIController extends Controller
      */
     public function update($id, Request $request): JsonResponse
     {
+<<<<<<< HEAD
         $notification = $this->notificationRepository->findWithoutFail(id: $id);
         if($notification->read_at == null){
             $notification->read_at = Carbon::now();
@@ -278,6 +313,32 @@ class NotificationAPIController extends Controller
     }
 
 
+=======
+        $notification = $this->notificationRepository->findWithoutFail($id);
+
+        if (empty($notification)) {
+            return $this->sendError('Notification not found', 200);
+        }
+        $input = $request->all();
+
+        if (isset($input['read_at'])) {
+            if ($input['read_at'] == true) {
+                $input['read_at'] = Carbon::now();
+            } else {
+                unset($input['read_at']);
+            }
+        }
+        try {
+            $notification = $this->notificationRepository->update($input, $id);
+
+        } catch (ValidatorException $e) {
+            return $this->sendError($e->getMessage(), 200);
+        }
+
+        return $this->sendResponse($notification->toArray(), __('lang.saved_successfully', ['operator' => __('lang.notification')]));
+    }
+
+>>>>>>> merging_dev_agendabranch
     /**
      * Remove the specified Favorite from storage.
      *

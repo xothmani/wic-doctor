@@ -1,0 +1,569 @@
+<?php
+/*
+ * File name: UserController.php
+ * Last modified: 2021.07.12 at 00:20:51
+ * Author: SmarterVision - https://codecanyon.net/user/smartervision
+ * Copyright (c) 2024
+ */
+
+namespace App\Http\Controllers;
+
+use App\DataTables\UserDataTable;
+use App\Events\UserRoleChangedEvent;
+use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Repositories\CustomFieldRepository;
+use App\Repositories\RoleRepository;
+use App\Repositories\UploadRepository;
+use App\Repositories\UserRepository;
+use Exception;
+use Flash;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
+use Prettus\Validator\Exceptions\ValidatorException;
+use App\Models\Doctor;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
+use App\Models\AvailabilityHour;
+
+class UserController extends Controller
+{
+    /** @var  UserRepository */
+    private UserRepository $userRepository;
+    /**
+     * @var RoleRepository
+     */
+    private RoleRepository $roleRepository;
+
+    private UploadRepository $uploadRepository;
+
+    /**
+     * @var CustomFieldRepository
+     */
+    private CustomFieldRepository $customFieldRepository;
+
+    public function __construct(
+        UserRepository $userRepo,
+        RoleRepository $roleRepo,
+        UploadRepository $uploadRepo,
+        CustomFieldRepository $customFieldRepo
+    ) {
+        parent::__construct();
+        $this->userRepository = $userRepo;
+        $this->roleRepository = $roleRepo;
+        $this->uploadRepository = $uploadRepo;
+        $this->customFieldRepository = $customFieldRepo;
+    }
+
+    /**
+     * Display a listing of the User.
+     *
+     * @param UserDataTable $userDataTable
+     * @return mixed
+     */
+    public function index(UserDataTable $userDataTable): mixed
+    {
+        return $userDataTable->render('settings.users.index');
+    }
+
+    /**
+     * Display a user profile.
+     *
+     * @param
+     * @return Response
+     */
+
+    public function profile()
+    {
+        if (auth()->check() && auth()->user()->hasRole('Telesecretary')) {
+            return redirect()->route('tele-appointment-events.index'); // ← ta route spécifique
+        }
+        $user = auth()->user();
+        //$showNewFeaturesModal = !$user->saw_new_features;
+        $showNewFeaturesModal = false;
+
+
+        unset($user->password);
+
+        $customFields = false;
+        $role = $this->roleRepository->pluck('name', 'name');
+        $rolesSelected = $user->getRoleNames()->toArray();
+        $isDoctor = $user->hasRole('doctor');
+        $customFieldsValues = $user->customFieldsValues()->with('customField')->get();
+
+        $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
+        if ($hasCustomField) {
+            $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
+            $customFields = generateCustomField($customFields, $customFieldsValues);
+        }
+
+        // Vérifier si l'utilisateur est un médecin
+        $doctor = null;
+        if ($user->hasRole('doctor')) {
+            $doctor = Doctor::where('user_id', $user->id)->first();
+            \Log::info('Doctor found', ['doctor' => $doctor]);
+
+        }
+
+        // Liste des champs à vérifier
+        $fieldsToCheck = [
+            $user->name,
+            $user->lastname,
+            $user->email,
+            $user->phone_number,
+            optional($doctor)->bio,
+            optional($doctor)->type_consultation,
+            optional($doctor)->fixe,
+            optional($doctor)->facebook,
+            optional($doctor)->instagram,
+            optional($doctor)->site_web,
+            optional($doctor)->description,
+            optional($doctor)->payment_methods
+        ];
+
+        // Calcul du pourcentage de complétion global
+        $filledFields = count(array_filter($fieldsToCheck, function ($field) {
+            return !empty($field);
+        }));
+        $totalFields = count($fieldsToCheck);
+        $progressPercentage = $totalFields > 0 ? ($filledFields / $totalFields) * 100 : 0;
+
+        // Calcul des pourcentages spécifiques
+        $progressAvatar = !empty($doctor->pourcentage_avatar) ? 10 : 0;
+        $progressAdresse = !empty($doctor->pourcentage_adresse) ? 20 : 0;
+        $progressCV = !empty($doctor->pourcentage_cv) ? 20 : 0;
+        $progressCabinet = !empty($doctor->pourcentage_cabinet) ? 10 : 0;
+        $progressProfil = !empty($doctor->pourcentage_profil) ? 20 : 0;
+        $progressTags = !empty($doctor->pourcentage_tags) ? 20 : 0;
+
+        // Calcul du pourcentage total
+        $progressBar = $progressAvatar + $progressAdresse + $progressCV + $progressCabinet + $progressProfil + $progressTags;
+
+  // Récupérer l'abonnement de l'utilisateur
+$subscription = DB::table('membership')
+    ->where('user_id', $user->id)
+    ->select('start_date', 'end_date')
+    ->first();
+
+$subscriptionStatus = '';
+$badgeColor = 'yellow'; // Couleur par défaut
+
+if ($subscription) {
+    $startDate = Carbon::parse($subscription->start_date);
+    $endDate = Carbon::parse($subscription->end_date)->endOfDay(); // Prendre toute la journée en compte
+    $currentDate = Carbon::now();
+
+    // Calculer la différence détaillée
+    $difference = $currentDate->diff($endDate);
+    $yearsRemaining = $difference->y;
+    $monthsRemaining = $difference->m;
+    $daysRemaining = $difference->d;
+    $remainingDays = $currentDate->diffInDays($endDate, false); // Total des jours restants
+
+    // Construire la chaîne en fonction des valeurs
+    $remainingText = [];
+
+    if ($yearsRemaining > 0) {
+        $remainingText[] = "{$yearsRemaining} an(s)";
+    }
+    if ($monthsRemaining > 0) {
+        $remainingText[] = "{$monthsRemaining} mois";
+    }
+    if ($daysRemaining > 0) {
+        $remainingText[] = "{$daysRemaining} jour(s)";
+    }
+
+    // Si l'abonnement expire aujourd'hui
+    if ($remainingDays == 0) {
+        $subscriptionStatus = "Expire aujourd'hui";
+    } elseif ($remainingDays < 0) {
+        $subscriptionStatus = "Expiré";
+    } else {
+        $subscriptionStatus = implode(', ', $remainingText);
+    }
+
+    // Déterminer la couleur du badge
+    if ($remainingDays < 0) {
+        $badgeColor = 'red'; // Abonnement expiré
+    } elseif ($remainingDays <= 3) {
+        $badgeColor = 'red'; // Moins de 3 jours restants
+    } elseif ($remainingDays > 90) {
+        $badgeColor = 'green'; // Plus de 3 mois restants
+    }
+}
+        return view('settings.users.profile', compact(
+            'user',
+            'role',
+            'rolesSelected',
+            'customFields',
+            'customFieldsValues',
+            'doctor',
+            'progressPercentage',
+            'progressAvatar',
+            'progressAdresse',
+            'progressCV',
+            'progressCabinet',
+            'progressProfil',
+            'progressBar',
+            'showNewFeaturesModal',
+            'progressTags',
+            'isDoctor', 'subscriptionStatus', 'badgeColor'
+        ));
+
+
+
+    }
+
+
+
+    /**
+     * Show the form for creating a new User.
+     *
+     * @return View
+     */
+    public function create(): View
+    {
+        $role = $this->roleRepository->pluck('name', 'name');
+
+        $rolesSelected = [];
+        $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
+        if ($hasCustomField) {
+            $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
+            $html = generateCustomField($customFields);
+        }
+
+        return view('settings.users.create')
+            ->with("role", $role)
+            ->with("customFields", isset($html) ? $html : false)
+            ->with("rolesSelected", $rolesSelected);
+    }
+
+    /**
+     * Store a newly created User in storage.
+     *
+     * @param CreateUserRequest $request
+     *
+     * @return RedirectResponse
+     */
+    public function store(CreateUserRequest $request): RedirectResponse
+    {
+        if (config('installer.demo_app')) {
+            Flash::warning('This is only demo app you can\'t change this section ');
+            return redirect(route('users.index'));
+        }
+
+        $input = $request->all();
+        $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
+
+        $input['roles'] = isset($input['roles']) ? $input['roles'] : [];
+        $input['password'] = Hash::make($input['password']);
+        $input['api_token'] = Str::random(60);
+
+        try {
+            $user = $this->userRepository->create($input);
+            $user->syncRoles($input['roles']);
+            $user->customFieldsValues()->createMany(getCustomFieldsValues($customFields, $request));
+
+            if (isset($input['avatar']) && $input['avatar']) {
+                $cacheUpload = $this->uploadRepository->getByUuid($input['avatar']);
+                $mediaItem = $cacheUpload->getMedia('avatar')->first();
+                $mediaItem->copy($user, 'avatar');
+            }
+            event(new UserRoleChangedEvent($user));
+        } catch (ValidatorException $e) {
+            Flash::error($e->getMessage());
+        }
+
+        Flash::success('saved successfully.');
+
+        return redirect(route('users.index'));
+    }
+
+    /**
+     * Display the specified User.
+     *
+     * @param int $id
+     *
+     * @return RedirectResponse|View
+     */
+    public function show(int $id): RedirectResponse|View
+    {
+        $user = $this->userRepository->findWithoutFail($id);
+
+        if (empty($user)) {
+            Flash::error('User not found');
+
+            return redirect(route('users.index'));
+        }
+
+        return view('settings.users.profile')->with('user', $user);
+    }
+    public function loginAsUser(Request $request, $id)
+    {
+        // 1. Valider le reCAPTCHA
+        $recaptchaResponse = $request->input('g-recaptcha-response');
+        $secretKey = env('RECAPTCHA_SECRET');
+
+        if (empty($recaptchaResponse)) {
+            Flash::error('Le reCAPTCHA est obligatoire.');
+            return redirect()->back()->withInput();
+        }
+
+        // Vérification du reCAPTCHA
+        $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => $secretKey,
+            'response' => $recaptchaResponse,
+        ]);
+        $responseData = $response->json();
+        if (!$responseData['success']) {
+            Flash::error('La validation du reCAPTCHA a échoué.');
+            return redirect()->back()->withInput();
+        }
+
+        // 2. Trouver l'utilisateur
+        $user = $this->userRepository->findWithoutFail($id);
+        if (empty($user)) {
+            Flash::error('Utilisateur non trouvé');
+            return redirect(route('users.index'));
+        }
+
+        // 3. Se connecter en tant qu'utilisateur
+        auth()->login($user, true);
+
+        // 4. Mettre à jour last_login_at
+        $user->last_login_at = now();
+        $user->save();
+
+        // 5. Rediriger vers le profil
+        return redirect(route('users.profile'));
+    }
+
+
+    /**
+     * Show the form for editing the specified User.
+     *
+     * @param int $id
+     *
+     * @return RedirectResponse|View
+     */
+    public function edit(int $id): RedirectResponse|View
+    {
+        if (!auth()->user()->hasRole('admin') && $id != auth()->id()) {
+            Flash::error('Permission denied');
+            return redirect(route('users.index'));
+        }
+        $user = $this->userRepository->findWithoutFail($id);
+        unset($user->password);
+        $html = false;
+        $role = $this->roleRepository->pluck('name', 'name');
+        $rolesSelected = $user->getRoleNames()->toArray();
+        $customFieldsValues = $user->customFieldsValues()->with('customField')->get();
+        $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
+        $hasCustomField = in_array($this->userRepository->model(), setting('custom_field_models', []));
+        if ($hasCustomField) {
+            $html = generateCustomField($customFields, $customFieldsValues);
+        }
+
+        if (empty($user)) {
+            Flash::error('User not found');
+
+            return redirect(route('users.index'));
+        }
+        return view('settings.users.edit')
+            ->with('user', $user)->with("role", $role)
+            ->with("rolesSelected", $rolesSelected)
+            ->with("customFields", $html);
+    }
+
+    /**
+     * Update the specified User in storage.
+     *
+     * @param int $id
+     * @param UpdateUserRequest $request
+     *
+     * @return RedirectResponse
+     */
+    public function update(int $id, UpdateUserRequest $request): RedirectResponse
+    {
+        if (config('installer.demo_app')) {
+            Flash::warning('This is only demo app you can\'t change this section ');
+            return redirect(route('users.profile'));
+        }
+        if (!auth()->user()->can('medias.create')) {
+            Log::error('User does not have permission to upload media.', ['user_id' => auth()->id()]);
+            Flash::error('Permission denied for uploading media.');
+            return redirect()->back();
+        }
+        if (!auth()->user()->hasRole('admin') && $id != auth()->id()) {
+            Flash::error('Permission denied');
+            return redirect(route('users.profile'));
+        }
+
+        $user = $this->userRepository->findWithoutFail($id);
+
+
+        if (empty($user)) {
+            Flash::error(__('lang.not_found', ['operator' => __('lang.user')]));
+            return redirect(route('users.profile'));
+        }
+        $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
+
+        $input = $request->all();
+        if (!auth()->user()->can('permissions.index')) {
+            unset($input['roles']);
+        } else {
+            $input['roles'] = isset($input['roles']) ? $input['roles'] : [];
+        }
+        if (empty($input['password'])) {
+            unset($input['password']);
+        } else {
+            $input['password'] = Hash::make($input['password']);
+        }
+        if ($user['phone_number'] != $input['phone_number']) {
+            $input['phone_verified_at'] = null;
+        }
+        try {
+            $user = $this->userRepository->update($input, $id);
+            if (empty($user)) {
+                Flash::error('User not found');
+                return redirect(route('users.profile'));
+            }
+            if (isset($input['avatar']) && $input['avatar']) {
+                $cacheUpload = $this->uploadRepository->getByUuid($input['avatar']);
+                $mediaItem = $cacheUpload->getMedia('avatar')->first();
+                $mediaItem->copy($user, 'avatar');
+            }
+            if (auth()->user()->can('permissions.index')) {
+                $user->syncRoles($input['roles']);
+            }
+            foreach (getCustomFieldsValues($customFields, $request) as $value) {
+                $user->customFieldsValues()
+                    ->updateOrCreate(['custom_field_id' => $value['custom_field_id']], $value);
+            }
+        } catch (ValidatorException $e) {
+            Flash::error($e->getMessage());
+        }
+
+
+        Flash::success('User updated successfully.');
+
+        return redirect()->back();
+
+    }
+
+    /**
+     * Remove the specified User from storage.
+     *
+     * @param int $id
+     *
+     * @return RedirectResponse
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        if (config('installer.demo_app')) {
+            Flash::warning('This is only demo app you can\'t change this section ');
+            return redirect(route('users.index'));
+        }
+        $user = $this->userRepository->findWithoutFail($id);
+
+        if (empty($user)) {
+            Flash::error('User not found');
+
+            return redirect(route('users.index'));
+        }
+
+        $this->userRepository->delete($id);
+
+        Flash::success('User deleted successfully.');
+
+        return redirect(route('users.index'));
+    }
+
+    /**
+     * Remove Media of User
+     * @param Request $request
+     */
+    public function removeMedia(Request $request): void
+    {
+        if (config('installer.demo_app')) {
+            Flash::warning('This is only demo app you can\'t change this section ');
+        } else {
+            if (auth()->user()->can('medias.delete')) {
+                $input = $request->all();
+                $user = $this->userRepository->findWithoutFail($input['id']);
+                try {
+                    if ($user->hasMedia($input['collection'])) {
+                        $user->getFirstMedia($input['collection'])->delete();
+                    }
+                } catch (Exception $e) {
+                    Log::error($e->getMessage());
+                }
+            }
+        }
+    }
+
+
+    public function acceptNewFeatures()
+    {
+        $user = auth()->user();
+
+        // Mark that the user has seen the new features
+        $user->saw_new_features = true;
+        $user->save();
+
+        // Ensure the doctor record exists for this user
+        $doctor = $user->doctor; // Assuming there's a relationship between users and doctors
+
+        if ($doctor) {
+            // If the doctor exists, update availability_mode to "precise"
+            $doctor->availability_mode = 'precise';
+            $doctor->save();
+        } else {
+            // If no doctor record exists, create one with "precise" mode
+            \DB::table('doctors')->insert([
+                'user_id' => $user->id,
+                'availability_mode' => 'precise',
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    public function rejectNewFeatures()
+    {
+        \Log::info('User rejected new features');
+        $user = auth()->user();
+        $user->saw_new_features = true;
+        $user->save();
+        // Ensure the doctor record exists for this user
+        $doctor = $user->doctor; // Assuming there's a relationship between users and doctors
+
+        if ($doctor) {
+            // If the doctor exists, update availability_mode to "open"
+            $doctor->availability_mode = 'open';
+            $doctor->save();
+        } else {
+            // If no doctor record exists, create one with "open" mode
+            \DB::table('doctors')->insert([
+                'user_id' => $user->id,
+                'availability_mode' => 'open',
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+
+
+
+
+
+}

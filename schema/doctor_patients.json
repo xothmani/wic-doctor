@@ -1,0 +1,16 @@
+[
+  {
+    "name": "doctor_id",
+    "dbType": "integer:unsigned:foreign,doctors,id",
+    "htmlType": "number",
+    "validations": "exists:doctors,id",
+    "primary": true
+  },
+  {
+    "name": "patient_id",
+    "dbType": "integer:unsigned:foreign,patients,id",
+    "htmlType": "number",
+    "validations": "exists:patients,id",
+    "primary": true
+  }
+]

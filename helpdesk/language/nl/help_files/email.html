@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<title>Interactieve hulp voor HESK-instellingen</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<link href="help_style.css" type="text/css" rel="stylesheet"/>
+	</head>
+	<body>
+		<div class="container">
+			<!-- volgende: 73 -->
+			<h1>Interactieve hulp voor HESK-instellingen</h1>
+			<h2>&raquo; Serverinstellingen e-mail</h2>
+			<a name="55"/><h3>Verzendwijze e-mail</h3>
+			<p>Selecteer of HESK e-mails moet verzenden met de functie PHP mail() of met behulp van een handmatig ingestelde SMTP-server. PHP mail() zou bij de meeste instellingen moeten werken. Als dat niet het geval is, kun je in plaats daarvan proberen een SMTP-server in te stellen.</p>
+			<p>Beschikbare SMTP-variabelen:</p>
+			<ul>
+				<li><strong>SMTP-host</strong>: hostnaam van je SMTP-server, meestal <em>localhost</em> of <em>mail.example.com</em>.</li>
+				<li><strong>SMTP-poort</strong>: je SMTP-poort, meestal 25.</li>
+				<li><strong>SMTP-time-out</strong>: SMTP-time-out in seconden.</li>
+				<li><strong>Versleuteling</strong>: inschakelen als je SMTP-server versleutelde verbindingen vereist</li>
+				<li><strong>SMTP-gebruikersnaam</strong>: je SMTP-gebruikersnaam (indien gebruikt).</li>
+				<li><strong>SMTP-wachtwoord</strong>: je SMTP-wachtwoord (indien gebruikt).</li>
+			</ul>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="54"/><h2>&raquo; E-mail piping</h2>
+			<p>Deze optie schakelt alleen de piping-functionaliteit in HESK in, waardoor het mogelijk wordt om tickets te maken van binnenkomende e-mails. Voor een complete e-mail piping-configuratie verwijzen wij je naar het readme.html-bestand.</p>
+			<a name="59"/><h3>POP3 ophalen</h3>
+			<p>Deze instelling schakelt POP3-ophalen in of uit. Met deze instelling zet je de mogelijkheid aan/uit om tickets maken van e-mails door verbinding te maken met een e-mailaccount via een POP3-verbinding. Voor instructies om POP3 Fetching in te stellen, zie het readme.html-bestand.</p>
+			<p>Beschikbare variabelen zijn:</p>
+			<ul>
+				<li><strong>Taaktime-out</strong>: aantal minuten wachten tot een bestaande POP3-ophaaltaak is afgerond. Er worden geen nieuwe ophaaltaken gestart totdat de time-out is bereikt. Stel in op <strong>0</strong> om time-outs uit te schakelen en handmatig een nieuwe ophaaltaak te starten.</li>
+				<li><strong>POP3-host</strong>: hostnaam van je POP3-server, meestal <em>mail.example.com</em>.</li>
+				<li><strong>POP3-poort</strong>: je POP3-poort, meestal 110. Gmail gebruikt bijvoorbeeld 995.</li>
+				<li><strong>TLS-protocol</strong>: inschakelen als je POP3-server een TLS-protocol vereist.</li>
+				<li><strong>Bewaar een kopie</strong>: indien ingeschakeld zal HESK <strong>niet</strong> e-mail van de POP3-server verwijderen.</li>
+				<li><strong>POP3-gebruikersnaam</strong>: je POP3-gebruikersnaam.</li>
+				<li><strong>POP3-wachtwoord</strong>: je POP3-wachtwoord.</li>
+			</ul>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="67"/><h3>IMAP-mail ophalen</h3>
+			<p>Deze instelling zet het ophalen van tickets via IMAP-mail AAN of UIT. Wanneer deze AAN staat kunnen tickets worden aangemaakt via een een verbinding met een IMAP-mailaccount. Zie het readme.html-bestand voor instructies over het instellen van IMAP Fetching.</p>
+			<p>Beschikbare variabelen zijn:</p>
+			<ul>
+				<li><strong>Taaktime-out</strong>: aantal minuten wachten tot een bestaande IMAP-ophaaltaak is afgerond. Er worden geen nieuwe ophaaltaken gestart totdat de time-out is bereikt. Stel in op <strong>0</strong> om time-outs uit te schakelen en altijd een nieuwe ophaaltaak te starten.</li>
+				<li><strong>IMAP-host</strong>: hostnaam van je IMAP-server, meestal <em>mail.example.com</em>.</li>
+				<li><strong>IMAP-poort</strong>: je IMAP-poort, meestal 143 voor niet-versleuteld en 993 voor SSL/TLS.</li>
+				<li><strong>Versleuteling</strong>: stel de vereiste IMAP-versleuteling in.</li>
+				<li><strong>Bewaar een kopie</strong>: indien ingeschakeld zal HESK <strong>niet</strong> e-mail van de IMAP-server verwijderen.</li>
+				<li><strong>IMAP-gebruikersnaam</strong>: je IMAP-gebruikersnaam.</li>
+				<li><strong>IMAP-wachtwoord</strong>: je IMAP-wachtwoord.</li>
+			</ul>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<h2>&raquo; Servercertificaten</h2>
+			<a name="68"/><h3>Servercertificaten niet valideren</h3>
+			<p>Indien aangevinkt, valideert HESK geen certificaten van de TLS/SSL-server. Certificaatvalidatie moet meestal worden overgeslagen als de server zelfondertekende certificaten gebruikt.</p>
+			<p>We raden je ten zeerste aan de certificaatvalidatie <strong>niét</strong> uit te schakelen op productieservers en wanneer je verbinding maakt met servers van derden, omdat dit je kwetsbaar maakt voor man-in-the-middle aanvallen.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<h2>&raquo; Overige e-mailinstellingen</h2>
+			<a name="70"/><h3>No-reply-adressen</h3>
+			<p>Als deze optie is aangevinkt, zal HESK proberen e-mails te detecteren die zijn verzonden vanuit 'Niet beantwoorden/no-reply'-e-mailadressen en ze negeren.</p>
+			<p>Voorbeelden:</p>
+			<ul>
+				<li>antwoord niet@voorbeeld.com</li>
+				<li>do_not_reply@example.com</li>
+				<li>no_reply@example.com</li>
+			</ul>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="71"/><h3>Geretourneerde e-mails</h3>
+			<p>Als dit is aangevinkt, zal HESK proberen geretourneerde e-mails te detecteren en te negeren. Het negeert bijvoorbeeld e-mails die zijn verzonden vanaf mail-deamon@example.com en e-mails met een onderwerp als 'Teruggestuurde e-mail', 'Onbestelbaar', 'Niet op kantoor' of vergelijkbaar.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="72"/><h3>Duplicaat e-mails</h3>
+			<p>Indien aangevinkt, zal HESK een e-mail detecteren en negeren als HESK al een e-mail met hetzelfde bericht heeft verwerkt binnen <strong>Tijdsbestek</strong> seconden. Als je de functionaliteit van e-mail naar ticket test, schakel dan deze instelling uit of verzend test-e-mails met unieke berichten.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="60"/><h3>Max. aantal e-mails binnen tijdsbestek</h3>
+			<p>Instellingen om e-mailloops te detecteren die zijn gemaakt op basis van autoresponders of onbestelbare e-mail. Elk aantal e-mails hoger dan <strong>Max. aantal e-mails</strong> vanaf een e-mailadres binnen <strong>Tijdsbestek</strong> seconden wordt genegeerd door e-mail piping. Stel <strong>Max. aantal e-mails</strong> in op <strong>0</strong> om lusdetectie uit te schakelen.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="62"/><h3>Typfouten in e-mail detecteren</h3>
+			<p>Deze functie zal proberen veelvoorkomende spelfouten van e-maildomeinnamen te detecteren en een gecorrigeerde versie voor te stellen. Als de klant bijvoorbeeld user@<span style="color:red"><strong>gmial.com</strong></span> invoert, zal HESK dit detecteren en user@<span style="color:green"><strong>gmail.com</strong></span> in plaats daarvan voorstellen.</p>
+			<p>HESK vergelijkt e-maildomeinen met de domeinen die worden vermeld in de lijst <em>e-mailproviders</em>.</p>
+			<a name="63"/><h3>E-mailproviders</h3>
+			<p>Een lijst met veelvoorkomende e-mailproviders die je klanten gebruiken. HESK zal deze lijst gebruiken om verkeerd getypte e-mailadressen te detecteren. Voer één domein per regel in  <strong>zonder</strong> het @-teken. Je kunt een willekeurig aantal veelvoorkomende domeinnamen invoeren, maar probeer het niet te overdrijven; voer alleen de meest voorkomende in.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="65"/><h3>E-mailnotificaties versturen</h3>
+			<p>Selecteer wanneer HESK een e-mailmelding naar klanten moet sturen:</p>
+			<ul>
+				<li><strong>Wanneer een nieuwe supportticket is ingediend</strong><br/>
+	Opmerking: als het ticket via e-mail wordt ingediend (e-mail piping of POP3-ophalen), kan HESK het verzenden van een nieuwe ticketmelding naar de klant overslaan over als het e-mailonderwerp een van de tags in het tekstvak (één tag per regel) bevat.<br/>Je kunt dit gebruiken om te voorkomen dat automatische antwoorden op e-mails worden gedetecteerd als mogelijke SPAM door je het SPAM-filer van je server.</li>
+				<li><strong>Wanneer een helpdeskticket is opgelost</strong> (zonder te antwoorden)</li>
+			</ul>
+			<p>Houd er rekening mee dat meldingsvoorkeuren per ticket afzonderlijk worden ingesteld wanneer personeel op een ticket reageert of wanneer personeel een ticket indient vanuit de beheerdersinterface.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="61"/><h3>Geciteerde reactie verwijderen</h3>
+			<p>Deze functie verwijdert geciteerde antwoorden uit alle e-mails van klanten voordat ze worden omgezet in een ticket met behulp van e-mail piping of POP3-ophalen.</p>
+			<p>Alle e-mails die naar klanten worden verzonden, beginnen met deze regel:</p>
+			<p>------ Reageer boven deze regel ------</p>
+			<p>Alle tekst onder deze regel wordt verwijderd wanneer een e-mail wordt geïmporteerd in een ticketreactie.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="66"/><h3>Berichtinhoud vereist</h3>
+			<p>Indien ingeschakeld, worden e-mails van e-mailpipes of POP3-ophaalacties genegeerd als ze geen bericht bevatten.</p>
+			<p>Indien uitgeschakeld, worden zelfs e-mails zonder bericht omgezet in tickets.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="64"/><h3>E-mailbijlagen</h3>
+			<p>Inschakelen als je wilt dat HESK bijgesloten bestanden (bijvoorbeeld ingesloten afbeeldingen) als bijlagen opslaat bij het importeren van tickets via e-mail piping of POP3-ophalen.</p>
+			<p><strong>Let op!</strong> Bestanden die de maximaal toegestane bijlagelimiet overschrijden, worden genegeerd.</p>
+			<p>Houd er rekening mee dat bestandsbijlagen bij HESK voorrang hebben op ingesloten bestanden. Als je bijvoorbeeld 2 bestandsbijlagen toestaat en een e-mail ontvangt met 1 bestandsbijlage en 3 ingesloten afbeeldingen, zal HESK de bestandsbijlage en de eerste ingesloten afbeelding opslaan. De rest wordt genegeerd.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="57"/><h3>Meer e-mailadressen</h3>
+			<p>Als een klant meerdere e-mailadressen (gescheiden door komma's) probeert in te voeren in het veld e-mail bij het indienen van een ticket, dan zal HESK standaard alleen het eerste e-mailadres gebruiken en alle andere adressen negeren.</p>
+			<p>Als je wilt dat klanten meerdere e-mailadressen kunnen invoeren, schakel je deze functie in door het vakje aan te vinken.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="50"/><h3>E-mailadres bevestigen</h3>
+			<p>Indien geselecteerd, dan wordt in het 'Verstuur een ticket'-formulier een 'Bevestig e-mail'-veld getoond, waarmee de klant het eerder ingevoerde e-mailadres moet bevestigen. Dit helpt typefouten in in e-mailadressen te voorkomen.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="58"/><h3>Alleen ticket-ID's met status 'open' versturen</h3>
+			<p>Indien aangevinkt, dan worden in 'Ticket-ID vergeten' e-mail (e-mail verzonden om klanten te herinneren aan hun ticket-tracking-ID-nummer) alleen openstaande tickets weergeven en zullen opgeloste tickets niet worden vermeld.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="69"/><h3>E-mailformaat</h3>
+			<p>Bepaalt welke e-mailindeling wordt gebruikt bij het verzenden van e-mails. Opties zijn onder meer:</p>
+			<ul>
+				<li><strong>HTML met alternatief voor platte tekst van sjabloon voor platte tekst (standaard)</strong>: e-mails worden als HTML verzonden. HESK platte tekst e-mailsjabloon inhoud zal worden gebruikt voor de alternatieve tekst in de e-mail (meerdelige/alternatief).</li>
+				<li><strong>HTML met alternatief voor platte tekst gegenereerd op basis van HTML-sjabloon</strong>: e-mails worden als HTML verzonden. De alternatieve tekst in de e-mail (multipart/alternatief) wordt gegenereerd door het HTML-sjabloon om te zetten in platte tekst. HESK e-mailtemplates met platte tekst worden genegeerd.</li>
+				<li><strong>Alleen HTML</strong>: e-mails worden alleen als HTML verzonden zonder alternatief.</li>
+				<li><strong>Alleen platte tekst</strong>: e-mails worden als platte tekst verzonden.</li>
+			</ul>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+		</div>
+	</body>
+</html>

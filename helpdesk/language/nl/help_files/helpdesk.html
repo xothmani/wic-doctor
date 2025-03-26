@@ -1,0 +1,430 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<title>Interactieve hulp voor HESK-instellingen</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<link href="help_style.css" type="text/css" rel="stylesheet"/>
+	</head>
+	<body>
+		<div class="container">
+			<!-- volgende: 87 -->
+			<h1>Interactieve hulp voor HESK-instellingen</h2>
+			<h2>&raquo; Instellingen helpdesk</h2>
+			<a name="6"/>
+			<h3>Helpdesktitel</h3>
+			<p>Titel van je supportdesk, bijvoorbeeld 'Mijn bedrijf Helpdesk'.</p>
+			<a name="7"/>
+			<h3>HESK-URL</h3>
+			<p>URL van de map waar HESK zal worden geïnstalleerd. Voeg GEEN trailing / (slash) toe aan de URL!<br/>
+				<span class="correct">CORRECT:</span> http://www.example.com/helpdesk<br/>
+				<span class="wrong">VERKEERD:</span> http://www.example.com/helpdesk/ (eindig de URL niet met een / )</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<h2>&raquo; Instellingen directories</h2>
+			<a name="61"/>
+			<h3>Map beheer</h3>
+			<p>Naam van de directory waarin de beheerdersbestanden zich bevinden. De map moet bestaan ​​in de hoofdmap van HESK. Op de meeste servers zijn de namen CaSe SeNSiTiVe. De map 'Admin' is dan een andere map dan de map genaamd 'admin' of 'ADMIN'</p>
+			<p>Toegestane tekens (andere worden verwijderd): a-z A-Z 0-9 _ -</p>
+			<p>Standaard: <em>admin</em>
+			</p>
+			<a name="62"/>
+			<h3>Map bijlagen</h3>
+			<p>Naam van de map waarin bijlagen worden opgeslagen. De directory moet bestaan ​​in de hoofdmap van HESK en schrijfbaar zijn met PHP. Op de meeste systemen zijn de namen CaSe SeNSiTiVe. De map 'attachments' is dan een andere map dan de map genaamd 'Attachments' of 'AttachMents'.</p>
+			<p>Toegestane tekens (andere worden verwijderd): a-z A-Z 0-9 _ -</p>
+			<p>Standaard: <em>attachments</em>
+			</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="77"/>
+			<h3>Cachemap</h3>
+			<p>Naam van de map waarin cache en tijdelijke bestanden worden opgeslagen. De map moet bestaan ​​in de hoofdmap van HESK en beschrijfbaar zijn met PHP. Op de meeste systemen zijn de namen CaSe SeNSiTiVe. Op de meeste systemen zijn de namen CaSe SeNSiTiVe. De map 'cache' is dan een andere map dan een map genaamd 'Cache' of 'CACHE'.</p>
+			<p>Toegestane tekens (andere worden verwijderd): a-z A-Z 0-9 _ -</p>
+			<p>Standaard: <em>cache</em>
+			</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<h2>&raquo; Weergave-instellingen</h2>
+			<a name="10"/>
+			<h3>Tickets per pagina</h3>
+			<p>Het standaard aantal tickets per pagina in het beheerdersdashboard. Gebruik alleen cijfers.</p>
+			<a name="11"/>
+			<h3>Lettergrootte print</h3>
+			<p>Lettergrootte op de 'Printervriendelijke versie' pagina's met ondersteuningstickets</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<h2>&raquo; Ticketinstellingen</h2>
+			<a name="15"/>
+			<h3>Tickets automatisch sluiten</h3>
+			<p>Als een ticket gedurende X dagen geen <em>activiteit van de klant</em> heeft, wordt het automatisch gesloten. Stel in op 0 om automatisch sluiten uit te schakelen.</p>
+			<a name="58"/>
+			<h3>Maximum open tickets</h3>
+			<p>Een maximum aantal open tickets dat een klant mag hebben. Wanneer deze limiet is bereikt, kan de klant geen nieuwe tickets indienen totdat de bestaande tickets zijn opgelost. Betreft alleen tickets die zijn ingediend via een online formulier.</p>
+			<p>Stel in op <strong>0</strong> om het beperken van het maximale aantal open tickets uit te schakelen.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="84"/>
+			<h3>Melding 'dicht bij einddatum'</h3>
+			<p>Stel het aantal dagen voor de vervaldatum in waarop een ticket wordt weergegeven als 'Verloopt binnenkort' in de lijst met tickets.</p>
+			<p>Kan worden ingesteld op een waarde tussen 1 en 999 dagen. Standaardinstelling: 7 dagen.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="59"/>
+			<h3>Volgorde reacties</h3>
+			<p>Kies of je de meest recente reacties boven- of onderaan de ticketpagina wilt weergeven.</p>
+			<a name="60"/>
+			<h3>Reactieformulier</h3>
+			<p>Kies of je het formulier 'Een reactie toevoegen' bovenaan of onderaan de ticketpagina wilt weergeven.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="78"/>
+			<h3>Reacties verbergen</h3>
+			<p>Als je een ticket met veel reacties bekijkt, kan HESK oude reacties verbergen en alleen de nieuwste tonen. Hierdoor kunnen medewerkers de laatste reacties op een ticket bekijken zonder langs talloze oude te hoeven scrollen. Medewerkers kunnen verborgen reacties op elk moment bekijken door te klikken op de knop/link 'Vorige reacties weergeven'.</p>
+			<p align="center"><a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a></p>
+			<a name="79"/>
+			<h3>Beperk ticketbreedte</h3>
+			<p>De gewenste maximale breedte van het tekstgedeelte van een ticket (bericht en reacties). Selecteer volledige breedte (tekst wordt uitgerekt tot de volledige beschikbare schermbreedte) of maximale inhoudsbreedte in pixels. Lijnlengte is een belangrijke factor voor comfortabele leesbaarheid, vooral bij langdurig lezen.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="44"/>
+			<h3>Automatisch inloggen toestaan</h3>
+			<p>Als dit aan staat, hebben medewerkers een optie om automatisch in te loggen op hun account elke keer dat ze het HESK-beheerpaneel openen vanaf hun computer. Indien uitgeschakeld, kan HESK alleen gebruikersnamen onthouden, geen wachtwoorden.</p>
+			<a name="51"/>
+			<h3>Tickets automatisch toewijzen</h3>
+			<p>Tickets worden automatisch toegewezen aan een personeelslid wanneer ze worden ingediend. Er wordt rekening gehouden met verschillende factoren bij het automatisch toewijzen van tickets, zoals de ticketcategorie en het aantal momenteel openstaande toegewezen tickets.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="73"/>
+			<h3>E-mail vereist</h3>
+			<p>Moeten klanten hun e-mailadres invoeren bij het indienen van een ticket?</p>
+			<ul>
+				<li>UIT = geen e-mailadres vereist</li>
+				<li>AAN = een e-mailadres vereist</li>
+			</ul>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="70"/>
+			<h3>Ticketeigenaar vereist</h3>
+			<p>Indien ingesteld op AAN dan moeten tickets eerst worden toegewezen voordat een medewerker mee aan de slag kan. Dit helpt voorkomen dat meerdere medewerkers per ongeluk aan hetzelfde ticket werken, omdat het hen dwingt het ticket aan zichzelf toe te wijzen voordat ze ermee aan de slag kunnen gaan.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="72"/>
+			<h3>Onderwerp verplicht</h3>
+			<p>Klanten kunnen een ticketonderwerp invoeren of het kan automatisch worden gegenereerd.</p>
+			<ul>
+				<li>UIT = geen ticketonderwerp nodig</li>
+				<li>AAN = een ticketonderwerp nodig</li>
+				<li>Verbergen in klantformulier = verberg 'Onderwerp' formulierveld van klantzijde*</li>
+			</ul>
+			<p>* klanten kunnen het automatisch gegenereerde onderwerp nog steeds zien.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="74"/>
+			<h3>Bericht verplicht</h3>
+			<p>Vereist je dat klanten een bericht schrijven bij het indienen van een nieuw supportticket.</p>
+			<ul>
+				<li>UIT = geen bericht nodig</li>
+				<li>AAN = bericht is vereist</li>
+				<li>Verberg in klantformulier = verberg 'Bericht' formulierveld van klantzijde</li>
+			</ul>
+			<p>* als een personeelslid een ticket bewerkt en een bericht schrijft, kunnen klanten het zien.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="67"/>
+			<h3>Klantoplossing toestaan</h3>
+			<p>Kies of klanten tickets als opgelost mogen markeren. Indien uitgeschakeld, kan het ticket alleen worden opgelost door personeel en automatisch bij inactiviteit van de klant.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="16"/>
+			<h3>Ticket heropenen door klant</h3>
+			<p>Zet AAN om klanten toe te staan ​​een ticket opnieuw te openen nadat het is gesloten. Indien ingesteld op UIT na sluiting, moet de klant een nieuw ticket openen.</p>
+			<a name="17"/>
+			<h3>Beoordeling reacties</h3>
+			<p>Als dit is ingesteld op AAN, kunnen klanten de reacties van het personeel markeren als <em>Behulpzaam</em> of <em>Niet nuttig</em>. Deze klantfeedback wordt gebruikt om het personeel te beoordelen.</p>
+			<a name="45"/>
+			<h3>Prioriteit door klant</h3>
+			<p>Als dit is ingesteld op AAN, kunnen klanten prioriteit/urgentie instellen voor hun tickets, variërend van Laag tot Hoog. Indien ingesteld op UIT dan worden alle tickets ingediend met de standaardprioriteit (Laag) en kan alleen personeel het prioriteitsniveau wijzigen naar een hoger niveau.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="49"/>
+			<h3>Opeenvolgende ID's</h3>
+			<p>Als deze optie is ingeschakeld, wordt op alle tickets ook een opeenvolgend ID-nummer weergegeven. Dit zou de communicatie tussen klant en personeel over een ticket gemakkelijker moeten maken (met <em>ticket-ID 45</em> in plaats van <em>ticket-ID GHS-G5E-A6T8</em>). Alleen personeel kan tickets echter op volgnummer bekijken.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="66"/>
+			<h3>Werktijd bijhouden</h3>
+			<p>Houdt de tijd bij die besteed wordt aan het werken aan een ticket. Als dit is ingeschakeld, toont het antwoordformulier voor beheerders een tijdteller voor het bijhouden van de tijd die aan het ticket is besteed.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<a name="68"/>
+			<h3>Spam-melding</h3>
+			<p>Als de klant een nieuw ticket indient, bevat het succesbericht een melding dat de klant in de spam-map moet kijken als de bevestigingsmail niet aankomt. De melding wordt niet weergegeven als deze is uitgeschakeld OF als <em>'Klant informeren wanneer ze een nieuw ondersteuningsticket indienen'</em> is uitgeschakeld. Het bericht kan worden geschreven in het <a href="https://www.hesk.com/knowledgebase/index.php?article=34" target="_blank">HESK-taalbestand</a>.</p>
+			<p align="center">
+				<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+			</p>
+			<h3>Lijst gebruikersnamen</h3>
+			<p>Indien ingesteld op AAN worden de gebruikersnamen van het personeel vermeld in een selectievak op de beheerdersaanmeldpagina en hoeven ze alleen hun wachtwoord in te voeren. Aanbevolen instelling: UIT. Medewerkers moeten gebruikersnaam én wachtwoord typen om in te loggen.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="12"/>
+				<h3>Debuggen</h3>
+				<p>Zet de foutopsporingsmodus AAN/UIT. Bij normaal gebruik moet de foutopsporingsmodus worden uitgeschakeld. Schakel alleen AAN als je problemen ondervindt en HESK niet goed werkt. Vergeet niet UIT te schakelen wanneer HESK weer normaal werkt.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="63"/>
+				<h3>Korte links</h3>
+				<p>Als dit is ingeschakeld, worden websitelinks die langer zijn dan 70 tekens, ingekort voor weergave. Bijvoorbeeld een link als deze:<br/>
+http://www.some-long-example.com/sub-folder/another-folder/and-yet-another/this-is-some-long-file-name.html?this_is_a_long_query=and_this_is_a_long_value				</p>
+				<p>zou worden weergegeven als:<br/>
+http://www.some-long-example.com/sub-folder/another-fol ... long_value				</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="65"/>
+				<h3>- Maak een keuze -</h3>
+				<p>Indien aangevinkt zal '- Maak een keuze -' de standaardselectie zijn voor de ticketcategorie en/of prioriteit bij het indienen van een nieuw ticket.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="71"/>
+				<h3>Limiet categorieselectie</h3>
+				<p>Gebruikt bij het indienen van nieuwe tickets. Als het aantal helpdeskcategorieën (afdelingen) lager of gelijk is aan deze instelling, wordt de ticketcategorie geselecteerd door op een link te klikken. Als het aantal categorieën hoger is dan deze limiet, wordt in plaats daarvan een vervolgkeuzelijst gebruikt om een ​​ticketcategorie te selecteren.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="80"/>
+				<h3>Ticketopmaak</h3>
+				<p>Stelt het type editor in bij het maken/bewerken van tickets door medewerkers.</p>
+				<ul>
+					<li>Platte tekst = platte tekst (standaard)</li>
+					<li>Rich Text (HTML) = staat rich text (vet, lijsten, enz.) toe via een WYSIWYG-editor</li>
+				</ul>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="69"/>
+				<h3>Wachtwoord resetten</h3>
+				<p>Indien ingeschakeld, kunnen gebruikers hun vergeten wachtwoord opnieuw instellen via e-mail.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="46"/>
+				<h3>Voorwaarde inzien ticket(s)</h3>
+				<p>Indien ingeschakeld (aangevinkt), moeten klanten zowel hun e-mailadres als hun ticket-ID invoeren om de inhoud van een ticket te bekijken. Indien uitgeschakeld, is alleen het invoeren van een ticket-ID voldoende.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<h2>&raquo; Veiligheidsinstellingen</h2>
+				<a name="13"/>
+				<h3>Gebruik anti-spam afbeelding</h3>
+				<p>Schakelt het gebruik van de anti-spam-beveiligingsafbeelding (captcha) in.</p>
+				<table>
+					<thead>
+						<tr>
+							<td valign="top">
+								<em>Waarde</em>
+							</td>
+							<td>
+								<em>Betekenis</em>
+							</td>
+						</tr>
+					</thead>
+					<tr>
+						<td valign="top">
+							<strong>UIT</strong>
+						</td>
+						<td>anti-spam-afbeeldingen uitgeschakeld</td>
+					</tr>
+					<tr>
+						<td valign="top">
+							<strong>AAN - Klanten</strong></td>
+						<td>alleen klanten hoeven de afbeelding op te lossen</td>
+					</tr>
+					<tr>
+						<td valign="top">
+							<strong>AAN - Alle</strong>
+						</td>
+						<td>zowel de klant als het personeel moeten het oplossen</td>
+					</tr>
+				</table>
+				<table>
+					<thead>
+						<tr>
+							<td colspan="2">
+								<em>Beeldtype</em>
+							</td>
+						</tr>
+					</thead>
+					<tr>
+						<td valign="top">
+							<strong>Eenvoudige afbeelding</strong></td>
+						<td>gebruikt een zeer eenvoudige afbeelding gegenereerd door PHP (GD-bibliotheek vereist)<br/>
+							<strong>Let op!</strong> Een eenvoudige afbeelding is niet effectief tegen geavanceerde robots. Overweeg in plaats daarvan een anti-spam-vraag of ReCaptcha te gebruiken! Zie hieronder.
+						</td>
+					</tr>
+					<tr>
+						<td valign="top">
+							<strong>ReCaptcha</strong></td>
+						<td>gebruikt de gratis service van Google (<a href="https://www.google.com/recaptcha" target="_blank">registratie vereist</a>)</td>
+					</tr>
+				</table>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="64"/>
+				<h3>ReCaptcha</h3>
+				<p>ReCaptcha is een gratis antibotservice van Google. Om ReCaptcha te gebruiken doe je het volgende:</p>
+				<ol>
+					<li>
+						<a href="https://www.google.com/recaptcha" target="_blank">Registreer voor ReCaptcha</a>
+					</li>
+					<li>Klik op <strong>ReCAPTCHA ophalen</strong></li>
+					<li>Voer je websitegegevens in op het formulier <strong>Registreer een nieuwe site</strong></li>
+					<li>Kopieer de <strong>Sitesleutel</strong> naar HESK-instellingen</li>
+					<li>Kopieer de <strong>Geheime sleutel</strong> naar HESK-instellingen</li>
+					<li>HESK-instellingen opslaan</li>
+					<li>Probeer een nieuw ticket in te dienen via de klanteninterface om te controleren of reCAPTCHA goed werkt.</li>
+				</ol>
+				<a name="42"/>
+				<h3>Gebruik anti-spam-vraag</h3>
+				<p>Wisselt het gebruik van de anti-spam-beveiligingsvraag. Dit is een eenvoudige, maar effectieve, manier om spammers te bestrijden; echter niet wanneer je website echt een specifiek gekozen doelwit is. Het zou alle spambots die op internet reizen echter moeten blokkeren. Het idee is om een <strong>unieke</strong> vraag te maken die alleen mensen kunnen beantwoorden. Je kunt HTML-code in de vraag gebruiken. Antwoorden zijn <strong>niet</strong> CaSe SeNSiTiVe. Dat betekent dat 'Een reactie' hetzelfde is als 'een reactie'. Enkele voorbeelden:</p>
+				<table>
+					<thead>
+						<tr>
+							<td>
+								<strong>Vraag</strong>
+							</td>
+							<td>
+								<strong>Antwoord</strong>
+							</td>
+						</tr>
+					</thead>
+					<tr>
+						<td>Welke kleur is water?</td>
+						<td>Blauw</td>
+					</tr>
+					<tr>
+						<td>Wat is het volgende getal na vier? (gebruik alleen cijfers)</td>
+						<td>5</td>
+					</tr>
+					<tr>
+						<td>Typ toegangscode <strong>ABCDE</strong> hier:</td>
+						<td>ABCDE</td>
+					</tr>
+					<tr>
+						<td>Toegangscode: je vindt deze onderaan de pagina.</td>
+						<td>Een code</td>
+					</tr>
+				</table>
+				<p>Waarschuwing! <strong>Gebruik deze voorbeelden NIET</strong>, maar gebruik een unieke vraag die alleen op je website wordt gebruikt!</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="47"/>
+				<h3>Max aantal inlogpogingen en blokkeertijd (in minuten)</h3>
+				<p>Deze functie beperkt brute-force-aanvallen om ofwel in te loggen op HESK of tickets te bekijken.</p>
+				<p>Na een aantal mislukte pogingen om een ​​ticket te bekijken of in te loggen bij HESK wordt het IP-adres voor <em>blokkeertijd</em> (in minuten) geblokkeerd.</p>
+				<p>Als je de beperking van mislukte inlogpogingen wilt uitschakelen, stel je de waarde in op <strong>0</strong> (NIET aanbevolen!).</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="81"/>
+				<h3>Overstromingslimiet (seconden)</h3>
+				<p>Deze functie helpt voorkomen dat te veel ticketreacties worden ingediend (per ongeluk of kwaadwillig overstromen met reacties). Stel het minimum aantal seconden in dat moet verstrijken tussen twee ticketreacties van dezelfde persoon. Als je deze functie wilt uitschakelen, stel je de waarde in op <strong>0</strong>.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="76"/>
+				<h3>Frames</h3>
+				<p>Inschakelen om te voorkomen dat HESK in frames op websites van derden wordt geladen. Dit helpt bij het bestrijden van pogingen tot 'clickjacking'.</p>
+				<p>Als dit is ingeschakeld, stuurt HESK een <strong>X-Frame-Options: SAMEORIGIN</strong> HTTP-header naar de browser.</p>
+				<p>Schakel deze functie uit wanneer je HESK binnen een frame op een website wilt weergeven onder een andere domeinnaam dan die waarop HESK is geïnstalleerd. In dit geval moet je mogelijk ook <strong>Cookies</strong> instellen op <strong>Geen</strong> en <strong>https://</strong>-verbindingen gebruiken!</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="82"/>
+				<h3>Cookies</h3>
+				<!-- vertaal geen waarden binnen <strong> </strong> in deze sectie -->
+				<p>Deze instelling beheert het kenmerk <strong>SameSite</strong> van HTTP-cookies. Voor een gedetailleerde uitleg, zie <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite" rel="nofollow" target="_blank">dit artikel</a>.</p>
+				<p>In het kort:</p>
+				<ul>
+				<li>
+					<strong>Strict</strong> cookies worden alleen verzonden naar verzoeken onder je domeinnaam. Als je bijvoorbeeld een e-maillink volgt, moet je mogelijk opnieuw inloggen.</li>
+				<li>
+					<strong>Lax</strong>: standaard HESK-waarde. Cookies worden niet verzonden op normale cross-site subverzoeken (bijvoorbeeld om afbeeldingen of frames op een site van derden te laden), maar worden verzonden wanneer een gebruiker naar de oorspronkelijke site navigeert; dat wil zeggen bij het volgen van een link.</li>
+				<li>
+					<strong>None</strong>: cookies worden naar elk verzoek verzonden, maar alleen onder een beveiligde (<strong>https://</strong>) verbinding. Gebruik deze instelling als je HESK in een frame op een domein van derden laat zien.</li>
+				</ul>
+				<p>Als je HESK binnen een frame op een website wilt weergeven onder een andere domeinnaam dan die waarop HESK is geïnstalleerd, stel dit dan in op <strong>Geen</strong> en gebruik <strong>https://</strong>-verbindingen.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="75"/>
+				<h3>SSL</h3>
+				<p>Je kunt HESK dwingen beveiligde verbindingen te gebruiken (https versus http).</p>
+				<p>Om deze instelling te beheren, open je eerst handmatig het bestand <strong>admin_settings_help_desk.php</strong> in je browser met behulp van https://, bijvoorbeeld: https://example.com/hesk/admin/admin_settings_help_desk.php. Dit is om ervoor te zorgen dat SSL correct is geconfigureerd en werkt op de server voordat HESK wordt ingesteld om het te forceren.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="83"/>
+				<h3>URL-toegangssleutel</h3>
+				<p>Gebruik de URL-toegangssleutel om ongeoorloofde webtoegang tot je HESK cronbestanden te voorkomen, zoals:</p>
+				<ul>
+					<li>/inc/mail/hesk_imap.php</li>
+					<li>/inc/mail/hesk_pop3.php</li>
+					<li>/cron/email_overdue_tickets.php</li>
+					<li>enz.</li>
+				</ul>
+				<p>Als er een toegangssleutel is ingesteld en iemand wil toegang tot een van die bestanden via een URL-adres (webbrowser), moet hij of zij de juiste sleutel opgeven door <strong>?key=XXXXXXXX</strong> toe te voegen aan de URL-adres. Voorbeeld: https://example.com/hesk/inc/mail/hesk_imap.php<strong>?key=<span class="correct">XXXXXXXX</span>
+					</strong>
+				</p>
+				<p>Je toegangssleutel moet een willekeurige tekenreeks zijn van ten minste 20 tekens lang. Geldige karakters in de toegangssleutels zijn: <strong>a-z A-Z 0-9 _ . -</strong>
+				<p>De toegangssleutel wordt niet gebruikt wanneer cronbestanden worden geopend via de opdrachtregelinterface, alleen als ze worden opgevraagd via http(s).</p>
+				<p>Als je de URL-toegangssleutel leeg laat, is deze niet vereist/gebruikt.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<a name="85"/>
+				<h3>Multi-Factor Authenticatie (MFA)</h3>
+				<p>Gebruik Multi-Factor Authenticatie om gebruikers te verplichten zich te identiciferen met hun wachtwoord, samen met een secundaire authenticatiemethode.</p>
+				<ul>
+					<li>Als je 'Multi-Factor Authenticatie vereisen' inschakelt, dan <strong>zal</strong> MFA worden ingeschakeld voor zowel nieuwe als bestaande gebruikers.</li>
+					<li>Het uitschakelen van 'Multi-Factor Authenticatie vereisen <strong>zal niet</strong> MFA uitschakelen voor bestaande gebruikers; het heeft alleen invloed op nieuwe gebruikers.</li>
+				</ul>
+				<a name="86"/>
+				<h3>Tijdsduur beveiligd gedeelte</h3>
+				<p>Specificeert hoe lang gebruikers toegang hebben tot gebieden die beveiligingsverificatie vereisen, voordat ze hun MFA-token/wachtwoord opnieuw moeten invoeren. Deze timer wordt gereset wanneer een gebruiker uitlogt.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+				<h2>&raquo; Bijlagen</h2>
+				<a name="37"/>
+				<h3>Bijlagen toestaan</h3>
+				<p>Zet aan om bestandsbijlagen in te schakelen. Indien ingeschakeld hebben klanten en personeel de mogelijkheid om bestanden toe te voegen aan ondersteuningstickets.</p>
+				<p>
+					<strong>OPMERKING:</strong> of en hoe bestandsbijlagen werken, hangt af van je serverinstellingen. Raadpleeg readme.html voor overwegingen en mogelijke beperkingen van bestandsbijlagen op je server.</p>
+				<a name="38"/>
+				<h3>Aantal per bericht</h3>
+				<p>Aantal toegestane bestandsbijlagen per bericht. Het optimale bereik is ongeveer 1 tot 4. Deze instelling is alleen beschikbaar als 'Gebruik bijlagen' is ingesteld op JA.</p>
+				<a name="39"/>
+				<h3>Maximale bestandsgrootte</h3>
+				<p>Maximale grootte van bijgevoegde bestanden. Houd er rekening mee dat de maximale bestandsgrootte voor het uploaden wordt beperkt door je serverinstellingen. Raadpleeg readme.html voor meer informatie over limieten voor bestandsbijlagen. Deze instelling is alleen beschikbaar als 'Gebruik bijlagen' is ingesteld op JA.</p>
+				<a name="40"/>
+				<h3>Toegestane bestandstypen</h3>
+				<p>Toegestane bestandsextensies voor het bijvoegen van bestanden. Gebruik dezelfde opmaak (.ext) om meer extensies toe te voegen en scheid ze met een komma. Deze instelling is alleen beschikbaar als 'Gebruik bijlagen' is ingesteld op JA.</p>
+				<p align="center">
+					<a class="closebutton" href="#" onclick="Javascript:window.close()">Venster sluiten</a>
+				</p>
+			</div>
+		</body>
+	</html>

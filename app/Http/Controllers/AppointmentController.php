@@ -93,9 +93,28 @@ class AppointmentController extends Controller
      */
     private PaymentStatusRepository $paymentStatusRepository;
 
+<<<<<<< HEAD
     public function __construct(AppointmentRepository $appointmentRepo, CustomFieldRepository $customFieldRepo, UserRepository $userRepo
         , AppointmentStatusRepository                 $appointmentStatusRepo, NotificationRepository $notificationRepo, PaymentRepository $paymentRepo, AddressRepository $addressRepository, TaxRepository $taxRepository, DoctorRepository $doctorRepository, ClinicRepository $clinicRepository, CouponRepository $couponRepository, PatientRepository $patientRepository, PaymentStatusRepository $paymentStatusRepository)
     {
+=======
+    public function __construct(
+        AppointmentRepository $appointmentRepo,
+        CustomFieldRepository $customFieldRepo,
+        UserRepository $userRepo
+        ,
+        AppointmentStatusRepository $appointmentStatusRepo,
+        NotificationRepository $notificationRepo,
+        PaymentRepository $paymentRepo,
+        AddressRepository $addressRepository,
+        TaxRepository $taxRepository,
+        DoctorRepository $doctorRepository,
+        ClinicRepository $clinicRepository,
+        CouponRepository $couponRepository,
+        PatientRepository $patientRepository,
+        PaymentStatusRepository $paymentStatusRepository
+    ) {
+>>>>>>> merging_dev_agendabranch
         parent::__construct();
         $this->appointmentRepository = $appointmentRepo;
         $this->customFieldRepository = $customFieldRepo;
@@ -131,7 +150,11 @@ class AppointmentController extends Controller
      * @return RedirectResponse|View
      * @throws RepositoryException
      */
+<<<<<<< HEAD
         public function show(int $id): RedirectResponse|View
+=======
+    public function show(int $id): RedirectResponse|View
+>>>>>>> merging_dev_agendabranch
     {
         $this->appointmentRepository->pushCriteria(new AppointmentsOfPatientCriteria(auth()->id()));
         $appointment = $this->appointmentRepository->findWithoutFail($id);
@@ -210,13 +233,21 @@ class AppointmentController extends Controller
                 event(new AppointmentChangedEvent($appointment));
             }
 
+<<<<<<< HEAD
             /*if (isset($input['appointment_status_id']) && $input['appointment_status_id'] != $oldAppointment->appointment_status_id) {
+=======
+            if (isset($input['appointment_status_id']) && $input['appointment_status_id'] != $oldAppointment->appointment_status_id) {
+>>>>>>> merging_dev_agendabranch
                 if ($appointment->appointmentStatus->order < 40) {
                     Notification::send([$user], new StatusChangedAppointment($appointment));
                 } else {
                     Notification::send([$doctor->user], new StatusChangedAppointment($appointment));
                 }
+<<<<<<< HEAD
             }*/
+=======
+            }
+>>>>>>> merging_dev_agendabranch
 
             foreach (getCustomFieldsValues($customFields, $request) as $value) {
                 $appointment->customFieldsValues()
@@ -236,7 +267,11 @@ class AppointmentController extends Controller
      *
      * @return RedirectResponse
      */
+<<<<<<< HEAD
     public function destroy(int $id):RedirectResponse
+=======
+    public function destroy(int $id): RedirectResponse
+>>>>>>> merging_dev_agendabranch
     {
         if (!config('installer.demo_app')) {
             $this->appointmentRepository->pushCriteria(new AppointmentsOfPatientCriteria(auth()->id()));
@@ -258,10 +293,17 @@ class AppointmentController extends Controller
         return redirect(route('appointments.index'));
     }
 
+<<<<<<< HEAD
 public function getTodayCompletedAppointments(): \Illuminate\View\View
     {
         $userId = auth()->user()->id;
     
+=======
+    public function getTodayCompletedAppointments(): \Illuminate\View\View
+    {
+        $userId = auth()->user()->id;
+
+>>>>>>> merging_dev_agendabranch
         $appointments = \DB::table('appointments')
             ->join('users', 'appointments.user_id', '=', 'users.id')
             ->join('patients', 'appointments.patient_id', '=', 'patients.id') // Jointure patient
@@ -284,6 +326,7 @@ public function getTodayCompletedAppointments(): \Illuminate\View\View
                 'pattern.nom as motif_name' // Sélection du nom du motif
             )
             ->paginate(10); // Limite à 10 par page
+<<<<<<< HEAD
     
         return view('todayAppointment.show', compact('appointments'));
     }    
@@ -291,5 +334,14 @@ public function getTodayCompletedAppointments(): \Illuminate\View\View
     
     
     
+=======
+
+        return view('todayAppointment.show', compact('appointments'));
+    }
+
+
+
+
+>>>>>>> merging_dev_agendabranch
 
 }

@@ -12,7 +12,10 @@ namespace App\Http\Controllers\API;
 use App\Criteria\Appointments\AppointmentsOfPatientCriteria;
 use App\Http\Controllers\Controller;
 use App\Models\Address;
+<<<<<<< HEAD
 use App\Models\Doctor;
+=======
+>>>>>>> merging_dev_agendabranch
 use App\Notifications\NewAppointment;
 use App\Notifications\StatusChangedAppointment;
 use App\Repositories\AddressRepository;
@@ -48,12 +51,15 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Benwilkins\FCM\FcmMessage;
+<<<<<<< HEAD
 use App\Events\AppointmentStatusChangedEvent;
 use App\Repositories\RoomRepository;
 use App\Enums\RoomStatus;
 
 
 
+=======
+>>>>>>> merging_dev_agendabranch
 /**
  * Class AppointmentController
  * @package App\Http\Controllers\API
@@ -117,8 +123,11 @@ class AppointmentAPIController extends Controller
      */
     private PaymentStatusRepository $paymentStatusRepository;
 
+<<<<<<< HEAD
     private  RoomRepository $roomRepository;
 
+=======
+>>>>>>> merging_dev_agendabranch
     public function __construct(
         AppointmentRepository $appointmentRepo,
         CustomFieldRepository $customFieldRepo,
@@ -133,8 +142,12 @@ class AppointmentAPIController extends Controller
         ClinicRepository $clinicRepository,
         CouponRepository $couponRepository,
         PatientRepository $patientRepository,
+<<<<<<< HEAD
         PaymentStatusRepository $paymentStatusRepository,
         RoomRepository $roomRepository
+=======
+        PaymentStatusRepository $paymentStatusRepository
+>>>>>>> merging_dev_agendabranch
     )
     {
         parent::__construct();
@@ -152,7 +165,10 @@ class AppointmentAPIController extends Controller
         $this->couponRepository = $couponRepository;
         $this->patientRepository = $patientRepository;
         $this->paymentStatusRepository = $paymentStatusRepository;
+<<<<<<< HEAD
         $this->roomRepository = $roomRepository;
+=======
+>>>>>>> merging_dev_agendabranch
     }
 
     /**
@@ -174,7 +190,11 @@ public function index(): JsonResponse
         $appointments = DB::table('appointments')
             ->join('doctors', 'appointments.doctor_id', '=', 'doctors.id')
             ->join('patients', 'appointments.patient_id', '=', 'patients.id')
+<<<<<<< HEAD
 	        ->join('appointment_statuses', 'appointments.appointment_status_id', '=', 'appointment_statuses.id')
+=======
+	    ->join('appointment_statuses', 'appointments.appointment_status_id', '=', 'appointment_statuses.id')
+>>>>>>> merging_dev_agendabranch
             ->leftJoin('addresses', 'addresses.user_id', '=', 'doctors.user_id') // Join addresses using the doctor's user_id
             ->leftJoin('pattern', 'appointments.motif_id', '=', 'pattern.id') // Join patterns using motif_id
             ->select(
@@ -195,7 +215,10 @@ public function index(): JsonResponse
                 'appointments.hint',
                 'appointments.online',
                 'appointments.cancel',
+<<<<<<< HEAD
                 'appointments.cancel_reason',
+=======
+>>>>>>> merging_dev_agendabranch
                 'appointments.created_at',
                 'appointments.updated_at',
                 'appointments.motif_id',
@@ -205,16 +228,20 @@ public function index(): JsonResponse
                 // Doctor fields
                 'doctors.name as doctor_name',
                 'doctors.discount_price as doctor_discount_price',
+<<<<<<< HEAD
                 'doctors.price as doctor_price',
                 'doctors.enable_appointment as doctor_enable_appointment',
                 'doctors.enable_at_clinic as doctor_enable_at_clinic',
                 'doctors.enable_at_customer_address as doctor_enable_at_customer_address',
                 'doctors.enable_online_consultation as doctor_enable_online_consultation',
+=======
+>>>>>>> merging_dev_agendabranch
                 // Patient fields
                 'patients.first_name as patient_first_name',
                 'patients.last_name as patient_last_name',
                 'patients.age as patient_age',
                 'patients.gender as patient_gender',
+<<<<<<< HEAD
 		        'appointment_statuses.status as appointment_status_name',
 		        'appointment_statuses.order as appointment_status_order'
             )->where('appointments.user_id', '=', $userId)
@@ -246,6 +273,29 @@ public function index(): JsonResponse
         $doctorEnableAtClinic = $decodedDoctorEnableAtClinic ?? 0;
         $doctorEnableAtAddress = $decodedDoctorEnableAtAddress ?? 0;
         $doctorEnableOnlineConsultation = $decodedDoctorEnableOnlineConsultation ?? 0;
+=======
+		'appointment_statuses.status as appointment_status_name',
+		'appointment_statuses.order as appointment_status_order'
+            )
+            ->where('appointments.user_id', '=', $userId)
+    	    ->orderBy('appointments.appointment_at', 'desc') // Sort by closest appointment time
+            ->get();
+
+        // Format the appointments to include nested objects
+        $formattedAppointments = $appointments->map(function ($appointment) {
+		$decodedFirstName = json_decode($appointment->patient_first_name, true);
+    $decodedLastName = json_decode($appointment->patient_last_name, true);
+    $decodedDoctorName = json_decode($appointment->doctor_name, true);
+    $decodedPatternName = json_decode($appointment->pattern_name, true);
+    $decodedDoctorAddress = json_decode($appointment->doctor_address, true); // Parse the address JSON
+
+    // Use 'fr' key if available, or fallback to raw values
+    $patientFirstName = $decodedFirstName['fr'] ?? $appointment->patient_first_name;
+    $patientLastName = $decodedLastName['fr'] ?? $appointment->patient_last_name;
+    $doctorName = $decodedDoctorName['fr'] ?? $appointment->doctor_name;
+    $patternName = $decodedPatternName['fr'] ?? $appointment->pattern_name;
+    $doctorAddress = $decodedDoctorAddress['fr'] ?? $appointment->doctor_address;
+>>>>>>> merging_dev_agendabranch
 
             return [
                 'id' => $appointment->id,
@@ -265,7 +315,10 @@ public function index(): JsonResponse
                 'hint' => $appointment->hint,
                 'online' => $appointment->online,
                 'cancel' => $appointment->cancel,
+<<<<<<< HEAD
                 'cancel_reason' => $appointment->cancel_reason,
+=======
+>>>>>>> merging_dev_agendabranch
                 'created_at' => $appointment->created_at,
                 'updated_at' => $appointment->updated_at,
                 'motif_id' => $appointment->motif_id,
@@ -290,12 +343,16 @@ public function index(): JsonResponse
                     // Address object for the doctor
                     'address' => [
                         'address' => $doctorAddress,
+<<<<<<< HEAD
                     ],
                     'price' => $doctorPrice,
                     'enabled_appointment' => $doctorEnableAppointment,
                     'at_clinic' => $doctorEnableAtClinic,
                     'at_customer_address' => $doctorEnableAtAddress,
                     'enable_online_consultation' => $doctorEnableOnlineConsultation
+=======
+                    ]
+>>>>>>> merging_dev_agendabranch
                 ],
                 // Pattern object
                 'pattern' => [
@@ -305,6 +362,7 @@ public function index(): JsonResponse
             ];
         });
 
+<<<<<<< HEAD
 
         Log::info("Formatted Appointments Type:", ['type' => gettype($formattedAppointments)]);
 
@@ -327,6 +385,8 @@ public function index(): JsonResponse
         });
 
 
+=======
+>>>>>>> merging_dev_agendabranch
         // Log the formatted data
         Log::info('Appointments retrieved successfully for user ID ' . $userId, ['appointments' => $formattedAppointments->toArray()]);
 
@@ -362,6 +422,7 @@ public function index(): JsonResponse
         } catch (RepositoryException $e) {
             return $this->sendError($e->getMessage());
         }
+<<<<<<< HEAD
 
         $appointment = $this->appointmentRepository->findWithoutFail($id);
         if(empty($appointment->doctor_id)) {
@@ -406,6 +467,16 @@ public function index(): JsonResponse
         }catch(RepositoryException $e){
             return response()->json($e->getMessage());
         }
+=======
+        $appointment = $this->appointmentRepository->findWithoutFail($id);
+        $appointment->doctor->user=$this->userRepository->findWithoutFail($appointment->doctor->user_id);
+        if (empty($appointment)) {
+            return $this->sendError('Appointment not found');
+        }
+        return $this->sendResponse($appointment->toArray(), 'Appointment retrieved successfully');
+
+
+>>>>>>> merging_dev_agendabranch
     }
 
     /**
@@ -420,6 +491,7 @@ public function store(Request $request): JsonResponse
     try {
         // Log the incoming request data
         Log::info('Store Appointment Request:', $request->all());
+<<<<<<< HEAD
         Log::info('Store Appointment Request:', ['clinic' => $request->input('clinic')]);
         $motifObject = $request->input('motif_id');
         // Extract the necessary data from the nested objects
@@ -462,6 +534,32 @@ public function store(Request $request): JsonResponse
         }
         
 
+=======
+        $motifObject = $request->input('motif_id');
+        Log::info('Motif Object:', ['motif_id' => $motifObject]);
+
+        // Extract the necessary data from the nested objects
+        $data = [
+            'doctor_id' => $request->input('doctor.id'), // Extract doctor ID
+            'patient_id' => $request->input('patient.id'), // Extract patient ID if needed
+            'user_id' => $request->input('user_id'),
+            'clinic_id' => $request->input('clinic.id'), // Extract clinic ID
+            'quantity' => $request->input('quantity', 1),
+            'appointment_status_id' => $request->input('appointment_status_id', 1),
+            'address' => $request->input('address.address'), // Extract address as a string
+            'payment_id' => $request->input('payment_id'),
+            'coupon' => $request->input('coupon'),
+            'taxes' => json_encode($request->input('taxes', [])), // Ensure taxes is an array and encode as JSON
+            'appointment_at' => $request->input('appointment_at'),
+            'start_at' => Carbon::parse($request->input('start_at'))->setTimezone(config('app.timezone')),
+	    'ends_at' => Carbon::parse($request->input('ends_at'))->setTimezone(config('app.timezone')),
+            'hint' => $request->input('hint'),
+            'online' => 'mobile',
+            'cancel' => $request->input('cancel', false),
+            'motif_id' => $request->input('motif_id.id')
+        ];
+
+>>>>>>> merging_dev_agendabranch
         // Log each item in the data array to verify its contents
         foreach ($data as $key => $value) {
             Log::info("Field {$key}: ", [$value]);
@@ -480,6 +578,7 @@ public function store(Request $request): JsonResponse
         // Insert the data into the appointments table
         $appointmentId = DB::table('appointments')->insertGetId($data);
 
+<<<<<<< HEAD
 
         //If the appointment is remote, create a room for it
         if ($data['online'] == true) {
@@ -515,6 +614,8 @@ public function store(Request $request): JsonResponse
 
         }
 
+=======
+>>>>>>> merging_dev_agendabranch
         // Check if the doctor-patient relationship exists
         $existingRecord = DB::table('doctor_patients')
             ->where('doctor_id', $data['doctor_id'])
@@ -533,8 +634,11 @@ public function store(Request $request): JsonResponse
             ]);
         }
 
+<<<<<<< HEAD
         Log::info("Appointment eli yarja3 lil mobile ba3ed mé yetssajal", ['appointment_id' => $appointmentId]);
 
+=======
+>>>>>>> merging_dev_agendabranch
         // Return success response with appointment ID
         return response()->json([
             'status' => 200,
@@ -564,6 +668,7 @@ public function store(Request $request): JsonResponse
      */
     public function update(int $id, Request $request): JsonResponse
     {
+<<<<<<< HEAD
         Log::info("Update Appointment Request:", [$request->all()]);
         $appointment = Appointment::find($id);
         $new_status_id = $request->input('appointment_status_id');
@@ -660,6 +765,90 @@ public function store(Request $request): JsonResponse
         
     }
 
+=======
+        // Log the incoming request data
+        Log::info('Update Appointment Request:', $request->all());
+    
+        // Find the appointment, return error if not found
+        $oldAppointment = $this->appointmentRepository->findWithoutFail($id);
+        if (empty($oldAppointment)) {
+            // Log the error message
+            Log::error('Appointment not found for ID ' . $id);
+            return $this->sendError('Appointment not found');
+        }
+    
+        // Validate input if necessary (optional)
+        $input = $request->all();
+    
+        try {
+            // If cancel request is present, modify the status accordingly
+            if (isset($input['cancel']) && $input['cancel'] == '1') {
+                $input['payment_status_id'] = 3; // Assuming 3 means canceled
+		$input['appointment_status_id'] = 7; // Assuming 7 means canceled status
+		$input['cancel']=1;
+            }
+    
+            // Log the input data
+            Log::info('Update Appointment Input:', $input);
+    
+            // Update the appointment
+            $appointment = $this->appointmentRepository->update($input, $id);
+    
+            // Log the updated appointment data
+            Log::info('Updated Appointment:', $appointment->toArray());
+    
+            // If the appointment status is below a certain threshold, send API request
+            if ($appointment->appointmentStatus->order < 40) {
+                // Log the message creation
+                Log::info('Creating message for appointment status update');
+                // Ensure $message is defined before using it (replace this with actual message creation logic)
+                $message = $this->createMessageForAppointment($appointment, $oldAppointment->doctor->id);
+    
+                // Log the message data
+               
+    
+                // Send API request
+                $response = (new Client())->post($this->getApiUri(), [
+                    'headers' => [
+                        'Authorization' => 'key=' . $this->accessToken, // Replace this with your actual token handling logic
+                        'Content-Type' => 'application/json',
+                    ],
+                    'json' => $message->formatData(),  // Ensure body is properly formatted
+                ]);
+    
+                // Handle the response if needed
+                if ($response->getStatusCode() !== 200) {
+                    // Log the error message
+                    Log::error('Failed to send API request:', ['message' => $response->getReasonPhrase()]);
+                    return $this->sendError('Failed to send API request');
+                }
+            } else {
+                $message = $this->createMessageForAppointment($appointment, $oldAppointment->user->id);
+                $response = (new Client())->post($this->getApiUri(), [ 
+                    'headers' => [
+                    'Authorization'=> 'key='. $this->accessToken,
+                    ],
+                    'json'=> $message->formatData(),
+                    ]);
+                if ($response->getStatusCode() !== 200) {
+                    // Log the error message
+                    Log::error('Failed to send API request:', ['message' => $response->getReasonPhrase()]);
+                    return $this->sendError('Failed to send API request');
+                }
+            }
+    
+        } catch (ValidatorException $e) {
+            // Handle validation errors
+            return $this->sendError($e->getMessage());
+        } catch (Exception $e) {
+            // Handle unexpected errors
+            return $this->sendError('An error occurred: ' . $e->getMessage());
+        }
+    
+        // Return the updated appointment data
+        return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
+    }
+>>>>>>> merging_dev_agendabranch
     
     
     /**
@@ -670,12 +859,20 @@ public function store(Request $request): JsonResponse
      */
     private function createMessageForAppointment(Appointment $appointment, string $id)
     {
+<<<<<<< HEAD
         Log::info("Create message notification firebase");
         // Logic to create the message object based on the appointment data
          $user = User::find($id);
         if (!$user) {
             throw new Exception("User not found for ID: $id");
         }
+=======
+        // Logic to create the message object based on the appointment data
+         $user = User::find($id);
+    if (!$user) {
+        throw new Exception("User not found for ID: $id");
+    }
+>>>>>>> merging_dev_agendabranch
         $message = new FcmMessage(); // Example, you may have your own message formatting
         $message->content(['title' => 'NOTIFICATION', 'body' => 'YOUR APPOINTMENT STATUS HAS CHANGED'])->to($user->device_token);
         return $message;
@@ -683,8 +880,16 @@ public function store(Request $request): JsonResponse
     
     private function getApiUri()
     {
+<<<<<<< HEAD
         return 'https://fcm.googleapis.com/v1/projects/wic-doctor-b83e0/messages:send';
     }
     
 
 }
+=======
+        return 'https://fcm.googleapis.com/v1/projects/' . $this->projectId . '/messages:send';
+    }
+    
+
+}
+>>>>>>> merging_dev_agendabranch

@@ -45,7 +45,11 @@ return [
     |
     */
 
+<<<<<<< HEAD
     'debug' => (bool)env('APP_DEBUG', false),
+=======
+    'debug' => (bool) env('APP_DEBUG', false),
+>>>>>>> merging_dev_agendabranch
 
     /*
     |--------------------------------------------------------------------------
@@ -168,10 +172,16 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
+<<<<<<< HEAD
         /*
          * Package Service Providers...
          */
 
+=======
+          Kreait\Laravel\Firebase\ServiceProvider::class,
+
+     
+>>>>>>> merging_dev_agendabranch
         /*
          * Application Service Providers...
          */
@@ -181,6 +191,11 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\ModulesServiceProvider::class,
+<<<<<<< HEAD
+=======
+        App\Providers\FirebaseServiceProvider::class,
+
+>>>>>>> merging_dev_agendabranch
 
     ],
 
@@ -225,6 +240,11 @@ return [
         'Redis' => Illuminate\Support\Facades\Redis::class,
         'Request' => Illuminate\Support\Facades\Request::class,
         'Response' => Illuminate\Support\Facades\Response::class,
+<<<<<<< HEAD
+=======
+        'Firebase' => Kreait\Laravel\Firebase\Facades\Firebase::class,
+
+>>>>>>> merging_dev_agendabranch
         'Route' => Illuminate\Support\Facades\Route::class,
         'Schema' => Illuminate\Support\Facades\Schema::class,
         'Session' => Illuminate\Support\Facades\Session::class,

@@ -1,0 +1,119 @@
+[
+  {
+    "name": "id",
+    "dbType": "increments",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "primary": true,
+    "fillable": false,
+    "inForm": false,
+    "inIndex": false
+  },
+  {
+    "name":"order",
+    "dbType": "integer:unsigned:default,0",
+    "htmlType": "number|min:0"
+  },
+  {
+    "name":"text",
+    "dbType": "string,50",
+    "htmlType": "text",
+    "validations": "max:50"
+  },
+  {
+    "name":"button",
+    "dbType": "string,50",
+    "htmlType": "text",
+    "validations": "max:50"
+  },
+  {
+    "name": "text_position",
+    "dbType": "string,50:default,start",
+    "htmlType": "select,start:'start'",
+    "validations": "required"
+  },
+  {
+    "name":"text_color",
+    "dbType": "string,36",
+    "htmlType": "text",
+    "validations": "max:36"
+  },
+  {
+    "name":"button_color",
+    "dbType": "string,36",
+    "htmlType": "text",
+    "validations": "max:36"
+
+  },
+  {
+    "name":"background_color",
+    "dbType": "string,36",
+    "htmlType": "text",
+    "validations": "max:36"
+  },
+  {
+    "name":"indicator_color",
+    "dbType": "string,36",
+    "htmlType": "text",
+    "validations": "max:36"
+  },
+  {
+    "name":"image",
+    "dbType": "string",
+    "htmlType": "file",
+    "fillable": false,
+    "searchable": false,
+    "inForm": true,
+    "orderable" :false,
+    "exportable": false,
+    "printable": false
+  },
+  {
+    "name": "image_fit",
+    "dbType": "string,50:default,cover",
+    "htmlType": "select,cover:'cover'",
+    "validations": "required"
+  },
+  {
+    "name": "doctor_id",
+    "title": "doctor.name",
+    "dbType": "integer:unsigned:foreign,doctors,id",
+    "htmlType": "select,$doctor",
+    "relation": "mt1,Doctor,doctor_id,id"
+  },
+  {
+    "name": "clinic_id",
+    "title": "clinic.name",
+    "dbType": "integer:unsigned:foreign,clinics,id",
+    "htmlType": "select,$clinic",
+    "relation": "mt1,Clinic,clinic_id,id"
+  },
+  {
+    "name":"enabled",
+    "dbType": "boolean:default,1",
+    "htmlType": "boolean"
+  },
+  {
+    "name": "created_at",
+    "dbType": "timestamp",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "fillable": false,
+    "primary": false,
+    "inForm": false,
+    "inIndex": false
+  },
+  {
+    "name": "updated_at",
+    "dbType": "timestamp",
+    "htmlType": "",
+    "validations": "",
+    "searchable": false,
+    "fillable": false,
+    "primary": false,
+    "inForm": false,
+    "inIndex": true
+  }
+]

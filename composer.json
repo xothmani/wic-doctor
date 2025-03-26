@@ -18,7 +18,11 @@
         "google/auth": "^1.45",
         "guzzlehttp/guzzle": "^7.8.1",
         "infyomlabs/adminlte-templates": "^v6.0.0",
+<<<<<<< HEAD
         "kreait/firebase-php": "^7.16",
+=======
+        "kreait/laravel-firebase": "*",
+>>>>>>> merging_dev_agendabranch
         "laravel/cashier": "^v15.3.2",
         "laravel/framework": "^v10.48.8",
         "laravel/legacy-factories": "^1.4",

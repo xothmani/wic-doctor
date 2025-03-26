@@ -1,7 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+<<<<<<< HEAD
     <@php
+=======
+    @php
+>>>>>>> merging_dev_agendabranch
         $doctorId = auth()->user()->getDoctorId();
         $permissionKey = 'appointment-event.index';
         // Retrieve the permission with its related readable record
@@ -16,6 +20,7 @@
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
 
         <!-- Content Header (Page header) -->
+<<<<<<< HEAD
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
@@ -37,6 +42,9 @@
                 </div>
             </div>
         </div>
+=======
+
+>>>>>>> merging_dev_agendabranch
         <!-- Second Modal -->
         <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
             aria-hidden="true">
@@ -269,6 +277,7 @@
             <div class="clearfix"></div>
             @include('flash::message')
             <div class="card shadow-sm">
+<<<<<<< HEAD
                 <div class="card-header">
                     <ul class="nav nav-tabs d-flex flex-md-row flex-column-reverse align-items-start card-header-tabs">
                         <div class="d-flex flex-row">
@@ -279,6 +288,9 @@
                         </div>
                     </ul>
                 </div>
+=======
+
+>>>>>>> merging_dev_agendabranch
                 <div class="card-body">
                     <!-- Calendar Container -->
                     <div id="calendar-container">
@@ -357,9 +369,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js"></script>
+<<<<<<< HEAD
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+=======
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+>>>>>>> merging_dev_agendabranch
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -409,20 +427,34 @@
                 // Handle vacation case
                 if (response.vacation) {
                     timeSlotsWrapper.append(`
+<<<<<<< HEAD
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <div class="alert alert-warning text-center">
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </div>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 `);
+=======
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+>>>>>>> merging_dev_agendabranch
                     return;
                 }
 
                 // If no slots available for this type
                 if (!all_slots || all_slots.length === 0) {
                     timeSlotsWrapper.append(`
+<<<<<<< HEAD
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <div class="alert alert-info text-center">
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         Aucun créneau disponible pour ${getTypeLabel(type)}.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </div>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 `);
+=======
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible pour ${getTypeLabel(type)}.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+>>>>>>> merging_dev_agendabranch
                     return;
                 }
 
@@ -566,10 +598,17 @@
                         if (!response.all_slots || response.all_slots.length === 0) {
                             // No available slots → Show a message inside the modal
                             $("#time-slots").html(`
+<<<<<<< HEAD
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <div class="alert alert-warning text-center">
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     Aucune disponibilité pour ce type de rendez-vous à cette date.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </div>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             `);
+=======
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucune disponibilité pour ce type de rendez-vous à cette date.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+>>>>>>> merging_dev_agendabranch
                             return;
                         }
 
@@ -593,10 +632,46 @@
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
                 timeSlotsWrapper.append(`
+<<<<<<< HEAD
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <div class="alert alert-info text-center">
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     Aucun créneau disponible trouvé.
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </div>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             `);
+=======
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+            }
+            //////////////////////////////////////////////////////////////////////////////
+            function fetchSubstitutes(doctorId) {
+                return $.ajax({
+                    url: `/substitutes/${doctorId}`,
+                    method: 'GET',
+                    dataType: 'json'
+                });
+            }
+            //////////////////////////////////////////////////////////////////////////////#
+            function fetchAppointmentStats(doctorId, selectedDate) {
+                return $.ajax({
+                    url: `/appointments/stats/${doctorId}/${selectedDate}`,
+                    method: 'GET',
+                    dataType: 'json'
+                });
+            }
+
+            //////////////////////////////////////////////////////////////////////////////
+            function refreshAppointmentStats(doctorId) {
+                $('.custom-number-label').remove(); // Clear existing numbers
+                $('.fc-day-header').each(function () {
+                    fetchAppointmentStats(doctorId).then(stats => {
+                        let staticNumber = `${stats.appointments_taken} / ${stats.total_appointments}`;
+                        $(this).append(`<div class="custom-number-label">${staticNumber}</div>`);
+                    }).catch(error => {
+                        console.error("Error refreshing appointment stats:", error);
+                    });
+                });
+>>>>>>> merging_dev_agendabranch
             }
             //    ////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
@@ -621,7 +696,11 @@
                 calendar = $('#calendar').fullCalendar({
                     locale: 'fr',
                     editable: true,
+<<<<<<< HEAD
                     height: 600,
+=======
+                    height: 670,
+>>>>>>> merging_dev_agendabranch
                     header: {
                         left: 'prev,next today',
                         center: 'title',
@@ -629,7 +708,82 @@
                     },
                     defaultView: 'agendaWeek',
                     minTime: "08:00:00",
+<<<<<<< HEAD
                     eventLimit: true, // Allow "more" link for overflow events
+=======
+                    allDaySlot: true,
+                    allDayText: '',
+                    eventLimit: true,
+                    viewRender: function (view) {
+
+                        if (view.name === 'agendaWeek') {
+                            const doctorId = {{ auth()->user()->getDoctorId() }};
+
+                            // Create tooltip container once
+                            if (!$('#substitute-tooltip').length) {
+                                $('body').append('<div id="substitute-tooltip" class="substitute-tooltip"></div>');
+                            }
+
+                            fetchSubstitutes(doctorId).then(substitutes => {
+                                //console.log("Substitutes:", substitutes);
+                                $('.fc-day-header').each(function () {
+                                    let dayDate = $(this).data('date');
+                                    let dayMoment = moment(dayDate);
+
+                                    // Find the substitute active on this day
+                                    let activeSubstitute = substitutes.find(sub => {
+                                        let startDate = moment(sub.start_date);
+                                        let endDate = moment(sub.end_date);
+                                        return dayMoment.isBetween(startDate, endDate, 'day', '[]');
+                                    });
+
+                                    // Fetch and set the dynamic number
+                                    fetchAppointmentStats(doctorId, dayDate).then(stats => {
+                                        let totalAppointments = stats && stats.total_appointments ? stats.total_appointments : 0;
+                                        let appointmentsTaken = stats && stats.appointments_taken ? stats.appointments_taken : 0;
+                                        let staticNumber = `${appointmentsTaken}/${totalAppointments}`;
+                                        let substituteName = activeSubstitute ? activeSubstitute.name : "&nbsp;";
+
+                                        // Create custom label with hover functionality
+                                        // Append all elements with proper structure
+                                        $(this).append(`
+                                                                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-day-label substitute-hover">${substituteName}</div>
+                                                                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-number-label">${staticNumber}</div>
+                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                                        if (activeSubstitute) {
+                                            $(this).find('.custom-day-label').hover(
+                                                function (e) {
+                                                    let tooltip = $('#substitute-tooltip');
+                                                    let tooltipContent = ` <div class="substitute-info-container"> <div class="substitute-info"> <span class="substitute-info-label">Nom:</span> <span class="substitute-info-value">${activeSubstitute.name}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Début:</span> <span class="substitute-info-value">${moment(activeSubstitute.start_date).format('DD/MM/YYYY HH:mm')}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Fin:</span> <span class="substitute-info-value">${moment(activeSubstitute.end_date).format('DD/MM/YYYY HH:mm')}</span> </div> ${activeSubstitute.notes ? ` <div class="substitute-info"> <span class="substitute-info-label">Notes:</span> <span class="substitute-info-value">${activeSubstitute.notes}</span> </div> ` : ''} </div> `;
+
+                                                    tooltip.html(tooltipContent);
+
+                                                    // Position the tooltip
+                                                    let pos = $(this).offset();
+                                                    tooltip.css({
+                                                        top: pos.top + $(this).outerHeight() + 5,
+                                                        left: pos.left
+                                                    }).fadeIn(200);
+                                                },
+                                                function () {
+                                                    $('#substitute-tooltip').fadeOut(200);
+                                                }
+                                            );
+                                        }
+
+
+                                    }).catch(error => {
+                                        console.error("Error fetching appointment stats:", error);
+                                    });
+                                });
+                            }).catch(error => {
+                                console.error("Error fetching substitutes:", error);
+                            });
+                        }
+                    },
+>>>>>>> merging_dev_agendabranch
                     dayRender: function (date, cell) {
                         console.log("Day Rendered:", date.format());
                         const formattedDayName = date.locale('en').format('dddd').toLowerCase();
@@ -781,6 +935,7 @@
                         // Determine the icon based on the `online` field
                         switch (event.online) {
                             case 'cabinet':
+<<<<<<< HEAD
                                 icon = '<i class="fas fa-clinic-medical" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Blue clinic icon
                                 break;
                             case 'teleconsultation':
@@ -794,6 +949,24 @@
                                 break;
                             default:
                                 icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default gray icon
+=======
+                                icon = '<i class="fas fa-briefcase-medical" style="margin-right: 5px; color: #1A1A1D;"></i>';
+                                break;
+                            case 'teleconsultation':
+                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Video icon
+                                break;
+                            case 'home_visit':
+                                icon = '<i class="fas fa-home" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Home visit icon
+                                break;
+                            case 'web':
+                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Web icon
+                                break;
+                            case 'mobile':
+                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Mobile icon
+                                break;
+                            default:
+                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default icon
+>>>>>>> merging_dev_agendabranch
                                 break;
                         }
                         element.find('.fc-title').prepend(icon);
@@ -1086,7 +1259,11 @@
                     appointment_status_id: statusId,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 };
+<<<<<<< HEAD
 
+=======
+                //console.log("Update Status Data:", data);
+>>>>>>> merging_dev_agendabranch
                 if (reason) {
                     data.cancel_reason = reason;
                 }
@@ -1187,7 +1364,11 @@
 
                     teleconsultationButton.classList.remove("d-none");
                     teleconsultationButton.onclick = () => {
+<<<<<<< HEAD
                         const url = `{{ route('teleconsultations.createMeet') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
+=======
+                        const url = `{{ route('show.meeting.info.form') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
+>>>>>>> merging_dev_agendabranch
                         window.location.href = url;
                     };
 

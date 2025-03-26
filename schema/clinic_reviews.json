@@ -1,0 +1,62 @@
+[
+    {
+        "name": "id",
+        "dbType": "increments",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "primary": true,
+        "fillable": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "review",
+        "dbType": "text:nullable",
+        "htmlType": "textarea"
+    },
+    {
+        "name": "rate",
+        "dbType": "decimal,3,2:default,0",
+        "htmlType": "select,0:0",
+        "validations": "required|numeric|max:5|min:0"
+    },
+    {
+        "name": "user_id",
+        "title": "user.name",
+        "dbType": "bigInteger:unsigned:foreign,users,id",
+        "htmlType": "select,$user",
+        "validations": "required|exists:users,id",
+        "relation": "mt1,User,user_id,id"
+    },
+    {
+        "name": "clinic_id",
+        "title": "clinic.name",
+        "dbType": "integer:unsigned:foreign,clinics,id",
+        "htmlType": "select,$clinic",
+        "validations": "required|exists:clinics,id",
+        "relation": "mt1,Clinic,clinic_id,id"
+    },
+    {
+        "name": "created_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": false
+    },
+    {
+        "name": "updated_at",
+        "dbType": "timestamp",
+        "htmlType": "",
+        "validations": "",
+        "searchable": false,
+        "fillable": false,
+        "primary": false,
+        "inForm": false,
+        "inIndex": true
+    }
+]

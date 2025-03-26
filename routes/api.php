@@ -19,6 +19,7 @@
 */
 use App\Http\Controllers\API\PayPalAPIController;
 use App\Http\Controllers\API\DoctorAPIController;
+<<<<<<< HEAD
 use App\Http\Controllers\API\NotificationAPIController;
 use App\Http\Controllers\API\RoomAPIController;
 
@@ -42,6 +43,8 @@ Route::prefix('rooms')->middleware('auth:api')->group(function () {
 });
 
 /*********************** End Route ajouté par Hamza ********************* */
+=======
+>>>>>>> merging_dev_agendabranch
 
 
 

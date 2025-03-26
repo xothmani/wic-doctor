@@ -1,0 +1,102 @@
+/*Styling added to original file */
+
+div.container {
+    background-color: #ffefeb;
+    padding: 25px;
+    margin: auto;
+    margin-top: 5%;
+    margin-bottom: 5%;
+    border: 10px solid #ff7d5a;
+    width: 80%;
+    display: block;
+}
+a {
+	color: #000;
+}
+
+a.closebutton {
+	display:block;
+	width: auto;
+	background-color: #f05a28;
+	border: 2px solid #f05a28;
+	border-style: groove;
+	padding: 0.5%;
+	text-transform: uppercase;
+	font-weight: bold;
+	border-radius: 8px;
+	text-decoration: none;
+	margin-bottom: 10%;
+}
+a.closebutton:hover {
+	background-color: #fce2db;
+	color: #f05a28;
+}
+h1{
+	font-size: 200%;
+	color: #818181;
+	font-family: Georgia, serif;
+}
+h2 {
+	font-size: 150%;
+	color: #f05a28;
+	font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+}
+h3 {
+	font-size: 130%;
+	color: #818181;
+	font-family: Georgia, serif;
+}
+table thead tr td {
+	border-bottom: 1px solid #f05a28;
+}
+table td {
+	padding: 5px;
+	vertical-align: top;
+}
+table {
+	margin-bottom: 25px;
+}
+table tbody td {
+	font-size: 90%;
+	vertical-align: top;
+}
+
+
+/*End of styling added to original file */
+
+body {
+        margin:5px 5px;
+        padding:0;
+        background:#f05a28;
+        color: black;
+        font : 75%/160% Verdana, Geneva, Arial, Helvetica, sans-serif;
+        text-align:left;
+}
+
+p {
+        color : black;
+        font-family : Verdana, Geneva, Arial, Helvetica, sans-serif;
+        font-size: 1.0em;
+}
+/* overruled by additions above
+h3 {
+        color : #AF0000;
+        font-family : Verdana, Geneva, Arial, Helvetica, sans-serif;
+        font-weight: bold;
+        font-size: 1.0em;
+        text-align:center;
+}
+*/
+.section {
+        color: #74804e;
+        font-weight: bold;
+}
+
+.title {
+        color : black;
+        font-family : Verdana, Geneva, Arial, Helvetica, sans-serif;
+        font-weight: bold;
+        font-size: 1.0em;
+}
+.wrong   {color : red;}
+.correct {color : green;}

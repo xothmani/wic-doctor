@@ -76,6 +76,10 @@ return [
         'service_account' => storage_path('app/wic-doctor-b83e0-firebase-adminsdk-jhztu-26628b5fc7.json'),
     ],
     'firebase' => [
+<<<<<<< HEAD
 'key'=>env('FCM_SERVER_KEY'),
+=======
+        'key' => env('FCM_SERVER_KEY'),
+>>>>>>> merging_dev_agendabranch
     ]
 ];

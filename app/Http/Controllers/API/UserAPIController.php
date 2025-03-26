@@ -57,8 +57,11 @@ class UserAPIController extends Controller
                 // Authentication passed...
                 $user = auth()->user();
                 $user->device_token = $request->input('device_token', '');
+<<<<<<< HEAD
                 //ajouter par hamza pour voir role utilisateur connecter
                 $user=$user->load('roles');
+=======
+>>>>>>> merging_dev_agendabranch
                 $user->save();
                 return $this->sendResponse($user, 'User retrieved successfully');
             } else {

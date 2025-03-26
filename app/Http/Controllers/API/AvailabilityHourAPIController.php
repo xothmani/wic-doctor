@@ -13,11 +13,17 @@ use App\Criteria\AvailabilityHours\AvailabilityHoursOfUserCriteria;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateAvailabilityHourRequest;
 use App\Http\Requests\UpdateAvailabilityHourRequest;
+<<<<<<< HEAD
 use App\Models\Pattern;
 use App\Repositories\AvailabilityHourRepository;
 use App\Repositories\DoctorRepository;
 use Carbon\Carbon;
 use DB;
+=======
+use App\Repositories\AvailabilityHourRepository;
+use App\Repositories\DoctorRepository;
+use Carbon\Carbon;
+>>>>>>> merging_dev_agendabranch
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,12 +32,17 @@ use InfyOm\Generator\Criteria\LimitOffsetCriteria;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Prettus\Repository\Exceptions\RepositoryException;
 use App\Models\DoctorVacation;
+<<<<<<< HEAD
 use App\Models\AvailabilityHour;
 use App\Models\AvailabilityHourTranslation;
 use App\Models\Doctor;
 use App\Models\DoctorUrgency;
 use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
+=======
+use App\Models\DoctorUrgency;
+use Illuminate\Support\Str;
+>>>>>>> merging_dev_agendabranch
 
 /**
  * Class AvailabilityHourController
@@ -95,11 +106,17 @@ class AvailabilityHourAPIController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+<<<<<<< HEAD
 /*********************** Code hamza ****************************** */
 public function show(int $id, Request $request): JsonResponse
 {
     Log::info("Availibility hours controller => show function ");
     try {
+=======
+public function show(int $id, Request $request): JsonResponse
+{
+{   try {
+>>>>>>> merging_dev_agendabranch
         $this->doctorRepository->pushCriteria(new RequestCriteria($request));
         $this->availabilityHourRepository->pushCriteria(new AvailabilityHoursOfUserCriteria($id));
         $this->doctorRepository->pushCriteria(new LimitOffsetCriteria($request));
@@ -109,6 +126,7 @@ public function show(int $id, Request $request): JsonResponse
 
     $doctor = $this->doctorRepository->findWithoutFail($id);
 
+<<<<<<< HEAD
     // Convert collection to array
     $doctor->availabilityHours = $doctor->availabilityHours->map(function ($availability) {
         $availability->day = $this->translateDayToEnglish($availability->day); // Corrigé
@@ -117,10 +135,13 @@ public function show(int $id, Request $request): JsonResponse
 
     Log::info("Availibility hours", ["Availibility hours" => $doctor->availabilityHours->toArray()]);
 
+=======
+>>>>>>> merging_dev_agendabranch
     if (empty($doctor)) {
         return $this->sendError('Doctor not found');
     }
 
+<<<<<<< HEAD
     if (empty($doctor->availabilityHours->toArray())) {
         return $this->sendError('Doctor not available');
     }
@@ -134,10 +155,23 @@ public function show(int $id, Request $request): JsonResponse
                                               ->where(function ($q) use ($date) {
                                                   $q->where('end_date', '>=', $date)
                                                     ->orWhereNull('end_date');
+=======
+    // Retrieve vacation days for the doctor
+    $vacations = DoctorVacation::where('doctor_id', $id)
+                                ->where(function ($query) use ($request) {
+                                    // Check if the date filter is applied
+                                    $date = $request->input('date');
+                                    if ($date) {
+                                        $query->where('dateDebut', '<=', $date)
+                                              ->where(function ($q) use ($date) {
+                                                  $q->where('dateFin', '>=', $date)
+                                                    ->orWhereNull('dateFin');
+>>>>>>> merging_dev_agendabranch
                                               });
                                     }
                                 })
                                 ->get();
+<<<<<<< HEAD
                             
     // Conversion des congés en tableau de dates
     $vacationDates = $vacations->flatMap(function ($vacation) {
@@ -148,6 +182,21 @@ public function show(int $id, Request $request): JsonResponse
             $startDate = Carbon::parse($vacation->dateDebut);
             $endDate = Carbon::parse($vacation->dateFin);
 
+=======
+
+    $vacationDates = $vacations->flatMap(function ($vacation) {
+        $dates = [];
+        if ($vacation->type === 'journée') {
+            // Add the single day vacation
+            $dates[] = $vacation->dateDebut;
+        } elseif ($vacation->type === 'période' && $vacation->dateDebut && $vacation->dateFin) {
+            // Generate date range for the vacation period
+            $startDate = Carbon::parse($vacation->dateDebut);
+            $endDate = Carbon::parse($vacation->dateFin);
+
+
+            // Loop through each day of the period and add to the dates array
+>>>>>>> merging_dev_agendabranch
             while ($startDate->lte($endDate)) {
                 $dates[] = $startDate->toDateString();
                 $startDate->addDay();
@@ -156,6 +205,7 @@ public function show(int $id, Request $request): JsonResponse
         return $dates;
     })->toArray();
 
+<<<<<<< HEAD
     // Gestion du calendrier des disponibilités
     $calendar = [];
     $date = $request->input('date');
@@ -187,11 +237,27 @@ public function show(int $id, Request $request): JsonResponse
                 $day = $this->translateDayToEnglish($day);
             }
             
+=======
+    $calendar = [];
+    $date = $request->input('date');
+    $onlinestr = $request->input('online', 'false');
+    $online = false;
+    if (Str::lower($onlinestr)=='true'){
+    $online=true;
+    }
+    if (!empty($date)) {
+        $date = Carbon::createFromFormat('Y-m-d', $date);
+        $calendar = $doctor->weekCalendarRange($date, $online);
+
+        // Exclude the vacation dates from the calendar
+        $calendar = array_filter($calendar, function ($day) use ($vacationDates) {
+>>>>>>> merging_dev_agendabranch
             return !in_array($day, $vacationDates);
         });
     }
 
     return $this->sendResponse($calendar, 'Availability Hours retrieved successfully');
+<<<<<<< HEAD
 }
 
 
@@ -301,6 +367,9 @@ public function translateDayToEnglish($day)
 
 
 /*********************** Fin Code hamza ****************************** */
+=======
+}}
+>>>>>>> merging_dev_agendabranch
 
     /**
      * Store a newly created AvailabilityHour in storage.

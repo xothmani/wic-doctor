@@ -99,6 +99,7 @@ public function index(Request $request): JsonResponse
         return $this->sendError('Error retrieving doctors: ' . $e->getMessage());
     }
 }
+<<<<<<< HEAD
 
 
 
@@ -371,6 +372,94 @@ public function translateDayToEnglish($day)
         return $this->sendResponse($doctor->toArray(), 'Doctor retrieved successfully');
     }
     
+=======
+    /**
+     * @param Collection $doctors
+     */
+   private function availableDoctors(Collection &$doctors)
+{
+// Assuming you have Eloquent models for the tables `Doctor`, `DoctorSpeciality`, and `Speciality`
+
+    // Iterate over the doctors and load their specialties
+    $doctors->each(function ($doctor) {
+        // Get the specialties for each doctor
+        $doctor->specialities = Speciality::whereIn('id',
+            DoctorSpeciality::where('doctor_id', $doctor->id)
+                ->pluck('speciality_id')
+        )->pluck('name');
+    });
+    return $doctors;
+}
+
+
+    /**
+     * @param Request $request
+     * @param Collection $doctors
+     */
+    private function hasValidSubscription(Request $request, Collection &$doctors)
+    {
+	    return true;
+        if (Module::isActivated('Subscription')) {
+            $doctors = $doctors->filter(function ($element) {
+                return $element->clinic->hasValidSubscription && $element->clinic->accepted;
+            });
+        } else {
+            $doctors = $doctors->filter(function ($element) {
+                return $element->clinic->accepted;
+            });
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @param Collection $doctors
+     */
+    private function orderByRating(Request $request, Collection &$doctors)
+    {
+        if ($request->has('rating')) {
+            $doctors = $doctors->sortBy('rate', SORT_REGULAR, true);
+        }
+    }
+
+    /**
+     * Display the specified Doctor.
+     * GET|HEAD /doctors/{id}
+     *
+     * @param Request $request
+     * @param int $id
+     *
+     * @return JsonResponse
+     */
+public function show(Request $request, int $id): JsonResponse
+{
+    try {
+        $this->doctorRepository->pushCriteria(new RequestCriteria($request));
+        $this->doctorRepository->pushCriteria(new LimitOffsetCriteria($request));
+    } catch (RepositoryException $e) {
+        return $this->sendError($e->getMessage());
+    }
+
+    // Eager load the 'address' relationship with the doctor
+    $doctor = $this->doctorRepository->with('address')->findWithoutFail($id);
+
+    if (empty($doctor)) {
+        return $this->sendError('Doctor not found');
+    }
+
+    // Optionally, handle API token and authentication if provided
+    if ($request->has('api_token')) {
+        $user = $this->userRepository->findByField('api_token', $request->input('api_token'))->first();
+        if (!empty($user)) {
+            auth()->login($user, true);
+        }
+    }
+
+
+    // Return the doctor data, now including the address
+    return $this->sendResponse($doctor->toArray(), 'Doctor retrieved successfully');
+}
+
+>>>>>>> merging_dev_agendabranch
 
     /**
      * Store a newly created Doctor in storage.
