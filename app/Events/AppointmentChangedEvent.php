@@ -26,11 +26,7 @@ class AppointmentChangedEvent
     public function __construct($appointment)
     {
         $this->appointment = $appointment;
-<<<<<<< HEAD
         //parent::__construct();
-=======
-        parent::__construct();
->>>>>>> merging_dev_agendabranch
     }
 
 

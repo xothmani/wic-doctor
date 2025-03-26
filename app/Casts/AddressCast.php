@@ -10,10 +10,9 @@ namespace App\Casts;
 
 use App\Models\Address;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
-<<<<<<< HEAD
+
 use Log;
-=======
->>>>>>> merging_dev_agendabranch
+
 
 /**
  * Class AddressCast
@@ -27,7 +26,6 @@ class AddressCast implements CastsAttributes
      */
     public function get($model, string $key, $value, array $attributes): Address
     {
-<<<<<<< HEAD
         if($value != null) {
             $decodedValue = json_decode($value, true);
             $address = Address::find($decodedValue['id']);
@@ -40,19 +38,7 @@ class AddressCast implements CastsAttributes
             return $address;
         }else{
             return new Address();
-        }
-        
-=======
-        $decodedValue = json_decode($value, true);
-        $address = Address::find($decodedValue['id']);
-        if (!empty($address)) {
-            return $address;
-        }
-        $address = new Address($decodedValue);
-        $address->fillable[] = 'id';
-        $address->id = $decodedValue['id'];
-        return $address;
->>>>>>> merging_dev_agendabranch
+        }     
     }
 
     /**
