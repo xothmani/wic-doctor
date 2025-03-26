@@ -22,6 +22,7 @@ class DoctorPermissionController extends Controller
         }
 
         $associatedUsers = DoctorAssociate::where('doctor_id', $doctor->id)
+            ->whereHas('user') // assure que 'user' existe
             ->with('user.roles.permissions')
             ->get();
 
