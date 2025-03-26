@@ -398,43 +398,42 @@ public function index(Request $request)
 {
     $user = auth()->user();
     $isDoctor = $user->doctor !== null;
-    $isPatient = $user->patient !== null; // Vérifie si l'utilisateur est un patient
 
-    // Récupération des conversations avec dernier message
+    // Initialisation des variables
     $conversations = [];
-    $patients = collect(); // Initialize the $patients variable
+    $patients = collect(); // Initialisation pour éviter l'erreur
+    $relationships = collect(); // Initialisation pour éviter l'erreur
 
     if ($isDoctor) {
         $relationships = DoctorPatients::where('doctor_id', $user->doctor->id)
             ->with(['patient.user'])
             ->get();
-        
+
         // Assign patients to the variable
         $patients = $relationships->map(function ($rel) {
             return $rel->patient;
         });
-
-    } elseif ($isPatient) { // Ajout de la condition pour les patients
-        $relationships = DoctorPatients::where('patient_id', $user->patient->id)
-            ->with(['doctor.user'])
-            ->get();
     } else {
-        $relationships = collect(); // Si ce n'est ni un patient ni un docteur, on initialise à vide
+        // Vérifie si l'utilisateur a bien un patient
+        $patientId = $user->patient->id ?? null;
+        if ($patientId) {
+            $relationships = DoctorPatients::where('patient_id', $patientId)
+                ->with(['doctor.user'])
+                ->get();
+        }
     }
 
     foreach ($relationships as $rel) {
         $target = $isDoctor ? $rel->patient : $rel->doctor;
-        
-        // Vérification que la relation contient bien un utilisateur
-        if (!$target || !$target->user) {
-            continue;
+        $otherUser = $target->user ?? null; // Vérifie si user existe
+
+        if (!$otherUser) {
+            continue; // Ignore cette relation si pas d'utilisateur
         }
 
-        $otherUser = $target->user;
-
         // Récupération dernier message depuis Firestore
-        $chatId = $user->id < $otherUser->id 
-            ? $user->id . '-' . $otherUser->id 
+        $chatId = $user->id < $otherUser->id
+            ? $user->id . '-' . $otherUser->id
             : $otherUser->id . '-' . $user->id;
 
         $messages = $this->firestore->getDocuments("messages/{$chatId}/chats");
@@ -468,6 +467,7 @@ public function index(Request $request)
         'isDoctor' => $isDoctor
     ]);
 }
+
 
 
     
