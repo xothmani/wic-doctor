@@ -82,11 +82,7 @@ class Doctor extends Model implements HasMedia, Castable
         'description',
     ];
     public $table = 'doctors';
-<<<<<<< HEAD
 
-
-=======
->>>>>>> merging_dev_agendabranch
     public $fillable = [
         'name',
         'price',
@@ -102,27 +98,16 @@ class Doctor extends Model implements HasMedia, Castable
         'session_duration',
         'clinic_id',
         'user_id',
-<<<<<<< HEAD
-	    'matricule_CNAM',
-	    'diplome',
-=======
         'matricule_CNAM',
         'diplome',
->>>>>>> merging_dev_agendabranch
         'numOrdre',
         'tele_price_tnd',
         'tele_price_eur',
         'id_aleatoire',
         'sexe',
-<<<<<<< HEAD
-        'code_parent',  
-        'code_doctor',
-	    'fixe',
-=======
         'code_parent',
         'code_doctor',
         'fixe',
->>>>>>> merging_dev_agendabranch
         'facebook',
         'instagram',
         'site_web',
@@ -131,11 +116,7 @@ class Doctor extends Model implements HasMedia, Castable
         'payment_methods',
         'langues_parlees',
         'num_france',
-<<<<<<< HEAD
-        'api_key', 
-=======
         'api_key',
->>>>>>> merging_dev_agendabranch
         'cabinet_photo',
         'pourcentage_avatar',
         'pourcentage_adresse',
@@ -143,12 +124,9 @@ class Doctor extends Model implements HasMedia, Castable
         'pourcentage_cabinet',
         'pourcentage_profil',
         'pourcentage_tags',
-<<<<<<< HEAD
-        'verif_chart',   
-=======
         'verif_chart',
-        'availability_mode'      
->>>>>>> merging_dev_agendabranch
+        'verif_chart',
+        'availability_mode'
     ];
     /**
      * The attributes that should be casted to native types.
@@ -195,22 +173,12 @@ class Doctor extends Model implements HasMedia, Castable
         "updated_at",
     ];
 
-<<<<<<< HEAD
-
-
-
-
-=======
->>>>>>> merging_dev_agendabranch
     /**
      * @param array $arguments
      * @return string
      */
-<<<<<<< HEAD
-    public static function castUsing(array $arguments):string
-=======
+
     public static function castUsing(array $arguments): string
->>>>>>> merging_dev_agendabranch
     {
         return DoctorCast::class;
     }
@@ -246,12 +214,9 @@ class Doctor extends Model implements HasMedia, Castable
         } else {
             return asset(config('media-library.icons_folder') . '/' . $extension . '.png');
         }
-<<<<<<< HEAD
-    } public function getCodeParrainAttribute()
-=======
+
     }
     public function getCodeParrainAttribute()
->>>>>>> merging_dev_agendabranch
     {
         return $this->attributes['code_parent'];
     }
@@ -276,11 +241,8 @@ class Doctor extends Model implements HasMedia, Castable
         return convertToAssoc($array, 'name');
     }
 
-<<<<<<< HEAD
-     public function customFieldsValues(): MorphMany
-=======
+
     public function customFieldsValues(): MorphMany
->>>>>>> merging_dev_agendabranch
     {
         return $this->morphMany('App\Models\CustomFieldValue', 'customizable');
     }
@@ -294,77 +256,7 @@ class Doctor extends Model implements HasMedia, Castable
         return $this->hasMedia('image');
     }
 
-<<<<<<< HEAD
- 
 
-public function openingHours(): OpeningHours
-{
-    // Mapping des jours français vers les jours anglais
-    $joursMapping = [
-        'Lundi' => 'monday',
-        'Mardi' => 'tuesday',
-        'Mercredi' => 'wednesday',
-        'Jeudi' => 'thursday',
-        'Vendredi' => 'friday',
-        'Samedi' => 'saturday',
-        'Dimanche' => 'sunday',
-    ];
-
-    $openingHoursArray = [];
-
-    foreach ($this->availabilityHours as $element) {
-        /** Code trouvé -> error ttranslate day (hamza) 
-        // Vérifier si le jour est valide
-        if (!isset($joursMapping[$element['day']])) {
-            throw new \Exception("Jour invalide : {$element['day']}");
-        }
-
-        // Convertir le jour en anglais
-        $dayInEnglish = $joursMapping[$element['day']];*/
-
-
-        /***** Correction par hamza ( à vérifier ) */
-        $dayInEnglish = '';
-        // Vérifier si le jour est valide
-        if (!isset($joursMapping[$element['day']])) {
-            if(in_array($element['day'], $joursMapping)){
-                $dayInEnglish = $element['day'];
-            }else{
-                throw new \Exception("Jour invalide : {$element['day']}");
-            }
-        }else{
-            $dayInEnglish = $joursMapping[$element['day']];
-        }
-        /***** End code hamza */
-
-        // Convertir les horaires au format H:i-H:i
-        $timeRange = \Carbon\Carbon::parse($element['start_at'])->format('H:i') . '-' .
-                     \Carbon\Carbon::parse($element['end_at'])->format('H:i');
-
-        // Ajouter l'horaire à la liste
-        $openingHoursArray[$dayInEnglish][] = $timeRange;
-    }
-
-    // Créer l'objet OpeningHours
-    return OpeningHours::createAndMergeOverlappingRanges($openingHoursArray);
-}
-
-   /* public function openingHours(): OpeningHours
-{
-    $openingHoursArray = [];
-    foreach ($this->availabilityHours as $element) {
-        // Extract only the time portion in H:i format
-        $startTime = Carbon::parse($element['start_at'])->format('H:i');
-        $endTime = Carbon::parse($element['end_at'])->format('H:i');
-
-        $openingHoursArray[$element['day']] = [
-            'data' => $element['data'],
-            "{$startTime}-{$endTime}"
-        ];
-    }
-    return OpeningHours::createAndMergeOverlappingRanges($openingHoursArray);
-}*/
-=======
 
     public function openingHours(): OpeningHours
     {
@@ -432,7 +324,7 @@ public function openingHours(): OpeningHours
      }
      return OpeningHours::createAndMergeOverlappingRanges($openingHoursArray);
  }*/
->>>>>>> merging_dev_agendabranch
+
 
     public function scopeNear($query, $latitude, $longitude, $areaLatitude, $areaLongitude)
     {
@@ -453,11 +345,9 @@ public function openingHours(): OpeningHours
         }
 
         return $query
-<<<<<<< HEAD
-            ->join('clinics','doctors.clinic_id','=','clinics.id')
-=======
+
             ->join('clinics', 'doctors.clinic_id', '=', 'clinics.id')
->>>>>>> merging_dev_agendabranch
+
             ->join('addresses', 'clinics.address_id', '=', 'addresses.id')
             ->whereRaw("$distance < clinics.availability_range")
             ->select(DB::raw($distance . " AS distance"), DB::raw($area . " AS area"), "doctors.*")
@@ -494,239 +384,22 @@ public function openingHours(): OpeningHours
     /**
      * get each range of doctor duration in min with open/close clinic
      */
-<<<<<<< HEAD
-public function weekCalendarRange(Carbon $date, string $typeConsultation, $mode="open", $pattern_id=0): array
-{
-    Log::info("Checking type consultation (show availibility_hours) **", [
-        'typeConsultation' => $typeConsultation,
-        'pattern_id' => $pattern_id,
-        'availabilityHours' => $this->availabilityHours
-    ]);
 
-    log::info("SESSION DURATION-------------WeekCalendarRange----------------1");
-    if (isset($this->availabilityHours[0])) {
-        $doctorDurationMinutes = $this->parseTime($this->availabilityHours[0]->session_duration);
-    } else {
-        Log::error('Availability hours array is empty or undefined.');
-        return [];
-    }
-    $doctorDurationMinutes = $this->parseTime($this->availabilityHours[0]->session_duration);
-    $period = CarbonPeriod::since($date->subDay()->ceilDay())
-        ->minutes($doctorDurationMinutes)
-        ->until($date->addDay()->ceilDay()->subMinutes($doctorDurationMinutes));
-
-    $dates = [];
-    $now = Carbon::now($date->timezone);
-    log::info("SESSION DURATION-------------WeekCalendarRange----------------2");
-    Log::info('----------Period', [
-        'date' => $date,
-        'period'=>$period
-    ]);
-
-    foreach ($period as $d) {
-        $isOpen = $this->openingHours()->isOpenAt($d);
-        $times = $d->locale('en')->toIso8601String();
-        $isPast = $d->lessThan($now);
-        $dates[] = [$times, $isOpen, $isPast];
-    }
-    log::info("SESSION DURATION-------------WeekCalendarRange----------------3");
-    $vacance = $this->vacance($date);
-
-    log::info("SESSION DURATION-------------WeekCalendarRange----------------4");
-    foreach ($dates as &$timeSlot) {
-        log::info("SESSION DURATION-------------WeekCalendarRange----------------5");
-        // Log each time slot for debugging
-        Log::info('Checking Time Slot', [
-            'time' => $timeSlot[0],
-            'is_open' => $timeSlot[1],
-            'is_past' => $timeSlot[2]
+    public function weekCalendarRange(Carbon $date, string $typeConsultation, $mode = "open", $pattern_id = 0): array
+    {
+        Log::info("Checking type consultation (show availibility_hours) **", [
+            'typeConsultation' => $typeConsultation,
+            'pattern_id' => $pattern_id,
+            'availabilityHours' => $this->availabilityHours
         ]);
 
-        if (!$timeSlot[2] && $timeSlot[1]) { // Only check future time slots and open clinic hours
-            log::info("SESSION DURATION-------------WeekCalendarRange----------------6");
-            $startTime = new Carbon($timeSlot[0]);
-            $endTime = (clone $startTime)->addMinutes($doctorDurationMinutes);
-
-            log::info("SESSION DURATION-------------WeekCalendarRange----------------7");
-            $appointmentsExist = Appointment::where('doctor_id', $this->id)
-                ->where('start_at', '>=', $startTime)
-                ->where('ends_at', '<=', $endTime)
-                ->where('cancel', '<>', 1)
-                ->where('appointment_status_id', '>', 0)
-                ->exists(); //need false (check if exist an appointment in this time)
-
-            log::info("SESSION DURATION-------------WeekCalendarRange----------------8");
-            //Need true ( Check if there are time slot available at this time and have same type of consultation)
-            $iSameType = false;
-            if($mode == "precise" && $pattern_id != 0){
-                log::info("SESSION DURATION-------------WeekCalendarRange----------------9");
-                Log::info('isOnlineAvailable -> IsSameType Function', [
-                    'Precise pattern' => $iSameType
-                ]);
-                $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation, $mode, $pattern_id);
-            }else{
-                log::info("SESSION DURATION-------------WeekCalendarRange----------------10");
-                Log::info('isOnlineAvailable -> IsSameType Function Else', [
-                    'Precise pattern' => $iSameType
-                ]);
-                $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation);
-            }
-            
-            log::info("SESSION DURATION-------------WeekCalendarRange----------------11");
-            Log::info('isOnlineAvailable', [
-                'iSameTypeXC' => $iSameType
-            ]);
-
-            $timeSlot[1] = !$appointmentsExist && $iSameType && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation);
-        }else{
-            log::info("SESSION DURATION-------------WeekCalendarRange----------------12");
+        log::info("SESSION DURATION-------------WeekCalendarRange----------------1");
+        if (isset($this->availabilityHours[0])) {
+            $doctorDurationMinutes = $this->parseTime($this->availabilityHours[0]->session_duration);
+        } else {
+            Log::error('Availability hours array is empty or undefined.');
+            return [];
         }
-    }
-    unset($timeSlot);
-    // Log final calendar for debugging
-    Log::info('Final Calendar', ['dates' => $dates]);
-
-    return $dates;
-}
-
-
-public function vacance(Carbon $date): bool
-{
-    // Query the 'vacance' table to find any vacation periods for the doctor
-    $vacances = DB::table('vacance')
-        ->where('doctor_id', $this->id)
-        ->where('start_date', '<=', $date->toDateString())  // Start date is less than or equal to the given date
-        ->where('end_date', '>=', $date->toDateString())   // End date is greater than or equal to the given date
-        ->exists(); // Check if any matching records exist
-
-    // Return true if the doctor is on vacation, false otherwise
-    return $vacances;
-}
-
-
-
-public function isUrgent(Carbon $date, Carbon $startTime, Carbon $endTime): bool
-{
-
-    // Query the 'doctor_urgency' table to find any urgency periods for the doctor on the given day
-    $urgency = DB::table('doctor_urgency')
-        ->where('doctor_id', $this->id)
-        ->whereDate('jour', '=', $date->toDateString()) // Check for matching day
-        ->whereTime('heurDebut', '<', $endTime->toTimeString())  // Check if time is after or equal to heurDebut
-        ->whereTime('heurFin', '>', $startTime->toTimeString())   // Check if time is before or equal to heurFin
-        ->exists(); // Check if any matching records exist
-
-    // Return true if the current time is during an urgent period, false otherwise
-    return $urgency;
-}
-
-
-public function isSameType(Carbon $date, Carbon $startTime, Carbon $endTime, string $typeConsultation, string $mode= "open", $pattern_id=0): bool
-{
-    Log::info("Checking type consultation (show availibility_hours) **", [
-        'typeConsultation' => $typeConsultation,
-        'pattern_id' => $pattern_id
-    ]);
-    // Get the day name in French and capitalize the first letter
-    $dayName = ucfirst($date->locale('fr')->dayName);
-    $convertDay = [
-        "Lundi" => "monday",
-        "Mardi" => "tuesday",
-        "Mercredi" => "wednesday",
-        "Jeudi" => "thursday",
-        "Vendredi" => "friday",
-        "Samedi" => "saturday",
-        "Dimanche" => "sunday",
-    ];
-      // Log the day name for debugging
-
-    // Query the 'availability_hours' table to find the doctor's availability and online status
-    $onlineStatus = false;
-    if($mode == "precise" && $pattern_id != 0){
-        Log::info("Mode précise");
-        $onlineStatus = DB::table('availability_hours')
-        ->where('doctor_id', $this->id)
-        ->where('day', '=', $convertDay[$dayName])  // Match the day name (with first letter uppercase)
-        ->whereTime('start_at', '<=', $endTime->toTimeString())  // Check if end time is after or equal to start_at
-        ->whereTime('end_at', '>=', $startTime->toTimeString())  // Check if start time is before or equal to end_at
-        ->where('type', '=', $typeConsultation)
-        ->where('mode','=', $mode)
-        ->where('patern_id', '=', $pattern_id)
-	    ->where('is_available', '=', 1)  // Check if the online status matches
-        ->exists();  // Check if any matching records exist
-        
-    }else{
-        Log::info("Mode open");
-        $onlineStatus = DB::table('availability_hours')
-        ->where('doctor_id', $this->id)
-        ->where('day', '=', $convertDay[$dayName])  // Match the day name (with first letter uppercase)
-        ->whereTime('start_at', '<=', $endTime->toTimeString())  // Check if end time is after or equal to start_at
-        ->whereTime('end_at', '>=', $startTime->toTimeString())  // Check if start time is before or equal to end_at
-        ->where('type', '=', $typeConsultation)
-	    ->where('is_available', '=', 1)  // Check if the online status matches
-        ->exists();  // Check if any matching records exist
-    }
-    
-
-    Log::info('Day name fetched', 
-        ['dayName' => $convertDay[$dayName], 
-        'date' => $date, 
-        'start time' => $startTime,
-        'end time' => $endTime,
-        'type consultation' => $typeConsultation,
-        'id doctor' => $this->id]);
-
-    // Return true if the doctor is available online during the given time, false otherwise
-    return $onlineStatus;
-}
-
-public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Carbon $endTime, string $typeConsultation): bool
-{
-
-    $convertDay = [
-        "Lundi" => "monday",
-        "Mardi" => "tuesday",
-        "Mercredi" => "wednesday",
-        "Jeudi" => "thursday",
-        "Vendredi" => "friday",
-        "Samedi" => "saturday",
-        "Dimanche" => "sunday",
-    ];
-
-    // Get the day name in French with proper capitalization
-    $dayName = ucfirst($date->translatedFormat('l'));
-    $dayName = $convertDay[$dayName];
-    
-    // Log the parameters and day name for debugging
-    Log::info("Checking pause collision for doctor: {$this->id}, Day: $dayName, Start Time: {$startTime->toTimeString()}, End Time: {$endTime->toTimeString()}, Online: $typeConsultation");
-
-    // Check for collision directly in SQL
-    $collisionExists = DB::table('availability_hours')
-        ->where('doctor_id', $this->id)
-        ->whereRaw('LOWER(day) = ?', [strtolower($dayName)]) // Ensure day is matched correctly
-        ->whereNotNull('pause_from')
-        ->whereNotNull('pause_to')
-        ->where('type', '=', $typeConsultation)
-        ->where(function ($query) use ($startTime, $endTime) {
-            $query->where(function ($q) use ($startTime, $endTime) {
-                // Check if the session time overlaps with the pause period
-                $q->where('pause_from', '<=', $endTime)
-                  ->where('pause_to', '>=', $startTime);
-            });
-        })
-        ->exists();
-
-    // Log the result of the query for debugging
-    Log::info("Collision Check Result: " . ($collisionExists ? 'Collision Found' : 'No Collision'));
-
-    return $collisionExists;
-}
-=======
-    public function weekCalendarRange(Carbon $date, bool $online): array
-    {
-
-        log::info("SESSION DURATION-------------");
-        log::info($this->availabilityHours[0]->session_duration);
         $doctorDurationMinutes = $this->parseTime($this->availabilityHours[0]->session_duration);
         $period = CarbonPeriod::since($date->subDay()->ceilDay())
             ->minutes($doctorDurationMinutes)
@@ -734,7 +407,7 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
 
         $dates = [];
         $now = Carbon::now($date->timezone);
-
+        log::info("SESSION DURATION-------------WeekCalendarRange----------------2");
         Log::info('----------Period', [
             'date' => $date,
             'period' => $period
@@ -746,11 +419,12 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
             $isPast = $d->lessThan($now);
             $dates[] = [$times, $isOpen, $isPast];
         }
-
+        log::info("SESSION DURATION-------------WeekCalendarRange----------------3");
         $vacance = $this->vacance($date);
 
-
+        log::info("SESSION DURATION-------------WeekCalendarRange----------------4");
         foreach ($dates as &$timeSlot) {
+            log::info("SESSION DURATION-------------WeekCalendarRange----------------5");
             // Log each time slot for debugging
             Log::info('Checking Time Slot', [
                 'time' => $timeSlot[0],
@@ -759,29 +433,43 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
             ]);
 
             if (!$timeSlot[2] && $timeSlot[1]) { // Only check future time slots and open clinic hours
+                log::info("SESSION DURATION-------------WeekCalendarRange----------------6");
                 $startTime = new Carbon($timeSlot[0]);
                 $endTime = (clone $startTime)->addMinutes($doctorDurationMinutes);
 
-                // Log appointment checking process
-                Log::info('Checking for appointments', [
-                    'start_time' => $startTime,
-                    'end_time' => $endTime
-                ]);
-
+                log::info("SESSION DURATION-------------WeekCalendarRange----------------7");
                 $appointmentsExist = Appointment::where('doctor_id', $this->id)
                     ->where('start_at', '>=', $startTime)
                     ->where('ends_at', '<=', $endTime)
                     ->where('cancel', '<>', 1)
                     ->where('appointment_status_id', '>', 0)
-                    ->exists();
+                    ->exists(); //need false (check if exist an appointment in this time)
 
-                Log::info('Final Time Slot Data', [
-                    'time' => $timeSlot[0],
-                    'is_open' => $timeSlot[1],
-                    'is_past' => $timeSlot[2],
-                    'appointments_exist' => $appointmentsExist
+                log::info("SESSION DURATION-------------WeekCalendarRange----------------8");
+                //Need true ( Check if there are time slot available at this time and have same type of consultation)
+                $iSameType = false;
+                if ($mode == "precise" && $pattern_id != 0) {
+                    log::info("SESSION DURATION-------------WeekCalendarRange----------------9");
+                    Log::info('isOnlineAvailable -> IsSameType Function', [
+                        'Precise pattern' => $iSameType
+                    ]);
+                    $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation, $mode, $pattern_id);
+                } else {
+                    log::info("SESSION DURATION-------------WeekCalendarRange----------------10");
+                    Log::info('isOnlineAvailable -> IsSameType Function Else', [
+                        'Precise pattern' => $iSameType
+                    ]);
+                    $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation);
+                }
+
+                log::info("SESSION DURATION-------------WeekCalendarRange----------------11");
+                Log::info('isOnlineAvailable', [
+                    'iSameTypeXC' => $iSameType
                 ]);
-                $timeSlot[1] = !$appointmentsExist && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && $this->isOnlineAvailable($date, $startTime, $endTime, $online) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $online);
+
+                $timeSlot[1] = !$appointmentsExist && $iSameType && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation);
+            } else {
+                log::info("SESSION DURATION-------------WeekCalendarRange----------------12");
             }
         }
         unset($timeSlot);
@@ -791,13 +479,14 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
         return $dates;
     }
 
+
     public function vacance(Carbon $date): bool
     {
         // Query the 'vacance' table to find any vacation periods for the doctor
         $vacances = DB::table('vacance')
             ->where('doctor_id', $this->id)
-            ->where('dateDebut', '<=', $date->toDateString())  // Start date is less than or equal to the given date
-            ->where('dateFin', '>=', $date->toDateString())   // End date is greater than or equal to the given date
+            ->where('start_date', '<=', $date->toDateString())  // Start date is less than or equal to the given date
+            ->where('end_date', '>=', $date->toDateString())   // End date is greater than or equal to the given date
             ->exists(); // Check if any matching records exist
 
         // Return true if the doctor is on vacation, false otherwise
@@ -822,33 +511,88 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
     }
 
 
-    public function isOnlineAvailable(Carbon $date, Carbon $startTime, Carbon $endTime, bool $online): bool
+    public function isSameType(Carbon $date, Carbon $startTime, Carbon $endTime, string $typeConsultation, string $mode = "open", $pattern_id = 0): bool
     {
+        Log::info("Checking type consultation (show availibility_hours) **", [
+            'typeConsultation' => $typeConsultation,
+            'pattern_id' => $pattern_id
+        ]);
         // Get the day name in French and capitalize the first letter
         $dayName = ucfirst($date->locale('fr')->dayName);
-        Log::info($dayName);  // Log the day name for debugging
+        $convertDay = [
+            "Lundi" => "monday",
+            "Mardi" => "tuesday",
+            "Mercredi" => "wednesday",
+            "Jeudi" => "thursday",
+            "Vendredi" => "friday",
+            "Samedi" => "saturday",
+            "Dimanche" => "sunday",
+        ];
+        // Log the day name for debugging
 
         // Query the 'availability_hours' table to find the doctor's availability and online status
-        $onlineStatus = DB::table('availability_hours')
-            ->where('doctor_id', $this->id)
-            ->where('day', '=', $dayName)  // Match the day name (with first letter uppercase)
-            ->whereTime('start_at', '<=', $endTime->toTimeString())  // Check if end time is after or equal to start_at
-            ->whereTime('end_at', '>=', $startTime->toTimeString())  // Check if start time is before or equal to end_at
-            ->where('onligne', '=', $online)
-            ->where('is_available', '=', 1)  // Check if the online status matches
-            ->exists();  // Check if any matching records exist
+        $onlineStatus = false;
+        if ($mode == "precise" && $pattern_id != 0) {
+            Log::info("Mode précise");
+            $onlineStatus = DB::table('availability_hours')
+                ->where('doctor_id', $this->id)
+                ->where('day', '=', $convertDay[$dayName])  // Match the day name (with first letter uppercase)
+                ->whereTime('start_at', '<=', $endTime->toTimeString())  // Check if end time is after or equal to start_at
+                ->whereTime('end_at', '>=', $startTime->toTimeString())  // Check if start time is before or equal to end_at
+                ->where('type', '=', $typeConsultation)
+                ->where('mode', '=', $mode)
+                ->where('patern_id', '=', $pattern_id)
+                ->where('is_available', '=', 1)  // Check if the online status matches
+                ->exists();  // Check if any matching records exist
+
+        } else {
+            Log::info("Mode open");
+            $onlineStatus = DB::table('availability_hours')
+                ->where('doctor_id', $this->id)
+                ->where('day', '=', $convertDay[$dayName])  // Match the day name (with first letter uppercase)
+                ->whereTime('start_at', '<=', $endTime->toTimeString())  // Check if end time is after or equal to start_at
+                ->whereTime('end_at', '>=', $startTime->toTimeString())  // Check if start time is before or equal to end_at
+                ->where('type', '=', $typeConsultation)
+                ->where('is_available', '=', 1)  // Check if the online status matches
+                ->exists();  // Check if any matching records exist
+        }
+
+
+        Log::info(
+            'Day name fetched',
+            [
+                'dayName' => $convertDay[$dayName],
+                'date' => $date,
+                'start time' => $startTime,
+                'end time' => $endTime,
+                'type consultation' => $typeConsultation,
+                'id doctor' => $this->id
+            ]
+        );
 
         // Return true if the doctor is available online during the given time, false otherwise
         return $onlineStatus;
     }
 
-    public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Carbon $endTime, bool $online): bool
+    public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Carbon $endTime, string $typeConsultation): bool
     {
+
+        $convertDay = [
+            "Lundi" => "monday",
+            "Mardi" => "tuesday",
+            "Mercredi" => "wednesday",
+            "Jeudi" => "thursday",
+            "Vendredi" => "friday",
+            "Samedi" => "saturday",
+            "Dimanche" => "sunday",
+        ];
+
         // Get the day name in French with proper capitalization
         $dayName = ucfirst($date->translatedFormat('l'));
+        $dayName = $convertDay[$dayName];
 
         // Log the parameters and day name for debugging
-        Log::info("Checking pause collision for doctor: {$this->id}, Day: $dayName, Start Time: {$startTime->toTimeString()}, End Time: {$endTime->toTimeString()}, Online: $online");
+        Log::info("Checking pause collision for doctor: {$this->id}, Day: $dayName, Start Time: {$startTime->toTimeString()}, End Time: {$endTime->toTimeString()}, Online: $typeConsultation");
 
         // Check for collision directly in SQL
         $collisionExists = DB::table('availability_hours')
@@ -856,7 +600,7 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
             ->whereRaw('LOWER(day) = ?', [strtolower($dayName)]) // Ensure day is matched correctly
             ->whereNotNull('pause_from')
             ->whereNotNull('pause_to')
-            ->where('onligne', '=', $online)
+            ->where('type', '=', $typeConsultation)
             ->where(function ($query) use ($startTime, $endTime) {
                 $query->where(function ($q) use ($startTime, $endTime) {
                     // Check if the session time overlaps with the pause period
@@ -871,7 +615,7 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
 
         return $collisionExists;
     }
->>>>>>> merging_dev_agendabranch
+
 
 
 
@@ -919,11 +663,9 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
      */
     public function getRateAttribute(): float
     {
-<<<<<<< HEAD
-        return (float)$this->doctorReviews()->avg('rate');
-=======
+
         return (float) $this->doctorReviews()->avg('rate');
->>>>>>> merging_dev_agendabranch
+
     }
 
     /**
@@ -957,16 +699,10 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
      **/
     public function specialities()
     {
-<<<<<<< HEAD
-        return $this->belongsToMany(Speciality::class, 'doctor_specialities', 'doctor_id', 'speciality_id')->withPivot('description');;
-    }
-    
-=======
+
         return $this->belongsToMany(Speciality::class, 'doctor_specialities', 'doctor_id', 'speciality_id')->withPivot('description');
         ;
     }
-
->>>>>>> merging_dev_agendabranch
     /**
      * @return float
      */
@@ -1004,27 +740,7 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
         return $this->belongsToMany(Patient::class, 'doctor_patients');
     }
 
-<<<<<<< HEAD
-  public function address()
-    {
-        return $this->hasOne(Address::class, 'user_id', 'user_id');
-    }
-// Définir la relation avec les diplômes
-public function diplomes()
-{
-    return $this->hasMany(DoctorDiplome::class);
 
-}
-public function getTotalPourcentage()
-{
-    return $this->pourcentage_avatar +
-           $this->pourcentage_adresse +
-           $this->pourcentage_cv +
-           $this->pourcentage_cabinet +
-           $this->pourcentage_tags +
-           $this->pourcentage_profil;
-}
-=======
     public function address()
     {
         return $this->hasOne(Address::class, 'user_id', 'user_id');
@@ -1044,7 +760,7 @@ public function getTotalPourcentage()
             $this->pourcentage_tags +
             $this->pourcentage_profil;
     }
->>>>>>> merging_dev_agendabranch
+
 
 
 }

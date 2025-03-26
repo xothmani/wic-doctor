@@ -88,8 +88,6 @@ return [
         public_path('storage') => storage_path('app/public'),
     ],
 
-<<<<<<< HEAD
+
 ];
-=======
-];
->>>>>>> merging_dev_agendabranch
+

@@ -18,12 +18,9 @@ use Benwilkins\FCM\FcmMessage;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use GuzzleHttp\Client;
 use App\Notifications\StatusChangedAppointment;
-<<<<<<< HEAD
 use App\Events\AppointmentChangedEvent;
 use App\Events\AppointmentStatusChangedEvent;
 
-=======
->>>>>>> merging_dev_agendabranch
 class AppointmentEventController extends Controller
 {
 
@@ -417,22 +414,7 @@ class AppointmentEventController extends Controller
             $appointment->appointment_status_id = $request->appointment_status_id;
             $appointment->save();
 
-<<<<<<< HEAD
-            /*** Send notification FCM code hamza ***/
-            Log::info("Notification envoyé NotificationController Status changed event");
-            //event(new AppointmentChangedEvent($appointment));
-            event(new AppointmentStatusChangedEvent($appointment,$appointment->appointment_status_id,$appointment->user->device_token));
-            /*** End send notification fcm */
 
-            /*if ($appointment->user) {
-                $appointment->user->notify(new StatusChangedAppointment($appointment)); // Erreur de notification ici
-            }*/
-
-            
-
-
-            /*Log::info('Creating message for appointment status update');
-=======
             if ($appointment->user) {
                 $appointment->user->notify(new StatusChangedAppointment($appointment));
             }
@@ -440,7 +422,7 @@ class AppointmentEventController extends Controller
             //Log::info('Creating message for appointment status update');
             // Log the message creation
             //Log::info('Creating message for appointment status update');
->>>>>>> merging_dev_agendabranch
+
             if ($appointment->appointment_status_id < 2) {
                 $message = $this->createMessageForAppointment($appointment, $appointment->doctor_id);
             } else {
@@ -488,11 +470,9 @@ class AppointmentEventController extends Controller
                 }
 
 
-<<<<<<< HEAD
-            }*/
-=======
+
             }
->>>>>>> merging_dev_agendabranch
+
             return response()->json([
                 'message' => 'Status updated successfully',
                 'refresh' => true,
@@ -913,23 +893,7 @@ class AppointmentEventController extends Controller
                 $subQuery->where('doctor_id', $doctor->id);
             });
 
-<<<<<<< HEAD
-            if ($search) {
-                $query->where(function ($subQuery) use ($search) {
-                    $subQuery->whereRaw("
-                        (JSON_VALID(first_name) AND JSON_EXTRACT(first_name, '$.fr') LIKE ?)
-                        OR first_name LIKE ?
-                    ", ["%{$search}%", "%{$search}%"])
-                        ->orWhereRaw("
-                        (JSON_VALID(last_name) AND JSON_EXTRACT(last_name, '$.fr') LIKE ?)
-                        OR last_name LIKE ?
-                    ", ["%{$search}%", "%{$search}%"])
-                        ->orWhere('phone_number', 'like', "%{$search}%");
-                });
-            }
 
-            // Select id and concatenated text fields, limit only if searching
-=======
             // Search by name, phone number, or birthdate
             if ($search) {
                 $query->where(function ($subQuery) use ($search) {
@@ -947,7 +911,7 @@ class AppointmentEventController extends Controller
             }
 
             // Select id, concatenated text fields with birthday
->>>>>>> merging_dev_agendabranch
+
             $patients = $query->select(
                 'id',
                 DB::raw("
@@ -960,20 +924,14 @@ class AppointmentEventController extends Controller
                         WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
                         ELSE last_name 
                     END, ' - ',
-<<<<<<< HEAD
-                    phone_number
-                ) as text
-            ")
-            )
-                ->when($search, fn($q) => $q->limit(20)) // Limit to 20 results only when searching
-=======
+
                     phone_number, ' - ',
                     DATE_FORMAT(date_naissance, '%d/%m/%Y')
                 ) as text
             ")
             )
                 ->when($search, fn($q) => $q->limit(20)) // Limit results when searching
->>>>>>> merging_dev_agendabranch
+
                 ->get();
 
             return response()->json($patients);
@@ -1507,55 +1465,7 @@ class AppointmentEventController extends Controller
 
         // Parse selected date
         $selectedDate = $selectedDate ? Carbon::parse($selectedDate) : Carbon::now();
-<<<<<<< HEAD
-        $dayName = $selectedDate->format('l'); // Get the day name (e.g., Monday)
 
-        // Retrieve all availability slots for the doctor on this day
-        $availabilities = DB::table('availability_hours')
-            ->where('doctor_id', $doctorId)
-            ->where('is_available', 1)
-            ->where('day', $dayName)
-            ->where('mode', 'precise')
-            ->get();
-
-        $totalAvailableSlots = 0;
-        $takenSlots = [];
-
-        foreach ($availabilities as $availability) {
-            // Get start, end time, and session duration
-            $startTime = Carbon::parse($availability->start_at);
-            $endTime = Carbon::parse($availability->end_at);
-            $sessionDuration = (int) $availability->session_duration; // Convert to integer
-
-            // Generate all possible time slots
-            while ($startTime->lessThan($endTime)) {
-                $slotTime = $startTime->format('H:i'); // e.g., 08:00
-                $totalAvailableSlots++;
-
-                // Check if this slot is taken
-                $slotTaken = DB::table('appointments')
-                    ->where('doctor_id', $doctorId)
-                    ->whereDate('start_at', $selectedDate->format('Y-m-d'))
-                    ->whereTime('start_at', $slotTime)
-                    ->whereNotIn('appointment_status_id', [7, 6])
-                    ->exists(); // Check if appointment exists for this slot
-
-                if ($slotTaken) {
-                    $takenSlots[] = $slotTime;
-                }
-
-                // Move to the next slot based on session duration
-                $startTime->addMinutes($sessionDuration);
-            }
-        }
-
-        // Return response
-        return response()->json([
-            'total_appointments' => $totalAvailableSlots,
-            'appointments_taken' => count($takenSlots),
-            'available_slots' => $totalAvailableSlots - count($takenSlots),
-        ]);
-=======
         $dayName = $selectedDate->format('l');
 
         // Get the doctor's availability mode
@@ -1655,7 +1565,7 @@ class AppointmentEventController extends Controller
                 'error' => 'Unsupported availability mode: ' . $availabilityMode
             ]);
         }
->>>>>>> merging_dev_agendabranch
+
     }
 
 

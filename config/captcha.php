@@ -3,11 +3,7 @@ return [
     'secret' => env('NOCAPTCHA_SECRET'),
     'sitekey' => env('NOCAPTCHA_SITEKEY'),
     'options' => [
-        'timeout' => 30, 
-<<<<<<< HEAD
-=======
-	
->>>>>>> merging_dev_agendabranch
+        'timeout' => 30,
 
     ],
 ];
