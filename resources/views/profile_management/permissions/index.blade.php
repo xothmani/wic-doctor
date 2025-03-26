@@ -50,9 +50,11 @@
                         <select id="userDropdown" class="form-control">
                             <option value="" selected disabled>Sélectionner un utilisateur</option>
                             @foreach ($associatedUsers as $association)
-                                <option value="{{ $association->user->id }}" {{ $selectedUserId == $association->user->id ? 'selected' : '' }}>
-                                    {{ $association->user->name }}
-                                </option>
+                                @if ($association->user)
+                                    <option value="{{ $association->user->id }}" {{ $selectedUserId == $association->user->id ? 'selected' : '' }}>
+                                        {{ $association->user->name }}
+                                    </option>
+                                @endif
                             @endforeach
                         </select>
                     </div>
