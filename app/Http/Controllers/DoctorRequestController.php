@@ -426,11 +426,6 @@ private function createDoctor($user, $doctorRequest, $availabilityMode){
     if ($doctorRequest->pays === 'tunisie') {
         $addressData['gouvernorat'] = json_encode(['fr' => $doctorRequest->gouvernorat]);
         $addressData['ville'] = json_encode(['fr' => $doctorRequest->ville]);
-    } elseif ($doctorRequest->pays === 'france') {
-        $addressData['Département'] = json_encode(['fr' => $doctorRequest->departement]);
-        $addressData['Région'] = json_encode(['fr' => $doctorRequest->region]);
-    }
-
         DB::table('addresses')->insert($addressData);
         // Modifier les permissions avant d'exécuter le script Node.js
         shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
@@ -438,6 +433,19 @@ private function createDoctor($user, $doctorRequest, $availabilityMode){
 
         // Exécuter le script Node.js
         $this->executeNodeScript($doctor);
+    } elseif ($doctorRequest->pays === 'france') {
+        $addressData['Département'] = json_encode(['fr' => $doctorRequest->departement]);
+        $addressData['Région'] = json_encode(['fr' => $doctorRequest->region]);
+        DB::table('addresses')->insert($addressData);
+        // Modifier les permissions avant d'exécuter le script Node.js
+        shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
+        shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/WicDoctor/medecin/');
+
+        // Exécuter le script Node.js
+        $this->executeNodeScriptFrance($doctor);
+    }
+
+        
 
 
         return $doctor;
@@ -491,6 +499,67 @@ private function executeNodeScript($doctor)
         file_put_contents($filePath, json_encode([$data], JSON_UNESCAPED_UNICODE));
 
         $command = 'node /var/www/doctor.way-interactive-convergence.com/public/script-detail-med/nodejs.js';
+        exec($command . ' 2>&1', $output, $returnVar);
+
+        if ($returnVar !== 0) {
+            Log::error('Erreur lors de l\'exécution du script Node.js', [
+                'output' => $output,
+                'return_var' => $returnVar,
+            ]);
+        } else {
+            Log::info('Script Node.js exécuté avec succès', ['output' => $output]);
+        }
+}
+
+
+private function executeNodeScriptFrance($doctor)
+{
+    $user = $doctor->user()->with('address')->first(); // Charger l'adresse avec l'utilisateur
+    $experience = $doctor->experience; // Récupérer l'expérience associée au docteur
+
+    // Vérifier si l'adresse est présente et récupérer la ville
+    $address = $user ? $user->address : null;
+    $region = $address ? $address->ville : null;
+    $pays = $address ? $address->pays : null;
+    $département = $address ? $address->Département : null;
+    $adresse_exacte = $address ? $address->Région : null;
+    // Récupérer le titre de l'expérience, si existante
+    $title = $experience ? $experience->title : null;
+    // Récupérer les spécialités du médecin
+    $specialities = $doctor->specialities;
+    // Récupérer les spécialités et construire le tableau
+    $specialitiesData = $specialities->map(function($speciality) {
+        return [
+            'id' => $speciality->id,
+            'name' => json_encode(['fr' => $speciality->name]), // Exemple pour la langue 'fr'
+        ];
+    })->toArray();
+        $filePath = public_path('script-detail-med-france/file.json');
+
+        // Données JSON à écrire
+        $data = [
+    'id_doctor' => $doctor->id,
+    'name' => json_encode(['fr' => $doctor->name]),
+    'doctor_photo' => $doctor->doctor_photo, 
+    'enable_online_consultation' => $doctor->enable_online_consultation, 
+    'description' => $doctor->description, 
+    'horaires' => $doctor->horaires, 
+    'cabinet_photo' => $doctor->cabinet_photo, 
+    'created_at' => $doctor->created_at, 
+    'title' => $title, 
+    'phone_number' => $user ? $user->phone_number : null,
+    'pays' => $pays, 
+    'region' => $region, 
+    'département' => $département,
+    'adresse_exacte' => $adresse_exacte, 
+    'aleatoire' => $doctor->id_aleatoire,
+    'specialities' => $specialitiesData, 
+    'type' => "conventionné", 
+        ];
+
+        file_put_contents($filePath, json_encode([$data], JSON_UNESCAPED_UNICODE));
+
+        $command = 'node /var/www/doctor.way-interactive-convergence.com/public/script-detail-med-france/nodejs.js';
         exec($command . ' 2>&1', $output, $returnVar);
 
         if ($returnVar !== 0) {
