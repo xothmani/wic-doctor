@@ -394,14 +394,14 @@ class PatientDoctorChatController extends Controller
     }
    
     
-    public function index(Request $request)
+public function index(Request $request)
 {
     $user = auth()->user();
     $isDoctor = $user->doctor !== null;
+    $isPatient = $user->patient !== null; // Vérifie si l'utilisateur est un patient
 
     // Récupération des conversations avec dernier message
     $conversations = [];
-
     $patients = collect(); // Initialize the $patients variable
 
     if ($isDoctor) {
@@ -413,9 +413,23 @@ class PatientDoctorChatController extends Controller
         $patients = $relationships->map(function ($rel) {
             return $rel->patient;
         });
-    } 
+
+    } elseif ($isPatient) { // Ajout de la condition pour les patients
+        $relationships = DoctorPatients::where('patient_id', $user->patient->id)
+            ->with(['doctor.user'])
+            ->get();
+    } else {
+        $relationships = collect(); // Si ce n'est ni un patient ni un docteur, on initialise à vide
+    }
+
     foreach ($relationships as $rel) {
         $target = $isDoctor ? $rel->patient : $rel->doctor;
+        
+        // Vérification que la relation contient bien un utilisateur
+        if (!$target || !$target->user) {
+            continue;
+        }
+
         $otherUser = $target->user;
 
         // Récupération dernier message depuis Firestore
@@ -454,6 +468,7 @@ class PatientDoctorChatController extends Controller
         'isDoctor' => $isDoctor
     ]);
 }
+
 
     
 }
