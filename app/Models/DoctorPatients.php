@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Eloquent as Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Class DoctorPatients
@@ -18,7 +19,6 @@ class DoctorPatients extends Model
 
     public $table = 'doctor_patients';
     public $timestamps = false;
-
 
     public $fillable = [
         'doctor_id',
@@ -52,28 +52,46 @@ class DoctorPatients extends Model
      */
     protected $appends = [
         'custom_fields',
-
     ];
 
-     public function customFieldsValues(): MorphMany
+    public function customFieldsValues(): MorphMany
     {
         return $this->morphMany('App\Models\CustomFieldValue', 'customizable');
     }
 
     public function getCustomFieldsAttribute(): array
     {
-        $hasCustomField = in_array(static::class,setting('custom_field_models',[]));
-        if (!$hasCustomField){
+        $hasCustomField = in_array(static::class, setting('custom_field_models', []));
+        if (!$hasCustomField) {
             return [];
         }
         $array = $this->customFieldsValues()
-            ->join('custom_fields','custom_fields.id','=','custom_field_values.custom_field_id')
-            ->where('custom_fields.in_table','=',true)
+            ->join('custom_fields', 'custom_fields.id', '=', 'custom_field_values.custom_field_id')
+            ->where('custom_fields.in_table', '=', true)
             ->get()->toArray();
 
-        return convertToAssoc($array,'name');
+        return convertToAssoc($array, 'name');
     }
 
+    /**
+     * Define the relationship to the Patient model.
+     *
+     * @return BelongsTo
+     */
+    public function patient(): BelongsTo
+    {
+        return $this->belongsTo(Patient::class, 'patient_id');
+    }
+
+    /**
+     * Define the relationship to the Doctor model.
+     *
+     * @return BelongsTo
+     */
+    public function doctor(): BelongsTo
+    {
+        return $this->belongsTo(Doctor::class, 'doctor_id');
+    }
     
     
 }

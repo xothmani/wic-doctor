@@ -326,6 +326,16 @@ class User extends Authenticatable implements HasMedia
      *
      * @return int|null
      */
+        public function doctorPatients()
+{
+    return $this->hasMany(DoctorPatient::class, 'patient_id');
+}
+        public function doctor()
+    {
+        return $this->hasOne(Doctor::class, 'user_id');
+    }
+
+
     public function getActiveDoctorId(): ?int
     {
         if ($this->hasRole('Telesecretary')) {
