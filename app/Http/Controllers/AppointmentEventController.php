@@ -50,7 +50,13 @@ class AppointmentEventController extends Controller
                 ->where('doctor_id', $doctorId)
                 ->select('start_date', 'end_date')
                 ->get();
-
+            $urgencies = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->select('jour', 'heurDebut', 'heurFin', 'reason')
+                ->get()
+                ->map(function ($item) {
+                    return (array) $item; // convert stdClass to array
+                });
             //Log::info("Vacations retrieved", ['vacations' => $vacations]);
 
             if ($request->ajax()) {
@@ -140,9 +146,10 @@ class AppointmentEventController extends Controller
             })->select('id', 'first_name', 'last_name', 'phone_number')->get();
 
             //Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
+            Log::info('Urgencies retrieved for doctor:', ['doctor_id' => $doctorId, 'urgencies' => $urgencies->toArray()]);
 
             // Pass availabilityDays and vacations to the view
-            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations', 'patternsByType', ));
+            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations', 'patternsByType', 'urgencies'));
 
 
         } else {
@@ -164,7 +171,13 @@ class AppointmentEventController extends Controller
                 ->where('doctor_id', $doctorId)
                 ->select('start_date', 'end_date')
                 ->get();
-
+            $urgencies = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->select('jour', 'heurDebut', 'heurFin', 'reason')
+                ->get()
+                ->map(function ($item) {
+                    return (array) $item; // convert stdClass to array
+                });
             $patterns = DB::table('pattern')
                 ->select('id', 'nom')
                 ->where('doctor_id', $doctorId)
@@ -249,7 +262,8 @@ class AppointmentEventController extends Controller
                 'patients',
                 'availabilityDays',
                 'patterns',
-                'vacations'
+                'vacations',
+                'urgencies'
             ));
         }
     }
