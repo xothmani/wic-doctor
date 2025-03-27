@@ -23,7 +23,7 @@ class DoctorPermissionController extends Controller
         }
 
         $associatedUsers = DoctorAssociate::where('doctor_id', $doctor->id)
-            ->with('user.roles.permissions')
+            ->with('user')
             ->get();
 
         $selectedUserId = $request->input('selected_user', null);

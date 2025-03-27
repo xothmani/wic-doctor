@@ -12,6 +12,7 @@ use App\Models\Appointment;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Log;
 
 class AppointmentStatusChangedEvent
 {
@@ -23,7 +24,7 @@ class AppointmentStatusChangedEvent
      * AppointmentChangedEvent constructor.
      * @param $appointment
      */
-    public function __construct($appointment, $status_id,$deviceToken)
+    public function __construct($appointment, $status_id, $deviceToken)
     {
         $this->appointment = $appointment;
         $this->status_id = $status_id;

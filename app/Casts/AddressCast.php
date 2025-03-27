@@ -10,9 +10,7 @@ namespace App\Casts;
 
 use App\Models\Address;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
-
 use Log;
-
 
 /**
  * Class AddressCast
@@ -26,7 +24,7 @@ class AddressCast implements CastsAttributes
      */
     public function get($model, string $key, $value, array $attributes): Address
     {
-        if($value != null) {
+        if ($value != null) {
             $decodedValue = json_decode($value, true);
             $address = Address::find($decodedValue['id']);
             if (!empty($address)) {
@@ -36,9 +34,10 @@ class AddressCast implements CastsAttributes
             $address->fillable[] = 'id';
             $address->id = $decodedValue['id'];
             return $address;
-        }else{
+        } else {
             return new Address();
-        }     
+        }
+
     }
 
     /**
@@ -46,16 +45,18 @@ class AddressCast implements CastsAttributes
      */
     public function set($model, string $key, $value, array $attributes): array
     {
-//        if (!$value instanceof AddressModel) {
+        //        if (!$value instanceof AddressModel) {
 //            throw new InvalidArgumentException('The given value is not an Address instance.');
 //        }
 
-        return ['address' => json_encode([
-            'id' => $value['id'],
-            'description' => $value['description'],
-            'address' => $value['address'],
-            'latitude' => $value['latitude'],
-            'longitude' => $value['longitude'],
-        ])];
+        return [
+            'address' => json_encode([
+                'id' => $value['id'],
+                'description' => $value['description'],
+                'address' => $value['address'],
+                'latitude' => $value['latitude'],
+                'longitude' => $value['longitude'],
+            ])
+        ];
     }
 }

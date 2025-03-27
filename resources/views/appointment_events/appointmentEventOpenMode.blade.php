@@ -1,11 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<<<<<<< HEAD
-    <@php
-=======
     @php
->>>>>>> merging_dev_agendabranch
         $doctorId = auth()->user()->getDoctorId();
         $permissionKey = 'appointment-event.index';
         // Retrieve the permission with its related readable record
@@ -20,31 +16,7 @@
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
 
         <!-- Content Header (Page header) -->
-<<<<<<< HEAD
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-md-6">
-                        <h1 class="m-0 text-bold">{{ trans('lang.appointment_plural') }}
-                            <small class="mx-3">|</small><small>{{ trans('lang.appointment_desc') }}</small>
-                        </h1>
-                    </div>
-                    <div class="col-md-6">
-                        <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-                            <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i
-                                        class="fas fa-tachometer-alt mx-1"></i> {{ trans('lang.dashboard') }}</a></li>
-                            <li class="breadcrumb-item">
-                                <a href="{!! route('appointments.index') !!}">{{ trans('lang.appointment_plural') }}</a>
-                            </li>
-                            <li class="breadcrumb-item active">{{ trans('lang.calendar_view') }}</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
-=======
 
->>>>>>> merging_dev_agendabranch
         <!-- Second Modal -->
         <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
             aria-hidden="true">
@@ -188,23 +160,34 @@
                                     </div>
 
                                     <!-- Pattern Selection -->
-                                    <div class="form-group">
-                                        <label for="patern_id"
-                                            class="font-weight-bold">{{ trans('lang.availability_hour_pattern') }}</label>
-                                        <div class="d-flex align-items-center">
-                                            <select id="patern_id" name="patern_id" class="form-control select2-ajax" required
-                                                style="flex-grow: 1;">
-                                                <option value="" disabled selected>{{ trans('lang.select_pattern') }}</option>
-                                                @foreach($patterns as $id => $nom)
-                                                    <option value="{{ $id }}">{{ $nom }}</option>
-                                                @endforeach
-                                            </select>
-                                            <a href="{{ route('patterns.create') }}" class="btn btn-success d-flex"
-                                                id="addNewPatient">
-                                                <i class="fa fa-user-plus"></i>
-                                            </a>
-                                        </div>
+                                    <div class="form-group pattern-select-group" data-type="cabinet">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_cabinet" class="form-control">
+                                            @foreach($patternsByType[1] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
+
+                                    <div class="form-group pattern-select-group d-none" data-type="teleconsultation">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_teleconsultation" class="form-control">
+                                            @foreach($patternsByType[4] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group pattern-select-group d-none" data-type="home_visit">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_home_visit" class="form-control">
+                                            @foreach($patternsByType[3] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+
                                     <!-- Add this after the Pattern Selection div -->
                                     <div class="form-group">
                                         <label for="appointment_notes" class="font-weight-bold">{{ trans('lang.notes') }}</label>
@@ -277,20 +260,7 @@
             <div class="clearfix"></div>
             @include('flash::message')
             <div class="card shadow-sm">
-<<<<<<< HEAD
-                <div class="card-header">
-                    <ul class="nav nav-tabs d-flex flex-md-row flex-column-reverse align-items-start card-header-tabs">
-                        <div class="d-flex flex-row">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="{!! url()->current() !!}"><i
-                                        class="fa fa-calendar mr-2"></i>{{ trans('lang.calendar_view') }}</a>
-                            </li>
-                        </div>
-                    </ul>
-                </div>
-=======
 
->>>>>>> merging_dev_agendabranch
                 <div class="card-body">
                     <!-- Calendar Container -->
                     <div id="calendar-container">
@@ -369,15 +339,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js"></script>
-<<<<<<< HEAD
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-=======
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
->>>>>>> merging_dev_agendabranch
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -426,35 +390,15 @@
 
                 // Handle vacation case
                 if (response.vacation) {
-                    timeSlotsWrapper.append(`
-<<<<<<< HEAD
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `);
-=======
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
->>>>>>> merging_dev_agendabranch
+                    timeSlotsWrapper.append(` <div class="alert alert-warning text-center"> Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible. </div> `);
+
                     return;
                 }
 
                 // If no slots available for this type
                 if (!all_slots || all_slots.length === 0) {
-                    timeSlotsWrapper.append(`
-<<<<<<< HEAD
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Aucun créneau disponible pour ${getTypeLabel(type)}.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `);
-=======
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible pour ${getTypeLabel(type)}.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
->>>>>>> merging_dev_agendabranch
+                    timeSlotsWrapper.append(` <div class="alert alert-info text-center"> Aucun créneau disponible pour ${getTypeLabel(type)}. </div> `);
+
                     return;
                 }
 
@@ -524,6 +468,9 @@
                 // Reset hidden type input
                 $('#appointmentType').val('cabinet');
                 $('#patientDropdown').val(null).trigger('change');
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_cabinet').closest('.pattern-select-group').removeClass('d-none');
+
             });
             ///////////////////////////////////////////////
             $("#appointmentTypeTabs a").on("click", function (e) {
@@ -538,6 +485,9 @@
                 // Show this tab
                 $(this).tab('show');
                 console.log("Selected Type:", selectedType);
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_' + selectedType).closest('.pattern-select-group').removeClass('d-none');
+
                 if (selectedDate) {
                     fetchTimeSlotsForType(selectedDate, selectedType);
                 }
@@ -546,6 +496,9 @@
                 console.log("Tab Shown:", e.target);
                 const selectedType = $(e.target).data('type');
                 const selectedDate = $('#appointmentDate').val();
+                $('#appointmentType').val(selectedType);
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_' + selectedType).closest('.pattern-select-group').removeClass('d-none');
 
                 if (selectedDate) {
                     fetchTimeSlotsForType(selectedDate, selectedType);
@@ -556,7 +509,7 @@
                     url: "/get-available-time-slots", // Ensure this API returns the available days
                     type: "GET",
                     success: function (response) {
-                        console.log("Fetched Available Days:", response);
+                        //console.log("Fetched Available Days:", response);
                         availabilityDays = response.available_days.map(day => day.toLowerCase()); // Convert to lowercase
 
                         // Now initialize the calendar AFTER fetching availability days
@@ -597,18 +550,7 @@
 
                         if (!response.all_slots || response.all_slots.length === 0) {
                             // No available slots → Show a message inside the modal
-                            $("#time-slots").html(`
-<<<<<<< HEAD
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucune disponibilité pour ce type de rendez-vous à cette date.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
-=======
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucune disponibilité pour ce type de rendez-vous à cette date.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
->>>>>>> merging_dev_agendabranch
+                            $("#time-slots").html(` <div class="alert alert-warning text-center"> Aucune disponibilité pour ce type de rendez-vous à cette date. </div> `);
                             return;
                         }
 
@@ -631,17 +573,8 @@
             function clearTimeSlots() {
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
-                timeSlotsWrapper.append(`
-<<<<<<< HEAD
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
-=======
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                timeSlotsWrapper.append(` <div class="alert alert-info text-center"> Aucun créneau disponible trouvé. </div> `);
+
             }
             //////////////////////////////////////////////////////////////////////////////
             function fetchSubstitutes(doctorId) {
@@ -671,7 +604,6 @@
                         console.error("Error refreshing appointment stats:", error);
                     });
                 });
->>>>>>> merging_dev_agendabranch
             }
             //    ////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
@@ -691,16 +623,14 @@
             });
             let availabilityDays = @json($availabilityDays);
             let vacations = @json($vacations);
-            console.log("Availability Days at Load:", availabilityDays);
+            const urgencies = @json($urgencies);
+            console.log("🩺 Urgencies loaded:", urgencies);
+            //console.log("Availability Days at Load:", availabilityDays);
             function initializeCalendar() {
                 calendar = $('#calendar').fullCalendar({
                     locale: 'fr',
                     editable: true,
-<<<<<<< HEAD
-                    height: 600,
-=======
                     height: 670,
->>>>>>> merging_dev_agendabranch
                     header: {
                         left: 'prev,next today',
                         center: 'title',
@@ -708,9 +638,6 @@
                     },
                     defaultView: 'agendaWeek',
                     minTime: "08:00:00",
-<<<<<<< HEAD
-                    eventLimit: true, // Allow "more" link for overflow events
-=======
                     allDaySlot: true,
                     allDayText: '',
                     eventLimit: true,
@@ -746,12 +673,8 @@
 
                                         // Create custom label with hover functionality
                                         // Append all elements with proper structure
-                                        $(this).append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-day-label substitute-hover">${substituteName}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-number-label">${staticNumber}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                                        $(this).append(` <hr class="day-header-divider"> <div class="custom-day-label substitute-hover">${substituteName}</div> <hr class="day-header-divider"> <div class="custom-number-label">${staticNumber}</div> `);
+
                                         if (activeSubstitute) {
                                             $(this).find('.custom-day-label').hover(
                                                 function (e) {
@@ -783,9 +706,9 @@
                             });
                         }
                     },
->>>>>>> merging_dev_agendabranch
                     dayRender: function (date, cell) {
-                        console.log("Day Rendered:", date.format());
+
+                        //console.log("Day Rendered:", date.format());
                         const formattedDayName = date.locale('en').format('dddd').toLowerCase();
                         const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase());
                         const today = moment().startOf('day');
@@ -798,7 +721,12 @@
                             const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
                             return currentDay.isSameOrAfter(vacationStart) && currentDay.isSameOrBefore(vacationEnd);
                         });
-
+                        const isUrgentDay = urgencies.some(urgency => {
+                            const urgencyDate = moment(urgency.jour, 'YYYY-MM-DD').startOf('day');
+                            return currentDay.isSame(urgencyDate);
+                        });
+                        console.log("Is Urgent Day:", isUrgentDay);
+                        //console.log("Is Vacation Day:", isVacationDay);
                         if (currentDay.isBefore(today)) {
                             cell.css('background-color', '#e9ecef');
                             cell.css('cursor', 'not-allowed');
@@ -809,6 +737,10 @@
                         } else if (isVacationDay) {
                             cell.addClass('cell-with-background');
                             cell.attr('title', 'Le docteur est en vacances ce jour.');
+                        } else if (isUrgentDay) {
+                            cell.addClass('cell-with-background');
+                            cell.css('background-color', '#ffe6e6'); // light red
+                            cell.attr('title', 'Urgence: Le docteur est en urgence ce jour.');
                         } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
                             // Check availability for all appointment types
                             $.ajax({
@@ -935,21 +867,6 @@
                         // Determine the icon based on the `online` field
                         switch (event.online) {
                             case 'cabinet':
-<<<<<<< HEAD
-                                icon = '<i class="fas fa-clinic-medical" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Blue clinic icon
-                                break;
-                            case 'teleconsultation':
-                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: 1A1A1D;"></i>'; // Green video icon
-                                break;
-                            case 'web':
-                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Orange globe icon
-                                break;
-                            case 'mobile':
-                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Purple mobile icon
-                                break;
-                            default:
-                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default gray icon
-=======
                                 icon = '<i class="fas fa-briefcase-medical" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             case 'teleconsultation':
@@ -966,7 +883,6 @@
                                 break;
                             default:
                                 icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default icon
->>>>>>> merging_dev_agendabranch
                                 break;
                         }
                         element.find('.fc-title').prepend(icon);
@@ -1172,13 +1088,13 @@
                 const activeTab = $('#appointmentTypeTabs .nav-link.active');
                 const appointmentType = activeTab.data('type');
                 console.log('Active tab type:', appointmentType); // Debug log
-
+                const patternSelectId = '#patern_id_' + appointmentType;
                 // Get form data
                 const appointmentData = {
                     patient_id: $('#patientDropdown').val(),
                     appointment_date: $('#appointmentDate').val(),
                     appointment_time: $('#appointment_time').val(),
-                    patern_id: $('#patern_id').val(),
+                    patern_id: $(patternSelectId).val(),
                     appointment_type: appointmentType, // Use the active tab's type
                     notes: $('#appointment_notes').val(), // Add notes field
                     _token: $('meta[name="csrf-token"]').attr('content')
@@ -1259,11 +1175,7 @@
                     appointment_status_id: statusId,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 };
-<<<<<<< HEAD
-
-=======
                 //console.log("Update Status Data:", data);
->>>>>>> merging_dev_agendabranch
                 if (reason) {
                     data.cancel_reason = reason;
                 }
@@ -1364,11 +1276,7 @@
 
                     teleconsultationButton.classList.remove("d-none");
                     teleconsultationButton.onclick = () => {
-<<<<<<< HEAD
-                        const url = `{{ route('teleconsultations.createMeet') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
-=======
                         const url = `{{ route('show.meeting.info.form') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
->>>>>>> merging_dev_agendabranch
                         window.location.href = url;
                     };
 
