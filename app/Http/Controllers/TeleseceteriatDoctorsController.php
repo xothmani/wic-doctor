@@ -24,17 +24,12 @@ class TeleseceteriatDoctorsController extends Controller
         $response = Http::get($firebase_url);
         $messages = $response->json();
     
-        // Log pour déboguer
-        \Log::info('Messages récupérés depuis Firebase:', [
-            'chatId' => $chatId,
-            'messages' => $messages
-        ]);
-    
         $messagesArray = [];
         if (is_array($messages)) {
-            foreach ($messages as $key => $message) {
+            foreach ($messages as $firebaseKey => $message) { // Récupérer la clé Firebase
                 $messagesArray[] = [
-                    'id' => $key,
+                    'firebaseKey' => $firebaseKey, // Ajouter la clé Firebase
+                    'id' => $message['id'],
                     'sender_id' => $message['sender_id'],
                     'sender_name' => User::find($message['sender_id'])->name,
                     'receiver_id' => $message['receiver_id'],
@@ -53,6 +48,7 @@ class TeleseceteriatDoctorsController extends Controller
     
         return response()->json(['messages' => $messagesArray]);
     }
+    
     public function showForm(Request $request)
     {
         $user = auth()->user();
@@ -134,40 +130,21 @@ class TeleseceteriatDoctorsController extends Controller
             'userRole' => $userRole,
         ]);
     }
-    public function showChat($doctorUserId, $teleSecretariatUserId)
+   // Remplacez les méthodes index() et showForm() par ceci :
+public function showChat($doctorUserId = null, $teleSecretariatUserId = null)
 {
-    // Vérification de l'autorisation
-    if (auth()->id() != $doctorUserId) {
-        abort(403, 'Unauthorized action.');
+    // Vérification si l'utilisateur est un docteur
+    $user = auth()->user();
+    if (!$user->doctor) {
+        return redirect()->route('login')->with('error', 'Accès réservé aux docteurs.');
     }
 
-    // Récupération des télésecrétariats associés
-    $teleSecretariats = DoctorTelesecretariat::where('doctor_id', auth()->user()->doctor->id)
+    // Récupération des télésecrétariats associés (TOUJOURS chargés)
+    $teleSecretariats = DoctorTelesecretariat::where('doctor_id', $user->doctor->id)
         ->with('telesecretariat')
         ->get();
 
-    // PARTIE 1: Messages de la conversation actuelle
-    $chatId = $this->getChatId($doctorUserId, $teleSecretariatUserId);
-    
-    // Récupération des messages depuis Firebase
-    $currentChatResponse = Http::get("https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chatTE/{$chatId}/messages.json");
-    $currentChatMessages = $currentChatResponse->json() ?? [];
-
-    // Formatage des messages
-    $messagesArray = collect($currentChatMessages)->map(function ($message, $key) {
-        return [
-            'id' => $key,
-            'sender_id' => $message['sender_id'],
-            'sender_name' => User::find($message['sender_id'])->name,
-            'receiver_id' => $message['receiver_id'],
-            'receiver_name' => User::find($message['receiver_id'])->name,
-            'content' => $message['content'],
-            'timestamp' => $message['timestamp'],
-            'file_url' => $message['file_url'] ?? null,
-        ];
-    })->sortBy('timestamp')->values()->all();
-
-    // PARTIE 2: Derniers messages de toutes les conversations
+    // PARTIE 1: Derniers messages de toutes les conversations
     $lastMessages = [];
     $allChatsResponse = Http::get('https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chatTE.json');
     $allChats = $allChatsResponse->json() ?? [];
@@ -179,7 +156,6 @@ class TeleseceteriatDoctorsController extends Controller
                     ? $message['receiver_id'] 
                     : $message['sender_id'];
 
-                // Mise à jour du dernier message si plus récent
                 if (!isset($lastMessages[$partnerId]) || 
                     $message['timestamp'] > $lastMessages[$partnerId]['timestamp']) {
                     $lastMessages[$partnerId] = [
@@ -191,22 +167,37 @@ class TeleseceteriatDoctorsController extends Controller
         }
     }
 
-    // Récupération des infos du télésecrétariat
-    $teleSecretariatUser = User::find($teleSecretariatUserId);
-    $teleSecretariat = DoctorTelesecretariat::where('telesecretariat_id', $teleSecretariatUserId)->first();
+    // PARTIE 2: Messages de la conversation actuelle (si ID présent)
+    $messagesArray = [];
+    if ($teleSecretariatUserId) {
+        $chatId = $this->getChatId(auth()->id(), $teleSecretariatUserId);
+        $currentChatResponse = Http::get("https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chatTE/{$chatId}/messages.json");
+        $currentChatMessages = $currentChatResponse->json() ?? [];
+
+        $messagesArray = collect($currentChatMessages)->map(function ($message, $key) {
+            return [
+               'id' => $key,
+            'sender_id' => $message['sender_id'],
+            'sender_name' => User::find($message['sender_id'])->name,
+            'receiver_id' => $message['receiver_id'],
+            'receiver_name' => User::find($message['receiver_id'])->name,
+            'content' => $message['content'],
+            'timestamp' => $message['timestamp'],
+            'file_url' => $message['file_url'] ?? null,
+            ];
+        })->sortBy('timestamp')->values()->all();
+    }
 
     return view('chatTe', [
-        'chatId' => $chatId,
-        'messages' => $messagesArray, // Messages de la conversation actuelle
-        'lastMessages' => $lastMessages, // Derniers messages pour toutes les conversations
-        'teleSecretariat' => $teleSecretariat,
-        'teleSecretariatUser' => $teleSecretariatUser,
         'teleSecretariats' => $teleSecretariats,
-        'doctorUserId' => $doctorUserId,
+        'lastMessages' => $lastMessages,
+        'messages' => $messagesArray,
+        'chatId' => $chatId, // Ajoutez cette ligne pour passer le chatId à la vue
+
         'teleSecretariatUserId' => $teleSecretariatUserId,
+        'doctorUserId' => auth()->id(),
     ]);
 }
-    
 public function index()
 {
     // Vérifiez si l'utilisateur authentifié a un profil docteur
@@ -260,7 +251,7 @@ public function sendMessage(Request $request)
     $request->validate([
         'message' => 'nullable|string|max:255',
         'receiver_id' => 'required|exists:users,id',
-        'file' => 'nullable|file|mimes:jpeg,png,pdf|max:2048',
+        'file' => 'nullable|file|max:2048',
     ]);
 
     $senderId = auth()->id();
@@ -273,9 +264,10 @@ public function sendMessage(Request $request)
     // Gestion du fichier
     if ($request->hasFile('file')) {
         $file = $request->file('file');
-        $path = $file->store('chat_files');
-        $fileUrl = Storage::url($path);
+        $path = $file->store('chat_files', 'public');
+        $fileUrl = asset('storage/' . $path);
     }
+
 
     // Données du message
     $data = [
@@ -301,5 +293,6 @@ public function sendMessage(Request $request)
         return back()->with('error', 'Échec de l\'envoi du message');
     }
 }
+
 
 }
