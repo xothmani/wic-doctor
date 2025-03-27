@@ -67,7 +67,6 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 
 
-
 Route::get('/payment-success', function () {
     return view('payment.success'); // Your success Blade view
 })->name('payment.success');
@@ -739,7 +738,10 @@ Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotifica
         Route::post('uploads/deleteImage', [DoctorBlogController::class, 'deleteImage'])->name('uploads.deleteImage');
         Route::get('doctor_blogs/accepted', [DoctorBlogController::class, 'acceptedBlogs'])->name('doctor_blog.accepted');
         Route::get('doctor_blogs/rejected', [DoctorBlogController::class, 'rejectedBlogs'])->name('doctor_blog.rejected');
-    
+        Route::get('/photos-cabinet', [PhotosCabinetController::class, 'index'])->name('photos_cabinet.index');
+        Route::get('photos-cabinet/{id}', [PhotosCabinetController::class, 'show'])->name('photos_cabinet.show');
+        Route::post('photos-cabinet/accept', [PhotosCabinetController::class, 'accept'])->name('photos_cabinet.accept');
+        Route::post('photos-cabinet/rejet', [PhotosCabinetController::class, 'rejet'])->name('photos_cabinet.rejet');
         Route::get('/doctor_blog/accept/{id}', [DoctorBlogController::class, 'accepterBlog'])
             ->name('doctor_blog.accept');
         Route::post('/doctor_blog/rejet/{id}', [DoctorBlogController::class, 'rejeterBlog'])
