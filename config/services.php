@@ -71,13 +71,14 @@ return [
         'key' => 'rzp_test_yltsH9jI7Y5gFo',
         'secret' => '9km0kMtOjh00nIHjlzaDK6Hc'
     ],
-    'firebase' => [
-        'credentials' => storage_path('app/firebase/service_account.json'),
-    ],
+
     'fcm' => [
         'service_account' => storage_path('app/wic-doctor-b83e0-firebase-adminsdk-jhztu-26628b5fc7.json'),
     ],
-    'firebaseKey' => [
+    'firebase' => [
+
+
         'key' => env('FCM_SERVER_KEY'),
+
     ]
 ];

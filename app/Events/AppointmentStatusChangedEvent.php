@@ -26,11 +26,9 @@ class AppointmentStatusChangedEvent
      */
     public function __construct($appointment, $status_id, $deviceToken)
     {
-        Log::info("Appointment -> Status Changed Event: {$appointment}");
         $this->appointment = $appointment;
         $this->status_id = $status_id;
         $this->deviceToken = $deviceToken;
     }
-
 
 }

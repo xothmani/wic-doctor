@@ -138,7 +138,6 @@ Route::get('payments/paystack', 'PayStackController@index');
 
 Route::get('payments/paypal/express-checkout', 'PayPalController@getExpressCheckout')->name('paypal.express-checkout');
 Route::get('payments/paypal/express-checkout-success', 'PayPalController@getExpressCheckoutSuccess');
-
 Route::get('payments/paypal', 'PayPalController@index')->name('paypal.index');
 
 Route::get('firebase/sw-js', 'AppSettingController@initFirebase');

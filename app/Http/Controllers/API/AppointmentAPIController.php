@@ -205,11 +205,13 @@ class AppointmentAPIController extends Controller
                     'appointments.online',
                     'appointments.cancel',
 
+
                     'appointments.cancel_reason',
 
                     'appointments.created_at',
                     'appointments.updated_at',
                     'appointments.motif_id',
+                    'appointments.type',
                     'addresses.address as doctor_address',
                     'pattern.id as pattern_id',
                     'pattern.nom as pattern_name',
@@ -260,7 +262,7 @@ class AppointmentAPIController extends Controller
                 $doctorEnableAtAddress = $decodedDoctorEnableAtAddress ?? 0;
                 $doctorEnableOnlineConsultation = $decodedDoctorEnableOnlineConsultation ?? 0;
 
-
+                
                 return [
                     'id' => $appointment->id,
                     'clinic_id' => $appointment->clinic_id,
@@ -280,7 +282,7 @@ class AppointmentAPIController extends Controller
                     'online' => $appointment->online,
                     'cancel' => $appointment->cancel,
                     'cancel_reason' => $appointment->cancel_reason,
-
+                    'type' => $appointment->type,
                     'created_at' => $appointment->created_at,
                     'updated_at' => $appointment->updated_at,
                     'motif_id' => $appointment->motif_id,
@@ -389,9 +391,11 @@ class AppointmentAPIController extends Controller
         } else {
             $appointment->doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
         }
+        
         //Log::info($appointment);
         $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
         $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
+        $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
         Log::info($patient);
         //Log::info($appointment->doctor_id);
 
@@ -401,9 +405,9 @@ class AppointmentAPIController extends Controller
         $address = Address::where('user_id', $doctor->user_id)->first();
         Log::info("Addresse", ["Addresse" => $address]);
         $appointment->doctor->address = $address;
-        $appointment->address_id = $address->id;
-        $appointment->doctor = $doctor;
-        $appointment->patient = $patient;
+        $appointment->doctor = $doctor; // solution pour doctor cast
+        $appointment->patient = $patient; // solution pour doctor cast
+        $appointment->clinic = $clinic; // solution pour doctor cast
         Log::info($appointment);
         if (empty($appointment)) {
             return $this->sendError('Appointment not found');
@@ -419,24 +423,14 @@ class AppointmentAPIController extends Controller
 
     public function getAppointmentById($id): JsonResponse
     {
-        try {
-            Log::info("Get Appointment By Id : ", ["id" => $id]);
-            $appointment = Appointment::find($id);
-            Log::info("Get Appointment By Id : ", ["appointment" => $appointment]);
-            return response()->json($appointment);
-        } catch (RepositoryException $e) {
-            return response()->json($e->getMessage());
-        }
-
         $appointment = $this->appointmentRepository->findWithoutFail($id);
         $appointment->doctor->user = $this->userRepository->findWithoutFail($appointment->doctor->user_id);
+        $appointment->clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
+        $appointment->patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
         if (empty($appointment)) {
             return $this->sendError('Appointment not found');
         }
         return $this->sendResponse($appointment->toArray(), 'Appointment retrieved successfully');
-
-
-
     }
 
     /**
@@ -451,7 +445,7 @@ class AppointmentAPIController extends Controller
         try {
             // Log the incoming request data
             Log::info('Store Appointment Request:', $request->all());
-            Log::info('Store Appointment Request:', ['clinic' => $request->input('clinic')]);
+            Log::info('Store Appointment Request:', ['clinic' => $request->input('type')]);
             $motifObject = $request->input('motif_id');
             // Extract the necessary data from the nested objects
 
@@ -515,7 +509,8 @@ class AppointmentAPIController extends Controller
                 'hint' => $request->input('hint'),
                 'online' => 'mobile',
                 'cancel' => $request->input('cancel', false),
-                'motif_id' => $request->input('motif_id.id')
+                'motif_id' => $request->input('motif_id.id'),
+                'type' => $request->input('type', 'aucun'),
             ];
 
 
@@ -634,21 +629,12 @@ class AppointmentAPIController extends Controller
         $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
         $appointment->patient = $patient;
         $appointment->save();
-        event(new AppointmentStatusChangedEvent($appointment, $new_status_id, $deviceToken));
-        $body = "Votre rendez-vous avec le Dr. {$appointment->doctor->name} a été mis à jour. Consultez les nouvelles informations dans votre espace personnel.";
-        $data = $data = ['appointment_id' => $appointment->id];
-        /*\App\Models\Notification::create([
-            'notifiable_id' => $user->id,  // Utilise l'ID de l'utilisateur
-            'notifiable_type' => get_class($user), // Utilise le nom de la classe de l'utilisateur
-            'data' => $data, // Utilise json_encode pour formater les données
-            'type' => 'App\Notifications\StatusChangedAppointment',
-            'read_at' => null,
-            'read' => false,
-            'body' => $body,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);*/
-        //Notification::send([$user], new StatusChangedAppointment($appointment));
+
+        Log::info("Update Appointment Request Lunch Event");
+
+        //Send notification to phone
+        Log::info("Update Appointment Listen event");
+        event(new AppointmentStatusChangedEvent($appointment,$new_status_id,$deviceToken));
         return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
     }
 
@@ -713,9 +699,8 @@ class AppointmentAPIController extends Controller
                 "success" => true,
                 "data" => "Tu as passé la date limite pour cette opération"
             ]);
-        }*/
 
-
+        }*/ 
     }
 
 

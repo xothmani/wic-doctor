@@ -12,6 +12,7 @@ use App\Criteria\Addresses\AddressesOfUserCriteria;
 use App\Criteria\Appointments\AppointmentsOfPatientCriteria;
 use App\DataTables\AppointmentDataTable;
 use App\Events\AppointmentChangedEvent;
+use App\Events\AppointmentStatusChangedEvent;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Notifications\StatusChangedAppointment;
 use App\Repositories\AddressRepository;
@@ -223,7 +224,7 @@ class AppointmentController extends Controller
                     ['payment_status_id' => $input['payment_status_id']],
                     $appointment->payment_id
                 );
-                event(new AppointmentChangedEvent($appointment));
+                event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'] , $user->device_token));
             }
 
 
