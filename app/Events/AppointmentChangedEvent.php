@@ -26,7 +26,7 @@ class AppointmentChangedEvent
     public function __construct($appointment)
     {
         $this->appointment = $appointment;
-        parent::__construct();
+        //parent::__construct();
     }
 
 

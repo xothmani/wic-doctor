@@ -81,11 +81,13 @@ class Appointment extends Model
         'hint',
         'online',
         'cancel',
-	    'motif_id', // Nouvelle colonne
+        'motif_id', // Nouvelle colonne
         'clinic_id', // Nouvelle colonne
         'quantity',
         'patient_id',
         'cancel_reason',
+        'type'
+
     ];
     /**
      * The attributes that should be casted to native types.
@@ -96,7 +98,7 @@ class Appointment extends Model
         'clinic' => Clinic::class,
         'doctor' => Doctor::class,
         'patient' => Patient::class,
-        'address' => Address::class,
+        //'address' => Address::class,
         'coupon' => Coupon::class,
         'taxes' => TaxCollectionCast::class,
         'appointment_status_id' => 'integer',
@@ -109,9 +111,12 @@ class Appointment extends Model
         'hint' => 'string',
         'online' => 'string',
         'cancel' => 'boolean',
-	'motif_id' => 'integer', // Nouvelle colonne
+
+        'motif_id' => 'integer', // Nouvelle colonne
         'clinic_id' => 'integer', // Nouvelle colonne
-        'quantity' => 'integer'
+        'quantity' => 'integer',
+        'type' => 'string'
+
     ];
     /**
      * New Attributes
@@ -145,7 +150,7 @@ class Appointment extends Model
         return convertToAssoc($array, 'name');
     }
 
-     public function customFieldsValues(): MorphMany
+    public function customFieldsValues(): MorphMany
     {
         return $this->morphMany('App\Models\CustomFieldValue', 'customizable');
     }
@@ -197,7 +202,7 @@ class Appointment extends Model
     {
         return $this->belongsTo(Payment::class, 'payment_id', 'id');
     }
-public function patient()
+    public function patient()
     {
         return $this->belongsTo(Patient::class, 'patient_id', 'id');
     }
@@ -211,7 +216,7 @@ public function patient()
 
     public function getSubtotal(): float
     {
-        return $this->doctor->getPrice() ;
+        return $this->doctor->getPrice();
     }
 
     public function getTaxesValue(): float
@@ -241,8 +246,8 @@ public function patient()
             }
         }
     }
-public function doctor()
-{
-    return $this->belongsTo(Doctor::class, 'doctor_id');  
-}
+    public function doctor()
+    {
+        return $this->belongsTo(Doctor::class, 'doctor_id');
+    }
 }

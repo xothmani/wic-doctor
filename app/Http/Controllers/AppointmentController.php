@@ -12,6 +12,7 @@ use App\Criteria\Addresses\AddressesOfUserCriteria;
 use App\Criteria\Appointments\AppointmentsOfPatientCriteria;
 use App\DataTables\AppointmentDataTable;
 use App\Events\AppointmentChangedEvent;
+use App\Events\AppointmentStatusChangedEvent;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Notifications\StatusChangedAppointment;
 use App\Repositories\AddressRepository;
@@ -93,6 +94,7 @@ class AppointmentController extends Controller
      */
     private PaymentStatusRepository $paymentStatusRepository;
 
+
     public function __construct(
         AppointmentRepository $appointmentRepo,
         CustomFieldRepository $customFieldRepo,
@@ -109,6 +111,7 @@ class AppointmentController extends Controller
         PatientRepository $patientRepository,
         PaymentStatusRepository $paymentStatusRepository
     ) {
+
         parent::__construct();
         $this->appointmentRepository = $appointmentRepo;
         $this->customFieldRepository = $customFieldRepo;
@@ -144,6 +147,7 @@ class AppointmentController extends Controller
      * @return RedirectResponse|View
      * @throws RepositoryException
      */
+
     public function show(int $id): RedirectResponse|View
     {
         $this->appointmentRepository->pushCriteria(new AppointmentsOfPatientCriteria(auth()->id()));
@@ -220,16 +224,20 @@ class AppointmentController extends Controller
                     ['payment_status_id' => $input['payment_status_id']],
                     $appointment->payment_id
                 );
-                event(new AppointmentChangedEvent($appointment));
+                event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'] , $user->device_token));
             }
 
-            if (isset($input['appointment_status_id']) && $input['appointment_status_id'] != $oldAppointment->appointment_status_id) {
+
+            /*if (isset($input['appointment_status_id']) && $input['appointment_status_id'] != $oldAppointment->appointment_status_id) {
+
                 if ($appointment->appointmentStatus->order < 40) {
                     Notification::send([$user], new StatusChangedAppointment($appointment));
                 } else {
                     Notification::send([$doctor->user], new StatusChangedAppointment($appointment));
                 }
-            }
+
+            }*/
+
 
             foreach (getCustomFieldsValues($customFields, $request) as $value) {
                 $appointment->customFieldsValues()
@@ -249,6 +257,7 @@ class AppointmentController extends Controller
      *
      * @return RedirectResponse
      */
+
     public function destroy(int $id): RedirectResponse
     {
         if (!config('installer.demo_app')) {
@@ -271,9 +280,11 @@ class AppointmentController extends Controller
         return redirect(route('appointments.index'));
     }
 
+
     public function getTodayCompletedAppointments(): \Illuminate\View\View
     {
         $userId = auth()->user()->id;
+
 
         $appointments = \DB::table('appointments')
             ->join('users', 'appointments.user_id', '=', 'users.id')
@@ -298,8 +309,10 @@ class AppointmentController extends Controller
             )
             ->paginate(10); // Limite à 10 par page
 
+
         return view('todayAppointment.show', compact('appointments'));
     }
+
 
 
 

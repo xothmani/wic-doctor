@@ -18,6 +18,9 @@ use Benwilkins\FCM\FcmMessage;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use GuzzleHttp\Client;
 use App\Notifications\StatusChangedAppointment;
+use App\Events\AppointmentChangedEvent;
+use App\Events\AppointmentStatusChangedEvent;
+
 class AppointmentEventController extends Controller
 {
 
@@ -411,6 +414,7 @@ class AppointmentEventController extends Controller
             $appointment->appointment_status_id = $request->appointment_status_id;
             $appointment->save();
 
+
             if ($appointment->user) {
                 $appointment->user->notify(new StatusChangedAppointment($appointment));
             }
@@ -418,6 +422,7 @@ class AppointmentEventController extends Controller
             //Log::info('Creating message for appointment status update');
             // Log the message creation
             //Log::info('Creating message for appointment status update');
+
             if ($appointment->appointment_status_id < 2) {
                 $message = $this->createMessageForAppointment($appointment, $appointment->doctor_id);
             } else {
@@ -465,7 +470,9 @@ class AppointmentEventController extends Controller
                 }
 
 
+
             }
+
             return response()->json([
                 'message' => 'Status updated successfully',
                 'refresh' => true,
@@ -886,6 +893,7 @@ class AppointmentEventController extends Controller
                 $subQuery->where('doctor_id', $doctor->id);
             });
 
+
             // Search by name, phone number, or birthdate
             if ($search) {
                 $query->where(function ($subQuery) use ($search) {
@@ -903,6 +911,7 @@ class AppointmentEventController extends Controller
             }
 
             // Select id, concatenated text fields with birthday
+
             $patients = $query->select(
                 'id',
                 DB::raw("
@@ -915,12 +924,14 @@ class AppointmentEventController extends Controller
                         WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
                         ELSE last_name 
                     END, ' - ',
+
                     phone_number, ' - ',
                     DATE_FORMAT(date_naissance, '%d/%m/%Y')
                 ) as text
             ")
             )
                 ->when($search, fn($q) => $q->limit(20)) // Limit results when searching
+
                 ->get();
 
             return response()->json($patients);
@@ -1454,6 +1465,7 @@ class AppointmentEventController extends Controller
 
         // Parse selected date
         $selectedDate = $selectedDate ? Carbon::parse($selectedDate) : Carbon::now();
+
         $dayName = $selectedDate->format('l');
 
         // Get the doctor's availability mode
@@ -1553,6 +1565,7 @@ class AppointmentEventController extends Controller
                 'error' => 'Unsupported availability mode: ' . $availabilityMode
             ]);
         }
+
     }
 
 

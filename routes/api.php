@@ -1,4 +1,3 @@
-
 <?php
 /*
  * File name: api.php
@@ -19,6 +18,30 @@
 */
 use App\Http\Controllers\API\PayPalAPIController;
 use App\Http\Controllers\API\DoctorAPIController;
+use App\Http\Controllers\API\NotificationAPIController;
+use App\Http\Controllers\API\RoomAPIController;
+
+/*********************** Route ajouté par Hamza ********************* */
+Route::get('doctors/search','API\DoctorAPIController@indexFiltreHamza');
+Route::get('doctors/recomended','API\DoctorAPIController@recommandedDoctor');
+Route::get('appointment/{id}','API\AppointmentAPIController@getAppointmentById');
+Route::middleware('auth:api')->patch('update-appoi-hamza/{id}','API\AppointmentAPIController@updateDateAndTime');
+Route::middleware('auth:api')->patch('update-appoi-status/{id}','API\AppointmentAPIController@updateStatus');
+Route::post('/send-notification', [NotificationAPIController::class, 'send']);
+Route::post('/store-notification', [NotificationAPIController::class, 'storeReminderAppointment']);
+//khater notification feha patch w mé najmouch na3mlou 2 patch fi nafes l url
+Route::middleware('auth:api')->patch('/notif/read-all/{id_user}', [NotificationAPIController::class, 'readAll']);
+
+Route::prefix('rooms')->middleware('auth:api')->group(function () {
+    Route::get('/', [RoomAPIController::class, 'index']); // GET all rooms with appointment details
+    Route::get('/{id}', [RoomAPIController::class, 'show']); // GET single room
+    Route::post('/', [RoomAPIController::class, 'store']); // CREATE a new room
+    Route::put('/{id}', [RoomAPIController::class, 'update']); // UPDATE an existing room
+    Route::delete('/{id}', [RoomAPIController::class, 'destroy']); // DELETE a room
+});
+
+/*********************** End Route ajouté par Hamza ********************* */
+
 
 
 
@@ -89,7 +112,7 @@ Route::get('settings', 'API\UserAPIController@settings');
 Route::get('translations', 'API\TranslationAPIController@translations');
 Route::get('supported_locales', 'API\TranslationAPIController@supportedLocales');
 Route::get('modules', 'API\ModuleAPIController@index');
-Route::post('reset-password/{phoneNumber}','API\UserAPIController@resetPassword');
+Route::post('reset-password/{phoneNumber}', 'API\UserAPIController@resetPassword');
 Route::post('check-phone-number', 'API\UserAPIController@checkPhoneNumber');
 Route::resource('clinics', 'API\ClinicAPIController')->only(['index', 'show']);
 Route::resource('availability_hours', 'API\AvailabilityHourAPIController')->only(['index', 'show']);
@@ -98,7 +121,7 @@ Route::resource('experiences', 'API\ExperienceAPIController')->only(['index', 's
 
 
 
-Route::get('getRecentDoctors/{patient_id}','API\DoctorPatientsAPIController@getRecentDoctors');
+Route::get('getRecentDoctors/{patient_id}', 'API\DoctorPatientsAPIController@getRecentDoctors');
 
 
 Route::get('totalAppointments/{patient_id}', 'API\PatientAPIController@totalAppointments');
@@ -166,7 +189,9 @@ Route::middleware('auth:api')->group(function () {
 
 
     Route::resource('clinics', 'API\ClinicAPIController')->only([
-        'store', 'update', 'destroy'
+        'store',
+        'update',
+        'destroy'
     ]);
     Route::post('uploads/store', 'API\UploadAPIController@store');
     Route::post('uploads/clear', 'API\UploadAPIController@clear');
@@ -188,7 +213,7 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('addresses', 'API\AddressAPIController');
 
 
-	
+
 
 
 
@@ -204,7 +229,9 @@ Route::middleware('auth:api')->group(function () {
         'show'
     ]);
     Route::resource('wallets', 'API\WalletAPIController')->except([
-        'show', 'create', 'edit'
+        'show',
+        'create',
+        'edit'
     ]);
     Route::get('wallet_transactions', 'API\WalletTransactionAPIController@index')->name('wallet_transactions.index');
 

@@ -10,7 +10,6 @@ namespace App\Casts;
 
 use App\Models\Clinic;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
-
 /**
  * Class ClinicCast
  * @package App\Casts
@@ -25,7 +24,6 @@ class ClinicCast implements CastsAttributes
 {
     // Decode the JSON value
     $decodedValue = json_decode($value, true);
-
     // Check if the decoded value is null or doesn't contain the 'id' key
     if (is_null($decodedValue) || !isset($decodedValue['id'])) {
         // Handle the error or return a default value if necessary

@@ -11,6 +11,9 @@ namespace App\Casts;
 use App\Models\Address;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 
+use Log;
+
+
 /**
  * Class AddressCast
  * @package App\Casts
@@ -23,15 +26,19 @@ class AddressCast implements CastsAttributes
      */
     public function get($model, string $key, $value, array $attributes): Address
     {
-        $decodedValue = json_decode($value, true);
-        $address = Address::find($decodedValue['id']);
-        if (!empty($address)) {
+        if($value != null) {
+            $decodedValue = json_decode($value, true);
+            $address = Address::find($decodedValue['id']);
+            if (!empty($address)) {
+                return $address;
+            }
+            $address = new Address($decodedValue);
+            $address->fillable[] = 'id';
+            $address->id = $decodedValue['id'];
             return $address;
-        }
-        $address = new Address($decodedValue);
-        $address->fillable[] = 'id';
-        $address->id = $decodedValue['id'];
-        return $address;
+        }else{
+            return new Address();
+        }     
     }
 
     /**

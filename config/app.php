@@ -45,7 +45,9 @@ return [
     |
     */
 
+
     'debug' => (bool) env('APP_DEBUG', false),
+
 
     /*
     |--------------------------------------------------------------------------
@@ -168,9 +170,10 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
-          Kreait\Laravel\Firebase\ServiceProvider::class,
 
-     
+        Kreait\Laravel\Firebase\ServiceProvider::class,
+
+
         /*
          * Application Service Providers...
          */
@@ -181,6 +184,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\ModulesServiceProvider::class,
         App\Providers\FirebaseServiceProvider::class,
+
 
 
     ],
