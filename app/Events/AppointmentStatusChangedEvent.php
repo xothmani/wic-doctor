@@ -12,10 +12,7 @@ use App\Models\Appointment;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-<<<<<<< HEAD
 use Log;
-=======
->>>>>>> merging_dev_agendabranch
 
 class AppointmentStatusChangedEvent
 {
@@ -27,18 +24,12 @@ class AppointmentStatusChangedEvent
      * AppointmentChangedEvent constructor.
      * @param $appointment
      */
-<<<<<<< HEAD
-    public function __construct($appointment, $status_id,$deviceToken)
+    public function __construct($appointment, $status_id, $deviceToken)
     {
         Log::info("Appointment -> Status Changed Event: {$appointment}");
         $this->appointment = $appointment;
         $this->status_id = $status_id;
         $this->deviceToken = $deviceToken;
-=======
-    public function __construct($appointment)
-    {
-        $this->appointment = $appointment;
->>>>>>> merging_dev_agendabranch
     }
 
 

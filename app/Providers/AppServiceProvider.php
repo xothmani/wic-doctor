@@ -13,15 +13,12 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Stripe\Stripe;
-<<<<<<< HEAD
 use Illuminate\Support\Facades\App;
-=======
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Doctor;
 use Illuminate\Support\Facades\Log;
 
->>>>>>> merging_dev_agendabranch
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -42,15 +39,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-<<<<<<< HEAD
-	App::setLocale('fr');
+        App::setLocale('fr');
         Schema::defaultStringLength(191);
         try {
-	    
-=======
-        Schema::defaultStringLength(191);
-        try {
->>>>>>> merging_dev_agendabranch
+
             config(['mail.driver' => setting('mail_driver', 'smtp')]);
             config(['mail.host' => setting('mail_host', 'smtp.mailgun.org')]);
             config(['mail.port' => setting('mail_port', 587)]);
@@ -86,15 +78,9 @@ class AppServiceProvider extends ServiceProvider
             config(['services.fcm.key' => setting('fcm_key', '')]);
 
             //config(['paypal.mode' => setting('paypal_mode', '0') != '0' ? 'live' : 'sandbox']);
-<<<<<<< HEAD
-           // config(['paypal.mode' => 'sandbox']);
-	    config(['paypal.mode' => 'live']);
-		config(['paypal.currency' => Str::upper(setting('default_currency_code', 'USD'))]);
-=======
-            //config(['paypal.mode' => 'sandbox']);
+            // config(['paypal.mode' => 'sandbox']);
             config(['paypal.mode' => 'live']);
             config(['paypal.currency' => Str::upper(setting('default_currency_code', 'USD'))]);
->>>>>>> merging_dev_agendabranch
 
             config(['paypal.sandbox.username' => setting('paypal_username')]);
             config(['paypal.sandbox.password' => setting('paypal_password')]);
@@ -112,8 +98,6 @@ class AppServiceProvider extends ServiceProvider
         } catch (Exception $e) {
 
         }
-<<<<<<< HEAD
-=======
 
 
         View::composer('*', function ($view) {
@@ -134,6 +118,5 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('activeDoctor', $activeDoctor);
         });
->>>>>>> merging_dev_agendabranch
     }
 }

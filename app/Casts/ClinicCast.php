@@ -10,10 +10,7 @@ namespace App\Casts;
 
 use App\Models\Clinic;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
-<<<<<<< HEAD
 use Illuminate\Support\Facades\Log;
-=======
->>>>>>> merging_dev_agendabranch
 
 /**
  * Class ClinicCast
@@ -25,42 +22,38 @@ class ClinicCast implements CastsAttributes
     /**
      * @inheritDoc
      */
-  public function get($model, string $key, $value, array $attributes): Clinic
-{
-    // Decode the JSON value
-    $decodedValue = json_decode($value, true);
-<<<<<<< HEAD
-    Log::info("ClinicCast", ["decodedValue" => $decodedValue]);
-=======
+    public function get($model, string $key, $value, array $attributes): Clinic
+    {
+        // Decode the JSON value
+        $decodedValue = json_decode($value, true);
+        Log::info("ClinicCast", ["decodedValue" => $decodedValue]);
+        // Check if the decoded value is null or doesn't contain the 'id' key
+        if (is_null($decodedValue) || !isset($decodedValue['id'])) {
+            // Handle the error or return a default value if necessary
+            throw new \Exception("Invalid JSON value or missing 'id' key in ClinicCast.");
+        }
 
->>>>>>> merging_dev_agendabranch
-    // Check if the decoded value is null or doesn't contain the 'id' key
-    if (is_null($decodedValue) || !isset($decodedValue['id'])) {
-        // Handle the error or return a default value if necessary
-        throw new \Exception("Invalid JSON value or missing 'id' key in ClinicCast.");
-    }
+        // Attempt to find the Clinic by ID
+        $clinic = Clinic::find($decodedValue['id']);
 
-    // Attempt to find the Clinic by ID
-    $clinic = Clinic::find($decodedValue['id']);
-    
-    if ($clinic) {
+        if ($clinic) {
+            return $clinic;
+        }
+
+        // If the clinic is not found, create a new Clinic instance
+        $clinic = new Clinic($decodedValue);
+        $clinic->fillable[] = 'id';
+        $clinic->id = $decodedValue['id'];
+
         return $clinic;
     }
-
-    // If the clinic is not found, create a new Clinic instance
-    $clinic = new Clinic($decodedValue);
-    $clinic->fillable[] = 'id';
-    $clinic->id = $decodedValue['id'];
-
-    return $clinic;
-}
 
     /**
      * @inheritDoc
      */
     public function set($model, string $key, $value, array $attributes): array
     {
-//        if (!$value instanceof Clinic) {
+        //        if (!$value instanceof Clinic) {
 //            throw new InvalidArgumentException('The given value is not an Clinic instance.');
 //        }
         return [
