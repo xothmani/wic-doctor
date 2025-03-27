@@ -425,70 +425,76 @@ class PatientDoctorChatController extends Controller
    
     
     public function index(Request $request)
-{
-    $user = auth()->user();
-    $isDoctor = $user->doctor !== null;
-
-    // Récupération des conversations avec dernier message
-    $conversations = [];
-
-    $patients = collect(); // Initialize the $patients variable
-
-    if ($isDoctor) {
-        $relationships = DoctorPatients::where('doctor_id', $user->doctor->id)
-            ->with(['patient.user'])
-            ->get();
-        
-        // Assign patients to the variable
-        $patients = $relationships->map(function ($rel) {
-            return $rel->patient;
-        });
-    } else {
-        $relationships = DoctorPatients::where('patient_id', $user->patient->id)
-            ->with(['doctor.user'])
-            ->get();
-    }
-
-    foreach ($relationships as $rel) {
-        $target = $isDoctor ? $rel->patient : $rel->doctor;
-        $otherUser = $target->user;
-
-        // Récupération dernier message depuis Firestore
-        $chatId = $user->id < $otherUser->id 
-            ? $user->id . '-' . $otherUser->id 
-            : $otherUser->id . '-' . $user->id;
-
-        $messages = $this->firestore->getDocuments("messages/{$chatId}/chats");
-
-        $lastMessage = null;
-        foreach ($messages as $message) {
-            $time = $message['fields']['time']['integerValue'] ?? 0;
-            if (!$lastMessage || $time > $lastMessage['time']) {
-                $lastMessage = [
-                    'text' => $message['fields']['text']['stringValue'] ?? '',
-                    'time' => $time
-                ];
+    {
+        $user = auth()->user();
+        $isDoctor = $user->doctor !== null;
+    
+        // Récupération des conversations avec dernier message
+        $conversations = [];
+    
+        $patients = collect(); // Initialize the $patients variable
+    
+        if ($isDoctor) {
+            // Ensure the doctor exists before proceeding
+            if ($user->doctor) {
+                $relationships = DoctorPatients::where('doctor_id', $user->doctor->id)
+                    ->with(['patient.user'])
+                    ->get();
+    
+                // Assign patients to the variable
+                $patients = $relationships->map(function ($rel) {
+                    return $rel->patient;
+                });
+            }
+        } else {
+            // Ensure the patient exists before proceeding
+            if ($user->patient) {
+                $relationships = DoctorPatients::where('patient_id', $user->patient->id)
+                    ->with(['doctor.user'])
+                    ->get();
             }
         }
-
-        $conversations[] = [
-            'user_id' => $otherUser->id,
-            'name' => $otherUser->name,
-            'last_message' => $lastMessage
-        ];
+    
+        foreach ($relationships as $rel) {
+            $target = $isDoctor ? $rel->patient : $rel->doctor;
+            $otherUser = $target->user;
+    
+            // Récupération dernier message depuis Firestore
+            $chatId = $user->id < $otherUser->id 
+                ? $user->id . '-' . $otherUser->id 
+                : $otherUser->id . '-' . $user->id;
+    
+            $messages = $this->firestore->getDocuments("messages/{$chatId}/chats");
+    
+            $lastMessage = null;
+            foreach ($messages as $message) {
+                $time = $message['fields']['time']['integerValue'] ?? 0;
+                if (!$lastMessage || $time > $lastMessage['time']) {
+                    $lastMessage = [
+                        'text' => $message['fields']['text']['stringValue'] ?? '',
+                        'time' => $time
+                    ];
+                }
+            }
+    
+            $conversations[] = [
+                'user_id' => $otherUser->id,
+                'name' => $otherUser->name,
+                'last_message' => $lastMessage
+            ];
+        }
+    
+        // Tri par dernier message
+        usort($conversations, function ($a, $b) {
+            return ($b['last_message']['time'] ?? 0) <=> ($a['last_message']['time'] ?? 0);
+        });
+    
+        return view('chatDP', [
+            'conversations' => $conversations,
+            'patients' => $isDoctor ? $patients : collect(),
+            'isDoctor' => $isDoctor
+        ]);
     }
-
-    // Tri par dernier message
-    usort($conversations, function ($a, $b) {
-        return ($b['last_message']['time'] ?? 0) <=> ($a['last_message']['time'] ?? 0);
-    });
-
-    return view('chatDP', [
-        'conversations' => $conversations,
-        'patients' => $isDoctor ? $patients : collect(),
-        'isDoctor' => $isDoctor
-    ]);
-}
-
+    
     
 }
