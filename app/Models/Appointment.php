@@ -95,7 +95,7 @@ class Appointment extends Model
      * @var array
      */
     protected $casts = [
-        'clinic' => Clinic::class,
+        //'clinic' => Clinic::class,
         'doctor' => Doctor::class,
         'patient' => Patient::class,
         //'address' => Address::class,

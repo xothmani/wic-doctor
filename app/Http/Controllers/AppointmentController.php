@@ -98,8 +98,7 @@ class AppointmentController extends Controller
     public function __construct(
         AppointmentRepository $appointmentRepo,
         CustomFieldRepository $customFieldRepo,
-        UserRepository $userRepo
-        ,
+        UserRepository $userRepo,
         AppointmentStatusRepository $appointmentStatusRepo,
         NotificationRepository $notificationRepo,
         PaymentRepository $paymentRepo,
@@ -224,7 +223,6 @@ class AppointmentController extends Controller
                     ['payment_status_id' => $input['payment_status_id']],
                     $appointment->payment_id
                 );
-                event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'] , $user->device_token));
             }
 
 
@@ -243,6 +241,7 @@ class AppointmentController extends Controller
                 $appointment->customFieldsValues()
                     ->updateOrCreate(['custom_field_id' => $value['custom_field_id']], $value);
             }
+            event(new AppointmentStatusChangedEvent($appointment,$input['payment_status_id'] ,$user->device_token));
         } catch (ValidatorException $e) {
             Flash::error($e->getMessage());
         }

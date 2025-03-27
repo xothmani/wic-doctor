@@ -21,8 +21,42 @@ use App\Notifications\StatusChangedAppointment;
 use App\Events\AppointmentChangedEvent;
 use App\Events\AppointmentStatusChangedEvent;
 
+
+use App\Repositories\DoctorRepository;
+use App\Repositories\PatientRepository;
+use App\Repositories\ClinicRepository;
+
 class AppointmentEventController extends Controller
 {
+
+    /**
+     * @var DoctorRepository
+     */
+    private DoctorRepository $doctorRepository;
+    /**
+     * @var ClinicRepository
+     */
+    private ClinicRepository $clinicRepository;
+
+    /**
+     * @var PatientRepository
+     */
+    private PatientRepository $patientRepository;
+
+
+
+    public function __construct(
+        DoctorRepository $doctorRepository,
+        ClinicRepository $clinicRepository,
+        PatientRepository $patientRepository,
+    ) {
+
+        parent::__construct();
+        $this->doctorRepository = $doctorRepository;
+        $this->clinicRepository = $clinicRepository;
+        $this->patientRepository = $patientRepository;
+    }
+
 
     public function index(Request $request)
     {
@@ -401,6 +435,15 @@ class AppointmentEventController extends Controller
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
 
+             /** solve problem cast */
+             $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
+             $appointment->doctor = $doctor;
+             $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
+             $appointment->clinic = $clinic;
+             $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
+             $appointment->patient = $patient;
+             /**** */
+
             // Check if the status is "Canceled" (use the correct status ID for "Canceled")
             if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
                 $appointment->cancel_reason = $request->cancel_Reason ?? "Aucune raison fournie";
@@ -424,14 +467,22 @@ class AppointmentEventController extends Controller
             $appointment->appointment_status_id = $request->appointment_status_id;
             $appointment->save();
 
+            /*** Send notification FCM code hamza ***/
+            Log::info("Notification envoyé NotificationController Status changed event");
+            //event(new AppointmentChangedEvent($appointment));
+            //$appointment->doctor = $this->doctor
+            event(new AppointmentStatusChangedEvent($appointment ,$appointment->appointment_status_id,$appointment->user->device_token));
+            /*** End send notification fcm */
 
-            if ($appointment->user) {
+
+            /*if ($appointment->user) {
                 $appointment->user->notify(new StatusChangedAppointment($appointment));
             }
 
             //Log::info('Creating message for appointment status update');
             // Log the message creation
             //Log::info('Creating message for appointment status update');
+
 
             if ($appointment->appointment_status_id < 2) {
                 $message = $this->createMessageForAppointment($appointment, $appointment->doctor_id);
@@ -481,7 +532,7 @@ class AppointmentEventController extends Controller
 
 
 
-            }
+            }*/
 
             return response()->json([
                 'message' => 'Status updated successfully',

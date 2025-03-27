@@ -56,14 +56,19 @@ class ClinicCast implements CastsAttributes
         //        if (!$value instanceof Clinic) {
 //            throw new InvalidArgumentException('The given value is not an Clinic instance.');
 //        }
-        return [
-            'clinic' => json_encode([
-                'id' => $value['id'],
-                'name' => $value['name'],
-                'phone_number' => $value['phone_number'],
-                'mobile_number' => $value['mobile_number'],
-            ])
-        ];
+        if($value != null){
+            return [
+                'clinic' => json_encode([
+                    'id' => $value['id'],
+                    'name' => $value['name'],
+                    'phone_number' => $value['phone_number'],
+                    'mobile_number' => $value['mobile_number'],
+                ])
+            ];
+        }else{
+            return [];
+        }
+        
     }
 }
 

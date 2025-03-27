@@ -73,6 +73,7 @@ public function index(Request $request): JsonResponse
 
         // Apply gouvernorat filter if provided
         if ($request->has('gouvernorat') && !empty($request->input('gouvernorat'))) {
+            Log::info('Search doctor governorat :', [$request->input('gouvernorat')]);
             $gouvernoratList = (array) $request->input('gouvernorat'); // Ensure it's an array
             $this->doctorRepository->pushCriteria(new FilterByGouvernoratCriteria($gouvernoratList));
         }
@@ -173,6 +174,7 @@ public function indexFiltreHamza(Request $request): JsonResponse
 
         // Appliquer le filtre gouvernorat si fourni
         if ($request->has('gouvernorat') && !empty($request->input('gouvernorat'))) {
+            Log::info('Search doctor governorat :', [$request->input('gouvernorat')]);
             $gouvernoratList = (array) $request->input('gouvernorat');
             $this->doctorRepository->pushCriteria(new FilterByGouvernoratCriteria($gouvernoratList));
         }

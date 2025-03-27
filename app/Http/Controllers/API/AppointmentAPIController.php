@@ -396,7 +396,10 @@ class AppointmentAPIController extends Controller
         $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
         $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
         $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
-        Log::info($patient);
+        $appointment->doctor = $doctor; // solution pour doctor cast
+        $appointment->patient = $patient; // solution pour doctor cast
+        $appointment->clinic = $clinic; // solution pour doctor cast
+        Log::info("Clinic cast error", [$clinic]);
         //Log::info($appointment->doctor_id);
 
         $user = $this->userRepository->findWithoutFail($doctor->user_id);
@@ -405,9 +408,7 @@ class AppointmentAPIController extends Controller
         $address = Address::where('user_id', $doctor->user_id)->first();
         Log::info("Addresse", ["Addresse" => $address]);
         $appointment->doctor->address = $address;
-        $appointment->doctor = $doctor; // solution pour doctor cast
-        $appointment->patient = $patient; // solution pour doctor cast
-        $appointment->clinic = $clinic; // solution pour doctor cast
+        
         Log::info($appointment);
         if (empty($appointment)) {
             return $this->sendError('Appointment not found');

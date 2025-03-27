@@ -198,10 +198,7 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsToMany(Clinic::class, 'clinic_users');
     }
 
-    public function doctor()
-    {
-        return $this->hasOne(Doctor::class, 'user_id');
-    }
+   
 
 
     /**
