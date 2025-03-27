@@ -1,9 +1,6 @@
 <?php
 namespace App\Mail;
-<<<<<<< HEAD
 use Illuminate\Support\Facades\Mail;  // Correct import for Mail facade
-=======
->>>>>>> origin/dev
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;

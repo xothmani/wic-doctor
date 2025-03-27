@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 <?php
 /**
  * File name: services.php
@@ -81,4 +79,3 @@ return [
         'key' => env('FCM_SERVER_KEY'),
     ]
 ];
->>>>>>> origin/dev

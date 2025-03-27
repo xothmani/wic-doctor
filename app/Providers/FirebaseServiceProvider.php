@@ -3,12 +3,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Kreait\Firebase\Factory;
-<<<<<<< HEAD
 use Kreait\Firebase\ServiceAccount;
 use Kreait\Firebase\Firestore;
-=======
-use Kreait\Firebase\Auth;
->>>>>>> origin/dev
 
 class FirebaseServiceProvider extends ServiceProvider
 {
@@ -36,11 +32,7 @@ class FirebaseServiceProvider extends ServiceProvider
 
             return (new Factory)
                 ->withServiceAccount($firebaseConfig)
-<<<<<<< HEAD
                 ->createFirestore();
-=======
-                ->create();
->>>>>>> origin/dev
         });
     }
 
@@ -53,8 +45,4 @@ class FirebaseServiceProvider extends ServiceProvider
     {
         //
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/dev

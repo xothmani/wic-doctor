@@ -21,13 +21,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Permission;
-<<<<<<< HEAD
 use App\Models\DoctorPatients;
 
 
-=======
-use Illuminate\Database\Eloquent\Relations\HasOne;
->>>>>>> origin/dev
 /**
  * Class User
  * @package App\Models

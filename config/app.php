@@ -184,10 +184,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\ModulesServiceProvider::class,
-<<<<<<< HEAD
             // ...
-=======
->>>>>>> origin/dev
         App\Providers\FirebaseServiceProvider::class,
 
 
