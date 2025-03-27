@@ -78,17 +78,17 @@ class PayPalController extends Controller
     public function paymentCancel()
     {
         Log::info("paymentCanceled");
-        return redirect()->route('paypal')->with('error', 'You have canceled the transaction.');
+        return view('paypal.error');
     }
 
     public function paymentSuccess(Request $request)
     {
-        //\Log::info("Request Data for succcccess:", $request->all());
+        \Log::info("Request Data for succcccess:", $request->all());
         $provider = new PayPalClient;
         $provider->setApiCredentials(config('paypal'));
         $provider->getAccessToken();
         $response = $provider->capturePaymentOrder($request['token']);
-        //\Log::info("PayPal Response: ", $response);
+        \Log::info("PayPal Response: ", $response);
 
         if (isset($response['status']) && $response['status'] === 'COMPLETED') {
             // Check if the response contains the invoice_id
@@ -104,7 +104,7 @@ class PayPalController extends Controller
             $paymentSession = DB::table('payment_sessions')
                 ->where('token', $customPaymentToken)
                 ->first();
-
+            \Log::info("Payment Session: ", (array) $paymentSession);
             if (!$paymentSession) {
                 \Log::error("Payment session not found for token: " . $customPaymentToken);
                 return response()->json(['error' => 'Payment session not found.'], 404);
@@ -119,122 +119,124 @@ class PayPalController extends Controller
 
             // Insert payment record
             $paymentId = DB::table('payments')->insertGetId([
-            'amount' => $paymentSession->tele_price_tnd,
-            'description' => $paymentSession->description,
-            'user_id' => $paymentSession->user_id,
-            'payment_method_id' => 13, // Konnect
-            'payment_status_id' => 2, // Completed
-            'appointment_id' => $paymentSession->appointment_id,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-	DB::table('rooms')
-            ->where('appointment_id', $paymentSession->appointment_id)
-            ->update([
-                'payments_id' => $paymentId,
+                'amount' => $paymentSession->tele_price_eur,
+                'description' => $paymentSession->description,
+                'user_id' => $paymentSession->user_id,
+                'payment_method_id' => 5,
+                'payment_status_id' => 2,
+                'appointment_id' => $paymentSession->appointment_id,
+                'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            DB::table('rooms')
+                ->where('appointment_id', $paymentSession->appointment_id)
+                ->update([
+                    'payments_id' => $paymentId,
+                    'updated_at' => now(),
+                ]);
 
-	$patient_id = $paymentSession->user_id;
+            //$user = User::find($paymentSession->user_id);
+            //$phoneNumber = $user->phone;
+            $user_id = $paymentSession->user_id;
 
-            $user = User::find($paymentSession->user_id);
-            $phoneNumber = $user->phone;
 
             // Fetch patient details using the Patient model
-            $patient = Patient::where('user_id', $patient_id)->first();
+
+            $patient = Patient::where('id', $user_id)->first();
+
             if (!$patient) {
-                \Log::error("Patient not found for ID: " . $patient_id);
+                \Log::error("Patient not found for ID: " . $user_id);
                 return response()->json(['error' => 'Patient not found.'], 404);
             }
             $patientName = $patient->first_name . ' ' . $patient->last_name;
             $patientEmail = $paymentSession->email;
-	    $currency = 'EUR';
-	    $formattedDate = Carbon::parse($paymentSession->start_at)->format('d/m/Y H:i'); // Format date and time
+            $currency = 'EUR';
+            $formattedDate = Carbon::parse($paymentSession->start_at)->format('d/m/Y H:i'); // Format date and time
             $paymentDetails = [
                 'patient_name' => $patientName,
-		'currency' => $currency,
+                'currency' => $currency,
                 'amount' => $paymentSession->tele_price_eur,
                 'description' => $paymentSession->description,
                 'start_at' => $formattedDate,
             ];
 
             Mail::to($patientEmail)->send(new PaymentSuccessMail($paymentDetails));
-	   // $this->sendBySMS($phoneNumber, $patientName);
-              return view('paypal.payment_success');
+            // $this->sendBySMS($phoneNumber, $patientName);
+            return view('paypal.payment_success');
 
         }
 
-            return view('paypal.error');
+        return view('paypal.error');
 
     }
-	protected function sendBySMS($phoneNumber, $patientName)
-{
-    \Log::info("Attempting to send SMS to $phoneNumber...");
+    protected function sendBySMS($phoneNumber, $patientName)
+    {
+        \Log::info("Attempting to send SMS to $phoneNumber...");
 
-    // Message content for payment confirmation
-    $message = "Bonjour $patientName,\n";
-    $message .= "Votre paiement pour votre téléconsultation avec Wic-Doctor a été confirmé.\n";
-    $message .= "Veuillez consulter votre email pour plus de détails.\n";
-    $message .= "Merci de votre confiance !";
+        // Message content for payment confirmation
+        $message = "Bonjour $patientName,\n";
+        $message .= "Votre paiement pour votre téléconsultation avec Wic-Doctor a été confirmé.\n";
+        $message .= "Veuillez consulter votre email pour plus de détails.\n";
+        $message .= "Merci de votre confiance !";
 
-    $api_key = 'INS757364498';
-    $from = '33743134488'; // Replace with your authorized sender ID or number
-    $to = $phoneNumber;
-    $alphasender = 'Wic-Doctor';
+        $api_key = 'INS757364498';
+        $from = '33743134488'; // Replace with your authorized sender ID or number
+        $to = $phoneNumber;
+        $alphasender = 'Wic-Doctor';
 
-    // Debug log to check the complete message before sending
-    \Log::info("Message content: $message");
+        // Debug log to check the complete message before sending
+        \Log::info("Message content: $message");
 
-    // Send SMS using the `sendsms` method
-    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+        // Send SMS using the `sendsms` method
+        $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
 
-    if ($smsResult) {
-        \Log::info("SMS sent successfully to $phoneNumber with message: $message");
-    } else {
-        \Log::error("Failed to send SMS to $phoneNumber.");
-    }
-}
-
-private function sendsms($api_key, $from, $to, $message, $alphasender = 'Wic-Doctor')
-{
-    $url = 'https://wicsms.com/apis/smscontact/';
-
-    // Remove "+" at the beginning if present
-    if (strpos($to, '+') === 0) {
-        $to = substr($to, 1); // Remove the first "+" character
+        if ($smsResult) {
+            \Log::info("SMS sent successfully to $phoneNumber with message: $message");
+        } else {
+            \Log::error("Failed to send SMS to $phoneNumber.");
+        }
     }
 
-    $fields = [
-        'apikey' => $api_key,
-        'from' => $from,
-        'to' => $to,
-        'message' => $message,
-        'alphasender' => $alphasender,
-    ];
+    private function sendsms($api_key, $from, $to, $message, $alphasender = 'Wic-Doctor')
+    {
+        $url = 'https://wicsms.com/apis/smscontact/';
 
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+        // Remove "+" at the beginning if present
+        if (strpos($to, '+') === 0) {
+            $to = substr($to, 1); // Remove the first "+" character
+        }
 
-    $result = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+        $fields = [
+            'apikey' => $api_key,
+            'from' => $from,
+            'to' => $to,
+            'message' => $message,
+            'alphasender' => $alphasender,
+        ];
 
-    \Log::info("HTTP Code: $httpCode");
-    \Log::info("API Response: $result");
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
 
-    // Parse the API response
-    $response = json_decode($result, true);
+        $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-    if (isset($response['status']) && $response['status'] === "0") {
-        \Log::info("SMS successfully sent to $to: $message");
-        return true;
-    } else {
-        \Log::error("Failed to send SMS. API Response: " . $result);
-        return false;
+        \Log::info("HTTP Code: $httpCode");
+        \Log::info("API Response: $result");
+
+        // Parse the API response
+        $response = json_decode($result, true);
+
+        if (isset($response['status']) && $response['status'] === "0") {
+            \Log::info("SMS successfully sent to $to: $message");
+            return true;
+        } else {
+            \Log::error("Failed to send SMS. API Response: " . $result);
+            return false;
+        }
     }
-}
 
 }

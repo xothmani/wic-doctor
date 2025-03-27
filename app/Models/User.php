@@ -21,9 +21,13 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Permission;
+<<<<<<< HEAD
 use App\Models\DoctorPatients;
 
 
+=======
+use Illuminate\Database\Eloquent\Relations\HasOne;
+>>>>>>> origin/dev
 /**
  * Class User
  * @package App\Models
@@ -72,8 +76,13 @@ class User extends Authenticatable implements HasMedia
         'phone_number',
         'phone_verified_at',
         'password',
+        'passwordpatient',
         'api_token',
+        'lastname',
         'device_token',
+        'last_login_at',
+
+
     ];
     /**
      * The attributes that should be casted to native types.
@@ -251,7 +260,7 @@ public function telesecretariat()
         }
 
         // If the user is an admin, allow all permissions
-        if ($this->hasRole('admin')) {
+        if ($this->hasRole('admin') || $this->hasRole('commercial')) {
             \Log::info('Permission granted for admin role', ['user_id' => $this->id]);
             return true;
         }
@@ -272,7 +281,7 @@ public function telesecretariat()
         }
 
         // If the user is a secretary
-        if ($this->hasRole('Secretary')) {
+        if ($this->hasRole('Secretary') || $this->hasRole('Telesecretary')) {
             // Query the role_profile_permission table for secretary permissions
             $query = \DB::table('role_profile_permission')
                 ->join('model_has_roles', 'role_profile_permission.role_id', '=', 'model_has_roles.role_id')
@@ -324,11 +333,48 @@ public function telesecretariat()
             $associatedDoctor = $this->associatedDoctors->first(); // Fetch the first associated doctor
             return $associatedDoctor->doctor_id ?? null;
         }
-
+        if ($this->hasRole('Telesecretary')) {
+            return session('selectedDoctorId');
+        }
         // For other roles, return null
         return null;
     }
+    /**
+     * Get the active doctor id for the current user.
+     *
+     * If the user has the Tele role, it returns the doctor id stored in the session.
+     * Otherwise, it returns the doctor id associated with the user.
+     *
+     * @return int|null
+     */
+        public function doctorPatients()
+{
+    return $this->hasMany(DoctorPatient::class, 'patient_id');
+}
+        public function doctor()
+    {
+        return $this->hasOne(Doctor::class, 'user_id');
+    }
 
 
+    public function getActiveDoctorId(): ?int
+    {
+        if ($this->hasRole('Telesecretary')) {
+            return session('selectedDoctorId');
+        }
+        return $this->getDoctorId(); // assuming getDoctorId() exists on your model
+    }
+    public function patient()
+    {
+        return $this->hasOne(Patient::class);
+    }
+    public function address(): HasOne
+    {
+        return $this->hasOne(Address::class, 'user_id', 'id');
+    }
+    public function memberships()
+    {
+        return $this->hasMany(Membership::class);
+    }
 
 }

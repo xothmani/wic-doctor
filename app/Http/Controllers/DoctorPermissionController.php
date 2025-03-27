@@ -22,23 +22,23 @@ class DoctorPermissionController extends Controller
         }
 
         $associatedUsers = DoctorAssociate::where('doctor_id', $doctor->id)
-            ->with('user.roles.permissions')
+            ->with('user')
             ->get();
 
         $selectedUserId = $request->input('selected_user', null);
 
-        // Fetch all permissions with readable names
+        /* // Fetch all permissions with readable names
         $permissions = DB::table('permissions')
             ->leftJoin('readable_permissions', 'permissions.id', '=', 'readable_permissions.permission_id')
             ->select(
                 'permissions.id as permission_id',
                 DB::raw('COALESCE(readable_permissions.readable_name, permissions.name) as display_name')
             )
-            ->get();
+            ->get(); */
 
         return view('profile_management.permissions.index', [
             'associatedUsers' => $associatedUsers,
-            'permissions' => $permissions,
+            /* 'permissions' => $permissions, */
             'doctorId' => $doctor->id,
             'selectedUserId' => $selectedUserId,
         ]);
@@ -70,6 +70,9 @@ class DoctorPermissionController extends Controller
 
         // Fetch all permissions with readable names
         $permissions = DB::table('permissions')
+            // Only include permissions that have a corresponding record in permission_for_sub_profile
+            ->join('permission_for_sub_profile', 'permissions.id', '=', 'permission_for_sub_profile.permission_readable_name_id')
+            // Get the readable permission name (if available) from readable_permissions
             ->leftJoin('readable_permissions', 'permissions.id', '=', 'readable_permissions.permission_id')
             ->select(
                 'permissions.id as permission_id',
@@ -77,10 +80,9 @@ class DoctorPermissionController extends Controller
             )
             ->get()
             ->map(function ($permission) use ($existingPermissions, $locale) {
-                // Decode the readable name by parsing the JSON or fallback to permission name
+                // Attempt to decode the display name as JSON; if it fails, use the value directly.
                 $decodedName = json_decode($permission->display_name, true);
                 $localizedName = $decodedName[$locale] ?? $decodedName['fr'] ?? $permission->display_name;
-
                 return [
                     'id' => $permission->permission_id,
                     'name' => $localizedName,
@@ -146,7 +148,6 @@ class DoctorPermissionController extends Controller
                 \Log::info("Deleting permission ID: $permissionId for user ID: $userId and doctor ID: $doctorId");
 
                 DB::table('role_profile_permission')
-                    ->where('role_id', Role::where('name', 'doctor')->first()->id)
                     ->where('permission_id', $permissionId)
                     ->where('doctor_id', $doctorId)
                     ->where('user_id', $userId)

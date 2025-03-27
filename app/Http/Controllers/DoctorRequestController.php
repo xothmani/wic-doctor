@@ -178,17 +178,13 @@ public function store(Request $request)
         // Vérifier si l'utilisateur est déjà associé à un docteur
         $existingDoctor = Doctor::where('user_id', $user->id)->first();
         if ($existingDoctor) {
-            // Logguer une tentative de doublon
-            Log::warning('Tentative de conventionnement pour un utilisateur déjà existant.', [
-                'user_id' => $user->id,
-                'doctorRequestId' => $doctorRequestId,
-            ]);
             return redirect()->back()->with('error', 'Docteur déjà conventionné pour cet utilisateur.');
         }
+        $availabilityMode = $request->input('availability_mode'); // Récupérer la valeur du formulaire
+
 
         // Créer le docteur
-        $doctor = $this->createDoctor($user, $doctorRequest);
-
+        $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode);
         // Vérifier si le patient existe déjà
         $existingPatient = Patient::where('user_id', $user->id)->first();
         if (!$existingPatient) {
@@ -227,10 +223,13 @@ public function store(Request $request)
     }
 }
 
-public function createUserFromDoctorRequest($doctorRequestId)
+
+public function createUserFromDoctorRequest($doctorRequestId, Request $request)
 {
     // Récupérer la demande de docteur
     $doctorRequest = DoctorRequest::findOrFail($doctorRequestId);
+        $availabilityMode = $request->input('availability_mode'); // Récupérer la valeur du formulaire
+
 
     // Vérifier que la demande est de type "Docteur"
     if ($doctorRequest->type !== 'Docteur') {
@@ -311,7 +310,8 @@ public function createUserFromDoctorRequest($doctorRequestId)
         }
 
         // Créer le docteur
-        $doctor = $this->createDoctor($user, $doctorRequest);
+        $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode);
+
 
         // Créer le patient si nécessaire
         $existingPatient = Patient::where('user_id', $user->id)->first();
@@ -319,14 +319,30 @@ public function createUserFromDoctorRequest($doctorRequestId)
             $this->createPatient($user, $doctorRequest);
         }
 
-        // Envoyer un e-mail avec les informations de connexion
+                    // Changer le statut de la demande à "accepté"
+                    $doctorRequest->status = 'accepté';
+                    $doctorRequest->save(); // Sauvegarder la mise à jour
+
+        Log::info('Mot de passe du docteur : ' . $doctorPassword);
+
+        // Envoi de l'email avec les mots de passe
+        $doctor = Doctor::where('user_id', function ($query) use ($doctorRequest) {
+            $query->select('id')->from('users')->where('email', $doctorRequest->email);
+        })->first();
+        
+        if (!$doctor) {
+            return redirect()->back()->with('error', 'Le docteur n\'existe pas.');
+        }
+        
         Mail::to($doctorRequest->email)->send(new DoctorRequestMail(
             $doctorPassword,
             $patientPassword,
             $doctor
         ));
+        
 
-        return redirect()->route('doctor_requests.index')->with('success', 'Utilisateur, docteur et patient créés avec succès. Informations envoyées par e-mail.');
+
+        return redirect()->route('doctor_requests.index')->with('success', 'Utilisateur, docteur et patient créés avec succès. Les informations ont été envoyées par e-mail.');
     } catch (\Exception $e) {
         Log::error('Erreur lors de la création : ' . $e->getMessage(), [
             'doctorRequestId' => $doctorRequestId,
@@ -335,8 +351,9 @@ public function createUserFromDoctorRequest($doctorRequestId)
     }
 }
 
-private function createDoctor($user, $doctorRequest)
-{
+ 
+
+private function createDoctor($user, $doctorRequest, $availabilityMode){
         $randomId = random_int(1000000000, 9999999999);
         while (Doctor::where('id_aleatoire', $randomId)->exists()) {
             $randomId = random_int(1000000000, 9999999999);
@@ -351,6 +368,7 @@ private function createDoctor($user, $doctorRequest)
         'id_aleatoire' => $randomId,
         'sexe' => $doctorRequest->sexe,
         'code_doctor' => $doctorRequest->code_doctor,
+        'availability_mode' => $availabilityMode, 
     ]);
 
     // Définir l'image par défaut selon le sexe
@@ -422,14 +440,27 @@ private function createDoctor($user, $doctorRequest)
     if ($doctorRequest->pays === 'tunisie') {
         $addressData['gouvernorat'] = json_encode(['fr' => $doctorRequest->gouvernorat]);
         $addressData['ville'] = json_encode(['fr' => $doctorRequest->ville]);
+        DB::table('addresses')->insert($addressData);
+        // Modifier les permissions avant d'exécuter le script Node.js
+        shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
+        shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/WicDoctor/medecin/');
+
+        // Exécuter le script Node.js
+        $this->executeNodeScript($doctor);
     } elseif ($doctorRequest->pays === 'france') {
         $addressData['Département'] = json_encode(['fr' => $doctorRequest->departement]);
         $addressData['Région'] = json_encode(['fr' => $doctorRequest->region]);
+        DB::table('addresses')->insert($addressData);
+        // Modifier les permissions avant d'exécuter le script Node.js
+        shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/france/medecin/');
+        shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/france/medecin/');
+
+        // Exécuter le script Node.js
+        $this->executeNodeScriptFrance($doctor);
     }
 
-        DB::table('addresses')->insert($addressData);
+        
 
-        $this->executeNodeScript($doctor);
 
         return $doctor;
 }
@@ -460,7 +491,7 @@ private function executeNodeScript($doctor)
 
         // Données JSON à écrire
         $data = [
-                'id_doctor' => $doctor->id,
+    'id_doctor' => $doctor->id,
     'name' => json_encode(['fr' => $doctor->name]),
     'doctor_photo' => $doctor->doctor_photo, 
     'enable_online_consultation' => $doctor->enable_online_consultation, 
@@ -476,12 +507,74 @@ private function executeNodeScript($doctor)
     'aleatoire' => $doctor->id_aleatoire,
     'adresse_exacte' => $adresse_exacte, 
     'specialities' => $specialitiesData, 
-    'type' => "conventionné", 
+    'type' => "conventionné",
+    'availability_mode'=> $doctor->availability_mode, 
         ];
 
         file_put_contents($filePath, json_encode([$data], JSON_UNESCAPED_UNICODE));
 
         $command = 'node /var/www/doctor.way-interactive-convergence.com/public/script-detail-med/nodejs.js';
+        exec($command . ' 2>&1', $output, $returnVar);
+
+        if ($returnVar !== 0) {
+            Log::error('Erreur lors de l\'exécution du script Node.js', [
+                'output' => $output,
+                'return_var' => $returnVar,
+            ]);
+        } else {
+            Log::info('Script Node.js exécuté avec succès', ['output' => $output]);
+        }
+}
+
+
+private function executeNodeScriptFrance($doctor)
+{
+    $user = $doctor->user()->with('address')->first(); // Charger l'adresse avec l'utilisateur
+    $experience = $doctor->experience; // Récupérer l'expérience associée au docteur
+
+    // Vérifier si l'adresse est présente et récupérer la ville
+    $address = $user ? $user->address : null;
+    $region = $address ? $address->ville : null;
+    $pays = $address ? $address->pays : null;
+    $département = $address ? $address->Département : null;
+    $adresse_exacte = $address ? $address->Région : null;
+    // Récupérer le titre de l'expérience, si existante
+    $title = $experience ? $experience->title : null;
+    // Récupérer les spécialités du médecin
+    $specialities = $doctor->specialities;
+    // Récupérer les spécialités et construire le tableau
+    $specialitiesData = $specialities->map(function($speciality) {
+        return [
+            'id' => $speciality->id,
+            'name' => json_encode(['fr' => $speciality->name]), // Exemple pour la langue 'fr'
+        ];
+    })->toArray();
+        $filePath = public_path('script-detail-med-france/file.json');
+
+        // Données JSON à écrire
+        $data = [
+    'id_doctor' => $doctor->id,
+    'name' => json_encode(['fr' => $doctor->name]),
+    'doctor_photo' => $doctor->doctor_photo, 
+    'enable_online_consultation' => $doctor->enable_online_consultation, 
+    'description' => $doctor->description, 
+    'horaires' => $doctor->horaires, 
+    'cabinet_photo' => $doctor->cabinet_photo, 
+    'created_at' => $doctor->created_at, 
+    'title' => $title, 
+    'phone_number' => $user ? $user->phone_number : null,
+    'pays' => $pays, 
+    'region' => $region, 
+    'département' => $département,
+    'adresse_exacte' => $adresse_exacte, 
+    'aleatoire' => $doctor->id_aleatoire,
+    'specialities' => $specialitiesData, 
+    'type' => "conventionné", 
+        ];
+
+        file_put_contents($filePath, json_encode([$data], JSON_UNESCAPED_UNICODE));
+
+        $command = 'node /var/www/doctor.way-interactive-convergence.com/public/script-detail-med-france/nodejs.js';
         exec($command . ' 2>&1', $output, $returnVar);
 
         if ($returnVar !== 0) {

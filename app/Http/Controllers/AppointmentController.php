@@ -264,7 +264,7 @@ public function getTodayCompletedAppointments(): \Illuminate\View\View
     
         $appointments = \DB::table('appointments')
             ->join('users', 'appointments.user_id', '=', 'users.id')
-            ->join('patients', 'appointments.user_id', '=', 'patients.user_id') // Jointure sur user_id
+            ->join('patients', 'appointments.patient_id', '=', 'patients.id') // Jointure patient
             ->join('appointment_statuses', 'appointments.appointment_status_id', '=', 'appointment_statuses.id')
             ->join('doctors', 'appointments.doctor_id', '=', 'doctors.id')
             ->leftJoin('pattern', 'appointments.motif_id', '=', 'pattern.id') // Jointure avec la table pattern

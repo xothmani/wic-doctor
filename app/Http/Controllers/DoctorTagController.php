@@ -36,6 +36,12 @@ class DoctorTagController extends Controller
     
         // Récupérer les tags associés à chaque spécialité
         $tags = Tag::whereIn('speciality_id', $specialities->pluck('id'))->get();
+         // Transformer les noms des tags pour afficher uniquement la valeur en français
+        $tags->transform(function ($tag) {
+            $name = json_decode($tag->name, true);
+            $tag->name = $name['fr'] ?? 'Non spécifié';
+            return $tag;
+        });
     
         // Récupérer les tags sélectionnés par le médecin (via la table doctor_tag)
         $doctorTags = DoctorTag::where('doctor_id', $doctor->id)->pluck('tag_id')->toArray();
@@ -46,48 +52,59 @@ class DoctorTagController extends Controller
     
     
 
- /**
-     * Store the selected tags for a doctor.
-     */
-    public function store(Request $request)
-    {
-        // Valider les données reçues
-        $request->validate([
-            'tags' => 'nullable|array', // Permet de ne pas avoir d'étiquette
-            'tags.*' => 'exists:tags,id', // Vérifie que chaque tag existe
-        ]);
+/**
+ * Store the selected tags for a doctor.
+ */
+public function store(Request $request)
+{
+    // Valider les données reçues
+    $request->validate([
+        'tags' => 'nullable|array', // Permet de ne pas avoir d'étiquette
+        'tags.*' => 'exists:tags,id', // Vérifie que chaque tag existe
+    ]);
+
+    // Récupérer le médecin connecté
+    $user = auth()->user();
     
-        // Récupérer le médecin connecté
-        $user = auth()->user();
-        
-        if (!$user) {
-            return response()->json(['error' => 'Utilisateur non connecté'], 401);
-        }
-    
-        // Récupérer le médecin associé à l'utilisateur connecté
-        $doctor = Doctor::where('user_id', $user->id)->first();
-        
-        if (!$doctor) {
-            return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
-        }
-    
-        // Supprimer tous les tags précédemment associés
-        DoctorTag::where('doctor_id', $doctor->id)->delete();
-    
-        // Si des tags sont envoyés dans le formulaire, les ajouter
-        if ($request->has('tags') && !empty($request->tags)) {
-            $tags = Tag::whereIn('id', $request->tags)->get();
-            
-            foreach ($tags as $tag) {
-                DoctorTag::create([
-                    'doctor_id' => $doctor->id,
-                    'tag_id' => $tag->id,
-                ]);
-            }
-        }
-        
-        return redirect()->route('doctor_tag.index');
+    if (!$user) {
+        return response()->json(['error' => 'Utilisateur non connecté'], 401);
     }
+
+    // Récupérer le médecin associé à l'utilisateur connecté
+    $doctor = Doctor::where('user_id', $user->id)->first();
+    
+    if (!$doctor) {
+        return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
+    }
+
+    // Supprimer tous les tags précédemment associés
+    DoctorTag::where('doctor_id', $doctor->id)->delete();
+
+    // Si des tags sont envoyés dans le formulaire, les ajouter
+    if ($request->has('tags') && !empty($request->tags)) {
+        $tags = Tag::whereIn('id', $request->tags)->get();
+        
+        foreach ($tags as $tag) {
+            DoctorTag::create([
+                'doctor_id' => $doctor->id,
+                'tag_id' => $tag->id,
+            ]);
+        }
+
+        // Mettre à jour le champ pourcentage_tags du médecin à 20
+        $doctor->update([
+            'pourcentage_tags' => 20,
+        ]);
+    } else {
+        // Si aucun tag n'est sélectionné, mettre à jour pourcentage_tags à 0
+        $doctor->update([
+            'pourcentage_tags' => 0,
+        ]);
+    }
+    
+    return redirect()->route('doctor_tag.index');
+}
+
     
     
     

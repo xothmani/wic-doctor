@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\View\View;
 use Prettus\Validator\Exceptions\ValidatorException;
 use App\Models\Speciality;
+use App\Jobs\RunNodeScript;
+use Illuminate\Support\Facades\File;
 
 class SpecialityController extends Controller
 {
@@ -84,27 +86,75 @@ class SpecialityController extends Controller
      *
      * @return RedirectResponse
      */
-    public function store(CreateSpecialityRequest $request):RedirectResponse
-    {
-        $input = $request->all();
-        $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->specialityRepository->model());
-        try {
-            $speciality = $this->specialityRepository->create($input);
-            $speciality->customFieldsValues()->createMany(getCustomFieldsValues($customFields, $request));
-            if (isset($input['image']) && $input['image']) {
-                $cacheUpload = $this->uploadRepository->getByUuid($input['image']);
-                $mediaItem = $cacheUpload->getMedia('image')->first();
-                $mediaItem->copy($speciality, 'image');
-            }
-        } catch (ValidatorException $e) {
-            Flash::error($e->getMessage());
-        }
 
-        Flash::success(__('lang.saved_successfully', ['operator' => __('lang.speciality')]));
-
-        return redirect(route('specialities.index'));
-    }
-
+     public function store(CreateSpecialityRequest $request): RedirectResponse
+     {
+         $input = $request->all();
+         $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->specialityRepository->model());
+     
+         try {
+             // Créer la spécialité
+             $speciality = $this->specialityRepository->create($input);
+             $speciality->customFieldsValues()->createMany(getCustomFieldsValues($customFields, $request));
+     
+             if (isset($input['image']) && $input['image']) {
+                 $cacheUpload = $this->uploadRepository->getByUuid($input['image']);
+                 $mediaItem = $cacheUpload->getMedia('image')->first();
+     
+                 if ($mediaItem) {
+                     // Supprimer l'ancienne image associée à la spécialité
+                     $speciality->clearMediaCollection('image');
+     
+                     // Copier la nouvelle image
+                     $mediaItem->copy($speciality, 'image');
+     
+                     // Mettre à jour l'ID et le file_name du média
+                     $speciality->image = $mediaItem->id;
+                     $speciality->image_name = $mediaItem->file_name;
+                     $speciality->save();
+                 }
+             }
+     
+             // Met à jour les données
+             $speciality->refresh(); 
+     
+             // Log après mise à jour
+             //\Log::info("Speciality created: ID = {$speciality->id}, Name = {$speciality->name}");
+     
+             // **Mise à jour de file.json**
+             $jsonFilePath = public_path('script-spec/file.json'); // Chemin du fichier JSON
+     
+             if (File::exists($jsonFilePath)) {
+                 $jsonData = json_decode(File::get($jsonFilePath), true);
+             } else {
+                 $jsonData = []; // Si le fichier n'existe pas encore
+             }
+     
+             // Parcourir les données JSON et mettre à jour toutes les entrées
+             foreach ($jsonData as &$entry) {
+                 $entry['specialite_id'] = $speciality->id;
+                 $entry['specialite'] = json_encode(['fr' => $speciality->name], JSON_UNESCAPED_UNICODE);
+             }
+     
+             // Sauvegarder les nouvelles données
+             File::put($jsonFilePath, json_encode($jsonData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+     
+             //\Log::info("Mise à jour du fichier JSON réussie avec specialite_id: {$speciality->id}");
+     
+             // Dispatch du job Laravel pour exécuter ton script Node.js
+             dispatch(new RunNodeScript($speciality->id, $speciality->name));
+     
+             //\Log::info("Job RunNodeScript dispatché avec succès pour la spécialité ID {$speciality->id}");
+     
+         } catch (ValidatorException $e) {
+             //\Log::error("Erreur lors de la création de la spécialité : " . $e->getMessage());
+             Flash::error($e->getMessage());
+         }
+     
+         Flash::success(__('lang.saved_successfully', ['operator' => __('lang.speciality')]));
+     
+         return redirect(route('specialities.index'));
+     }
     /**
      * Display the specified Speciality.
      *
@@ -160,36 +210,99 @@ class SpecialityController extends Controller
      *
      * @return RedirectResponse
      */
-    public function update(int $id, UpdateSpecialityRequest $request):RedirectResponse
+    public function update(int $id, UpdateSpecialityRequest $request): RedirectResponse
     {
         $speciality = $this->specialityRepository->findWithoutFail($id);
-
+    
         if (empty($speciality)) {
             Flash::error('Speciality not found');
             return redirect(route('specialities.index'));
         }
-        $input = $request->all();
+    
+        // Exclure 'image' pour éviter qu'il devienne null s'il n'est pas modifié
+        $input = $request->except(['image']);
         $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->specialityRepository->model());
+    
         try {
+            // Mettre à jour la spécialité avec les nouvelles données
             $speciality = $this->specialityRepository->update($input, $id);
-
-            if (isset($input['image']) && $input['image']) {
-                $cacheUpload = $this->uploadRepository->getByUuid($input['image']);
+    
+            // Vérifier si une nouvelle image a été envoyée
+            if ($request->has('image') && !empty($request->image)) { 
+                $cacheUpload = $this->uploadRepository->getByUuid($request->image);
                 $mediaItem = $cacheUpload->getMedia('image')->first();
-                $mediaItem->copy($speciality, 'image');
+    
+                if ($mediaItem) {
+                    // Supprimer l'ancienne image associée à la spécialité
+                    $speciality->clearMediaCollection('image');
+    
+                    // Copier la nouvelle image
+                    $mediaItem->copy($speciality, 'image');
+    
+                    // Mettre à jour l'ID et le file_name du média
+                    $speciality->image = $mediaItem->id;
+                    $speciality->image_name = $mediaItem->file_name;
+                }
+            } else {
+                // Conserver l'ancienne image si aucune nouvelle n'est envoyée
+                $speciality->image = $speciality->getFirstMedia('image') ? $speciality->getFirstMedia('image')->id : null;
+                $speciality->image_name = $speciality->getFirstMedia('image') ? $speciality->getFirstMedia('image')->file_name : null;
             }
+    
+            // Sauvegarder les informations mises à jour
+            $speciality->save();
+    
+            // Mise à jour des champs personnalisés
             foreach (getCustomFieldsValues($customFields, $request) as $value) {
                 $speciality->customFieldsValues()
                     ->updateOrCreate(['custom_field_id' => $value['custom_field_id']], $value);
             }
+    
+            // Met à jour les données
+            $speciality->refresh(); 
+    
+            // Log après mise à jour
+           // \Log::info("Speciality updated: ID = {$speciality->id}, Name = {$speciality->name}");
+    
+            // **Mise à jour de file.json**
+            $jsonFilePath = public_path('script-spec/file.json'); // Chemin du fichier JSON
+    
+            if (File::exists($jsonFilePath)) {
+                $jsonData = json_decode(File::get($jsonFilePath), true);
+            } else {
+                $jsonData = []; // Si le fichier n'existe pas encore
+            }
+    
+           // \Log::info("Contenu du fichier JSON avant mise à jour : " . json_encode($jsonData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    
+            // Mettre à jour toutes les entrées indépendamment de leurs valeurs
+            foreach ($jsonData as &$entry) {
+                $entry['specialite_id'] = $speciality->id;
+                $entry['specialite'] = json_encode(['fr' => $speciality->name], JSON_UNESCAPED_UNICODE);
+            }
+    
+            //\Log::info("Contenu du fichier JSON après mise à jour : " . json_encode($jsonData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    
+            // Sauvegarder les nouvelles données
+            File::put($jsonFilePath, json_encode($jsonData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    
+           // \Log::info("Mise à jour du fichier JSON réussie avec specialite_id: {$speciality->id}");
+    
+            // Dispatch du job Laravel pour exécuter ton script Node.js
+            //\Log::info("Nom de la spécialité passé au job : {$speciality->name}");
+            dispatch(new RunNodeScript($speciality->id, $speciality->name));
+    
+           // \Log::info("Job RunNodeScript dispatché avec succès pour la spécialité ID {$speciality->id}");
+    
         } catch (ValidatorException $e) {
             Flash::error($e->getMessage());
         }
-
+    
         Flash::success(__('lang.updated_successfully', ['operator' => __('lang.speciality')]));
-
+    
         return redirect(route('specialities.index'));
     }
+    
 
     /**
      * Remove the specified Speciality from storage.

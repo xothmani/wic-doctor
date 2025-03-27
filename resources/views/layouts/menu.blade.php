@@ -36,6 +36,170 @@
 
 <li class="nav-header">{{trans('lang.app_management')}}</li>
 
+@php
+    $doctorMenuOpen = Request::is('doctors*') || Request::is('doctorReviews*') || Request::is('availabilityHours*') || Request::is('experiences*') || Request::is('patterns*');
+@endphp
+@can('doctors.index')
+<li class="nav-item has-treeview {{ $doctorMenuOpen ? 'menu-open' : '' }}">
+    <a href="#" class="nav-link {{ $doctorMenuOpen ? 'active' : '' }}">
+        @if($icons)
+            <i class="nav-icon fas fa-user-md"></i>
+        @endif
+        <p>{{ trans('lang.doctor_plural') }} <i class="right fas fa-angle-left"></i></p>
+    </a>
+
+        <ul class="nav nav-treeview">
+            @can('doctor.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('doctors*') ? 'active' : '' }}"
+                        href="{!! route('doctors.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-user-md"></i>
+                        @endif
+                        <p>{{ trans('lang.doctor_table') }}</p>
+                    </a>
+                </li>
+            @endcan
+
+            @if(Auth::check() && Auth::user()->hasRole('Telesecretary'))
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('doctor-telesecretariat*') ? 'active' : '' }}"
+                        href="{!! route('doctor_telesecretariat.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                        @endif
+                        <p>{{ trans('lang.agenda_des_medecins') }}</p>
+                    </a>
+                </li>
+            @elseif(Auth::check() && Gate::allows('appointment-events.index'))
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('appointment-event*') ? 'active' : '' }}"
+                        href="{!! route('appointment-events.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-calendar-alt"></i>
+                        @endif
+                        <p>{{ trans('lang.agenda') }}</p>
+                    </a>
+                </li>
+            @endif
+
+            @can('doctorReviews.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('doctorReviews*') ? 'active' : '' }}"
+                        href="{!! route('doctorReviews.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-comments"></i>
+                        @endif
+                        <p>{{ trans('lang.doctor_review_plural') }}</p>
+                    </a>
+                </li>
+            @endcan
+
+            @can('experiences.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('experiences*') ? 'active' : '' }}"
+                        href="{!! route('experiences.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-briefcase"></i>
+                        @endif
+                        <p>{{ trans('lang.experience_plural') }}</p>
+                    </a>
+                </li>
+            @endcan
+
+            @can('availabilityHours.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('availabilityHours*') ? 'active' : '' }}"
+                        href="{!! route('availability.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-business-time"></i>
+                        @endif
+                        <p>{{ trans('lang.availability_hour_plural') }}</p>
+                    </a>
+                </li>
+            @endcan
+
+            @can('patterns.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('patterns*') ? 'active' : '' }}"
+                        href="{!! route('patterns.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-stethoscope"></i>
+                        @endif
+                        <p>{{ trans('lang.patterns_plural') }}</p>
+                    </a>
+                </li>
+            @endcan
+        </ul>
+    </li>
+@endcan
+
+@can('patients.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('patients*') ? 'active' : '' }}"
+            href="{!! route('patients.index') !!}">@if($icons)<i class="nav-icon fas fa-procedures"></i>@endif<p>
+                {{trans('lang.patient_plural')}}
+            </p></a>
+    </li>
+@endcan
+@can('appointments.today.completed')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('appointments/today/completed*') ? 'active' : '' }}"
+            href="{!! route('appointments.today.completed') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-calendar-check"></i>
+            @endif
+            <p>{{ trans('lang.appointments_completed_today') }}</p>
+        </a>
+    </li>
+@endcan
+@can('teleconsultation.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('teleconsultations*') ? 'active' : '' }}"
+            href="{!! route('teleconsultations.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-video"></i> <!-- Remplacez ici par la nouvelle classe d'icône -->
+            @endif
+            <p>{{ trans('lang.teleconsultation_plural') }}</p>
+        </a>
+    </li>
+@endcan
+@can('profile.index')
+    <li
+        class="nav-item has-treeview {{ Request::is('profile_management/Doctors_roles*') || Request::is('profile_management/Doctors_permissions*') || Request::is('profile_management/Doctors_users*') ? 'menu-open' : '' }}">
+        <a href="#"
+            class="nav-link {{ Request::is('profile_management/Doctors_roles*') || Request::is('profile_management/Doctors_permissions*') || Request::is('profile_management/Doctors_users*') ? 'active' : '' }}">
+            @if($icons)
+                <i class="nav-icon fas fa-user-cog"></i>
+            @endif
+            <p>{{ trans('lang.profile_management') }} <i class="right fas fa-angle-left"></i></p>
+        </a>
+        <ul class="nav nav-treeview">
+            @can('Doctors_users.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('profile_management/Doctors_users*') ? 'active' : '' }}"
+                        href="{!! route('Doctors_users.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-users"></i>
+                        @endif
+                        <p>{{ trans('lang.user_management') }}</p>
+                    </a>
+                </li>
+            @endcan
+            @can('Doctors_permissions.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('profile_management/Doctors_permissions*') ? 'active' : '' }}"
+                        href="{!! route('Doctors_permissions.index') !!}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-lock"></i>
+                        @endif
+                        <p>{{ trans('lang.permission_management') }}</p>
+                    </a>
+                </li>
+            @endcan
+        </ul>
+    </li>
+@endcan
 @can('doctor_requests.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('doctor_requests') ? 'active' : '' }}"
@@ -63,17 +227,17 @@
 
 
 
-@can('doctor_telesecretariat.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : '' }}"
-            href="{!! route('doctor_telesecretariat.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-calendar-check"></i> {{-- Icône représentant un agenda avec un médecin --}}
-            @endif
-            <p>{{ trans('lang.agenda_des_medecins') }}</p>
-        </a>
-    </li>
-@endcan
+{{--@can('doctor_telesecretariat.index')
+<li class="nav-item">
+    <a class="nav-link {{ Request::is('doctor_telesecretariat') && !Request::is('doctor_telesecretariat/create') ? 'active' : '' }}"
+        href="{!! route('doctor_telesecretariat.index') !!}">
+        @if($icons)
+        <i class="nav-icon fas fa-calendar-check"></i>
+        @endif
+        <p>{{ trans('lang.agenda_des_medecins') }}</p>
+    </a>
+</li>
+@endcan --}}
 
 @can('doctor_telesecretariat.create')
     <li class="nav-item">
@@ -210,134 +374,8 @@
     </li>
 @endcan -->
 
-@can('doctors.index')
-    <li
-        class="nav-item has-treeview {{ Request::is('doctors*') || Request::is('doctorReviews*') || Request::is('availabilityHours*') || Request::is('experiences*') ? 'menu-open' : '' }}">
-        <a href="#"
-            class="nav-link {{  Request::is('doctors*') || Request::is('doctorReviews*') || Request::is('availabilityHours*') || Request::is('experiences*') ? 'active' : '' }}">
-            @if($icons)
-            <i class="nav-icon fas fa-user-md"></i>@endif
-            <p>{{trans('lang.doctor_plural')}} <i class="right fas fa-angle-left"></i>
-            </p>
-        </a>
-        <ul class="nav nav-treeview">
-            @can('doctor.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('doctors*') ? 'active' : '' }}"
-                        href="{!! route('doctors.index') !!}">@if($icons)
-                        <i class="nav-icon fas fa-user-md"></i>@endif
-                        <p>{{trans('lang.doctor_table')}}</p>
-                    </a>
-                </li>
-            @endcan
-            @can('appointment-events.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('appointment-event*') ? 'active' : '' }}"
-                        href="{!! route('appointment-events.index') !!}">
-                        @if($icons)
-                            <i class="nav-icon fas fa-calendar-alt"></i>
-                        @endif
-                        <p>{{ trans('lang.agenda') }}</p>
-                    </a>
-                </li>
-            @endcan
-            @can('doctorReviews.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('doctorReviews*') ? 'active' : '' }}"
-                        href="{!! route('doctorReviews.index') !!}">@if($icons)
-                        <i class="nav-icon fas fa-comments"></i>@endif<p>{{trans('lang.doctor_review_plural')}}</p></a>
-                </li>
-            @endcan
-            @can('experiences.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('experiences*') ? 'active' : '' }}"
-                        href="{!! route('experiences.index') !!}">@if($icons)
-                        <i class="nav-icon fas fa-briefcase"></i>@endif<p>{{trans('lang.experience_plural')}}</p></a>
-                </li>
-            @endcan
-            @can('availabilityHours.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('availabilityHours*') ? 'active' : '' }}"
-                        href="{!! route('availability.index') !!}">@if($icons)
-                        <i class="nav-icon fas fa-business-time"></i>@endif<p>{{trans('lang.availability_hour_plural')}}</p></a>
-                </li>
-            @endcan
-            @can('patterns.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('patterns*') ? 'active' : '' }}"
-                        href="{!! route('patterns.index') !!}">@if($icons)
-                        <i class="nav-icon fas fa-stethoscope"></i>@endif<p>{{trans('lang.patterns_plural')}}</p></a>
-                </li>
-            @endcan
-        </ul>
-    </li>
-@endcan
-@can('profile.index')
-    <li
-        class="nav-item has-treeview {{ Request::is('profile_management/Doctors_roles*') || Request::is('profile_management/Doctors_permissions*') || Request::is('profile_management/Doctors_users*') ? 'menu-open' : '' }}">
-        <a href="#"
-            class="nav-link {{ Request::is('profile_management/Doctors_roles*') || Request::is('profile_management/Doctors_permissions*') || Request::is('profile_management/Doctors_users*') ? 'active' : '' }}">
-            @if($icons)
-                <i class="nav-icon fas fa-user-cog"></i>
-            @endif
-            <p>{{ trans('lang.profile_management') }} <i class="right fas fa-angle-left"></i></p>
-        </a>
-        <ul class="nav nav-treeview">
-            @can('Doctors_permissions.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('profile_management/Doctors_permissions*') ? 'active' : '' }}"
-                        href="{!! route('Doctors_permissions.index') !!}">
-                        @if($icons)
-                            <i class="nav-icon fas fa-lock"></i>
-                        @endif
-                        <p>{{ trans('lang.permission_management') }}</p>
-                    </a>
-                </li>
-            @endcan
-            @can('Doctors_users.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('profile_management/Doctors_users*') ? 'active' : '' }}"
-                        href="{!! route('Doctors_users.index') !!}">
-                        @if($icons)
-                            <i class="nav-icon fas fa-users"></i>
-                        @endif
-                        <p>{{ trans('lang.user_management') }}</p>
-                    </a>
-                </li>
-            @endcan
-        </ul>
-    </li>
-@endcan
-@can('patients.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('patients*') ? 'active' : '' }}"
-            href="{!! route('patients.index') !!}">@if($icons)<i class="nav-icon fas fa-procedures"></i>@endif<p>
-                {{trans('lang.patient_plural')}}
-            </p></a>
-    </li>
-@endcan
-@can('appointments.today.completed')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('appointments/today/completed*') ? 'active' : '' }}"
-            href="{!! route('appointments.today.completed') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-calendar-check"></i>
-            @endif
-            <p>{{ trans('lang.appointments_completed_today') }}</p>
-        </a>
-    </li>
-@endcan
-@can('teleconsultation.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('teleconsultations*') ? 'active' : '' }}"
-            href="{!! route('teleconsultations.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-video"></i> <!-- Remplacez ici par la nouvelle classe d'icône -->
-            @endif
-            <p>{{ trans('lang.teleconsultation_plural') }}</p>
-        </a>
-    </li>
-@endcan
+
+
 @can('parrainers.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('parrainer*') ? 'active' : '' }}" href="{!! route('parrainers.index') !!}">
@@ -380,7 +418,11 @@
             @endcan
             @can('chatTE.index')
                 <li class="nav-item">
+<<<<<<< HEAD
                     <a class="nav-link {{ Request::is('chatTE*') ? 'active' : '' }}" href="{{ url('/chatTE') }}">
+=======
+                    <a class="nav-link {{ Request::is('*') ? 'active' : '' }}" href="{{ url('') }}">
+>>>>>>> origin/dev
                         @if($icons)
                             <i class="nav-icon fas fa-headset"></i>
                         @endif
@@ -391,17 +433,21 @@
         </ul>
     </li>
 @endcan
+<<<<<<< HEAD
 
 
 
 <!--  -->
 @can('addresses.index')
+=======
+<!-- @can('addresses.index')
+>>>>>>> origin/dev
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"
             href="{!! route('addresses.index') !!}">@if($icons)
             <i class="nav-icon fas fa-map-marked-alt"></i>@endif<p>{{trans('lang.address_plural')}}</p></a>
     </li>
-@endcan
+@endcan -->
 @can('seo.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('visibiliteSeo*') ? 'active' : '' }}" href="{!! route('seo.index') !!}">
@@ -412,6 +458,42 @@
         </a>
     </li>
 @endcan
+
+@can('doctor_blog.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor_blog') ? 'active' : '' }}" href="{!! route('doctor_blog.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-blog"></i> <!-- Icône de blog -->
+            @endif
+            <p>{{ trans('lang.my_blog_plural') }}</p>
+        </a>
+    </li>
+@endcan
+@can('photos_cabinet.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('photos_cabinet') ? 'active' : '' }}"
+            href="{!! route('photos_cabinet.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-images"></i> <!-- Icône de galerie -->
+            @endif
+            <p>{{ trans('lang.photos_cabinet') }}</p>
+        </a>
+    </li>
+@endcan
+@can('suivi_doctors.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('suivi_doctors') ? 'active' : '' }}" href="{!! route('suivi_doctors.index') !!}">
+            @if($icons)
+                <!-- Remplacer l'icône de la galerie par une icône de suivi des médecins -->
+                <i class="nav-icon fas fa-user-md"></i> <!-- Icône représentant un médecin -->
+            @endif
+            <p>{{ trans('lang.suivi_doctors') }}</p>
+        </a>
+    </li>
+@endcan
+
+
+
 @can('coupons.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('coupons*') ? 'active' : '' }}" href="{!! route('coupons.index') !!}">@if($icons)

@@ -5,8 +5,12 @@ use GuzzleHttp\Client;
 use Google\Auth\CredentialsLoader;
 use Google\Auth\Middleware\AuthTokenMiddleware;
 use GuzzleHttp\HandlerStack;
+<<<<<<< HEAD
 
 class FirestoreService
+=======
+    class FirestoreService
+>>>>>>> origin/dev
 {
     protected $client;
     protected $projectId;

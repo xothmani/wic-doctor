@@ -5,84 +5,86 @@
 @endphp
 
 @section('content')
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0 text-bold">{{trans('lang.permission_plural') }}
-                    <small class="mx-3">|</small><small>{{trans('lang.permission_desc')}}</small>
-                </h1>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-                    <li class="breadcrumb-item">
-                        <a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt"></i>
-                            {{trans('lang.dashboard')}}</a>
-                    </li>
-                </ol>
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0 text-bold">{{trans('lang.permission_plural') }}
+                        <small class="mx-3">|</small><small>{{trans('lang.permission_desc')}}</small>
+                    </h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
+                        <li class="breadcrumb-item">
+                            <a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt"></i>
+                                {{trans('lang.dashboard')}}</a>
+                        </li>
+                    </ol>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="content">
-    <div class="clearfix"></div>
-    @include('flash::message')
-    <div class="card shadow-sm">
-        <div class="card-header">
-            <ul class="nav nav-tabs d-flex flex-md-row flex-column-reverse align-items-start card-header-tabs">
-                <div class="d-flex flex-row">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{!! url()->current() !!}"><i
-                                class="fa fa-list mr-2"></i>{{trans('lang.permission_table')}}
-                        </a>
-                    </li>
-                </div>
-            </ul>
-        </div>
-        <div class="card-body">
-            <div class="container">
-                <h2>{{trans('lang.permission_desc')}}</h2>
-                <br>
-                <!-- User Dropdown -->
-                <div class="form-group">
+    <div class="content">
+        <div class="clearfix"></div>
+        @include('flash::message')
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <ul class="nav nav-tabs d-flex flex-md-row flex-column-reverse align-items-start card-header-tabs">
+                    <div class="d-flex flex-row">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{!! url()->current() !!}"><i
+                                    class="fa fa-list mr-2"></i>{{trans('lang.permission_table')}}
+                            </a>
+                        </li>
+                    </div>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="container">
+                    <h2>{{trans('lang.permission_desc')}}</h2>
+                    <br>
+                    <!-- User Dropdown -->
+                    <div class="form-group">
 
-                    <select id="userDropdown" class="form-control">
-                        <option value="" selected disabled>Sélectionner un utilisateur</option>
-                        @foreach ($associatedUsers as $association)
-                            <option value="{{ $association->user->id }}" {{ $selectedUserId == $association->user->id ? 'selected' : '' }}>
-                                {{ $association->user->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                        <select id="userDropdown" class="form-control">
+                            <option value="" selected disabled>Sélectionner un utilisateur</option>
+                            @foreach ($associatedUsers as $association)
+                                @if ($association->user)
+                                    <option value="{{ $association->user->id }}" {{ $selectedUserId == $association->user->id ? 'selected' : '' }}>
+                                        {{ $association->user->name }}
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
 
-                <!-- Search Bar (Hidden by Default) -->
-                <div class="form-group" id="searchBar" style="display: none;">
-                    <input type="text" id="searchPermissions" class="form-control" placeholder="Search permissions...">
-                </div>
+                    <!-- Search Bar (Hidden by Default) -->
+                    <div class="form-group" id="searchBar" style="display: none;">
+                        <input type="text" id="searchPermissions" class="form-control" placeholder="Search permissions...">
+                    </div>
 
-                <!-- Permissions Table (Hidden by Default) -->
-                <div id="permissionsTable" style="display: none;">
-                    <div class="scrollable-table" style="overflow-y: auto;">
-                        <table class="table table-bordered table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Permission</th>
-                                    <th>Role</th>
-                                    <th>Assign</th>
-                                </tr>
-                            </thead>
-                            <tbody id="permissionsBody">
-                                <!-- Permissions will be dynamically populated here -->
-                            </tbody>
-                        </table>
+                    <!-- Permissions Table (Hidden by Default) -->
+                    <div id="permissionsTable" style="display: none;">
+                        <div class="scrollable-table" style="overflow-y: auto;">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Permission</th>
+                                        <th>Role</th>
+                                        <th>Assign</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="permissionsBody">
+                                    <!-- Permissions will be dynamically populated here -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 @endsection
 

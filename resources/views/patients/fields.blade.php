@@ -28,8 +28,8 @@
                 name: "{!! $media->name !!}",
                 size: "{!! $media->size !!}",
                 type: "{!! $media->mime_type !!}",
-                uuid: "{!! $media->getCustomProperty('uuid'); !!}",
-                thumb: "{!! $media->getUrl('thumb'); !!}",
+                uuid: "{!! $media->getCustomProperty('uuid') !!}",
+                thumb: "{!! $media->getUrl('thumb') !!}",
                 collection_name: "{!! $media->collection_name !!}"
             });
             @endforeach

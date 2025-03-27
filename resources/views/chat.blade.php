@@ -196,7 +196,7 @@
     }
     setTimeout(() => {
     location.reload(true); // Recharge la page depuis le serveur sans utiliser le cache
-}, 80000); // Rafraîchit après 
+}, 100000); // Rafraîchit après 
 
     // Fonction pour charger les nouveaux messages
     function loadMessages(userId) {

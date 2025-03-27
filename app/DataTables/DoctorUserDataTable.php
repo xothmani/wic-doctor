@@ -29,16 +29,22 @@ class DoctorUserDataTable extends DataTable
     public function dataTable(mixed $query): DataTableAbstract
     {
         $dataTable = new EloquentDataTable($query);
-
+        $roleTranslations = [
+            'Secretary' => 'Secrétaire',
+            'Telesecretary' => 'Télésecrétaire',
+            'Substitue' => 'Remplaçant',
+        ];
         return $dataTable
-            ->editColumn('roles', function ($user) {
-                $roles = $user->getRoleNames();
+            ->editColumn('roles', function ($user) use ($roleTranslations) {
+                $roles = $user->getRoleNames()->map(function ($role) use ($roleTranslations) {
+                    return $roleTranslations[$role] ?? $role;
+                });
                 return view('profile_management.users.role_badges', compact('roles'))->render();
             })
             ->addColumn('is_active', function ($user) {
                 return $user->is_active
-                    ? '<span class="badge badge-success">Active</span>'
-                    : '<span class="badge badge-danger">Inactive</span>';
+                    ? '<span class="badge badge-success">' . trans('lang.active') . '</span>'
+                    : '<span class="badge badge-danger">' . trans('lang.inactive') . '</span>';
             })
             ->addColumn('start_date', function ($user) {
                 return $user->start_date ?? '-';

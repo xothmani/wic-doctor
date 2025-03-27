@@ -39,12 +39,15 @@ class TagController extends Controller
         // Validation des données
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'country' => 'required|string|max:255',
+
             'speciality' => 'required|exists:specialities,id', // Assurez-vous que l'ID de spécialité existe
         ]);
     
         // Création du tag avec les données validées
         $tag = new \App\Models\Tag();
-        $tag->name = $validated['name'];
+        $tag->name = json_encode(['fr' => $validated['name']], JSON_UNESCAPED_UNICODE); // Stocker en format JSON avec "fr" comme clé
+        $tag->country = $validated['country'];
         $tag->speciality_id = $validated['speciality'];
         $tag->save(); // Sauvegarde du tag dans la base de données
     
@@ -72,14 +75,20 @@ class TagController extends Controller
             return response()->json(['message' => 'Tag non trouvé'], 404);
         }
     
+        // Décoder le champ `name` pour récupérer la valeur "fr"
+        $name = json_decode($tag->name, true);
+        $nameFr = $name['fr'] ?? null; // Récupérer la valeur avec la clé "fr" ou `null` si elle n'existe pas
+    
         $specialities = Speciality::all(); // Récupérer toutes les spécialités
     
         return response()->json([
-            'name' => $tag->name,
+            'name' => $nameFr, // Retourner la valeur spécifique à "fr"
+            'country' => $tag->country,
             'speciality_id' => $tag->speciality_id,  // Assurez-vous de renvoyer l'ID de la spécialité
             'specialities' => $specialities // Envoyer toutes les spécialités disponibles
         ]);
     }
+    
     
     /**
      * Update the specified resource in storage.
@@ -91,6 +100,7 @@ public function update(Request $request, $id)
     // Validation des données
     $validated = $request->validate([
         'name' => 'required|string|max:255',
+        'country' => 'required|string|max:255',
         'speciality_id' => 'required|exists:specialities,id', // Assurez-vous que l'ID de spécialité existe
     ]);
     
@@ -98,7 +108,9 @@ public function update(Request $request, $id)
     $tag = Tag::findOrFail($id);
     
     // Mise à jour des données
-    $tag->name = $validated['name'];
+    $tag->name = json_encode(['fr' => $validated['name']], JSON_UNESCAPED_UNICODE); // Stocker en format JSON avec "fr" comme clé
+    $tag->country = $validated['country'];
+
     $tag->speciality_id = $validated['speciality_id'];
     $tag->save(); // Sauvegarder les modifications
     

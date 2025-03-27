@@ -137,9 +137,9 @@ echo _gettext("Git information missing!");
                 }
                 // line 38
                 echo "      ";
-                $___internal_parse_34_ = ('' === $tmp = ob_get_clean()) ? '' : new Markup($tmp, $this->env->getCharset());
+                $___internal_parse_0_ = ('' === $tmp = ob_get_clean()) ? '' : new Markup($tmp, $this->env->getCharset());
                 // line 25
-                echo $this->env->getFilter('notice')->getCallable()($___internal_parse_34_);
+                echo $this->env->getFilter('notice')->getCallable()($___internal_parse_0_);
                 // line 39
                 echo "    </div>
   ";

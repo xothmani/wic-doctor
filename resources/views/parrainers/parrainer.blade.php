@@ -54,7 +54,11 @@
                     @can('parrainers.parrainer') 
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('parrainers/parrainer') ? 'active-tab' : '' }}" href="{!! route('parrainers.parrainer') !!}">
+<<<<<<< HEAD
                                 <i class="fa fa-plus mr-2"></i>{{trans('Créer un parrain')}}
+=======
+                                <i class="fa fa-plus mr-2"></i>{{trans('Créer un filleul')}}
+>>>>>>> origin/dev
                             </a>
                         </li>
                     @endcan
@@ -197,14 +201,20 @@
         document.addEventListener("DOMContentLoaded", function() {
     var link = "{{ $link }}";
     if (link) {
+<<<<<<< HEAD
         var qrcodeContainer = document.getElementById("qrcode");
         var qrcode = new QRCode(qrcodeContainer, {
+=======
+        // Crée un QR Code
+        var qrcode = new QRCode(document.getElementById("qrcode"), {
+>>>>>>> origin/dev
             text: link,
             width: 150,
             height: 150,
             correctLevel: QRCode.CorrectLevel.H
         });
 
+<<<<<<< HEAD
         setTimeout(function () {
             var qrImg = qrcodeContainer.querySelector("img");
 
@@ -236,6 +246,18 @@
     }
 });
 
+
+    </script>
+=======
+        // Ajoute un bouton de téléchargement
+        var downloadButton = document.createElement('a');
+        downloadButton.href = document.getElementById("qrcode").querySelector('img').src;  // Prendre l'image générée
+        downloadButton.download = "qrcode.png";  // Nom du fichier à télécharger
+        downloadButton.innerHTML = '<i class="bi bi-download custom-icon-size"></i> ';
+        document.querySelector('.btn-container').appendChild(downloadButton);
+    }
+});
+>>>>>>> origin/dev
 
     </script>
 

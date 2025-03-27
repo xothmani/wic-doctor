@@ -16,8 +16,8 @@ use App\Models\UserOwnership;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use App\Models\ProfileManagement;
-
-use App\Models\Doctor; // Assuming you have a Doctor model
+use App\Models\Membership;
+use App\Models\Doctor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\DataTables\DoctorUserDataTable;
@@ -108,17 +108,22 @@ class DoctorUserController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info("zaaaa", $request->all());
         // Validate the request data
         $request->validate([
-            'name' => 'required|string|max:255', // Ensure name is required
-            'email' => 'required|email|unique:users,email', // Ensure email is unique
-            'password' => 'required|string', // Ensure password is required and strong
-            'phone_number' => 'nullable|string|max:20', // Optional phone number
-            'role' => 'required|string|exists:roles,name', // Ensure role exists in the roles table
-            'start_date' => 'required|date', // Optional start date
-            'end_date' => 'required|date|after_or_equal:start_date', // Ensure end_date is after start_date
-            'is_active' => 'nullable|boolean', // Optional boolean field
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string',
+            'phone_number' => 'required',
+            'role' => 'required',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'is_active' => 'nullable|boolean',
         ]);
+
+
+
+        $selectedRoleName = $request->input('role');
 
         // Check if start_date is before the current date
         if ($request->start_date && $request->start_date < now()->toDateString()) {
@@ -152,8 +157,7 @@ class DoctorUserController extends Controller
             // Create the user
             $user = $this->userRepository->create($input);
 
-            // Find the selected role
-            $selectedRoleName = $request->input('role');
+
             $role = Role::where('name', $selectedRoleName)->first();
 
             // If the role doesn't exist, throw an error
@@ -163,6 +167,10 @@ class DoctorUserController extends Controller
 
             // Assign the role to the user
             $user->assignRole($role);
+            // Ensure this role has permission
+            if (!$role->hasPermissionTo('users.profile')) {
+                $role->givePermissionTo('users.profile');
+            }
 
             // Insert into user_ownership table
             DoctorAssociate::create([
@@ -179,7 +187,7 @@ class DoctorUserController extends Controller
                 'is_active' => $request->has('is_active') ? $request->is_active : 0,
             ]);
 
-            // Flash success message
+
             Flash::success(__('Utilisateur créé avec succès.'));
         } catch (\Exception $e) {
             // Flash error message and redirect back with input
@@ -225,11 +233,22 @@ class DoctorUserController extends Controller
         if (!$UserOwnership) {
             abort(403, __('Non autorisé : Vous n\'êtes pas autorisé.'));
         }
-
+        $user->phone_number = preg_replace('/\s+/', '', $user->phone_number);
+        \Log::info($user->phone_number);
         // Fetch roles
+        $roleTranslations = [
+            'Secretary' => 'Secrétaire',
+            'Telesecretary' => 'Télésecrétaire',
+            'Substitue' => 'Remplaçant',
+            // add more if needed
+        ];
+
         $roles = DB::table('role_for_doctors')
-            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id') // Join with the roles table
-            ->pluck('roles.name', 'roles.name');
+            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id')
+            ->pluck('roles.name', 'roles.name')
+            ->map(function ($value, $key) use ($roleTranslations) {
+                return $roleTranslations[$key] ?? $key;
+            });
 
         $rolesSelected = $user->getRoleNames()->toArray();
 
@@ -262,8 +281,11 @@ class DoctorUserController extends Controller
      */
     public function update($id, UpdateUserRequest $request)
     {
+        \Log::info("baaaaa", $request->all());
         $request->validate([
+            'name' => 'required|string|max:255', // Ensure name is required
             'email' => 'required|email|unique:users,email,' . $id, // Unique email, excluding current user
+            'phone_number' => 'nullable|numeric|min:8', // Optional phone number
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
         ]);
@@ -297,8 +319,8 @@ class DoctorUserController extends Controller
             $user = $this->userRepository->update($input, $id);
 
             // Update roles
-            if (isset($input['roles'])) {
-                $user->syncRoles($input['roles']);
+            if (isset($input['role'])) {
+                $user->syncRoles($input['role']);
             }
 
             // Update profile management data
@@ -319,7 +341,6 @@ class DoctorUserController extends Controller
 
         return redirect()->route('Doctors_users.index');
     }
-
 
 
 
@@ -355,16 +376,40 @@ class DoctorUserController extends Controller
             return redirect()->route('Doctors_users.index');
         }
         try {
-            $this->userRepository->delete($id);
+            $user = $this->userRepository->find($id);
 
-            // Remove ownership
-            \DB::table('user_ownership')
-                ->where('user_id', $id)
-                ->delete();
+            // Check if user is a telesecretary
+            if ($user->hasRole('Telesecretary')) {
+                // Only remove associations, don't delete the user
+                \DB::table('doctor_associate')
+                    ->where('user_id', $id)
+                    ->where('doctor_id', $doctorId)
+                    ->delete();
 
-            Flash::success(__('User deleted successfully.'));
+                \DB::table('profile_management')
+                    ->where('user_id', $id)
+                    ->where('doctor_id', $doctorId)
+                    ->delete();
+
+                Flash::success(__('Association with telesecretary removed successfully.'));
+            } else {
+                // For non-telesecretaries, delete everything
+                $this->userRepository->delete($id);
+
+                // Remove all associations
+                \DB::table('doctor_associate')
+                    ->where('user_id', $id)
+                    ->delete();
+
+                \DB::table('profile_management')
+                    ->where('user_id', $id)
+                    ->delete();
+
+                Flash::success(__('User deleted successfully.'));
+            }
         } catch (\Exception $e) {
-            Flash::error(__('Error deleting user: ') . $e->getMessage());
+            Flash::error(__('Error processing deletion: ') . $e->getMessage());
+            \Log::error('Error in user deletion: ' . $e->getMessage());
         }
 
         return redirect()->route('Doctors_users.index');

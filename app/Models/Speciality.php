@@ -52,11 +52,9 @@ class Speciality extends Model implements HasMedia
      * @var array
      */
     public static array $rules = [
-        'name' => 'required|max:127',
-        'color' => 'required|max:36',
+        'name' => 'required',
+        'pays' => 'required',
         'description' => 'nullable',
-        'order' => 'nullable|numeric|min:0',
-        'parent_id' => 'nullable|exists:specialities,id'
     ];
     public array $translatable = [
         'name',
@@ -69,7 +67,11 @@ class Speciality extends Model implements HasMedia
         'description',
         'featured',
         'order',
-        'parent_id'
+        'parent_id',
+        'pays',
+        'image',
+        'image_name'
+
     ];
     /**
      * The attributes that should be casted to native types.
@@ -180,11 +182,11 @@ class Speciality extends Model implements HasMedia
     /**
      * @return BelongsToMany
      **/
-    public function doctors(): BelongsToMany
+    public function doctors()
     {
-        return $this->belongsToMany(Doctor::class, 'doctor_specialities');
+        return $this->belongsToMany(Doctor::class, 'doctor_specialities', 'speciality_id', 'doctor_id');
     }
-
+    
     /**
      * @return BelongsToMany
      **/

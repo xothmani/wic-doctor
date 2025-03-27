@@ -12,6 +12,7 @@ class Tag extends Model
     protected $fillable = [
         'name',
         'speciality_id',
+        'country'
     ];
 
     protected $primaryKey = 'id';

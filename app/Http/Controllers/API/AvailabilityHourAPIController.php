@@ -61,8 +61,8 @@ class AvailabilityHourAPIController extends Controller
             $this->availabilityHourRepository->pushCriteria(new LimitOffsetCriteria($request));
             $availabilityHours = $this->availabilityHourRepository->all();
 	    $dayTranslations=[
-	'lundi'=>'monday',
-	'mardi' => 'tuesday',
+	        'lundi'=>'monday',
+	        'mardi' => 'tuesday',
         'mercredi' => 'wednesday',
         'jeudi' => 'thursday',
         'vendredi' => 'friday',

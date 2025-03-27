@@ -1,32 +1,58 @@
+# Ignore vendor and node_modules
 /vendor/
 node_modules/
 npm-debug.log
 yarn-error.log
 
-# Laravel 4 specific
+# Ignore Laravel specific files
 bootstrap/compiled.php
-app/storage/
 storage/
-# Laravel 5 & Lumen specific
+storage/*
+!storage/.gitignore  # Allow keeping an empty storage directory
 public/storage
 public/hot
-
-# Laravel 5 & Lumen specific with changed public path
 public_html/storage
 public_html/hot
+public/
 
+# Ignore sensitive and environment-specific files
 storage/*.key
 .env
+.env.*
 Homestead.yaml
 Homestead.json
 /.vagrant
 .phpunit.result.cache
-
-/public/build
-/storage/pail
-.env.backup
-.env.production
-.phpactor.json
 auth.json
-WicDoctor/
+
+# Ignore build and cache files
+/public/build
 storage/framework/cache/
+storage/framework/views/
+storage/framework/sessions/
+public/script-detail-med/html-content-2.html
+public/script-detail-med/html-content.html
+
+# Ignore logs and temporary files
+storage/logs/
+*.log
+*.swp
+*.swo
+
+# Ignore custom project directories
+WicDoctor/
+
+WicDoctor
+public/Back-WIc-Doctors
+public/Back-NodeJS/Back-WIc-Doctors
+public/script-detail-med/file.json
+public/script-detail-med/html-content-2.html
+public/script-detail-med/html-content.html
+bootstrap/
+public/
+
+public/Back-NodeJS/Back-WIc-Doctors
+public/Back-NodeJS/Back-WIc-Doctors
+public/Back-NodeJS/Back-WIc-Doctors
+composer.lock
+composer.lock

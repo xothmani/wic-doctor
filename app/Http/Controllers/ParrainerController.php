@@ -125,37 +125,39 @@ class ParrainerController extends Controller
     }
 
 
-public function envoyerEmail(Request $request)
-{
-    // Vérifiez si l'utilisateur est authentifié
-    if (Auth::check()) {
-        // Récupérer l'utilisateur authentifié
-        $user = Auth::user();
-
-        // Récupérer le code parrain de l'utilisateur
-        $parrainCode = $user->doctor->getAttribute('code_doctor');
-
-        // Récupérer l'email du destinataire depuis la requête
-        $destinataire = $request->input('email');
-
-        // Construire le lien de parrainage avec le code parrain
-        $link = 'https://wic-doctor.com/inscription-professionnel/inscription.html?code=' . $parrainCode;
-
-        // Envoyer l'email avec le lien de parrainage
-        Mail::to($destinataire)->send(new ParrainageMail($link));
-
-        // Ajouter un message de succès dans la session
-        session()->flash('success', 'E-mail envoyé avec succès!');
-
-        // Retourner à la page précédente (sans redirection vers un autre template)
+    public function envoyerEmail(Request $request)
+    {
+        // Vérifiez si l'utilisateur est authentifié
+        if (Auth::check()) {
+            // Récupérer l'utilisateur authentifié
+            $user = Auth::user();
+    
+            // Récupérer le code parrain de l'utilisateur
+            $parrainCode = $user->doctor->getAttribute('code_doctor');
+    
+            // Récupérer le nom de l'utilisateur
+            $senderName = $user->name; // Assurez-vous que le nom est disponible dans le modèle User
+    
+            // Récupérer l'email du destinataire depuis la requête
+            $destinataire = $request->input('email');
+    
+            // Construire le lien de parrainage avec le code parrain
+            $link = 'https://wic-doctor.com/inscription-professionnel/inscription.html?code=' . $parrainCode;
+    
+            // Envoyer l'email avec le lien de parrainage et le nom de l'expéditeur
+            Mail::to($destinataire)->send(new ParrainageMail($link, $senderName));
+    
+            // Ajouter un message de succès dans la session
+            session()->flash('success', 'E-mail envoyé avec succès!');
+    
+            // Retourner à la page précédente (sans redirection vers un autre template)
+            return redirect()->back();
+        }
+    
+        // Si l'utilisateur n'est pas authentifié, retourner une erreur
+        session()->flash('error', 'Utilisateur non authentifié.');
         return redirect()->back();
     }
-
-    // Si l'utilisateur n'est pas authentifié, retourner une erreur
-    session()->flash('error', 'Utilisateur non authentifié.');
-    return redirect()->back();
-}
-
 
     
 

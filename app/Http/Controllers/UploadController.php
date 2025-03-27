@@ -15,6 +15,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Prettus\Validator\Exceptions\ValidatorException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Support\Facades\Log;
+
 
 class UploadController extends Controller
 {
@@ -30,7 +32,7 @@ class UploadController extends Controller
         $this->uploadRepository = $uploadRepository;
     }
 
-    public function index():View
+    public function index(): View
     {
         return view('medias.index');
     }
@@ -80,18 +82,27 @@ class UploadController extends Controller
         }
     }
 
-    public function all(UploadRequest $request, $collection = null): string|bool
+    public function all(UploadRequest $request, $collection = null)
     {
         $allMedias = $this->uploadRepository->allMedia($collection);
+
         if (!auth()->user()->hasRole('admin')) {
             $allMedias = $allMedias->filter(function ($element) {
-                if (isset($element['custom_properties']['user_id'])) {
-                    return $element['custom_properties']['user_id'] == auth()->id();
-                }
-                return false;
+                return isset($element['custom_properties']['user_id'])
+                    && $element['custom_properties']['user_id'] == auth()->id();
             });
         }
-        return $allMedias->toJson();
+
+        // Convert to a plain array, then JSON-encode that
+        $allMediasArray = $allMedias->toArray();
+        $json = json_encode($allMediasArray);
+
+        // Log both so you see exactly what’s returned
+        Log::info('All medias collection:', $allMediasArray);
+        Log::info('All medias JSON: ' . $json);
+
+        // Return the JSON string 
+        return $json;
     }
 
     /**
