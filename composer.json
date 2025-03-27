@@ -21,12 +21,9 @@
         "grpc/grpc": "^1.43",
         "guzzlehttp/guzzle": "^7.8.1",
         "infyomlabs/adminlte-templates": "^v6.0.0",
-<<<<<<< HEAD
         "kreait/firebase-bundle": "^5.6",
         "kreait/laravel-firebase": "^5.10",
-=======
         "kreait/laravel-firebase": "*",
->>>>>>> origin/dev
         "laravel/cashier": "^v15.3.2",
         "laravel/framework": "^v10.48.8",
         "laravel/legacy-factories": "^1.4",

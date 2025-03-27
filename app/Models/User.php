@@ -168,10 +168,6 @@ class User extends Authenticatable implements HasMedia
         return Cache::has('user-is-online-'.$this->id);
     }
 
-    public function doctorPatients()
-{
-    return $this->hasMany(DoctorPatient::class, 'patient_id');
-}
 
     public function getCustomFieldsAttribute(): array
     {
@@ -209,10 +205,7 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsToMany(Clinic::class, 'clinic_users');
     }
 
-    public function doctor()
-    {
-        return $this->hasOne(Doctor::class, 'user_id');
-    }
+    
 
 public function telesecretariat()
 {

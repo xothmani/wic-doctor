@@ -418,11 +418,7 @@
             @endcan
             @can('chatTE.index')
                 <li class="nav-item">
-<<<<<<< HEAD
                     <a class="nav-link {{ Request::is('chatTE*') ? 'active' : '' }}" href="{{ url('/chatTE') }}">
-=======
-                    <a class="nav-link {{ Request::is('*') ? 'active' : '' }}" href="{{ url('') }}">
->>>>>>> origin/dev
                         @if($icons)
                             <i class="nav-icon fas fa-headset"></i>
                         @endif
@@ -433,15 +429,7 @@
         </ul>
     </li>
 @endcan
-<<<<<<< HEAD
-
-
-
-<!--  -->
-@can('addresses.index')
-=======
 <!-- @can('addresses.index')
->>>>>>> origin/dev
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"
             href="{!! route('addresses.index') !!}">@if($icons)
