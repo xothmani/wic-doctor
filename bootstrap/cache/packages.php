@@ -85,13 +85,13 @@
   ),
   'laracasts/flash' => 
   array (
-    'providers' => 
-    array (
-      0 => 'Laracasts\\Flash\\FlashServiceProvider',
-    ),
     'aliases' => 
     array (
       'Flash' => 'Laracasts\\Flash\\Flash',
+    ),
+    'providers' => 
+    array (
+      0 => 'Laracasts\\Flash\\FlashServiceProvider',
     ),
   ),
   'laravel/cashier' => 
@@ -271,13 +271,13 @@
   ),
   'srmklive/paypal' => 
   array (
-    'providers' => 
-    array (
-      0 => 'Srmklive\\PayPal\\Providers\\PayPalServiceProvider',
-    ),
     'aliases' => 
     array (
       'PayPal' => 'Srmklive\\PayPal\\Facades\\PayPal',
+    ),
+    'providers' => 
+    array (
+      0 => 'Srmklive\\PayPal\\Providers\\PayPalServiceProvider',
     ),
   ),
   'yajra/laravel-datatables-buttons' => 

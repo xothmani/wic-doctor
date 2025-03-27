@@ -429,11 +429,7 @@
         </ul>
     </li>
 @endcan
-
-
-
-<!--  -->
-@can('addresses.index')
+<!-- @can('addresses.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"
             href="{!! route('addresses.index') !!}">@if($icons)
