@@ -9,7 +9,7 @@
     <!-- En-tête du Chat -->
   <div class="chat-header">
 
-        <img src="{{ asset('storage/images/a.png') }}" alt="Icône discussion médicale" class="custom-icon" width="40" height="40">
+        <img src="{{ asset('images/icons/a.png') }}" alt="Icône discussion médicale" class="custom-icon" width="40" height="40">
         <h2>Docteur & Télésecrétariat Discussion </h2>
     </div>
 
@@ -77,15 +77,20 @@
                         <span class="sender">{{ $message['sender_name'] }}</span>
                         <span class="time">{{ \Carbon\Carbon::createFromTimestamp($message['timestamp'])->format('H:i') }}</span>
                         @if($message['sender_id'] == auth()->id())
-                            <button class="delete-btn" onclick="deleteMessage('{{ $message['id'] }}', this)" title="Supprimer le message">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                        <button class="delete-btn" onclick="deleteMessage('{{ $chatId }}', '{{ $message['id'] }}', this)" title="Supprimer le message">
+    <i class="fas fa-trash-alt"></i>
+</button>
                         @endif
                     </div>
                     <p class="text">{{ $message['content'] }}</p>
                     @if(!empty($message['file_url']))
-                        <a href="{{ $message['file_url'] }}" target="_blank" class="file-link">Voir le fichier</a>
-                    @endif
+    @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $message['file_url']))
+        <img src="{{ $message['file_url'] }}" alt="Image" class="file-image">
+    @else
+        <a href="{{ $message['file_url'] }}" target="_blank" class="file-link">Voir le fichier</a>
+    @endif
+@endif
+
                 </div>
             </div>
         @endforeach
@@ -109,7 +114,9 @@
             <button type="submit"><i class="fas fa-paper-plane"></i></button>
         </form>
         <div id="output"></div>
+    </div>    </div>
     </div>
+
 </div>
 @endsection
 
@@ -140,9 +147,7 @@ $(document).ready(function() {
                                     <span class="sender">${message.sender_name}</span>
                                     <span class="time">${new Date(message.timestamp * 1000).toLocaleTimeString()}</span>
                                     ${message.sender_id == senderId ? `
-                                        <button class="delete-btn" onclick="deleteMessage('${message.id}', this)" title="Supprimer le message">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
+                                      
                                     ` : ''}
                                 </div>
                                 <p class="text">${message.content}</p>
@@ -167,6 +172,48 @@ $(document).ready(function() {
         }
     }, 5000);
 });
+function deleteMessage(chatId, firebaseMessageId, buttonElement) {
+    const deleteUrl = `https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chatTE/${chatId}/messages/${firebaseMessageId}.json`;
+
+    fetch(deleteUrl, { method: 'DELETE' })
+    .then(response => {
+        if (response.ok) {
+            buttonElement.closest('.message').remove();
+        } else {
+            console.error("Échec de la suppression");
+        }
+    })
+    .catch(error => console.error("Erreur:", error));
+}
+function listenForDeletedMessages(chatId) {
+    const chatRef = firebase.database().ref(`chatTE/${chatId}/messages`);
+
+    chatRef.on('child_removed', (snapshot) => {
+        const deletedMessageId = snapshot.key;
+        console.log("Message supprimé :", deletedMessageId);
+
+        // Supprimer le message de l'interface utilisateur
+        const messageElement = document.querySelector(`.message[data-id="${deletedMessageId}"]`);
+        if (messageElement) {
+            messageElement.remove();
+        }
+    });
+}
+
+function listenForDeletedMessages(doctorUserId) {
+    const userId = {{ auth()->user()->id }}; // Assuming you're using Laravel Blade to inject this value
+    const chatId = userId < doctorUserId ? `${userId}-${doctorUserId}` : `${doctorUserId}-${userId}`;
+
+    const chatRef = firebase.database().ref(`chatTE/${chatId}/messages`);
+    chatRef.on('child_removed', (snapshot) => {
+        const messageId = snapshot.key;
+        const messageElement = document.querySelector(`.message[data-id="${messageId}"]`);
+        if (messageElement) {
+            messageElement.remove();
+        }
+    });
+}
+
 
     // Fonction pour vérifier les nouveaux messages
     function checkForNewMessages() {
@@ -188,74 +235,13 @@ $(document).ready(function() {
         height: 100vh;
         background-color: #f0f2f5;
     }
-
-   
-
-/* Chat Header */
-
-.header-content {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
+    .chat-header h1 {
+    font-size: 1.4rem;
+    color: #2c3e50; /* Couleur professionnelle */
+    margin: 0; /* Supprime la marge par défaut */
+    font-weight: 600;
 }
-
-.active-telesecretariat-avatar {
-    width: 40px;
-    height: 40px;
-    background-color:rgb(51, 99, 151); /* Bleu professionnel pour l'avatar */
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-}
-
-.active-telesecretariat-avatar i {
-    font-size: 20px;
-}
-
-.active-telesecretariat-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.active-telesecretariat-info .name {
-    font-weight: bold;
-    font-size: 18px;
-    color: #333; /* Texte foncé pour le titre */
-}
-
-.active-telesecretariat-info .status {
-    font-size: 12px;
-    color: #28a745; /* Vert pour indiquer "Connecté" */
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.header-actions button {
-    background: none;
-    border: none;
-    color: #007bff; /* Bleu pour les icônes */
-    font-size: 18px;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.header-actions button:hover {
-    color: #0056b3; /* Bleu plus foncé au survol */
-}
-    .chat-header .header-content {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }   .chat-header {
+    .chat-header {
         position: sticky;
     top: 0;
     z-index: 1000;
@@ -268,49 +254,101 @@ $(document).ready(function() {
     width: 100%; /* Assure la pleine largeur */
     }
 
-    .chat-header i {
-        font-size: 24px;
-        margin-right: 10px;
+    .last-message {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
     }
 
-    /* Chat Main */
+    .last-message-text {
+        margin: 0;
+    }
+
+    .last-message-time {
+        font-size: 10px;
+        color: #999;
+    }
+
+    .no-message {
+        font-size: 12px;
+        color: #999;
+        font-style: italic;
+    }
+
     .chat-main {
         display: flex;
         flex: 1;
         overflow: hidden;
-    }
+    }.header-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
 
-    /* Conversation List */
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7); /* Couleur discrète pour les messages envoyés */
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}.message.received .delete-btn {
+    color: rgba(0, 0, 0, 0.5); /* Couleur discrète pour les messages reçus */
+}
+
+/* Effet au survol */
+.delete-btn:hover {
+    color: #ff4444; /* Rouge plus vif au survol pour indiquer l'action de suppression */
+}
+    
     .conversation-list {
         width: 300px;
         background-color: white;
         border-right: 1px solid #ddd;
         overflow-y: auto;
     }
-
     .conversation-header {
-        padding: 15px;
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #ddd;
-    }
+                                                    padding: 15px;
+                                                    background-color: #f8f9fa;
+                                                    border-bottom: 1px solid #ddd;
+                                                }
 
-    .conversation-item {
-        display: flex;
-        align-items: center;
-        padding: 10px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
+                                                .conversation-item {
+                                                    display: flex;
+                                                    align-items: center;
+                                                    padding: 10px;
+                                                    cursor: pointer;
+                                                    transition: background-color 0.3s;
+                                                }
+
+                                                .conversation-item:hover {
+                                                    background-color: #f0f2f5;
+                                                }
+
+                                                .conversation-item.active {
+                                                    background-color: #e9ecef;
+                                                }
+                                                .friendly-title {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    color:rgb(53, 53, 56); /* A soft green for a friendly touch */
+    text-align: center;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+   
 
     .conversation-item:hover {
         background-color: #f0f2f5;
     }
 
-    .conversation-item.active {
-        background-color: #e9ecef;
-    }
-
-    .telesecretariat-avatar {
+    .avatar {
         width: 40px;
         height: 40px;
         background-color: rgb(51, 99, 151);
@@ -320,27 +358,73 @@ $(document).ready(function() {
         justify-content: center;
         color: white;
         margin-right: 10px;
-    }
+    }.chat-image {
+    max-width: 300px;
+    max-height: 200px;
+    border-radius: 8px;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
 
-    .telesecretariat-info {
+.chat-image:hover {
+    transform: scale(1.03);
+}
+
+.file-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.file-actions a {
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.file-actions a:hover {
+    color: #007bff;
+}
+
+    .info {
         flex: 1;
     }
 
-    .telesecretariat-info .name {
+    .info .name {
         font-weight: bold;
     }
 
-    .telesecretariat-info .specialty {
-        font-size: 12px;
-        color: #666;
-    }
-
-    .telesecretariat-info .status {
+    .info .status {
         font-size: 12px;
         color: green;
     }
+    .message-image img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
 
-    /* Chat Area */
+.message-image img:hover {
+    transform: scale(1.03);
+}
+
+.file-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.file-actions a {
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.file-actions a:hover {
+    color: #007bff;
+}
     .chat-area {
         flex: 1;
         display: flex;
@@ -355,149 +439,63 @@ $(document).ready(function() {
         background-color: #f0f2f5;
     }
 
-    .message {
-        display: flex;
-        margin-bottom: 10px;
-    }
+  
+/* Styles pour le conteneur de l'input */
 
-    .message.sent {
-        justify-content: flex-end;
-    }
-
-    .message.received {
-        justify-content: flex-start;
-    }
-/* Bouton de suppression */
-.delete-btn {
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.7); /* Couleur discrète pour les messages envoyés */
-    cursor: pointer;
-    margin-left: 10px;
-    font-size: 14px;
-    transition: color 0.3s ease;
-}
-
-/* Style pour les messages reçus */
-.message.received .delete-btn {
-    color: rgba(0, 0, 0, 0.5); /* Couleur discrète pour les messages reçus */
-}
-
-/* Effet au survol */
-.delete-btn:hover {
-    color: #ff4444; /* Rouge plus vif au survol pour indiquer l'action de suppression */
-}
-    .message-content {
-        max-width: 70%;
-        padding: 10px;
-        border-radius: 10px;
-        background-color: white;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        position: relative;
-    }
-
-    .message.sent .message-content {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .message-header {
-        font-size: 12px;
-        color: #666;
-        margin-bottom: 5px;
-        display: flex;
-        align-items: center;
-    }
-
-    .message.sent .message-header {
-        color: rgba(255, 255, 255, 0.7);
-    }
-
-    .message p.text {
-        font-size: 14px;
-        margin: 0;
-    }
-
-    /* Bouton de suppression */
-
-
-
-
-
-.send-button {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: #007bff;
-    border: none;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.send-button:hover {
-    background-color: #0056b3;
-}
-
-.chat-input {
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-top: 1px solid #ddd;
-    display: flex;
-    align-items: center;
-}
-
-.message-form {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-
-
-.file-icon {
-    cursor: pointer;
-    font-size: 20px;
-    color: #007bff;
-    margin-right: 10px; /* Espace entre l'icône et l'input */
-}
-
-.file-icon:hover {
-    color: #0056b3;
-}
-
+/* Style de l'input texte */
 #message-input {
     flex: 1;
     border: none;
     outline: none;
     font-size: 14px;
-    padding: 10px 0; /* Ajustez le padding pour correspondre au design */
+    padding: 10px 0;
+    margin-left: 10px;
 }
 
-.send-button {
-    background-color: #007bff;
-    border: none;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 50%;
+/* Style de l'icône de fichier */
+.file-icon {
     cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 10px; /* Espace entre l'input et le bouton */
+    font-size: 20px;
+    color: #007bff;
+    padding: 12px;
+    background: #f0f4ff;
+    border-radius: 50%;
+    transition: all 0.3s ease;
 }
 
-.send-button:hover {
+.file-icon:hover {
+    background: #007bff;
+    color: white;
+    transform: rotate(15deg);
+}
+
+/* Bouton d'envoi */
+.chat-input button {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+.chat-input button:hover {
     background-color: #0056b3;
 }
 
+/* Prévisualisation du fichier */
+.file-preview {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9ff;
+    border: 2px dashed #e0e7ff;
+    border-radius: 15px;
+}
+
+/* Cacher l'input file par défaut */
 input[type="file"] {
     display: none;
 }
@@ -545,13 +543,85 @@ input[type="file"] {
 
 
 
-    .chat-input button {
-        background-color: #007bff;
-        border: none;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        cursor: pointer;
-    } 
+/* Animation au survol des boutons */
+.download-link {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.download-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Styles pour les messages envoyés (à droite, bleu) */
+.message.sent {
+    justify-content: flex-end;
+}
+
+.message.sent .message-content {
+    background-color: #007bff;
+    color: white;
+    border-radius: 15px 15px 0 15px;
+}                                                                                                                                                                                                                                                                                                                           
+
+/* Styles pour les messages reçus (à gauche, gris) */
+.message.received {
+    justify-content: flex-start;
+}
+
+.message.received .message-content {
+    background-color: #f1f1f1;
+    color: black;
+    border-radius: 15px 15px 15px 0;
+}
+
+/* Styles communs pour les messages */
+.message {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.message-content {
+    max-width: 70%;
+    padding: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.message-header {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.message.sent .message-header {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.message p.text {
+    font-size: 14px;
+    margin: 0;
+}
+
+.chat-input {
+    position: sticky;
+    bottom: 30px;
+    
+    background: white;
+    padding: 15px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.chat-input input[type="text"] {
+                                                    flex: 1;
+                                                    width: 450px;
+                                                    padding: 10px;
+                                                    border: 1px solid #ddd;
+                                                    border-radius: 5px;
+                                                    margin-right: 10px;
+                                                }
 </style>
 @endsection

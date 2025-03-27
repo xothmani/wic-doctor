@@ -21,7 +21,7 @@
     <!-- En-tête du Chat -->
     <div class="chat-header">
 
-        <img src="{{ asset('storage/images/iconn.png') }}" alt="Icône discussion médicale" class="custom-icon" width="40" height="40">
+        <img src="{{ asset('images/icons/iconn.png') }}" alt="Icône discussion médicale" class="custom-icon" width="40" height="40">
         <h1>Docteur & Patient Discussion </h1>
     </div>
 

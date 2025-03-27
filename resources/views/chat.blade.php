@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <div class="chat-header">
 
-    <img src="{{ asset('storage/images/e.png') }}" 
+    <img src="{{ asset('images/icons/e.png') }}" 
      alt="Icône discussion médicale" 
      class="custom-icon"
      width="40" 

@@ -679,8 +679,9 @@ Route::delete('/messages/{chatId}/chats/{messageId}', [PatientDoctorChatControll
 
 Route::get('/last-messages', [TeleseceteriatDoctorsController::class, 'getLastMessage']);
 
-Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'index']);
-Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+
+Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
+    Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
  Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
