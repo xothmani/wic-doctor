@@ -203,6 +203,7 @@ class NotificationAPIController extends Controller
     public function storeReminderAppointment(Request $request): JsonResponse
     {
         try {
+            Log::info('Store reminder notification', [$request->get('notifiable_id')]);
             $user = User::find($request->get('notifiable_id'));
             $data = [
                 'appointment_id' => $request->get('appointment_id'),

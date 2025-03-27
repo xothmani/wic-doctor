@@ -66,7 +66,6 @@ class Appointment extends Model
     ];
     public $table = 'appointments';
     public $fillable = [
-
         'doctor',
         'patient',
         'user_id',
@@ -96,11 +95,10 @@ class Appointment extends Model
      * @var array
      */
     protected $casts = [
-
         'clinic' => Clinic::class,
         'doctor' => Doctor::class,
         'patient' => Patient::class,
-        'address' => Address::class,
+        //'address' => Address::class,
         'coupon' => Coupon::class,
         'taxes' => TaxCollectionCast::class,
         'appointment_status_id' => 'integer',
