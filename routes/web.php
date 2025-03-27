@@ -602,9 +602,7 @@ Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages'])
 
 // routes/web.php
 // routes/web.php
-Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
-     ->name('chatT.show')
-     ->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
+
 Route::get('/doctor/login', [DoctorAuthController::class, 'showLoginForm'])->name('doctor.login');
 Route::post('/doctor/login', [DoctorAuthController::class, 'login']);
 // Route::get('/test-firebase', function() {
@@ -655,8 +653,6 @@ Route::get('/chatTe/messages/{doctorId}', [TeleseceteriatDoctorsController::clas
 // Route to show all telesecretariat and their last messages
 Route::get('/chatTe/index', [TeleseceteriatDoctorsController::class, 'index'])->name('chat.index');
 
-// Route to display a chat between a doctor and a telesecretariat
-Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chat.show');
 
 // Route to send a message
 
@@ -680,14 +676,78 @@ Route::delete('/messages/{chatId}/chats/{messageId}', [PatientDoctorChatControll
 Route::get('/last-messages', [TeleseceteriatDoctorsController::class, 'getLastMessage']);
 
 
-Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
-    Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 
+Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
+ 
+
+
+
+    Route::post('/users/accept-new-features', [UserController::class, 'acceptNewFeatures'])->name('users.acceptNewFeatures');
+    Route::post('/users/reject-new-features', [UserController::class, 'rejectNewFeatures'])->name('users.rejectNewFeatures');
+
+    Route::get('/tele-get-background-color-agenda', [DoctorTelesecretariatController::class, 'BackgroundColorForAgenda'])->name('get.background.color.agenda');
+    Route::get('/tele-substitutes/{doctorId}', [DoctorTelesecretariatController::class, 'getSubstitutes'])->name('get.tele.substitutes');
+    Route::get('/tele-appointments/stats/{doctorId}/{selectedDate?}', [DoctorTelesecretariatController::class, 'getAppointmentStats'])
+        ->name(name: 'get.tele.AppointmentStats');
+    Route::get('/tele-get-pattern-for-time-slot', [DoctorTelesecretariatController::class, 'telegetPatternForTimeSlot'])->name('tele.get.pattern.for.time.slot');
+    Route::get('/tele-get-pattern-for-time-slot-without-type', [DoctorTelesecretariatController::class, 'telegetPatternForTimeSlotWithoutType'])->name('tele.get.slot.no.type');
+    Route::post('/set-active-doctor', function (Request $request) {
+        $doctorId = $request->input('doctorId');
+        if ($doctorId) {
+            session(['selectedDoctorId' => $doctorId]);
+        }
+        return response()->json(['success' => true]);
+    })->middleware('auth');
+    Route::get('/refresh-active-doctor', function () {
+        $activeDoctor = null;
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->hasRole('Telesecretary')) {
+                $doctorId = session('selectedDoctorId');
+                if ($doctorId) {
+                    $activeDoctor = \App\Models\Doctor::find($doctorId);
+                }
+            } else {
+                $activeDoctor = \App\Models\Doctor::find($user->getDoctorId());
+            }
+        }
+        return view('components.active-doctor', compact('activeDoctor'));
+    })->middleware('auth');
+
+
+  Route::get('/doctor-blog', [DoctorBlogController::class, 'index'])->name('doctor_blog.index');
+ Route::get('/doctor-blog', [DoctorBlogController::class, 'index'])->name('doctor_blog.index');
+        Route::get('/doctor-blog/create', [DoctorBlogController::class, 'create'])->name('doctor_blog.create');
+        Route::post('/doctor-blog', [DoctorBlogController::class, 'store'])->name('doctor_blog.store');
+    
+        Route::post('uploads/storeImage', [DoctorBlogController::class, 'storeImage'])->name('uploads.storeImage');
+        Route::get('doctor_blog/{id}', [DoctorBlogController::class, 'show'])->name('doctor_blog.show');
+        Route::delete('/doctor_blog/{id}', [DoctorBlogController::class, 'destroy'])->name('doctor_blog.destroy');
+        Route::get('doctor_blog/{id}/edit', [DoctorBlogController::class, 'edit'])->name('doctor_blog.edit');
+        Route::patch('doctor_blog/{id}', [DoctorBlogController::class, 'update'])->name('doctor_blog.update');
+        Route::post('uploads/deleteImage', [DoctorBlogController::class, 'deleteImage'])->name('uploads.deleteImage');
+        Route::get('doctor_blogs/accepted', [DoctorBlogController::class, 'acceptedBlogs'])->name('doctor_blog.accepted');
+        Route::get('doctor_blogs/rejected', [DoctorBlogController::class, 'rejectedBlogs'])->name('doctor_blog.rejected');
+    
+        Route::get('/doctor_blog/accept/{id}', [DoctorBlogController::class, 'accepterBlog'])
+            ->name('doctor_blog.accept');
+        Route::post('/doctor_blog/rejet/{id}', [DoctorBlogController::class, 'rejeterBlog'])
+            ->name('doctor_blog.rejet');
+Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
+->name('chatT.show')
+->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
- Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
 Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
 
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+
+Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
+Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
+Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
+Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
 });
 
