@@ -493,7 +493,8 @@ private function executeNodeScript($doctor)
     'aleatoire' => $doctor->id_aleatoire,
     'adresse_exacte' => $adresse_exacte, 
     'specialities' => $specialitiesData, 
-    'type' => "conventionné", 
+    'type' => "conventionné",
+    'availability_mode'=> $doctor->availability_mode, 
         ];
 
         file_put_contents($filePath, json_encode([$data], JSON_UNESCAPED_UNICODE));
