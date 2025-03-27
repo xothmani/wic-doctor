@@ -406,6 +406,7 @@ class AvailabilityController extends Controller
                 }
             }
 
+            //$this->syncAvailabilityHoursTunisie($doctorId, $validated['availability'], $type, $currentDuration);
             DB::commit();
             return redirect()->back()->with('success', 'Disponibilité sauvegardée avec succès !');
         } catch (\Exception $e) {
@@ -684,7 +685,18 @@ class AvailabilityController extends Controller
                         'is_available' => true
                     ]);
 
-
+                    DB::table('availability_hours_tunisie')->insert([
+                        'doctor_id' => $doctorId,
+                        'day' => $data['day'],
+                        'start_at' => $data['from'],
+                        'end_at' => $data['to'],
+                        'session_duration' => $sessionDuration,
+                        'is_available' => true,
+                        'onligne' => $type, // Assuming 'onligne' is meant to represent the type (cabinet/home_visit/etc)
+                        'pause_from' => null,
+                        'pause_to' => null,
+                        'data' => null,
+                    ]);
                     Log::info("Created availability with breaks", [
                         'day' => $data['day'],
                         'pause_from' => $pauseFrom,
@@ -699,7 +711,7 @@ class AvailabilityController extends Controller
                 session()->flash('old_duration', $currentSessionDuration);
                 session()->flash('new_duration', $newSessionDuration);
             }
-            $this->syncAvailabilityHoursTunisie($doctorId, $validated['availability'], $type, $sessionDuration);
+            //$this->syncAvailabilityHoursTunisie($doctorId, $validated['availability'], $type, $sessionDuration);
             DB::commit();
             return redirect()->back()->with('success', __('messages.availability_saved'));
 

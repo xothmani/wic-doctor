@@ -40,7 +40,6 @@ class Permissions
     public function handle(Request $request, Closure $next): mixed
     {
         $permission = $request->route()->getName();
-
         if ($this->match($request->route()) && auth()->check() && auth()->user()->canNot($permission)) {
             if ($permission == 'dashboard') {
                 return redirect(route('users.profile'));

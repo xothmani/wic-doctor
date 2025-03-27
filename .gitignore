@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-/node_modules
-/public/storage
-/vendor
-/.idea
-/.vscode
-=======
+
 # Ignore vendor and node_modules
 /vendor/
 node_modules/
@@ -24,15 +18,14 @@ public/
 
 # Ignore sensitive and environment-specific files
 storage/*.key
->>>>>>> merging_dev_agendabranch
+
 .env
 .env.*
 Homestead.yaml
 Homestead.json
-<<<<<<< HEAD
+
 phpunit.xml
 /storage/*.key
-=======
 /.vagrant
 .phpunit.result.cache
 auth.json
@@ -66,4 +59,7 @@ public/
 public/Back-NodeJS/Back-WIc-Doctors
 public/Back-NodeJS/Back-WIc-Doctors
 public/Back-NodeJS/Back-WIc-Doctors
->>>>>>> merging_dev_agendabranch
+
+
+composer.lock
+

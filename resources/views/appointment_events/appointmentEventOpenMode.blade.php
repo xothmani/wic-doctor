@@ -1,9 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-
-    <@php
-
+    @php
         $doctorId = auth()->user()->getDoctorId();
         $permissionKey = 'appointment-event.index';
         // Retrieve the permission with its related readable record
@@ -13,8 +11,11 @@
 
         // Use the dynamic attribute for the display name; fall back to the key if not found
         $readablePermission = $permission ? $permission->display_name : $permissionKey;
-    @endphp @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
+    @endphp
 
+    @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
+
+        <!-- Content Header (Page header) -->
 
         <!-- Second Modal -->
         <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
@@ -60,8 +61,7 @@
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="appointmentDetailsModalLabel">{{ trans('lang.appointment_details') }}
-                        </h5>
+                        <h5 class="modal-title" id="appointmentDetailsModalLabel">{{ trans('lang.appointment_details') }}</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -70,8 +70,7 @@
                         <div id="appointment-info">
                             <!-- Patient Details will be dynamically filled here -->
                             <p><strong>{{ trans('lang.patient_nom') }}:</strong> <span id="patientName"></span></p>
-                            <p><strong>{{ trans('lang.appointment_status') }}:</strong> <span id="appointmentStatus"></span>
-                            </p>
+                            <p><strong>{{ trans('lang.appointment_status') }}:</strong> <span id="appointmentStatus"></span></p>
                             <p><strong>{{ trans('lang.motif_name') }}:</strong> <span id="motifName"></span></p>
                             <p><strong>{{ trans('lang.note') }}:</strong> <span id="note"></span></p>
                         </div>
@@ -161,27 +160,37 @@
                                     </div>
 
                                     <!-- Pattern Selection -->
-                                    <div class="form-group">
-                                        <label for="patern_id"
-                                            class="font-weight-bold">{{ trans('lang.availability_hour_pattern') }}</label>
-                                        <div class="d-flex align-items-center">
-                                            <select id="patern_id" name="patern_id" class="form-control select2-ajax" required
-                                                style="flex-grow: 1;">
-                                                <option value="" disabled selected>{{ trans('lang.select_pattern') }}</option>
-                                                @foreach($patterns as $id => $nom)
-                                                    <option value="{{ $id }}">{{ $nom }}</option>
-                                                @endforeach
-                                            </select>
-                                            <a href="{{ route('patterns.create') }}" class="btn btn-success d-flex"
-                                                id="addNewPatient">
-                                                <i class="fa fa-user-plus"></i>
-                                            </a>
-                                        </div>
+                                    <div class="form-group pattern-select-group" data-type="cabinet">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_cabinet" class="form-control">
+                                            @foreach($patternsByType[1] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
+
+                                    <div class="form-group pattern-select-group d-none" data-type="teleconsultation">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_teleconsultation" class="form-control">
+                                            @foreach($patternsByType[4] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group pattern-select-group d-none" data-type="home_visit">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_home_visit" class="form-control">
+                                            @foreach($patternsByType[3] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+
                                     <!-- Add this after the Pattern Selection div -->
                                     <div class="form-group">
-                                        <label for="appointment_notes"
-                                            class="font-weight-bold">{{ trans('lang.notes') }}</label>
+                                        <label for="appointment_notes" class="font-weight-bold">{{ trans('lang.notes') }}</label>
                                         <textarea id="appointment_notes" name="appointment_notes" class="form-control" rows="3"
                                             placeholder="{{ trans('lang.enter_appointment_notes') }}"></textarea>
                                     </div>
@@ -238,8 +247,7 @@
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary"
-                            data-dismiss="modal">{{ trans('lang.close') }}</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.close') }}</button>
                         <button type="button" class="btn btn-danger"
                             id="confirmCancel">{{ trans('lang.confirm_cancel') }}</button>
                     </div>
@@ -252,6 +260,7 @@
             <div class="clearfix"></div>
             @include('flash::message')
             <div class="card shadow-sm">
+
                 <div class="card-body">
                     <!-- Calendar Container -->
                     <div id="calendar-container">
@@ -314,989 +323,993 @@
     @endif
 @endsection
 
-    @push('styles')
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.css">
-        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-        <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css" />
-        <link rel="stylesheet" href="{{ asset('css/eventcustom.css') }}">
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    @endpush
+@push('styles')
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css" />
+    <link rel="stylesheet" href="{{ asset('css/eventcustom.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+@endpush
 
-    @push('scripts')
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script>
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
 
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        let availableDays = [];
+
+        $(document).ready(function () {
+            //
+            fetchAvailableDaysAndInitializeCalendar();
+            // Initialize field visibility based on patient type selection
+            function toggleFields() {
+                $('#referencedFields').show();
+                $('#walkInFields').hide();
+                $('#time-slots-wrapper').show();
+                $('#saveAppointmentRef').show();
+                $('#saveAppointmentPass').hide();
+            }
+
+            toggleFields();
+
+            $('#patientRef, #patientPass').on('change', toggleFields);
+            function refreshCalendarEvents() {
+                $('#calendar').fullCalendar('refetchEvents'); // Fetch and reload events
+                console.log("Calendar events refreshed");
+            }
+
+            // Set interval to refresh calendar every 30 seconds
+            setInterval(refreshCalendarEvents, 10000);
+
+            //const timeSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
+            const timeSlotsContainer = document.getElementById('time-slots');
+            function updateAvailableTimeSlots(response) {
+                const { all_slots, taken_slots, type } = response;
+                console.log("Response received:", response);
+
+                const timeSlotsWrapper = $("#time-slots");
+                timeSlotsWrapper.empty();
+
+                // Handle vacation case
+                if (response.vacation) {
+                    timeSlotsWrapper.append(` <div class="alert alert-warning text-center"> Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible. </div> `);
+
+                    return;
+                }
+
+                // If no slots available for this type
+                if (!all_slots || all_slots.length === 0) {
+                    timeSlotsWrapper.append(` <div class="alert alert-info text-center"> Aucun créneau disponible pour ${getTypeLabel(type)}. </div> `);
+
+                    return;
+                }
+
+                const selectedDate = $("#appointmentDate").val();
+                const isToday = selectedDate === moment().format("YYYY-MM-DD");
+
+                all_slots.forEach(slot => {
+                    const time = typeof slot === "object" ? slot.time || slot.slot : slot;
+                    const slotElement = $('<div>')
+                        .addClass('time-slot')
+                        .text(time);
+
+                    if (taken_slots.includes(time)) {
+                        slotElement.addClass('taken-slot')
+                            .css('background-color', '#e9ecef');
+                    } else if (isToday && moment(`${selectedDate} ${time}`, "YYYY-MM-DD HH:mm").isBefore(moment())) {
+                        slotElement.addClass('passed-slot')
+                            .css({
+                                'background-color': '#e9ecef',
+                                'pointer-events': 'none',
+                                'opacity': '0.6'
+                            });
+                    } else {
+                        slotElement.addClass('available-slot')
+                            .on('click', function () {
+                                $('.time-slot').removeClass('selected');
+                                $(this).addClass('selected');
+                                $('#appointment_time').val(time);
+                            });
+                    }
+                    timeSlotsWrapper.append(slotElement);
+                });
+            }
+
+            function getTypeLabel(type) {
+                const typeLabels = {
+                    'cabinet': 'Cabinet',
+                    'teleconsultation': 'teleconsultation',
+                    'home_visit': 'Visite à domicile',
+                };
+                return typeLabels[type] || type;
+            }
+
+            function selectTimeSlot(element, time) {
+                document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+                element.classList.add('selected');
+                $('#appointment_time').val(time);
+            }
+            ////////////////////////////////////////////////
+            $('#addMoreAvailable').click(function () {
+                const selectedDate = $('#appointmentDate').val(); // Get the selected date from the input field
+
+                // Check if a date is selected
+                if (selectedDate) {
+                    // Redirect to the URL with the selected date
+                    window.location.href = `/availability`;
+                } else {
+                    alert("Please select a date before adding availability.");
                 }
             });
-            let availableDays = [];
+            ///////////////////////////////////////////////
+            $('#appointmentModal').on('hidden.bs.modal', function () {
+                // Reset form
+                $('#appointmentForm')[0].reset();
+                // Clear time slots
+                $('#time-slots').empty();
+                // Reset hidden type input
+                $('#appointmentType').val('cabinet');
+                $('#patientDropdown').val(null).trigger('change');
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_cabinet').closest('.pattern-select-group').removeClass('d-none');
 
-            $(document).ready(function () {
-                //
-                fetchAvailableDaysAndInitializeCalendar();
-                // Initialize field visibility based on patient type selection
-                function toggleFields() {
-                    $('#referencedFields').show();
-                    $('#walkInFields').hide();
-                    $('#time-slots-wrapper').show();
-                    $('#saveAppointmentRef').show();
-                    $('#saveAppointmentPass').hide();
+            });
+            ///////////////////////////////////////////////
+            $("#appointmentTypeTabs a").on("click", function (e) {
+                e.preventDefault();
+                console.log("Tab Clicked:", this);
+                const selectedType = $(this).data("type");
+                const selectedDate = $("#appointmentDate").val();
+
+                // Update hidden type input
+                $('#appointmentType').val(selectedType);
+
+                // Show this tab
+                $(this).tab('show');
+                console.log("Selected Type:", selectedType);
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_' + selectedType).closest('.pattern-select-group').removeClass('d-none');
+
+                if (selectedDate) {
+                    fetchTimeSlotsForType(selectedDate, selectedType);
                 }
+            });
+            $('#appointmentTypeTabs a').on('shown.bs.tab', function (e) {
+                console.log("Tab Shown:", e.target);
+                const selectedType = $(e.target).data('type');
+                const selectedDate = $('#appointmentDate').val();
+                $('#appointmentType').val(selectedType);
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_' + selectedType).closest('.pattern-select-group').removeClass('d-none');
 
-                toggleFields();
-
-                $('#patientRef, #patientPass').on('change', toggleFields);
-                function refreshCalendarEvents() {
-                    $('#calendar').fullCalendar('refetchEvents'); // Fetch and reload events
-                    console.log("Calendar events refreshed");
+                if (selectedDate) {
+                    fetchTimeSlotsForType(selectedDate, selectedType);
                 }
+            });
+            function fetchAvailableDaysAndInitializeCalendar() {
+                $.ajax({
+                    url: "/get-available-time-slots", // Ensure this API returns the available days
+                    type: "GET",
+                    success: function (response) {
+                        //console.log("Fetched Available Days:", response);
+                        availabilityDays = response.available_days.map(day => day.toLowerCase()); // Convert to lowercase
 
-                // Set interval to refresh calendar every 30 seconds
-                setInterval(refreshCalendarEvents, 10000);
-
-                //const timeSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
-                const timeSlotsContainer = document.getElementById('time-slots');
-                function updateAvailableTimeSlots(response) {
-                    const { all_slots, taken_slots, type } = response;
-                    console.log("Response received:", response);
-
-                    const timeSlotsWrapper = $("#time-slots");
-                    timeSlotsWrapper.empty();
-
-                    // Handle vacation case
-                    if (response.vacation) {
-                        timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
-                        return;
-                    }
-
-                    // If no slots available for this type
-                    if (!all_slots || all_slots.length === 0) {
-                        timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Aucun créneau disponible pour ${getTypeLabel(type)}.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `);
-                        return;
-                    }
-
-                    const selectedDate = $("#appointmentDate").val();
-                    const isToday = selectedDate === moment().format("YYYY-MM-DD");
-
-                    all_slots.forEach(slot => {
-                        const time = typeof slot === "object" ? slot.time || slot.slot : slot;
-                        const slotElement = $('<div>')
-                            .addClass('time-slot')
-                            .text(time);
-
-                        if (taken_slots.includes(time)) {
-                            slotElement.addClass('taken-slot')
-                                .css('background-color', '#e9ecef');
-                        } else if (isToday && moment(`${selectedDate} ${time}`, "YYYY-MM-DD HH:mm").isBefore(moment())) {
-                            slotElement.addClass('passed-slot')
-                                .css({
-                                    'background-color': '#e9ecef',
-                                    'pointer-events': 'none',
-                                    'opacity': '0.6'
-                                });
-                        } else {
-                            slotElement.addClass('available-slot')
-                                .on('click', function () {
-                                    $('.time-slot').removeClass('selected');
-                                    $(this).addClass('selected');
-                                    $('#appointment_time').val(time);
-                                });
-                        }
-                        timeSlotsWrapper.append(slotElement);
-                    });
-                }
-
-                function getTypeLabel(type) {
-                    const typeLabels = {
-                        'cabinet': 'Cabinet',
-                        'teleconsultation': 'teleconsultation',
-                        'home_visit': 'Visite à domicile',
-                    };
-                    return typeLabels[type] || type;
-                }
-
-                function selectTimeSlot(element, time) {
-                    document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
-                    element.classList.add('selected');
-                    $('#appointment_time').val(time);
-                }
-                ////////////////////////////////////////////////
-                $('#addMoreAvailable').click(function () {
-                    const selectedDate = $('#appointmentDate').val(); // Get the selected date from the input field
-
-                    // Check if a date is selected
-                    if (selectedDate) {
-                        // Redirect to the URL with the selected date
-                        window.location.href = `/availability`;
-                    } else {
-                        alert("Please select a date before adding availability.");
+                        // Now initialize the calendar AFTER fetching availability days
+                        initializeCalendar();
+                    },
+                    error: function () {
+                        console.error("Erreur lors de la récupération des jours disponibles.");
+                        initializeCalendar(); // Still initialize the calendar to prevent UI blocking
                     }
                 });
-                ///////////////////////////////////////////////
-                $('#appointmentModal').on('hidden.bs.modal', function () {
-                    // Reset form
-                    $('#appointmentForm')[0].reset();
-                    // Clear time slots
-                    $('#time-slots').empty();
-                    // Reset hidden type input
-                    $('#appointmentType').val('cabinet');
-                    $('#patientDropdown').val(null).trigger('change');
-                });
-                ///////////////////////////////////////////////
-                $("#appointmentTypeTabs a").on("click", function (e) {
-                    e.preventDefault();
-                    console.log("Tab Clicked:", this);
-                    const selectedType = $(this).data("type");
-                    const selectedDate = $("#appointmentDate").val();
+            }
 
-                    // Update hidden type input
-                    $('#appointmentType').val(selectedType);
+            // Modify fetchTimeSlotsForType function
+            function fetchTimeSlotsForType(date, type) {
+                $.ajax({
+                    url: "/get-available-time-slots-open",
+                    type: "GET",
+                    data: {
+                        date: date,
+                        type: type
+                    },
+                    success: function (response) {
+                        console.log("Fetched Time Slots Response:", response);
 
-                    // Show this tab
-                    $(this).tab('show');
-                    console.log("Selected Type:", selectedType);
-                    if (selectedDate) {
-                        fetchTimeSlotsForType(selectedDate, selectedType);
-                    }
-                });
-                $('#appointmentTypeTabs a').on('shown.bs.tab', function (e) {
-                    console.log("Tab Shown:", e.target);
-                    const selectedType = $(e.target).data('type');
-                    const selectedDate = $('#appointmentDate').val();
-
-                    if (selectedDate) {
-                        fetchTimeSlotsForType(selectedDate, selectedType);
-                    }
-                });
-                function fetchAvailableDaysAndInitializeCalendar() {
-                    $.ajax({
-                        url: "/get-available-time-slots", // Ensure this API returns the available days
-                        type: "GET",
-                        success: function (response) {
-                            console.log("Fetched Available Days:", response);
-                            availabilityDays = response.available_days.map(day => day.toLowerCase()); // Convert to lowercase
-
-                            // Now initialize the calendar AFTER fetching availability days
-                            initializeCalendar();
-                        },
-                        error: function () {
-                            console.error("Erreur lors de la récupération des jours disponibles.");
-                            initializeCalendar(); // Still initialize the calendar to prevent UI blocking
-                        }
-                    });
-                }
-
-                // Modify fetchTimeSlotsForType function
-                function fetchTimeSlotsForType(date, type) {
-                    $.ajax({
-                        url: "/get-available-time-slots-open",
-                        type: "GET",
-                        data: {
-                            date: date,
-                            type: type
-                        },
-                        success: function (response) {
-                            console.log("Fetched Time Slots Response:", response);
-
-                            if (response.vacation) {
-                                // If doctor is on vacation, show a warning alert (still using Swal)
-                                Swal.fire({
-                                    title: "Le docteur est en vacances",
-                                    text: "Aucune disponibilité n'est possible ce jour.",
-                                    icon: "warning",
-                                    confirmButtonText: "OK"
-                                });
-                                return;
-                            }
-
-                            // Show the appointment modal first (it should be visible regardless of slots)
-                            $('#appointmentModal').modal('show');
-
-                            if (!response.all_slots || response.all_slots.length === 0) {
-                                // No available slots → Show a message inside the modal
-                                $("#time-slots").html(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucune disponibilité pour ce type de rendez-vous à cette date.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
-                                return;
-                            }
-
-                            // If slots are available, update the available slots section
-                            updateAvailableTimeSlots(response);
-                        },
-                        error: function (xhr) {
-                            // General error handling
+                        if (response.vacation) {
+                            // If doctor is on vacation, show a warning alert (still using Swal)
                             Swal.fire({
-                                title: "Erreur",
-                                text: "Une erreur s'est produite lors de la récupération des créneaux horaires. Veuillez réessayer.",
-                                icon: "error",
+                                title: "Le docteur est en vacances",
+                                text: "Aucune disponibilité n'est possible ce jour.",
+                                icon: "warning",
                                 confirmButtonText: "OK"
                             });
+                            return;
                         }
-                    });
-                }
 
-                // Function to clear the time slots container
-                function clearTimeSlots() {
-                    const timeSlotsWrapper = $("#time-slots");
-                    timeSlotsWrapper.empty(); // Clear the container
-                    timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
-                }
-                //////////////////////////////////////////////////////////////////////////////
-                function fetchSubstitutes(doctorId) {
-                    return $.ajax({
-                        url: `/substitutes/${doctorId}`,
-                        method: 'GET',
-                        dataType: 'json'
-                    });
-                }
-                //////////////////////////////////////////////////////////////////////////////#
-                function fetchAppointmentStats(doctorId, selectedDate) {
-                    return $.ajax({
-                        url: `/appointments/stats/${doctorId}/${selectedDate}`,
-                        method: 'GET',
-                        dataType: 'json'
-                    });
-                }
+                        // Show the appointment modal first (it should be visible regardless of slots)
+                        $('#appointmentModal').modal('show');
 
-                //////////////////////////////////////////////////////////////////////////////
-                function refreshAppointmentStats(doctorId) {
-                    $('.custom-number-label').remove(); // Clear existing numbers
-                    $('.fc-day-header').each(function () {
-                        fetchAppointmentStats(doctorId).then(stats => {
-                            let staticNumber = `${stats.appointments_taken} / ${stats.total_appointments}`;
-                            $(this).append(`<div class="custom-number-label">${staticNumber}</div>`);
-                        }).catch(error => {
-                            console.error("Error refreshing appointment stats:", error);
+                        if (!response.all_slots || response.all_slots.length === 0) {
+                            // No available slots → Show a message inside the modal
+                            $("#time-slots").html(` <div class="alert alert-warning text-center"> Aucune disponibilité pour ce type de rendez-vous à cette date. </div> `);
+                            return;
+                        }
+
+                        // If slots are available, update the available slots section
+                        updateAvailableTimeSlots(response);
+                    },
+                    error: function (xhr) {
+                        // General error handling
+                        Swal.fire({
+                            title: "Erreur",
+                            text: "Une erreur s'est produite lors de la récupération des créneaux horaires. Veuillez réessayer.",
+                            icon: "error",
+                            confirmButtonText: "OK"
                         });
-                    });
-                }
-                //    ////////////////////////////////////////////////////////////////////////////
-                $('#patientDropdown').select2({
-                    allowClear: false,
-                    ajax: {
-                        url: "{{ route('patients.search') }}",
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return { q: params.term || '' };
-                        },
-                        processResults: function (data) {
-                            return { results: data };
-                        },
-                        cache: true
                     }
                 });
-                let availabilityDays = @json($availabilityDays);
-                let vacations = @json($vacations);
-                console.log("Availability Days at Load:", availabilityDays);
-                function initializeCalendar() {
-                    calendar = $('#calendar').fullCalendar({
-                        locale: 'fr',
-                        editable: true,
-                        height: 670,
-                        header: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'month,agendaWeek,agendaDay'
-                        },
-                        defaultView: 'agendaWeek',
-                        minTime: "08:00:00",
-                        allDaySlot: true,
-                        allDayText: '',
-                        eventLimit: true,
-                        viewRender: function (view) {
+            }
 
-                            if (view.name === 'agendaWeek') {
-                                const doctorId = {{ auth()->user()->getDoctorId() }};
+            // Function to clear the time slots container
+            function clearTimeSlots() {
+                const timeSlotsWrapper = $("#time-slots");
+                timeSlotsWrapper.empty(); // Clear the container
+                timeSlotsWrapper.append(` <div class="alert alert-info text-center"> Aucun créneau disponible trouvé. </div> `);
 
-                                // Create tooltip container once
-                                if (!$('#substitute-tooltip').length) {
-                                    $('body').append('<div id="substitute-tooltip" class="substitute-tooltip"></div>');
-                                }
+            }
+            //////////////////////////////////////////////////////////////////////////////
+            function fetchSubstitutes(doctorId) {
+                return $.ajax({
+                    url: `/substitutes/${doctorId}`,
+                    method: 'GET',
+                    dataType: 'json'
+                });
+            }
+            //////////////////////////////////////////////////////////////////////////////#
+            function fetchAppointmentStats(doctorId, selectedDate) {
+                return $.ajax({
+                    url: `/appointments/stats/${doctorId}/${selectedDate}`,
+                    method: 'GET',
+                    dataType: 'json'
+                });
+            }
 
-                                fetchSubstitutes(doctorId).then(substitutes => {
-                                    //console.log("Substitutes:", substitutes);
-                                    $('.fc-day-header').each(function () {
-                                        let dayDate = $(this).data('date');
-                                        let dayMoment = moment(dayDate);
+            //////////////////////////////////////////////////////////////////////////////
+            function refreshAppointmentStats(doctorId) {
+                $('.custom-number-label').remove(); // Clear existing numbers
+                $('.fc-day-header').each(function () {
+                    fetchAppointmentStats(doctorId).then(stats => {
+                        let staticNumber = `${stats.appointments_taken} / ${stats.total_appointments}`;
+                        $(this).append(`<div class="custom-number-label">${staticNumber}</div>`);
+                    }).catch(error => {
+                        console.error("Error refreshing appointment stats:", error);
+                    });
+                });
+            }
+            //    ////////////////////////////////////////////////////////////////////////////
+            $('#patientDropdown').select2({
+                allowClear: false,
+                ajax: {
+                    url: "{{ route('patients.search') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return { q: params.term || '' };
+                    },
+                    processResults: function (data) {
+                        return { results: data };
+                    },
+                    cache: true
+                }
+            });
+            let availabilityDays = @json($availabilityDays);
+            let vacations = @json($vacations);
+            const urgencies = @json($urgencies);
+            console.log("🩺 Urgencies loaded:", urgencies);
+            //console.log("Availability Days at Load:", availabilityDays);
+            function initializeCalendar() {
+                calendar = $('#calendar').fullCalendar({
+                    locale: 'fr',
+                    editable: true,
+                    height: 670,
+                    header: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'month,agendaWeek,agendaDay'
+                    },
+                    defaultView: 'agendaWeek',
+                    minTime: "08:00:00",
+                    allDaySlot: true,
+                    allDayText: '',
+                    eventLimit: true,
+                    viewRender: function (view) {
 
-                                        // Find the substitute active on this day
-                                        let activeSubstitute = substitutes.find(sub => {
-                                            let startDate = moment(sub.start_date);
-                                            let endDate = moment(sub.end_date);
-                                            return dayMoment.isBetween(startDate, endDate, 'day', '[]');
-                                        });
+                        if (view.name === 'agendaWeek') {
+                            const doctorId = {{ auth()->user()->getDoctorId() }};
 
-                                        // Fetch and set the dynamic number
-                                        fetchAppointmentStats(doctorId, dayDate).then(stats => {
-                                            let totalAppointments = stats && stats.total_appointments ? stats.total_appointments : 0;
-                                            let appointmentsTaken = stats && stats.appointments_taken ? stats.appointments_taken : 0;
-                                            let staticNumber = `${appointmentsTaken}/${totalAppointments}`;
-                                            let substituteName = activeSubstitute ? activeSubstitute.name : "&nbsp;";
+                            // Create tooltip container once
+                            if (!$('#substitute-tooltip').length) {
+                                $('body').append('<div id="substitute-tooltip" class="substitute-tooltip"></div>');
+                            }
 
-                                            // Create custom label with hover functionality
-                                            // Append all elements with proper structure
-                                            $(this).append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                            <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="custom-day-label substitute-hover">${substituteName}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                            <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="custom-number-label">${staticNumber}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                        `);
-                                            if (activeSubstitute) {
-                                                $(this).find('.custom-day-label').hover(
-                                                    function (e) {
-                                                        let tooltip = $('#substitute-tooltip');
-                                                        let tooltipContent = ` <div class="substitute-info-container"> <div class="substitute-info"> <span class="substitute-info-label">Nom:</span> <span class="substitute-info-value">${activeSubstitute.name}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Début:</span> <span class="substitute-info-value">${moment(activeSubstitute.start_date).format('DD/MM/YYYY HH:mm')}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Fin:</span> <span class="substitute-info-value">${moment(activeSubstitute.end_date).format('DD/MM/YYYY HH:mm')}</span> </div> ${activeSubstitute.notes ? ` <div class="substitute-info"> <span class="substitute-info-label">Notes:</span> <span class="substitute-info-value">${activeSubstitute.notes}</span> </div> ` : ''} </div> `;
+                            fetchSubstitutes(doctorId).then(substitutes => {
+                                //console.log("Substitutes:", substitutes);
+                                $('.fc-day-header').each(function () {
+                                    let dayDate = $(this).data('date');
+                                    let dayMoment = moment(dayDate);
 
-                                                        tooltip.html(tooltipContent);
-
-                                                        // Position the tooltip
-                                                        let pos = $(this).offset();
-                                                        tooltip.css({
-                                                            top: pos.top + $(this).outerHeight() + 5,
-                                                            left: pos.left
-                                                        }).fadeIn(200);
-                                                    },
-                                                    function () {
-                                                        $('#substitute-tooltip').fadeOut(200);
-                                                    }
-                                                );
-                                            }
-
-
-                                        }).catch(error => {
-                                            console.error("Error fetching appointment stats:", error);
-                                        });
+                                    // Find the substitute active on this day
+                                    let activeSubstitute = substitutes.find(sub => {
+                                        let startDate = moment(sub.start_date);
+                                        let endDate = moment(sub.end_date);
+                                        return dayMoment.isBetween(startDate, endDate, 'day', '[]');
                                     });
-                                }).catch(error => {
-                                    console.error("Error fetching substitutes:", error);
-                                });
-                            }
-                        },
-                        dayRender: function (date, cell) {
-                            console.log("Day Rendered:", date.format());
-                            const formattedDayName = date.locale('en').format('dddd').toLowerCase();
-                            const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase());
-                            const today = moment().startOf('day');
-                            const currentDay = date.startOf('day');
-                            const formattedDate = currentDay.format('YYYY-MM-DD');
 
-                            // Check vacation days first
-                            const isVacationDay = vacations.some(vacation => {
-                                const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
-                                const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
-                                return currentDay.isSameOrAfter(vacationStart) && currentDay.isSameOrBefore(vacationEnd);
-                            });
+                                    // Fetch and set the dynamic number
+                                    fetchAppointmentStats(doctorId, dayDate).then(stats => {
+                                        let totalAppointments = stats && stats.total_appointments ? stats.total_appointments : 0;
+                                        let appointmentsTaken = stats && stats.appointments_taken ? stats.appointments_taken : 0;
+                                        let staticNumber = `${appointmentsTaken}/${totalAppointments}`;
+                                        let substituteName = activeSubstitute ? activeSubstitute.name : "&nbsp;";
 
-                            if (currentDay.isBefore(today)) {
-                                cell.css('background-color', '#e9ecef');
-                                cell.css('cursor', 'not-allowed');
-                                cell.css('color', '#721c24');
-                                cell.css('position', 'relative');
-                                cell.append('<span class="dot past-dot"></span>');
-                                cell.attr('title', 'Ce jour est dans le passé.');
-                            } else if (isVacationDay) {
-                                cell.addClass('cell-with-background');
-                                cell.attr('title', 'Le docteur est en vacances ce jour.');
-                            } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
-                                // Check availability for all appointment types
-                                $.ajax({
-                                    url: "/get-available-time-slots",
-                                    type: "GET",
-                                    data: {
-                                        date: formattedDate,
-                                        checkAllTypes: true // Add a flag to check all types
-                                    },
-                                    success: function (response) {
-                                        const allSlots = response.all_slots || [];
-                                        const takenSlots = response.taken_slots || [];
+                                        // Create custom label with hover functionality
+                                        // Append all elements with proper structure
+                                        $(this).append(` <hr class="day-header-divider"> <div class="custom-day-label substitute-hover">${substituteName}</div> <hr class="day-header-divider"> <div class="custom-number-label">${staticNumber}</div> `);
 
-                                        if (allSlots.length > 0 && allSlots.length === takenSlots.length) {
-                                            // All slots are taken
-                                            cell.css('position', 'relative');
-                                            cell.find('.dot').remove(); // Remove any existing dots
-                                            cell.append('<span class="dot unavailable-dot"></span>');
-                                            cell.attr('title', 'Tous les créneaux sont pris pour ce jour');
-                                        } else if (allSlots.length > 0) {
-                                            // Some slots are available
-                                            cell.css('position', 'relative');
-                                            cell.find('.dot').remove(); // Remove any existing dots
-                                            cell.append('<span class="dot available-dot"></span>');
-                                            cell.attr('title', 'Créneaux disponibles');
-                                        } else {
-                                            // No slots configured
-                                            cell.css('position', 'relative');
-                                            cell.find('.dot').remove(); // Remove any existing dots
-                                            cell.append('<span class="dot unavailable-dot"></span>');
-                                            cell.attr('title', 'Aucun créneau configuré');
-                                        }
-                                    },
-                                    error: function () {
-                                        cell.css('position', 'relative');
-                                        cell.append('<span class="dot unavailable-dot"></span>');
-                                    }
-                                });
-                            } else {
-                                cell.css('position', 'relative');
-                                cell.append('<span class="dot unavailable-dot"></span>');
-                                cell.attr('title', 'Jour non disponible');
-                            }
-                        },
-                        events: function (start, end, timezone, callback) {
-                            $.ajax({
-                                url: "/appointment-event",
-                                type: "GET",
-                                data: {
-                                    start: start.format("YYYY-MM-DD HH:mm:ss"),
-                                    end: end.format("YYYY-MM-DD HH:mm:ss")
-                                },
-                                dataType: "json",
-                                success: function (data) {
-                                    const statusTranslation = {
-                                        "Received": "Reçu",
-                                        "In Progress": "En cours",
-                                        "On the Way": "En route",
-                                        "Accepted": "Accepté",
-                                        "Ready": "Prêt",
-                                        "Done": "Terminé",
-                                        "Failed": "Annulé"
-                                    };
+                                        if (activeSubstitute) {
+                                            $(this).find('.custom-day-label').hover(
+                                                function (e) {
+                                                    let tooltip = $('#substitute-tooltip');
+                                                    let tooltipContent = ` <div class="substitute-info-container"> <div class="substitute-info"> <span class="substitute-info-label">Nom:</span> <span class="substitute-info-value">${activeSubstitute.name}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Début:</span> <span class="substitute-info-value">${moment(activeSubstitute.start_date).format('DD/MM/YYYY HH:mm')}</span> </div> <div class="substitute-info"> <span class="substitute-info-label">Fin:</span> <span class="substitute-info-value">${moment(activeSubstitute.end_date).format('DD/MM/YYYY HH:mm')}</span> </div> ${activeSubstitute.notes ? ` <div class="substitute-info"> <span class="substitute-info-label">Notes:</span> <span class="substitute-info-value">${activeSubstitute.notes}</span> </div> ` : ''} </div> `;
 
-                                    const events = data.map(event => {
-                                        //console.log("Event:", event);
-                                        let color = '';
-                                        let translatedStatus = statusTranslation[event.status] || event.status; // Default to original if no translation
+                                                    tooltip.html(tooltipContent);
 
-                                        switch (translatedStatus) {
-                                            case 'Accepté':
-                                                color = '#9FCDA8';
-                                                break;
-                                            case 'Terminé':
-                                                color = '#7DC2A5';
-                                                break;
-                                            case 'En cours':
-                                                color = '#F5DF4D';
-                                                break;
-                                            case 'Annulé':
-                                                color = '#F38071';
-                                                break;
-                                            case 'Reçu':
-                                                color = '#A594F9';
-                                                break;
-                                            case 'Prêt':
-                                                color = '#9EDF9C';
-                                                break;
-                                            default:
-                                                color = '#B4BAFF';
+                                                    // Position the tooltip
+                                                    let pos = $(this).offset();
+                                                    tooltip.css({
+                                                        top: pos.top + $(this).outerHeight() + 5,
+                                                        left: pos.left
+                                                    }).fadeIn(200);
+                                                },
+                                                function () {
+                                                    $('#substitute-tooltip').fadeOut(200);
+                                                }
+                                            );
                                         }
 
-                                        return {
-                                            id: event.id,
-                                            online: event.online,
-                                            title: `${event.patient_name} - ${event.motif_name}`,
-                                            start: moment(event.start_at).format(), // Adjust for timezone here
-                                            end: moment(event.ends_at).format(),
-                                            patient_phone_number: event.patient_phone_number,
-                                            email: event.patient_email,
-                                            patient_first_name: event.patient_first_name,
-                                            patient_last_name: event.patient_last_name,
-                                            patient_id: event.patient_id,
-                                            backgroundColor: color,
-                                            borderColor: color,
-                                            description: `Patient: ${event.patient_name}\nStatus: ${translatedStatus}\nDetails: ${event.motif_name || 'N/A'}`,
-                                            patient_name: event.patient_name,
-                                            status: translatedStatus,              // Add status here
-                                            details: event.motif_name || 'N/A',
-                                            motif_name: event.motif_name,
-                                            appointment_type: event.type,
-                                            note: event.note,
-                                        };
+
+                                    }).catch(error => {
+                                        console.error("Error fetching appointment stats:", error);
                                     });
-                                    callback(events);
-                                }
-                            });
-                        },
-                        eventRender: function (event, element) {
-
-                            // Adding title attribute for simple tooltip
-                            let icon;
-
-                            // Determine the icon based on the `online` field
-                            switch (event.online) {
-                                case 'cabinet':
-                                    icon = '<i class="fas fa-briefcase-medical" style="margin-right: 5px; color: #1A1A1D;"></i>';
-                                    break;
-                                case 'teleconsultation':
-                                    icon = '<i class="fas fa-video" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Video icon
-                                    break;
-                                case 'home_visit':
-                                    icon = '<i class="fas fa-home" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Home visit icon
-                                    break;
-                                case 'web':
-                                    icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Web icon
-                                    break;
-                                case 'mobile':
-                                    icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Mobile icon
-                                    break;
-                                default:
-                                    icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default icon
-                                    break;
-                            }
-                            element.find('.fc-title').prepend(icon);
-                            element.attr('title', event.description);
-                            element.find('.fc-title').css('white-space', 'nowrap');
-                            element.find('.fc-time').css('font-size', '1em');
-
-                        },
-                        selectable: true,
-                        selectAllow: function (selectInfo) {
-                            // Only allow selection if the day is in availabilityDays
-                            //return availabilityDays.includes(selectInfo.start.format("YYYY-MM-DD"));
-
-                        },
-                        selectHelper: true,
-                        select: function (start, end) {
-                            const selectedDate = start.format("YYYY-MM-DD");
-                            //const selectedDayName = start.format('dddd').toLowerCase(); // Get day name in lowercase
-                            const selectedDayName = moment(selectedDate).locale('en').format("dddd").toLowerCase(); // Ensure English name
-                            const today = moment().format("YYYY-MM-DD");
-                            console.log("Selected Date:", selectedDate);
-                            //console.log("Selected Day:", selectedDay);
-                            console.log("Selected Day Name:", selectedDayName);
-
-                            // First check if date is in the past
-                            if (moment(selectedDate).isBefore(today)) {
-                                $('#pastDateModal').modal('show');
-                                $('#pastDateModalMessage').text("Vous avez sélectionné une date antérieure. Veuillez sélectionner une date future.");
-                                return;
-                            }
-
-                            // Check if it's a vacation day
-                            const isVacationDay = vacations.some(vacation => {
-                                const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
-                                const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
-                                return moment(selectedDate).isSameOrAfter(vacationStart) && moment(selectedDate).isSameOrBefore(vacationEnd);
-                            });
-
-                            if (isVacationDay) {
-                                Swal.fire({
-                                    title: "Le docteur est en vacances",
-                                    text: "Vous ne pouvez pas sélectionner cette date.",
-                                    icon: "warning",
-                                    confirmButtonText: "OK"
                                 });
-                                return;
-                            }
+                            }).catch(error => {
+                                console.error("Error fetching substitutes:", error);
+                            });
+                        }
+                    },
+                    dayRender: function (date, cell) {
 
-                            // Check if the day is available
+                        //console.log("Day Rendered:", date.format());
+                        const formattedDayName = date.locale('en').format('dddd').toLowerCase();
+                        const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase());
+                        const today = moment().startOf('day');
+                        const currentDay = date.startOf('day');
+                        const formattedDate = currentDay.format('YYYY-MM-DD');
+
+                        // Check vacation days first
+                        const isVacationDay = vacations.some(vacation => {
+                            const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
+                            const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
+                            return currentDay.isSameOrAfter(vacationStart) && currentDay.isSameOrBefore(vacationEnd);
+                        });
+                        const isUrgentDay = urgencies.some(urgency => {
+                            const urgencyDate = moment(urgency.jour, 'YYYY-MM-DD').startOf('day');
+                            return currentDay.isSame(urgencyDate);
+                        });
+                        console.log("Is Urgent Day:", isUrgentDay);
+                        //console.log("Is Vacation Day:", isVacationDay);
+                        if (currentDay.isBefore(today)) {
+                            cell.css('background-color', '#e9ecef');
+                            cell.css('cursor', 'not-allowed');
+                            cell.css('color', '#721c24');
+                            cell.css('position', 'relative');
+                            cell.append('<span class="dot past-dot"></span>');
+                            cell.attr('title', 'Ce jour est dans le passé.');
+                        } else if (isVacationDay) {
+                            cell.addClass('cell-with-background');
+                            cell.attr('title', 'Le docteur est en vacances ce jour.');
+                        } else if (isUrgentDay) {
+                            cell.addClass('cell-with-background');
+                            cell.css('background-color', '#ffe6e6'); // light red
+                            cell.attr('title', 'Urgence: Le docteur est en urgence ce jour.');
+                        } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
+                            // Check availability for all appointment types
                             $.ajax({
                                 url: "/get-available-time-slots",
                                 type: "GET",
+                                data: {
+                                    date: formattedDate,
+                                    checkAllTypes: true // Add a flag to check all types
+                                },
                                 success: function (response) {
-                                    console.log("Available Days Response:", response);
-                                    const availableDays = response.available_days.map(day => day.toLowerCase());
+                                    const allSlots = response.all_slots || [];
+                                    const takenSlots = response.taken_slots || [];
 
-                                    if (!availableDays.includes(selectedDayName)) {
-                                        Swal.fire({
-                                            title: "Jour non disponible",
-                                            text: "Le docteur n'est pas disponible ce jour-là.",
-                                            icon: "warning",
-                                            confirmButtonText: "OK"
-                                        });
-                                        return;
+                                    if (allSlots.length > 0 && allSlots.length === takenSlots.length) {
+                                        // All slots are taken
+                                        cell.css('position', 'relative');
+                                        cell.find('.dot').remove(); // Remove any existing dots
+                                        cell.append('<span class="dot unavailable-dot"></span>');
+                                        cell.attr('title', 'Tous les créneaux sont pris pour ce jour');
+                                    } else if (allSlots.length > 0) {
+                                        // Some slots are available
+                                        cell.css('position', 'relative');
+                                        cell.find('.dot').remove(); // Remove any existing dots
+                                        cell.append('<span class="dot available-dot"></span>');
+                                        cell.attr('title', 'Créneaux disponibles');
+                                    } else {
+                                        // No slots configured
+                                        cell.css('position', 'relative');
+                                        cell.find('.dot').remove(); // Remove any existing dots
+                                        cell.append('<span class="dot unavailable-dot"></span>');
+                                        cell.attr('title', 'Aucun créneau configuré');
                                     }
-
-                                    // If day is available, proceed to check time slots for each type
-                                    $('#appointmentDate').val(selectedDate);
-
-                                    // Check availability for all types
-                                    const types = ['cabinet', 'teleconsultation', 'home_visit'];
-                                    let foundSlots = false;
-                                    let checkedTypes = 0;
-
-                                    types.forEach(type => {
-                                        $.ajax({
-                                            url: "/get-available-time-slots-open",
-                                            type: "GET",
-                                            data: { date: selectedDate, type: type },
-                                            success: function (response) {
-                                                checkedTypes++;
-
-                                                if (response.all_slots && response.all_slots.length > 0) {
-                                                    foundSlots = true;
-
-                                                    // If this is the first type with available slots, select its tab
-                                                    if (!$('#appointmentModal').is(':visible')) {
-                                                        $('#appointmentModal').modal('show');
-                                                        $(`#appointmentTypeTabs a[data-type="${type}"]`).tab('show');
-                                                        fetchTimeSlotsForType(selectedDate, type);
-                                                    }
-                                                }
-
-                                                // If we've checked all types and found no slots
-                                                if (checkedTypes === types.length && !foundSlots) {
-                                                    $('#confirmationModal').modal('show');
-                                                    $('#confirmCreateAvailability').off('click').on('click', function () {
-                                                        window.location.href = `/availability`;
-                                                    });
-                                                }
-                                            },
-                                            error: function () {
-                                                checkedTypes++;
-                                                if (checkedTypes === types.length && !foundSlots) {
-                                                    $('#confirmationModal').modal('show');
-                                                }
-                                            }
-                                        });
-                                    });
                                 },
                                 error: function () {
+                                    cell.css('position', 'relative');
+                                    cell.append('<span class="dot unavailable-dot"></span>');
+                                }
+                            });
+                        } else {
+                            cell.css('position', 'relative');
+                            cell.append('<span class="dot unavailable-dot"></span>');
+                            cell.attr('title', 'Jour non disponible');
+                        }
+                    },
+                    events: function (start, end, timezone, callback) {
+                        $.ajax({
+                            url: "/appointment-event",
+                            type: "GET",
+                            data: {
+                                start: start.format("YYYY-MM-DD HH:mm:ss"),
+                                end: end.format("YYYY-MM-DD HH:mm:ss")
+                            },
+                            dataType: "json",
+                            success: function (data) {
+                                const statusTranslation = {
+                                    "Received": "Reçu",
+                                    "In Progress": "En cours",
+                                    "On the Way": "En route",
+                                    "Accepted": "Accepté",
+                                    "Ready": "Prêt",
+                                    "Done": "Terminé",
+                                    "Failed": "Annulé"
+                                };
+
+                                const events = data.map(event => {
+                                    //console.log("Event:", event);
+                                    let color = '';
+                                    let translatedStatus = statusTranslation[event.status] || event.status; // Default to original if no translation
+
+                                    switch (translatedStatus) {
+                                        case 'Accepté':
+                                            color = '#9FCDA8';
+                                            break;
+                                        case 'Terminé':
+                                            color = '#7DC2A5';
+                                            break;
+                                        case 'En cours':
+                                            color = '#F5DF4D';
+                                            break;
+                                        case 'Annulé':
+                                            color = '#F38071';
+                                            break;
+                                        case 'Reçu':
+                                            color = '#A594F9';
+                                            break;
+                                        case 'Prêt':
+                                            color = '#9EDF9C';
+                                            break;
+                                        default:
+                                            color = '#B4BAFF';
+                                    }
+
+                                    return {
+                                        id: event.id,
+                                        online: event.online,
+                                        title: `${event.patient_name} - ${event.motif_name}`,
+                                        start: moment(event.start_at).format(), // Adjust for timezone here
+                                        end: moment(event.ends_at).format(),
+                                        patient_phone_number: event.patient_phone_number,
+                                        email: event.patient_email,
+                                        patient_first_name: event.patient_first_name,
+                                        patient_last_name: event.patient_last_name,
+                                        patient_id: event.patient_id,
+                                        backgroundColor: color,
+                                        borderColor: color,
+                                        description: `Patient: ${event.patient_name}\nStatus: ${translatedStatus}\nDetails: ${event.motif_name || 'N/A'}`,
+                                        patient_name: event.patient_name,
+                                        status: translatedStatus,              // Add status here
+                                        details: event.motif_name || 'N/A',
+                                        motif_name: event.motif_name,
+                                        appointment_type: event.type,
+                                        note: event.note,
+                                    };
+                                });
+                                callback(events);
+                            }
+                        });
+                    },
+                    eventRender: function (event, element) {
+
+                        // Adding title attribute for simple tooltip
+                        let icon;
+
+                        // Determine the icon based on the `online` field
+                        switch (event.online) {
+                            case 'cabinet':
+                                icon = '<i class="fas fa-briefcase-medical" style="margin-right: 5px; color: #1A1A1D;"></i>';
+                                break;
+                            case 'teleconsultation':
+                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Video icon
+                                break;
+                            case 'home_visit':
+                                icon = '<i class="fas fa-home" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Home visit icon
+                                break;
+                            case 'web':
+                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Web icon
+                                break;
+                            case 'mobile':
+                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Mobile icon
+                                break;
+                            default:
+                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default icon
+                                break;
+                        }
+                        element.find('.fc-title').prepend(icon);
+                        element.attr('title', event.description);
+                        element.find('.fc-title').css('white-space', 'nowrap');
+                        element.find('.fc-time').css('font-size', '1em');
+
+                    },
+                    selectable: true,
+                    selectAllow: function (selectInfo) {
+                        // Only allow selection if the day is in availabilityDays
+                        //return availabilityDays.includes(selectInfo.start.format("YYYY-MM-DD"));
+
+                    },
+                    selectHelper: true,
+                    select: function (start, end) {
+                        const selectedDate = start.format("YYYY-MM-DD");
+                        //const selectedDayName = start.format('dddd').toLowerCase(); // Get day name in lowercase
+                        const selectedDayName = moment(selectedDate).locale('en').format("dddd").toLowerCase(); // Ensure English name
+                        const today = moment().format("YYYY-MM-DD");
+                        console.log("Selected Date:", selectedDate);
+                        //console.log("Selected Day:", selectedDay);
+                        console.log("Selected Day Name:", selectedDayName);
+
+                        // First check if date is in the past
+                        if (moment(selectedDate).isBefore(today)) {
+                            $('#pastDateModal').modal('show');
+                            $('#pastDateModalMessage').text("Vous avez sélectionné une date antérieure. Veuillez sélectionner une date future.");
+                            return;
+                        }
+
+                        // Check if it's a vacation day
+                        const isVacationDay = vacations.some(vacation => {
+                            const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
+                            const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
+                            return moment(selectedDate).isSameOrAfter(vacationStart) && moment(selectedDate).isSameOrBefore(vacationEnd);
+                        });
+
+                        if (isVacationDay) {
+                            Swal.fire({
+                                title: "Le docteur est en vacances",
+                                text: "Vous ne pouvez pas sélectionner cette date.",
+                                icon: "warning",
+                                confirmButtonText: "OK"
+                            });
+                            return;
+                        }
+
+                        // Check if the day is available
+                        $.ajax({
+                            url: "/get-available-time-slots",
+                            type: "GET",
+                            success: function (response) {
+                                console.log("Available Days Response:", response);
+                                const availableDays = response.available_days.map(day => day.toLowerCase());
+
+                                if (!availableDays.includes(selectedDayName)) {
                                     Swal.fire({
-                                        title: "Erreur",
-                                        text: "Impossible de vérifier les jours disponibles.",
-                                        icon: "error",
+                                        title: "Jour non disponible",
+                                        text: "Le docteur n'est pas disponible ce jour-là.",
+                                        icon: "warning",
                                         confirmButtonText: "OK"
                                     });
+                                    return;
                                 }
-                            });
-                        },
-                        editable: true,
-                        eventResize: function (event) {
-                            $.ajax({
-                                url: "/appointment-event/action",
-                                type: "POST",
-                                data: {
-                                    id: event.id,
-                                    start_at: event.start.utc().format('YYYY-MM-DD HH:mm:ss'),
-                                    ends_at: event.end.utc().format('YYYY-MM-DD HH:mm:ss'),
-                                    type: 'update'
 
-                                },
-                                success: function () {
-                                    calendar.fullCalendar('refetchEvents');
-                                    alert("Rendez-vous mis à jour avec succès.");
-                                    console.log("Start At:", start_at);
-                                    console.log("End At:", ends_at);
-                                }
-                            });
-                        },
-                        eventDrop: function (event) {
-                            $.ajax({
-                                url: "/appointment-event/action",
-                                type: "POST",
-                                data: {
-                                    id: event.id,
-                                    start_at: event.start.format(),
-                                    ends_at: event.end.format(),
-                                    type: 'update'
-                                },
-                                success: function () {
-                                    calendar.fullCalendar('refetchEvents');
-                                    alert("Rendez-vous mis à jour avec succès.");
-                                }
-                            });
-                        },
-                        eventClick: function (event) {
-                            const appointment = {
-                                appointment_id: event.id,
-                                patient_name: event.patient_name,
-                                patient_first_name: event.patient_first_name,
-                                patient_last_name: event.patient_last_name,
-                                email: event.email,
-                                patient_id: event.patient_id,
-                                status: event.status,
-                                motif_name: event.motif_name,
-                                online: event.online,
-                                start: event.start.format(),
-                                phone: event.patient_phone_number // Include the patient phone number
-                            };
-                            $('#patientName').text(event.patient_name);
-                            $('#appointmentStatus').text(event.status);
-                            $('#appointmentDetails').text(event.details || 'No additional details');
-                            $('#motifName').text(event.motif_name || 'No motif name available');
-                            $('#note').text(event.note || 'No note available');
-                            //console.log(event.motif_name);
-                            //console.log(event.patient_name);
-                            // Show the modal
-                            openAppointmentModal(appointment);
-                            $('#appointmentDetailsModal').modal('show');
+                                // If day is available, proceed to check time slots for each type
+                                $('#appointmentDate').val(selectedDate);
 
-                            // Event handler for "Mark as Failed"
-                            $('#markAsFailed').off('click').on('click', function () {
-                                $('#appointmentDetailsModal').modal('hide');
-                                $('#cancelReasonModal').modal('show');
+                                // Check availability for all types
+                                const types = ['cabinet', 'teleconsultation', 'home_visit'];
+                                let foundSlots = false;
+                                let checkedTypes = 0;
 
-                                $('#confirmCancel').off('click').on('click', function () {
-                                    const reason = $('#cancelReason').val() || "Aucune raison fournie";
-                                    updateAppointmentStatus(appointment.appointment_id, 7, reason); // 7 is the Failed/Canceled status
+                                types.forEach(type => {
+                                    $.ajax({
+                                        url: "/get-available-time-slots-open",
+                                        type: "GET",
+                                        data: { date: selectedDate, type: type },
+                                        success: function (response) {
+                                            checkedTypes++;
+
+                                            if (response.all_slots && response.all_slots.length > 0) {
+                                                foundSlots = true;
+
+                                                // If this is the first type with available slots, select its tab
+                                                if (!$('#appointmentModal').is(':visible')) {
+                                                    $('#appointmentModal').modal('show');
+                                                    $(`#appointmentTypeTabs a[data-type="${type}"]`).tab('show');
+                                                    fetchTimeSlotsForType(selectedDate, type);
+                                                }
+                                            }
+
+                                            // If we've checked all types and found no slots
+                                            if (checkedTypes === types.length && !foundSlots) {
+                                                $('#confirmationModal').modal('show');
+                                                $('#confirmCreateAvailability').off('click').on('click', function () {
+                                                    window.location.href = `/availability`;
+                                                });
+                                            }
+                                        },
+                                        error: function () {
+                                            checkedTypes++;
+                                            if (checkedTypes === types.length && !foundSlots) {
+                                                $('#confirmationModal').modal('show');
+                                            }
+                                        }
+                                    });
                                 });
-                            });
-
-                            // Event handler for "Mark as Done"
-                            $('#markAsDone').off('click').on('click', function () {
-                                updateAppointmentStatus(event.id, 5); // 5 is the Done status
-                            });
-                        }
-                    });
-                }
-                $('#saveAppointment').on('click', function (e) {
-                    e.preventDefault();
-                    console.log('Save button clicked'); // Debug log
-                    const activeTab = $('#appointmentTypeTabs .nav-link.active');
-                    const appointmentType = activeTab.data('type');
-                    console.log('Active tab type:', appointmentType); // Debug log
-
-                    // Get form data
-                    const appointmentData = {
-                        patient_id: $('#patientDropdown').val(),
-                        appointment_date: $('#appointmentDate').val(),
-                        appointment_time: $('#appointment_time').val(),
-                        patern_id: $('#patern_id').val(),
-                        appointment_type: appointmentType, // Use the active tab's type
-                        notes: $('#appointment_notes').val(), // Add notes field
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    };
-
-                    console.log('Appointment Data:', appointmentData); // Debug log
-
-                    // Validate form data
-                    if (!appointmentData.patient_id) {
-                        Swal.fire({
-                            title: "Erreur",
-                            text: "Veuillez sélectionner un patient",
-                            icon: "error"
-                        });
-                        return;
-                    }
-
-                    if (!appointmentData.appointment_time) {
-                        Swal.fire({
-                            title: "Erreur",
-                            text: "Veuillez sélectionner une heure de rendez-vous",
-                            icon: "error"
-                        });
-                        return;
-                    }
-
-                    if (!appointmentData.patern_id) {
-                        Swal.fire({
-                            title: "Erreur",
-                            text: "Veuillez sélectionner un motif",
-                            icon: "error"
-                        });
-                        return;
-                    }
-
-                    // Send AJAX request
-                    $.ajax({
-                        url: "{{ route('appointments.store') }}",
-                        method: "POST",
-                        data: appointmentData,
-                        success: function (response) {
-                            console.log('Success:', response); // Debug log
-
-                            Swal.fire({
-                                title: "Succès",
-                                text: "Rendez-vous créé avec succès",
-                                icon: "success"
-                            }).then((result) => {
-                                $('#appointmentModal').modal('hide');
-                                $('#calendar').fullCalendar('refetchEvents');
-                            });
-                        },
-                        error: function (xhr) {
-                            console.log('Error:', xhr); // Debug log
-
-                            let errorMessage = "Une erreur s'est produite";
-                            if (xhr.responseJSON && xhr.responseJSON.message) {
-                                errorMessage = xhr.responseJSON.message;
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    title: "Erreur",
+                                    text: "Impossible de vérifier les jours disponibles.",
+                                    icon: "error",
+                                    confirmButtonText: "OK"
+                                });
                             }
+                        });
+                    },
+                    editable: true,
+                    eventResize: function (event) {
+                        $.ajax({
+                            url: "/appointment-event/action",
+                            type: "POST",
+                            data: {
+                                id: event.id,
+                                start_at: event.start.utc().format('YYYY-MM-DD HH:mm:ss'),
+                                ends_at: event.end.utc().format('YYYY-MM-DD HH:mm:ss'),
+                                type: 'update'
 
-                            Swal.fire({
-                                title: "Erreur",
-                                text: errorMessage,
-                                icon: "error"
-                            });
-                        }
-                    });
-                });
-
-                // Add form submit prevention
-                $('#appointmentForm').on('submit', function (e) {
-                    e.preventDefault();
-                });
-
-                function updateAppointmentStatus(appointmentId, statusId, reason = null) {
-                    const data = {
-                        id: appointmentId,
-                        appointment_status_id: statusId,
-                        _token: $('meta[name="csrf-token"]').attr('content')
-                    };
-                    //console.log("Update Status Data:", data);
-                    if (reason) {
-                        data.cancel_reason = reason;
-                    }
-
-                    $.ajax({
-                        url: "/appointment-event/status",
-                        method: "POST",
-                        data: data,
-                        success: function (response) {
-                            Swal.fire({
-                                title: "Succès",
-                                text: response.message,
-                                icon: "success",
-                                confirmButtonText: "OK"
-                            }).then(() => {
-                                $('#cancelReasonModal').modal('hide');
-                                $('#appointmentDetailsModal').modal('hide');
-                                $('#calendar').fullCalendar('refetchEvents');
-                                console.log("Appointment status updated successfully.");
-
-                            });
-                            $('#calendar').fullCalendar('refetchEvents');
-                        },
-                        error: function (xhr) {
-                            Swal.fire({
-                                title: "Erreur",
-                                text: xhr.responseJSON.error || "Une erreur s'est produite lors de la mise à jour du statut.",
-                                icon: "error",
-                                confirmButtonText: "OK"
-                            });
-                        }
-                    });
-                }
-
-                $('#saveAppointmentPass').click(function () {
-                    // Gather form data from "Patient de passage" fields
-                    let formData = {
-                        first_name: $('input[name="first_name"]').val(),
-                        last_name: $('input[name="last_name"]').val(),
-                        email: $('input[name="email"]').val(),
-                        phone_number: $('input[name="phone_number"]').val(),
-                        mobile_number: $('input[name="mobile_number"]').val(),
-                        age: $('input[name="age"]').val(),
-                        gender: $('select[name="gender"]').val(),
-                        weight: $('input[name="weight"]').val(),
-                        height: $('input[name="height"]').val(),
-                        medical_history: $('textarea[name="medical_history"]').val(),
-                        notes: $('textarea[name="notes"]').val(),
-                        password: $('input[name="password"]').val(),
-                        appointment_date: $('#appointmentDate').val(),
-                        appointment_time: $('#appointment_time').val(),
-                        _token: $('meta[name="csrf-token"]').attr('content') // CSRF token
-                    };
-
-                    $.ajax({
-                        url: "{{ route('appointments.storePatientPassage') }}", // Route to your controller method
-                        method: "POST",
-                        data: formData,
-                        success: function (response) {
-                            if (response.success) {
-                                alert(response.message); // Notify the user of success
-                                $('#appointmentModal').modal('hide'); // Hide the modal
-                                $('#appointmentForm')[0].reset(); // Reset the form
-                                $('#calendar').fullCalendar('refetchEvents'); // Refresh the calendar
+                            },
+                            success: function () {
+                                calendar.fullCalendar('refetchEvents');
+                                alert("Rendez-vous mis à jour avec succès.");
+                                console.log("Start At:", start_at);
+                                console.log("End At:", ends_at);
                             }
-                        },
-                        error: function (xhr) {
-                            if (xhr.status === 422) { // Validation error from Laravel
-                                let errors = xhr.responseJSON.errors;
-                                let errorMessages = Object.values(errors).flat().join('\n');
-                                alert("Validation Errors:\n" + errorMessages);
-                            } else {
-                                alert("An unexpected error occurred. Please try again.");
+                        });
+                    },
+                    eventDrop: function (event) {
+                        $.ajax({
+                            url: "/appointment-event/action",
+                            type: "POST",
+                            data: {
+                                id: event.id,
+                                start_at: event.start.format(),
+                                ends_at: event.end.format(),
+                                type: 'update'
+                            },
+                            success: function () {
+                                calendar.fullCalendar('refetchEvents');
+                                alert("Rendez-vous mis à jour avec succès.");
                             }
-                        }
-                    });
-                });
-                function openAppointmentModal(appointment) {
-                    const { start, patient_id, appointment_id, patient_name, patient_first_name, patient_last_name, email, status, motif_name, online, phone } = appointment;
-
-
-                    // Update modal fields
-                    document.getElementById("patientName").innerText = patient_name || "{{ trans('lang.unknown_patient') }}";
-                    document.getElementById("appointmentStatus").innerText = status || "{{ trans('lang.unknown_status') }}";
-                    document.getElementById("motifName").innerText = motif_name || "{{ trans('lang.no_motif_name') }}";
-
-                    // Pass phone number to teleconsultation button
-                    const teleconsultationButton = document.getElementById("createTeleconsultation");
-                    // Hide "Mark as Ready" button if status is "Canceled"
-                    const doneButton = document.getElementById("markAsDone");
-                    const failedButton = document.getElementById("markAsFailed");
-                    teleconsultationButton.setAttribute("data-phone", phone);
-                    const hasUpdateStatusPermission = {{ auth()->user()->hasPermissionInContext('updateStatus', $doctorId) ? 'true' : 'false' }};
-                    const isDoctor = {{ auth()->user()->hasRole('doctor') ? 'true' : 'false' }};
-
-                    // Show/hide the "Create Teleconsultation" button
-                    if (isDoctor && online === "teleconsultation" && status !== "Annulé" && status !== "Terminé") {
-
-                        teleconsultationButton.classList.remove("d-none");
-                        teleconsultationButton.onclick = () => {
-                            const url = `{{ route('show.meeting.info.form') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
-                            window.location.href = url;
+                        });
+                    },
+                    eventClick: function (event) {
+                        const appointment = {
+                            appointment_id: event.id,
+                            patient_name: event.patient_name,
+                            patient_first_name: event.patient_first_name,
+                            patient_last_name: event.patient_last_name,
+                            email: event.email,
+                            patient_id: event.patient_id,
+                            status: event.status,
+                            motif_name: event.motif_name,
+                            online: event.online,
+                            start: event.start.format(),
+                            phone: event.patient_phone_number // Include the patient phone number
                         };
+                        $('#patientName').text(event.patient_name);
+                        $('#appointmentStatus').text(event.status);
+                        $('#appointmentDetails').text(event.details || 'No additional details');
+                        $('#motifName').text(event.motif_name || 'No motif name available');
+                        $('#note').text(event.note || 'No note available');
+                        //console.log(event.motif_name);
+                        //console.log(event.patient_name);
+                        // Show the modal
+                        openAppointmentModal(appointment);
+                        $('#appointmentDetailsModal').modal('show');
 
-                    } else {
-                        teleconsultationButton.classList.add("d-none");
+                        // Event handler for "Mark as Failed"
+                        $('#markAsFailed').off('click').on('click', function () {
+                            $('#appointmentDetailsModal').modal('hide');
+                            $('#cancelReasonModal').modal('show');
+
+                            $('#confirmCancel').off('click').on('click', function () {
+                                const reason = $('#cancelReason').val() || "Aucune raison fournie";
+                                updateAppointmentStatus(appointment.appointment_id, 7, reason); // 7 is the Failed/Canceled status
+                            });
+                        });
+
+                        // Event handler for "Mark as Done"
+                        $('#markAsDone').off('click').on('click', function () {
+                            updateAppointmentStatus(event.id, 5); // 5 is the Done status
+                        });
                     }
+                });
+            }
+            $('#saveAppointment').on('click', function (e) {
+                e.preventDefault();
+                console.log('Save button clicked'); // Debug log
+                const activeTab = $('#appointmentTypeTabs .nav-link.active');
+                const appointmentType = activeTab.data('type');
+                console.log('Active tab type:', appointmentType); // Debug log
+                const patternSelectId = '#patern_id_' + appointmentType;
+                // Get form data
+                const appointmentData = {
+                    patient_id: $('#patientDropdown').val(),
+                    appointment_date: $('#appointmentDate').val(),
+                    appointment_time: $('#appointment_time').val(),
+                    patern_id: $(patternSelectId).val(),
+                    appointment_type: appointmentType, // Use the active tab's type
+                    notes: $('#appointment_notes').val(), // Add notes field
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                };
 
-                    if (hasUpdateStatusPermission) {
-                        if (online === "teleconsultation") {
-                            doneButton.style.display = "none";
-                            failedButton.style.display = "inline-block";
-                        }
-                        else if (status === "Terminé" || status === "Annulé") {
-                            doneButton.style.display = "none"; // Hide the Ready button
-                            failedButton.style.display = "none"; // Optionally hide the Failed button too
+                console.log('Appointment Data:', appointmentData); // Debug log
 
-                        } else if (status === "Prêt") {
-                            doneButton.style.display = "none"; // Hide the Ready button
-                            failedButton.style.display = "inline-block";
-                        }
-                        else {
-                            doneButton.style.display = "inline-block"; // Show the Ready button
-                            failedButton.style.display = "inline-block"; // Show the Failed button
-                        }
-                    } else {
-                        // If the user does not have permission, hide both buttons
-                        doneButton.style.display = "none";
-                        failedButton.style.display = "none";
-                    }
-                    // Show the modal
-                    $("#appointmentDetailsModal").modal("show");
+                // Validate form data
+                if (!appointmentData.patient_id) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: "Veuillez sélectionner un patient",
+                        icon: "error"
+                    });
+                    return;
                 }
-            });
-        </script>
 
-    @endpush
+                if (!appointmentData.appointment_time) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: "Veuillez sélectionner une heure de rendez-vous",
+                        icon: "error"
+                    });
+                    return;
+                }
+
+                if (!appointmentData.patern_id) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: "Veuillez sélectionner un motif",
+                        icon: "error"
+                    });
+                    return;
+                }
+
+                // Send AJAX request
+                $.ajax({
+                    url: "{{ route('appointments.store') }}",
+                    method: "POST",
+                    data: appointmentData,
+                    success: function (response) {
+                        console.log('Success:', response); // Debug log
+
+                        Swal.fire({
+                            title: "Succès",
+                            text: "Rendez-vous créé avec succès",
+                            icon: "success"
+                        }).then((result) => {
+                            $('#appointmentModal').modal('hide');
+                            $('#calendar').fullCalendar('refetchEvents');
+                        });
+                    },
+                    error: function (xhr) {
+                        console.log('Error:', xhr); // Debug log
+
+                        let errorMessage = "Une erreur s'est produite";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+
+                        Swal.fire({
+                            title: "Erreur",
+                            text: errorMessage,
+                            icon: "error"
+                        });
+                    }
+                });
+            });
+
+            // Add form submit prevention
+            $('#appointmentForm').on('submit', function (e) {
+                e.preventDefault();
+            });
+
+            function updateAppointmentStatus(appointmentId, statusId, reason = null) {
+                const data = {
+                    id: appointmentId,
+                    appointment_status_id: statusId,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                };
+                //console.log("Update Status Data:", data);
+                if (reason) {
+                    data.cancel_reason = reason;
+                }
+
+                $.ajax({
+                    url: "/appointment-event/status",
+                    method: "POST",
+                    data: data,
+                    success: function (response) {
+                        Swal.fire({
+                            title: "Succès",
+                            text: response.message,
+                            icon: "success",
+                            confirmButtonText: "OK"
+                        }).then(() => {
+                            $('#cancelReasonModal').modal('hide');
+                            $('#appointmentDetailsModal').modal('hide');
+                            $('#calendar').fullCalendar('refetchEvents');
+                            console.log("Appointment status updated successfully.");
+
+                        });
+                        $('#calendar').fullCalendar('refetchEvents');
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            title: "Erreur",
+                            text: xhr.responseJSON.error || "Une erreur s'est produite lors de la mise à jour du statut.",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    }
+                });
+            }
+
+            $('#saveAppointmentPass').click(function () {
+                // Gather form data from "Patient de passage" fields
+                let formData = {
+                    first_name: $('input[name="first_name"]').val(),
+                    last_name: $('input[name="last_name"]').val(),
+                    email: $('input[name="email"]').val(),
+                    phone_number: $('input[name="phone_number"]').val(),
+                    mobile_number: $('input[name="mobile_number"]').val(),
+                    age: $('input[name="age"]').val(),
+                    gender: $('select[name="gender"]').val(),
+                    weight: $('input[name="weight"]').val(),
+                    height: $('input[name="height"]').val(),
+                    medical_history: $('textarea[name="medical_history"]').val(),
+                    notes: $('textarea[name="notes"]').val(),
+                    password: $('input[name="password"]').val(),
+                    appointment_date: $('#appointmentDate').val(),
+                    appointment_time: $('#appointment_time').val(),
+                    _token: $('meta[name="csrf-token"]').attr('content') // CSRF token
+                };
+
+                $.ajax({
+                    url: "{{ route('appointments.storePatientPassage') }}", // Route to your controller method
+                    method: "POST",
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            alert(response.message); // Notify the user of success
+                            $('#appointmentModal').modal('hide'); // Hide the modal
+                            $('#appointmentForm')[0].reset(); // Reset the form
+                            $('#calendar').fullCalendar('refetchEvents'); // Refresh the calendar
+                        }
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 422) { // Validation error from Laravel
+                            let errors = xhr.responseJSON.errors;
+                            let errorMessages = Object.values(errors).flat().join('\n');
+                            alert("Validation Errors:\n" + errorMessages);
+                        } else {
+                            alert("An unexpected error occurred. Please try again.");
+                        }
+                    }
+                });
+            });
+            function openAppointmentModal(appointment) {
+                const { start, patient_id, appointment_id, patient_name, patient_first_name, patient_last_name, email, status, motif_name, online, phone } = appointment;
+
+
+                // Update modal fields
+                document.getElementById("patientName").innerText = patient_name || "{{ trans('lang.unknown_patient') }}";
+                document.getElementById("appointmentStatus").innerText = status || "{{ trans('lang.unknown_status') }}";
+                document.getElementById("motifName").innerText = motif_name || "{{ trans('lang.no_motif_name') }}";
+
+                // Pass phone number to teleconsultation button
+                const teleconsultationButton = document.getElementById("createTeleconsultation");
+                // Hide "Mark as Ready" button if status is "Canceled"
+                const doneButton = document.getElementById("markAsDone");
+                const failedButton = document.getElementById("markAsFailed");
+                teleconsultationButton.setAttribute("data-phone", phone);
+                const hasUpdateStatusPermission = {{ auth()->user()->hasPermissionInContext('updateStatus', $doctorId) ? 'true' : 'false' }};
+                const isDoctor = {{ auth()->user()->hasRole('doctor') ? 'true' : 'false' }};
+
+                // Show/hide the "Create Teleconsultation" button
+                if (isDoctor && online === "teleconsultation" && status !== "Annulé" && status !== "Terminé") {
+
+                    teleconsultationButton.classList.remove("d-none");
+                    teleconsultationButton.onclick = () => {
+                        const url = `{{ route('show.meeting.info.form') }}?patient_name=${encodeURIComponent(patient_name)}&appointment_id=${encodeURIComponent(appointment_id)}&phone=${encodeURIComponent(phone)}&motif_name=${encodeURIComponent(motif_name)}&patient_id=${encodeURIComponent(patient_id)}&start_at=${encodeURIComponent(start)}&patient_first_name=${encodeURIComponent(patient_first_name)}&patient_last_name=${encodeURIComponent(patient_last_name)}&patient_Email=${encodeURIComponent(email)}`;
+                        window.location.href = url;
+                    };
+
+                } else {
+                    teleconsultationButton.classList.add("d-none");
+                }
+
+                if (hasUpdateStatusPermission) {
+                    if (online === "teleconsultation") {
+                        doneButton.style.display = "none";
+                        failedButton.style.display = "inline-block";
+                    }
+                    else if (status === "Terminé" || status === "Annulé") {
+                        doneButton.style.display = "none"; // Hide the Ready button
+                        failedButton.style.display = "none"; // Optionally hide the Failed button too
+
+                    } else if (status === "Prêt") {
+                        doneButton.style.display = "none"; // Hide the Ready button
+                        failedButton.style.display = "inline-block";
+                    }
+                    else {
+                        doneButton.style.display = "inline-block"; // Show the Ready button
+                        failedButton.style.display = "inline-block"; // Show the Failed button
+                    }
+                } else {
+                    // If the user does not have permission, hide both buttons
+                    doneButton.style.display = "none";
+                    failedButton.style.display = "none";
+                }
+                // Show the modal
+                $("#appointmentDetailsModal").modal("show");
+            }
+        });
+    </script>
+
+@endpush
