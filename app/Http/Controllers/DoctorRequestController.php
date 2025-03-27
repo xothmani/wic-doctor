@@ -477,7 +477,7 @@ private function executeNodeScript($doctor)
 
         // Données JSON à écrire
         $data = [
-                'id_doctor' => $doctor->id,
+    'id_doctor' => $doctor->id,
     'name' => json_encode(['fr' => $doctor->name]),
     'doctor_photo' => $doctor->doctor_photo, 
     'enable_online_consultation' => $doctor->enable_online_consultation, 
