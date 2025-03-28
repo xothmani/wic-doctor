@@ -1,8 +1,0 @@
-[90m= [39m[
-    "[34merror[39m" => [
-      "[34mcode[39m" => [35m404[39m,
-      "[34mmessage[39m" => "[32mDocument "projects/wic-doctor-b83e0/databases/(default)/documents/messages/your-chat-id/chats/your-message-id" not found.[39m",
-      "[34mstatus[39m" => "[32mNOT_FOUND[39m",
-    ],
-  ]
-
