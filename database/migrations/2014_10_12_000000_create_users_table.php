@@ -35,8 +35,12 @@ class CreateUsersTable extends Migration
             $table->string('card_last_four')->nullable();
             $table->timestamp('trial_ends_at')->nullable();
             $table->string('paypal_email')->nullable();
+            $table->timestamp('last_seen')->nullable();  // Nullable pour permettre de ne pas avoir une valeur par défaut
+
             $table->rememberToken();
             $table->timestamps();
+            $table->timestamp('last_seen')->nullable();  // Nullable pour permettre de ne pas avoir une valeur par défaut
+
         });
     }
 

@@ -6,12 +6,13 @@
  * Copyright (c) 2024
  */
 
+
 namespace App\Models;
 
 use Eloquent as Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-
+use Illuminate\Support\Str;
 /**
  * Class Notification
  * @package App\Models
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property string type
  * @property string read
  */
+
+
 class Notification extends Model
 {
 
@@ -31,8 +34,14 @@ class Notification extends Model
 
 
     public $fillable = [
+        'notifiable_id',
+        'notifiable_type',
+        'data',
         'type',
-        'read_at'
+        'read_at',
+        'read',
+        'body',
+        'show_at'
     ];
 
     /**
@@ -43,6 +52,10 @@ class Notification extends Model
     protected $casts = [
         'type' => 'string',
         'read_at' => 'datetime',
+        'read' => 'boolean',
+        'body' => 'string',
+        'data' => 'array',
+        'show_at' => 'datetime'
     ];
 
     /**
@@ -64,24 +77,34 @@ class Notification extends Model
 
     ];
 
-     public function customFieldsValues(): MorphMany
+    public function customFieldsValues(): MorphMany
     {
         return $this->morphMany('App\Models\CustomFieldValue', 'customizable');
     }
 
     public function getCustomFieldsAttribute(): array
     {
-        $hasCustomField = in_array(static::class,setting('custom_field_models',[]));
-        if (!$hasCustomField){
+        $hasCustomField = in_array(static::class, setting('custom_field_models', []));
+        if (!$hasCustomField) {
             return [];
         }
         $array = $this->customFieldsValues()
-            ->join('custom_fields','custom_fields.id','=','custom_field_values.custom_field_id')
-            ->where('custom_fields.in_table','=',true)
+            ->join('custom_fields', 'custom_fields.id', '=', 'custom_field_values.custom_field_id')
+            ->where('custom_fields.in_table', '=', true)
             ->get()->toArray();
 
-        return convertToAssoc($array,'name');
+        return convertToAssoc($array, 'name');
     }
+
+
+    // Générer un UUID lors de la création de l'objet
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->id = (string) Str::uuid(); // Génère un UUID
+        });
+    }
+
 
     /**
      * @return BelongsTo
@@ -92,3 +115,4 @@ class Notification extends Model
     }
 
 }
+

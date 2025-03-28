@@ -1,26 +1,11 @@
 <?php
-/*
- * File name: web.php
- * Last modified: 2024.04.15 at 19:06:55
- * Author: SmarterVision - https://codecanyon.net/user/smartervision
- * Copyright (c) 2024
- */
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
 use App\Http\Controllers\AppointmentController;
 //use App\Http\Controllers\PharmacyController;
 //use App\Http\Controllers\PharmacyTypeController;
 use App\Http\Controllers\MessagerieController;
 use App\Http\Controllers\PatientDoctorChatController;
+use App\Http\Controllers\TeleseceteriatDoctorsController;
 
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\PrescriptionController;
@@ -406,7 +391,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::post('/meet/create', [MeetController::class, 'createMeet']);
     Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
     Route::resource('patterns', PatternController::class);
-    Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name('appointments.getAvailableTimeSlots');
+    Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name(name: 'appointments.getAvailableTimeSlots');
     Route::get('/get-available-time-slots-presice', [AppointmentEventController::class, 'getAvailableTimeSlotsPresice'])->name('appointments.getAvailableTimeSlotsPresice');
     Route::get('/get-available-For-open', [AppointmentEventController::class, 'getAvailableForOpen'])->name('appointments.getAvailableForOpen');
     Route::get('/get-available-time-slots-open', [AppointmentEventController::class, 'getAvailableTimeSlotsForOpen'])->name('appointments.getAvailableTimeSlotsForOpen');
@@ -437,7 +422,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::resource('doctor_requests', DoctorRequestController::class);
     Route::post('/doctor-request/{id}/create-user', [DoctorRequestController::class, 'createUserFromDoctorRequest'])->name('doctor_requests.createUserFromDoctorRequest');
     Route::get('/doctor-requests/{id}', [DoctorRequestController::class, 'show']);
-    //Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
+    Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
+    Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
 
     Route::resource('telesecretariats', TelesecretariatController::class);
     Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);
@@ -699,4 +685,19 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         return view('components.active-doctor', compact('activeDoctor'));
     })->middleware('auth');
 });
+Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
+->name('chatT.show')
+->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
+Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
+Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
+Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
+Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
 
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+
+Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
+Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
+Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
+Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');

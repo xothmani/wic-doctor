@@ -103,7 +103,10 @@ class PatientDoctorChatController extends Controller
         });
     
         return view('chatPD', compact('conversations', 'isDoctor'));
-    }    private function generateChatId($id1, $id2)
+    }  
+    
+    
+    private function generateChatId($id1, $id2)
     {
         $sorted = [$id1, $id2];
         sort($sorted);
@@ -378,63 +381,119 @@ class PatientDoctorChatController extends Controller
             }
         }
     } 
+    public function getLastMessage(Request $request)
+    {
+        try {
+            $userId = auth()->id(); // Récupérer l'ID de l'utilisateur connecté
+            $firebaseUrl = 'https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats.json';
     
+            // Récupérer tous les chats depuis Firebase
+            $response = Http::get($firebaseUrl);
+            $chats = $response->json();
     
-    public function index(Request $request)
+            if (!$chats) {
+                return response()->json(['error' => 'Aucun chat trouvé'], 404);
+            }
+    
+            // Trouver le dernier message destiné à l'utilisateur connecté
+            $lastMessage = null;
+            foreach ($chats as $chatId => $chat) {
+                if (isset($chat['messages'])) {
+                    foreach ($chat['messages'] as $message) {
+                        if ($message['receiver_id'] == $userId) {
+                            if (!$lastMessage || $message['timestamp'] > $lastMessage['timestamp']) {
+                                $lastMessage = $message;
+                            }
+                        }
+                    }
+                }
+            }
+    
+            if ($lastMessage) {
+                return response()->json([
+                    'content' => $lastMessage['content'],
+                    'sender_name' => $lastMessage['sender_name'],
+                ]);
+            } else {
+                return response()->json(['error' => 'Aucun message trouvé'], 404);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Erreur dans getLastMessage:', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Erreur interne du serveur'], 500);
+        }
+    }
+   
+    
+public function index(Request $request)
 {
     $user = auth()->user();
     $isDoctor = $user->doctor !== null;
 
-    // Récupération des conversations avec dernier message
+    // Initialize variables to avoid undefined errors
     $conversations = [];
+    $patients = collect();
+    $relationships = collect(); // Initialize here
 
-    $patients = collect(); // Initialize the $patients variable
-
+    // Fetch doctor-patient relationships
     if ($isDoctor) {
         $relationships = DoctorPatients::where('doctor_id', $user->doctor->id)
             ->with(['patient.user'])
             ->get();
         
-        // Assign patients to the variable
         $patients = $relationships->map(function ($rel) {
             return $rel->patient;
         });
     } else {
-        $relationships = DoctorPatients::where('patient_id', $user->patient->id)
-            ->with(['doctor.user'])
-            ->get();
-    }
-
-    foreach ($relationships as $rel) {
-        $target = $isDoctor ? $rel->patient : $rel->doctor;
-        $otherUser = $target->user;
-
-        // Récupération dernier message depuis Firestore
-        $chatId = $user->id < $otherUser->id 
-            ? $user->id . '-' . $otherUser->id 
-            : $otherUser->id . '-' . $user->id;
-
-        $messages = $this->firestore->getDocuments("messages/{$chatId}/chats");
-
-        $lastMessage = null;
-        foreach ($messages as $message) {
-            $time = $message['fields']['time']['integerValue'] ?? 0;
-            if (!$lastMessage || $time > $lastMessage['time']) {
-                $lastMessage = [
-                    'text' => $message['fields']['text']['stringValue'] ?? '',
-                    'time' => $time
-                ];
-            }
+        // If the user is a patient, get doctor relationships
+        if ($user->patient) {
+            $relationships = DoctorPatients::where('patient_id', $user->patient->id)
+                ->with(['doctor.user'])
+                ->get();
         }
-
-        $conversations[] = [
-            'user_id' => $otherUser->id,
-            'name' => $otherUser->name,
-            'last_message' => $lastMessage
-        ];
     }
 
-    // Tri par dernier message
+    // Process relationships to fetch conversations
+    foreach ($relationships as $rel) {
+        // Ensure that the patient or doctor is not null before accessing user data
+        $target = $isDoctor ? $rel->patient : $rel->doctor;
+        
+        // Check if the target (patient or doctor) and its associated user exist
+        if ($target && $target->user) {
+            $otherUser = $target->user;
+
+            // Create chatId based on user IDs
+            $chatId = $user->id < $otherUser->id 
+                ? $user->id . '-' . $otherUser->id 
+                : $otherUser->id . '-' . $user->id;
+
+            // Retrieve messages from Firestore
+            $messages = $this->firestore->getDocuments("messages/{$chatId}/chats");
+
+            // Find the latest message
+            $lastMessage = null;
+            foreach ($messages as $message) {
+                $time = $message['fields']['time']['integerValue'] ?? 0;
+                if (!$lastMessage || $time > $lastMessage['time']) {
+                    $lastMessage = [
+                        'text' => $message['fields']['text']['stringValue'] ?? '',
+                        'time' => $time
+                    ];
+                }
+            }
+
+            // Add conversation to the list
+            $conversations[] = [
+                'user_id' => $otherUser->id,
+                'name' => $otherUser->name,
+                'last_message' => $lastMessage
+            ];
+        } else {
+            // Log the missing user or handle the case where the target is null
+            \Log::warning('User data is missing for relationship: ', ['relationship' => $rel]);
+        }
+    }
+
+    // Sort conversations by the last message time
     usort($conversations, function ($a, $b) {
         return ($b['last_message']['time'] ?? 0) <=> ($a['last_message']['time'] ?? 0);
     });
@@ -446,5 +505,6 @@ class PatientDoctorChatController extends Controller
     ]);
 }
 
+    
     
 }

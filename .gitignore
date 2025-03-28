@@ -1,3 +1,4 @@
+
 # Ignore vendor and node_modules
 /vendor/
 node_modules/
@@ -17,16 +18,24 @@ public/
 
 # Ignore sensitive and environment-specific files
 storage/*.key
+
 .env
 .env.*
 Homestead.yaml
 Homestead.json
+
+phpunit.xml
+/storage/*.key
 /.vagrant
 .phpunit.result.cache
 auth.json
 
 # Ignore build and cache files
 /public/build
+/storage/
+/storage/logs/*
+/storage/framework/cache/*
+
 storage/framework/cache/
 storage/framework/views/
 storage/framework/sessions/
@@ -54,5 +63,12 @@ public/
 public/Back-NodeJS/Back-WIc-Doctors
 public/Back-NodeJS/Back-WIc-Doctors
 public/Back-NodeJS/Back-WIc-Doctors
+
+
 composer.lock
 composer.lock
+composer.lock
+
+grpc
+grpc/
+grpc*
