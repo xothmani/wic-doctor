@@ -355,6 +355,10 @@
             }
         });
         let availableDays = [];
+        let availabilityDays = @json($availabilityDays);
+        let vacations = @json($vacations);
+        let urgencies = @json($urgencies);
+        //console.log("🩺 Urgencies loaded:", urgencies);
 
         $(document).ready(function () {
             //
@@ -373,7 +377,7 @@
             $('#patientRef, #patientPass').on('change', toggleFields);
             function refreshCalendarEvents() {
                 $('#calendar').fullCalendar('refetchEvents'); // Fetch and reload events
-                console.log("Calendar events refreshed");
+                //console.log("Calendar events refreshed");
             }
 
             // Set interval to refresh calendar every 30 seconds
@@ -383,7 +387,7 @@
             const timeSlotsContainer = document.getElementById('time-slots');
             function updateAvailableTimeSlots(response) {
                 const { all_slots, taken_slots, type } = response;
-                console.log("Response received:", response);
+                //console.log("Response received:", response);
 
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty();
@@ -404,6 +408,8 @@
 
                 const selectedDate = $("#appointmentDate").val();
                 const isToday = selectedDate === moment().format("YYYY-MM-DD");
+
+
 
                 all_slots.forEach(slot => {
                     const time = typeof slot === "object" ? slot.time || slot.slot : slot;
@@ -475,7 +481,7 @@
             ///////////////////////////////////////////////
             $("#appointmentTypeTabs a").on("click", function (e) {
                 e.preventDefault();
-                console.log("Tab Clicked:", this);
+                //console.log("Tab Clicked:", this);
                 const selectedType = $(this).data("type");
                 const selectedDate = $("#appointmentDate").val();
 
@@ -484,7 +490,7 @@
 
                 // Show this tab
                 $(this).tab('show');
-                console.log("Selected Type:", selectedType);
+                //console.log("Selected Type:", selectedType);
                 $('.pattern-select-group').addClass('d-none');
                 $('#patern_id_' + selectedType).closest('.pattern-select-group').removeClass('d-none');
 
@@ -493,7 +499,7 @@
                 }
             });
             $('#appointmentTypeTabs a').on('shown.bs.tab', function (e) {
-                console.log("Tab Shown:", e.target);
+                //console.log("Tab Shown:", e.target);
                 const selectedType = $(e.target).data('type');
                 const selectedDate = $('#appointmentDate').val();
                 $('#appointmentType').val(selectedType);
@@ -532,7 +538,7 @@
                         type: type
                     },
                     success: function (response) {
-                        console.log("Fetched Time Slots Response:", response);
+                        //console.log("Fetched Time Slots Response:", response);
 
                         if (response.vacation) {
                             // If doctor is on vacation, show a warning alert (still using Swal)
@@ -621,10 +627,7 @@
                     cache: true
                 }
             });
-            let availabilityDays = @json($availabilityDays);
-            let vacations = @json($vacations);
-            const urgencies = @json($urgencies);
-            console.log("🩺 Urgencies loaded:", urgencies);
+
             //console.log("Availability Days at Load:", availabilityDays);
             function initializeCalendar() {
                 calendar = $('#calendar').fullCalendar({
@@ -642,6 +645,7 @@
                     allDayText: '',
                     eventLimit: true,
                     viewRender: function (view) {
+                        // console.log('[DEBUG] viewRender triggered:', view.name);
 
                         if (view.name === 'agendaWeek') {
                             const doctorId = {{ auth()->user()->getDoctorId() }};
@@ -654,6 +658,20 @@
                             fetchSubstitutes(doctorId).then(substitutes => {
                                 //console.log("Substitutes:", substitutes);
                                 $('.fc-day-header').each(function () {
+                                    //$(this).find('.day-header-divider, .custom-day-label, .custom-number-label').remove();
+                                    if ($(this).hasClass('substitute-initialized')) {
+                                        return;
+                                    }
+                                    // Mark it as done before we do anything else
+                                    $(this).addClass('substitute-initialized');
+                                    $(this).find('.day-header-divider, .custom-day-label, .custom-number-label').remove();
+                                    console.log('[DEBUG] Setting up header for:', $(this).data('date'));
+                                    // Prevent multiple double-renders in the same pass
+                                    if (!$(this).hasClass('substitute-initialized')) {
+                                        $(this).addClass('substitute-initialized');
+                                        // ... fetch & append your custom elements ...
+                                    }
+
                                     let dayDate = $(this).data('date');
                                     let dayMoment = moment(dayDate);
 
@@ -717,15 +735,18 @@
 
                         // Check vacation days first
                         const isVacationDay = vacations.some(vacation => {
-                            const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
-                            const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
-                            return currentDay.isSameOrAfter(vacationStart) && currentDay.isSameOrBefore(vacationEnd);
+                            const start = moment(vacation.start_date, 'YYYY-MM-DD').startOf('day');
+                            const end = moment(vacation.end_date, 'YYYY-MM-DD').endOf('day');
+                            return currentDay.isSameOrAfter(start) && currentDay.isSameOrBefore(end);
                         });
                         const isUrgentDay = urgencies.some(urgency => {
-                            const urgencyDate = moment(urgency.jour, 'YYYY-MM-DD').startOf('day');
-                            return currentDay.isSame(urgencyDate);
+
+                            const urgencyDate = moment(urgency.jour, 'YYYY-MM-DD');
+                            //console.log(`Comparing ${urgencyDate.format('YYYY-MM-DD')} === ${currentDay.format('YYYY-MM-DD')}`);
+                            return currentDay.isSame(urgencyDate, 'day');
                         });
-                        console.log("Is Urgent Day:", isUrgentDay);
+                        //console.log("Is Urgent Day:", isUrgentDay);
+
                         //console.log("Is Vacation Day:", isVacationDay);
                         if (currentDay.isBefore(today)) {
                             cell.css('background-color', '#e9ecef');
@@ -735,7 +756,10 @@
                             cell.append('<span class="dot past-dot"></span>');
                             cell.attr('title', 'Ce jour est dans le passé.');
                         } else if (isVacationDay) {
+                            //console.log("Rendering urgent UI for:", formattedDate);
                             cell.addClass('cell-with-background');
+                            cell.css('cursor', 'not-allowed');
+                            cell.css('background-color', '#f2f2f2');
                             cell.attr('title', 'Le docteur est en vacances ce jour.');
                         } else if (isUrgentDay) {
                             cell.addClass('cell-with-background');
@@ -903,9 +927,10 @@
                         //const selectedDayName = start.format('dddd').toLowerCase(); // Get day name in lowercase
                         const selectedDayName = moment(selectedDate).locale('en').format("dddd").toLowerCase(); // Ensure English name
                         const today = moment().format("YYYY-MM-DD");
-                        console.log("Selected Date:", selectedDate);
+                        //console.log("Selected Date:", selectedDate);
                         //console.log("Selected Day:", selectedDay);
-                        console.log("Selected Day Name:", selectedDayName);
+                        //console.log("Selected Day Name:", selectedDayName);
+                        const currentDay = start.clone().startOf('day');
 
                         // First check if date is in the past
                         if (moment(selectedDate).isBefore(today)) {
@@ -916,10 +941,11 @@
 
                         // Check if it's a vacation day
                         const isVacationDay = vacations.some(vacation => {
-                            const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
-                            const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
-                            return moment(selectedDate).isSameOrAfter(vacationStart) && moment(selectedDate).isSameOrBefore(vacationEnd);
+                            const start = moment(vacation.start_date, 'YYYY-MM-DD').startOf('day');
+                            const end = moment(vacation.end_date, 'YYYY-MM-DD').endOf('day');
+                            return currentDay.isSameOrAfter(start) && currentDay.isSameOrBefore(end);
                         });
+
 
                         if (isVacationDay) {
                             Swal.fire({
@@ -936,7 +962,7 @@
                             url: "/get-available-time-slots",
                             type: "GET",
                             success: function (response) {
-                                console.log("Available Days Response:", response);
+                                //console.log("Available Days Response:", response);
                                 const availableDays = response.available_days.map(day => day.toLowerCase());
 
                                 if (!availableDays.includes(selectedDayName)) {
@@ -1018,8 +1044,8 @@
                             success: function () {
                                 calendar.fullCalendar('refetchEvents');
                                 alert("Rendez-vous mis à jour avec succès.");
-                                console.log("Start At:", start_at);
-                                console.log("End At:", ends_at);
+                                //console.log("Start At:", start_at);
+                                //console.log("End At:", ends_at);
                             }
                         });
                     },
@@ -1084,10 +1110,10 @@
             }
             $('#saveAppointment').on('click', function (e) {
                 e.preventDefault();
-                console.log('Save button clicked'); // Debug log
+                //console.log('Save button clicked'); // Debug log
                 const activeTab = $('#appointmentTypeTabs .nav-link.active');
                 const appointmentType = activeTab.data('type');
-                console.log('Active tab type:', appointmentType); // Debug log
+                //console.log('Active tab type:', appointmentType); // Debug log
                 const patternSelectId = '#patern_id_' + appointmentType;
                 // Get form data
                 const appointmentData = {
@@ -1100,7 +1126,7 @@
                     _token: $('meta[name="csrf-token"]').attr('content')
                 };
 
-                console.log('Appointment Data:', appointmentData); // Debug log
+                //console.log('Appointment Data:', appointmentData); // Debug log
 
                 // Validate form data
                 if (!appointmentData.patient_id) {
@@ -1136,7 +1162,7 @@
                     method: "POST",
                     data: appointmentData,
                     success: function (response) {
-                        console.log('Success:', response); // Debug log
+                        //console.log('Success:', response); // Debug log
 
                         Swal.fire({
                             title: "Succès",
@@ -1148,7 +1174,7 @@
                         });
                     },
                     error: function (xhr) {
-                        console.log('Error:', xhr); // Debug log
+                        //console.log('Error:', xhr); // Debug log
 
                         let errorMessage = "Une erreur s'est produite";
                         if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -1194,7 +1220,7 @@
                             $('#cancelReasonModal').modal('hide');
                             $('#appointmentDetailsModal').modal('hide');
                             $('#calendar').fullCalendar('refetchEvents');
-                            console.log("Appointment status updated successfully.");
+                            //console.log("Appointment status updated successfully.");
 
                         });
                         $('#calendar').fullCalendar('refetchEvents');
