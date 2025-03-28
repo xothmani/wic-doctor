@@ -47,7 +47,7 @@
                 if ($isDoctor && $patients->count() > 0) {
                     // Pour un médecin, récupérer les patients associés
                     foreach ($patients as $doctorPatient) {
-                        if ($doctorPatient->patient) {
+if ($doctorPatient && $doctorPatient->patient) {
                             // Générer le chatId en fonction des IDs
                             $chatId = $user->id . '-' . $doctorPatient->patient->user_id;
                             if ($user->id > $doctorPatient->patient->user_id) {
