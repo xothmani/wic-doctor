@@ -77,7 +77,7 @@
                             $formattedConversations[] = [
                                 'id' => $doctorPatient->patient->id,
                                 'user_id' => $doctorPatient->patient->user_id,
-                                'name' => $doctorPatient->patient->user->name,
+'name' => $doctorPatient->patient ? $doctorPatient->patient->user ? $doctorPatient->patient->user->name : 'N/A' : 'N/A',
                                 'last_message' => $lastMessage
                             ];
                         }
