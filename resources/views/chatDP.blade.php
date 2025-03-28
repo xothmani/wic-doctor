@@ -174,7 +174,7 @@
 @else
             <div class="empty-state">
                 <i class="fas fa-comment-slash"></i>
-                <p>No messages yet</p>
+                <p>Pas encore de messages !</p>
             </div>
         @endif
 @endif
