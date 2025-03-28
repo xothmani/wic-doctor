@@ -429,25 +429,22 @@ class PatientDoctorChatController extends Controller
         $user = auth()->user();
         $isDoctor = $user->doctor !== null;
     
-        // Récupération des conversations avec dernier message
+        // Initialize variables to avoid undefined errors
         $conversations = [];
-    
-        $patients = collect(); // Initialize the $patients variable
+        $patients = collect();
+        $relationships = collect(); // Initialize here
     
         if ($isDoctor) {
-            // Ensure the doctor exists before proceeding
-            if ($user->doctor) {
-                $relationships = DoctorPatients::where('doctor_id', $user->doctor->id)
-                    ->with(['patient.user'])
-                    ->get();
+            // Doctor is guaranteed to exist due to $isDoctor check
+            $relationships = DoctorPatients::where('doctor_id', $user->doctor->id)
+                ->with(['patient.user'])
+                ->get();
     
-                // Assign patients to the variable
-                $patients = $relationships->map(function ($rel) {
-                    return $rel->patient;
-                });
-            }
+            $patients = $relationships->map(function ($rel) {
+                return $rel->patient;
+            });
         } else {
-            // Ensure the patient exists before proceeding
+            // Check if the user has a patient profile
             if ($user->patient) {
                 $relationships = DoctorPatients::where('patient_id', $user->patient->id)
                     ->with(['doctor.user'])
