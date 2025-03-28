@@ -58,7 +58,7 @@
         </span>
     </div>
 @else
-    <div class="no-message">No messages yet</div>
+    <div class="no-message">Pas encore de messages !</div>
 @endif
             </div>
         </div>
@@ -124,7 +124,7 @@
         @else
             <div class="empty-state">
                 <i class="fas fa-comment-slash"></i>
-                <p>No messages yet</p>
+                <p>Pas encore de messages !</p>
             </div>
         @endif
     </div>
@@ -232,7 +232,7 @@
                     chatMessagesContainer.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-comment-slash"></i>
-                            <p>No messages yet</p>
+                            <p>Pas encore de messages !</p>
                         </div>
                     `;
                 }

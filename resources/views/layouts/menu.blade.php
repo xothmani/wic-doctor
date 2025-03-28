@@ -401,22 +401,29 @@
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('chat*') ? 'active' : '' }}" href="{{ url('/chat') }}">
                         @if($icons)
-                            <i class="nav-icon fas fa-user-md"></i>
+                        <i class="nav-icon fas fa-user-md"></i>
                         @endif
                         <p>Docteur & Docteur</p>
                     </a>
                 </li>
             @endcan
             @can('chatDP.index')
-                <li class="nav-item">
-                    <a class="nav-link {{ Request::is('chatDP*') ? 'active' : '' }}" href="{{ url('/chatDP') }}">
-                        @if($icons)
-                        <i class="fas fa-stethoscope"></i>                        @endif
-                        <p>Docteur & Patient</p>
-                    </a>
-                </li>
-            @endcan
-            @can('chatTE.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('chatDP*') ? 'active' : '' }}" href="{{ url('/chatDP') }}">
+            @if($icons)
+            <i class="nav-icon fas fa-hospital-user"></i>
+            @endif
+            <p>Docteur & Patient</p>
+        </a>
+    </li>
+@endcan
+
+
+    <style>.nav-icon {
+    width: 1.25rem; /* Assurez-vous que toutes les icônes ont la même largeur */
+    text-align: center;
+}
+</style>        @can('chatTE.index')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('chatTE*') ? 'active' : '' }}" href="{{ url('/chatTE') }}">
                         @if($icons)

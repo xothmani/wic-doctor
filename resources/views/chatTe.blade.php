@@ -49,7 +49,7 @@
         </span>
     </div>
 @else
-    <div class="no-message">No messages yet</div>
+    <div class="no-message">Pas encore de messages !</div>
 @endif
 
     </div>
@@ -97,7 +97,7 @@
     @else
         <div class="empty-state">
             <i class="fas fa-comment-slash"></i>
-            <p>No messages yet</p>
+            <p>Pas encore de messages !</p>
         </div>
     @endif
 </div>
@@ -158,7 +158,7 @@ $(document).ready(function() {
                     chatMessages.append(messageContent);
                 });
             } else {
-                chatMessages.html('<div class="empty-state"><i class="fas fa-comment-slash"></i><p>No messages yet</p></div>');
+                chatMessages.html('<div class="empty-state"><i class="fas fa-comment-slash"></i><p>Pas encore de messages !</p></div>');
             }
             chatMessages.scrollTop(chatMessages[0].scrollHeight);
         });
