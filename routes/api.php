@@ -1,4 +1,3 @@
-
 <?php
 /*
  * File name: api.php
@@ -49,6 +48,10 @@ Broadcast::routes();
 Broadcast::routes(['middleware' => ['auth:api']]);
 // Example route definition in web.php or api.php
 // In api.php
+Broadcast::routes();
+Broadcast::routes(['middleware' => ['auth:api']]);
+// Example route definition in web.php or api.php
+// In api.php
 
 Route::prefix('doctor')->group(function () {
     Route::post('login', 'API\Doctor\UserAPIController@login');
@@ -92,7 +95,7 @@ Route::get('settings', 'API\UserAPIController@settings');
 Route::get('translations', 'API\TranslationAPIController@translations');
 Route::get('supported_locales', 'API\TranslationAPIController@supportedLocales');
 Route::get('modules', 'API\ModuleAPIController@index');
-Route::post('reset-password/{phoneNumber}','API\UserAPIController@resetPassword');
+Route::post('reset-password/{phoneNumber}', 'API\UserAPIController@resetPassword');
 Route::post('check-phone-number', 'API\UserAPIController@checkPhoneNumber');
 Route::resource('clinics', 'API\ClinicAPIController')->only(['index', 'show']);
 Route::resource('availability_hours', 'API\AvailabilityHourAPIController')->only(['index', 'show']);
@@ -101,7 +104,7 @@ Route::resource('experiences', 'API\ExperienceAPIController')->only(['index', 's
 
 
 
-Route::get('getRecentDoctors/{patient_id}','API\DoctorPatientsAPIController@getRecentDoctors');
+Route::get('getRecentDoctors/{patient_id}', 'API\DoctorPatientsAPIController@getRecentDoctors');
 
 
 Route::get('totalAppointments/{patient_id}', 'API\PatientAPIController@totalAppointments');
@@ -143,6 +146,10 @@ Route::post('/chat/send', [ChatController::class, 'sendMessage']);
 
 Route::post('messages', [ChatController::class, 'message']);
 
+Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+
+Route::post('messages', [ChatController::class, 'message']);
+
 Route::resource('patients', 'API\PatientAPIController');
 
 Route::post('patients/{id}', 'API\PatientAPIController@update');
@@ -173,7 +180,9 @@ Route::middleware('auth:api')->group(function () {
 
 
     Route::resource('clinics', 'API\ClinicAPIController')->only([
-        'store', 'update', 'destroy'
+        'store',
+        'update',
+        'destroy'
     ]);
     Route::post('uploads/store', 'API\UploadAPIController@store');
     Route::post('uploads/clear', 'API\UploadAPIController@clear');
@@ -195,7 +204,7 @@ Route::middleware('auth:api')->group(function () {
     Route::resource('addresses', 'API\AddressAPIController');
 
 
-	
+
 
 
 
@@ -211,7 +220,9 @@ Route::middleware('auth:api')->group(function () {
         'show'
     ]);
     Route::resource('wallets', 'API\WalletAPIController')->except([
-        'show', 'create', 'edit'
+        'show',
+        'create',
+        'edit'
     ]);
     Route::get('wallet_transactions', 'API\WalletTransactionAPIController@index')->name('wallet_transactions.index');
 

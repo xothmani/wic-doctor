@@ -12,6 +12,7 @@ use App\Criteria\Addresses\AddressesOfUserCriteria;
 use App\Criteria\Appointments\AppointmentsOfPatientCriteria;
 use App\DataTables\AppointmentDataTable;
 use App\Events\AppointmentChangedEvent;
+use App\Events\AppointmentStatusChangedEvent;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Notifications\StatusChangedAppointment;
 use App\Repositories\AddressRepository;
@@ -93,9 +94,23 @@ class AppointmentController extends Controller
      */
     private PaymentStatusRepository $paymentStatusRepository;
 
-    public function __construct(AppointmentRepository $appointmentRepo, CustomFieldRepository $customFieldRepo, UserRepository $userRepo
-        , AppointmentStatusRepository                 $appointmentStatusRepo, NotificationRepository $notificationRepo, PaymentRepository $paymentRepo, AddressRepository $addressRepository, TaxRepository $taxRepository, DoctorRepository $doctorRepository, ClinicRepository $clinicRepository, CouponRepository $couponRepository, PatientRepository $patientRepository, PaymentStatusRepository $paymentStatusRepository)
-    {
+
+    public function __construct(
+        AppointmentRepository $appointmentRepo,
+        CustomFieldRepository $customFieldRepo,
+        UserRepository $userRepo,
+        AppointmentStatusRepository $appointmentStatusRepo,
+        NotificationRepository $notificationRepo,
+        PaymentRepository $paymentRepo,
+        AddressRepository $addressRepository,
+        TaxRepository $taxRepository,
+        DoctorRepository $doctorRepository,
+        ClinicRepository $clinicRepository,
+        CouponRepository $couponRepository,
+        PatientRepository $patientRepository,
+        PaymentStatusRepository $paymentStatusRepository
+    ) {
+
         parent::__construct();
         $this->appointmentRepository = $appointmentRepo;
         $this->customFieldRepository = $customFieldRepo;
@@ -131,7 +146,8 @@ class AppointmentController extends Controller
      * @return RedirectResponse|View
      * @throws RepositoryException
      */
-        public function show(int $id): RedirectResponse|View
+
+    public function show(int $id): RedirectResponse|View
     {
         $this->appointmentRepository->pushCriteria(new AppointmentsOfPatientCriteria(auth()->id()));
         $appointment = $this->appointmentRepository->findWithoutFail($id);
@@ -207,21 +223,25 @@ class AppointmentController extends Controller
                     ['payment_status_id' => $input['payment_status_id']],
                     $appointment->payment_id
                 );
-                event(new AppointmentChangedEvent($appointment));
             }
 
-            if (isset($input['appointment_status_id']) && $input['appointment_status_id'] != $oldAppointment->appointment_status_id) {
+
+            /*if (isset($input['appointment_status_id']) && $input['appointment_status_id'] != $oldAppointment->appointment_status_id) {
+
                 if ($appointment->appointmentStatus->order < 40) {
                     Notification::send([$user], new StatusChangedAppointment($appointment));
                 } else {
                     Notification::send([$doctor->user], new StatusChangedAppointment($appointment));
                 }
-            }
+
+            }*/
+
 
             foreach (getCustomFieldsValues($customFields, $request) as $value) {
                 $appointment->customFieldsValues()
                     ->updateOrCreate(['custom_field_id' => $value['custom_field_id']], $value);
             }
+            event(new AppointmentStatusChangedEvent($appointment,$input['payment_status_id'] ,$user->device_token));
         } catch (ValidatorException $e) {
             Flash::error($e->getMessage());
         }
@@ -236,7 +256,8 @@ class AppointmentController extends Controller
      *
      * @return RedirectResponse
      */
-    public function destroy(int $id):RedirectResponse
+
+    public function destroy(int $id): RedirectResponse
     {
         if (!config('installer.demo_app')) {
             $this->appointmentRepository->pushCriteria(new AppointmentsOfPatientCriteria(auth()->id()));
@@ -258,10 +279,12 @@ class AppointmentController extends Controller
         return redirect(route('appointments.index'));
     }
 
-public function getTodayCompletedAppointments(): \Illuminate\View\View
+
+    public function getTodayCompletedAppointments(): \Illuminate\View\View
     {
         $userId = auth()->user()->id;
-    
+
+
         $appointments = \DB::table('appointments')
             ->join('users', 'appointments.user_id', '=', 'users.id')
             ->join('patients', 'appointments.patient_id', '=', 'patients.id') // Jointure patient
@@ -284,12 +307,14 @@ public function getTodayCompletedAppointments(): \Illuminate\View\View
                 'pattern.nom as motif_name' // Sélection du nom du motif
             )
             ->paginate(10); // Limite à 10 par page
-    
+
+
         return view('todayAppointment.show', compact('appointments'));
-    }    
-    
-    
-    
-    
+    }
+
+
+
+
+
 
 }

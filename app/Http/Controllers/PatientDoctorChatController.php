@@ -424,51 +424,45 @@ class PatientDoctorChatController extends Controller
     }
    
     
-public function index(Request $request)
-{
-    $user = auth()->user();
-    $isDoctor = $user->doctor !== null;
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $isDoctor = $user->doctor !== null;
     
-    // Initialize variables to avoid undefined errors
-    $conversations = [];
-    $patients = collect();
-    $relationships = collect(); // Initialize here
+        // Initialize variables to avoid undefined errors
+        $conversations = [];
+        $patients = collect();
+        $relationships = collect(); // Initialize here
     
-    // Fetch doctor-patient relationships
-    if ($isDoctor) {
-        $relationships = DoctorPatients::where('doctor_id', $user->doctor->id)
-            ->with(['patient.user'])
-            ->get();
-        
-        $patients = $relationships->map(function ($rel) {
-            return $rel->patient;
-        });
-    } else {
-        // If the user is a patient, get doctor relationships
-        if ($user->patient) {
-            $relationships = DoctorPatients::where('patient_id', $user->patient->id)
-                ->with(['doctor.user'])
+        if ($isDoctor) {
+            // Doctor is guaranteed to exist due to $isDoctor check
+            $relationships = DoctorPatients::where('doctor_id', $user->doctor->id)
+                ->with(['patient.user'])
                 ->get();
+    
+            $patients = $relationships->map(function ($rel) {
+                return $rel->patient;
+            });
+        } else {
+            // Check if the user has a patient profile
+            if ($user->patient) {
+                $relationships = DoctorPatients::where('patient_id', $user->patient->id)
+                    ->with(['doctor.user'])
+                    ->get();
+            }
         }
-    }
-
-    // Process relationships to fetch conversations
-    foreach ($relationships as $rel) {
-        // Ensure that the patient or doctor is not null before accessing user data
-        $target = $isDoctor ? $rel->patient : $rel->doctor;
-        
-        if ($target && $target->user) {
+    
+        foreach ($relationships as $rel) {
+            $target = $isDoctor ? $rel->patient : $rel->doctor;
             $otherUser = $target->user;
-
-            // Create chatId based on user IDs
+    
+            // Récupération dernier message depuis Firestore
             $chatId = $user->id < $otherUser->id 
                 ? $user->id . '-' . $otherUser->id 
                 : $otherUser->id . '-' . $user->id;
-
-            // Retrieve messages from Firestore
+    
             $messages = $this->firestore->getDocuments("messages/{$chatId}/chats");
-
-            // Find the latest message
+    
             $lastMessage = null;
             foreach ($messages as $message) {
                 $time = $message['fields']['time']['integerValue'] ?? 0;
@@ -479,31 +473,25 @@ public function index(Request $request)
                     ];
                 }
             }
-
-            // Add conversation to the list
+    
             $conversations[] = [
                 'user_id' => $otherUser->id,
                 'name' => $otherUser->name,
                 'last_message' => $lastMessage
             ];
-        } else {
-            // Log the missing user or handle the case where the target is null
-            \Log::warning('User data is missing for relationship: ', ['relationship' => $rel]);
         }
+    
+        // Tri par dernier message
+        usort($conversations, function ($a, $b) {
+            return ($b['last_message']['time'] ?? 0) <=> ($a['last_message']['time'] ?? 0);
+        });
+    
+        return view('chatDP', [
+            'conversations' => $conversations,
+            'patients' => $isDoctor ? $patients : collect(),
+            'isDoctor' => $isDoctor
+        ]);
     }
-
-    // Sort conversations by the last message time
-    usort($conversations, function ($a, $b) {
-        return ($b['last_message']['time'] ?? 0) <=> ($a['last_message']['time'] ?? 0);
-    });
-
-    return view('chatDP', [
-        'conversations' => $conversations,
-        'patients' => $isDoctor ? $patients : collect(),
-        'isDoctor' => $isDoctor
-    ]);
-}
-
-
+    
     
 }

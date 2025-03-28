@@ -223,8 +223,7 @@ public function store(Request $request)
     }
 }
 
-
-public function createUserFromDoctorRequest($doctorRequestId, Request $request)
+public function createUserFromDoctorRequest($doctorRequestId)
 {
     // Récupérer la demande de docteur
     $doctorRequest = DoctorRequest::findOrFail($doctorRequestId);
@@ -319,30 +318,14 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
             $this->createPatient($user, $doctorRequest);
         }
 
-                    // Changer le statut de la demande à "accepté"
-                    $doctorRequest->status = 'accepté';
-                    $doctorRequest->save(); // Sauvegarder la mise à jour
-
-        Log::info('Mot de passe du docteur : ' . $doctorPassword);
-
-        // Envoi de l'email avec les mots de passe
-        $doctor = Doctor::where('user_id', function ($query) use ($doctorRequest) {
-            $query->select('id')->from('users')->where('email', $doctorRequest->email);
-        })->first();
-        
-        if (!$doctor) {
-            return redirect()->back()->with('error', 'Le docteur n\'existe pas.');
-        }
-        
+        // Envoyer un e-mail avec les informations de connexion
         Mail::to($doctorRequest->email)->send(new DoctorRequestMail(
             $doctorPassword,
             $patientPassword,
             $doctor
         ));
-        
 
-
-        return redirect()->route('doctor_requests.index')->with('success', 'Utilisateur, docteur et patient créés avec succès. Les informations ont été envoyées par e-mail.');
+        return redirect()->route('doctor_requests.index')->with('success', 'Utilisateur, docteur et patient créés avec succès. Informations envoyées par e-mail.');
     } catch (\Exception $e) {
         Log::error('Erreur lors de la création : ' . $e->getMessage(), [
             'doctorRequestId' => $doctorRequestId,
@@ -351,9 +334,8 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
     }
 }
 
- 
-
-private function createDoctor($user, $doctorRequest, $availabilityMode){
+private function createDoctor($user, $doctorRequest)
+{
         $randomId = random_int(1000000000, 9999999999);
         while (Doctor::where('id_aleatoire', $randomId)->exists()) {
             $randomId = random_int(1000000000, 9999999999);
@@ -368,7 +350,6 @@ private function createDoctor($user, $doctorRequest, $availabilityMode){
         'id_aleatoire' => $randomId,
         'sexe' => $doctorRequest->sexe,
         'code_doctor' => $doctorRequest->code_doctor,
-        'availability_mode' => $availabilityMode, 
     ]);
 
     // Définir l'image par défaut selon le sexe

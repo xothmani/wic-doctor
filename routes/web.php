@@ -391,7 +391,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::post('/meet/create', [MeetController::class, 'createMeet']);
     Route::post('/meet/send-sms', [MeetController::class, 'sendSms'])->name('meet.send-sms');
     Route::resource('patterns', PatternController::class);
-    Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name('appointments.getAvailableTimeSlots');
+    Route::get('/get-available-time-slots', [AppointmentEventController::class, 'getAvailableTimeSlots'])->name(name: 'appointments.getAvailableTimeSlots');
     Route::get('/get-available-time-slots-presice', [AppointmentEventController::class, 'getAvailableTimeSlotsPresice'])->name('appointments.getAvailableTimeSlotsPresice');
     Route::get('/get-available-For-open', [AppointmentEventController::class, 'getAvailableForOpen'])->name('appointments.getAvailableForOpen');
     Route::get('/get-available-time-slots-open', [AppointmentEventController::class, 'getAvailableTimeSlotsForOpen'])->name('appointments.getAvailableTimeSlotsForOpen');
@@ -422,7 +422,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::resource('doctor_requests', DoctorRequestController::class);
     Route::post('/doctor-request/{id}/create-user', [DoctorRequestController::class, 'createUserFromDoctorRequest'])->name('doctor_requests.createUserFromDoctorRequest');
     Route::get('/doctor-requests/{id}', [DoctorRequestController::class, 'show']);
-    //Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
+    Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
+    Route::post('/doctor-requests', [DoctorRequestController::class, 'store']);
 
     Route::resource('telesecretariats', TelesecretariatController::class);
     Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);

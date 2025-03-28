@@ -417,9 +417,7 @@
         </a>
     </li>
 @endcan
-
  @can('chatTE.index')
-
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('chatTE*') ? 'active' : '' }}" href="{{ url('/chatTE') }}">
                         @if($icons)
@@ -432,12 +430,11 @@
         </ul>
     </li>
 @endcan
-<style>.nav-icon {
+    <style>.nav-icon {
     width: 1.25rem; /* Assurez-vous que toutes les icônes ont la même largeur */
     text-align: center;
 }
-</style>  
-
+</style> 
 <!-- @can('addresses.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"

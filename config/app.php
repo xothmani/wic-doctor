@@ -45,7 +45,9 @@ return [
     |
     */
 
+
     'debug' => (bool) env('APP_DEBUG', false),
+
 
     /*
     |--------------------------------------------------------------------------
@@ -172,9 +174,10 @@ return [
         Kreait\Laravel\Firebase\ServiceProvider::class,
 
 
-          Kreait\Laravel\Firebase\ServiceProvider::class,
 
-     
+        Kreait\Laravel\Firebase\ServiceProvider::class,
+
+
         /*
          * Application Service Providers...
          */

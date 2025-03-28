@@ -509,7 +509,7 @@
                     url: "/get-available-time-slots", // Ensure this API returns the available days
                     type: "GET",
                     success: function (response) {
-                        console.log("Fetched Available Days:", response);
+                        //console.log("Fetched Available Days:", response);
                         availabilityDays = response.available_days.map(day => day.toLowerCase()); // Convert to lowercase
 
                         // Now initialize the calendar AFTER fetching availability days
@@ -550,7 +550,7 @@
 
                         if (!response.all_slots || response.all_slots.length === 0) {
                             // No available slots → Show a message inside the modal
-                           $("#time-slots").html(` <div class="alert alert-warning text-center"> Aucune disponibilité pour ce type de rendez-vous à cette date. </div> `);
+                            $("#time-slots").html(` <div class="alert alert-warning text-center"> Aucune disponibilité pour ce type de rendez-vous à cette date. </div> `);
                             return;
                         }
 
@@ -623,7 +623,9 @@
             });
             let availabilityDays = @json($availabilityDays);
             let vacations = @json($vacations);
-            console.log("Availability Days at Load:", availabilityDays);
+            const urgencies = @json($urgencies);
+            console.log("🩺 Urgencies loaded:", urgencies);
+            //console.log("Availability Days at Load:", availabilityDays);
             function initializeCalendar() {
                 calendar = $('#calendar').fullCalendar({
                     locale: 'fr',
@@ -705,7 +707,8 @@
                         }
                     },
                     dayRender: function (date, cell) {
-                        console.log("Day Rendered:", date.format());
+
+                        //console.log("Day Rendered:", date.format());
                         const formattedDayName = date.locale('en').format('dddd').toLowerCase();
                         const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase());
                         const today = moment().startOf('day');
@@ -718,7 +721,12 @@
                             const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
                             return currentDay.isSameOrAfter(vacationStart) && currentDay.isSameOrBefore(vacationEnd);
                         });
-
+                        const isUrgentDay = urgencies.some(urgency => {
+                            const urgencyDate = moment(urgency.jour, 'YYYY-MM-DD').startOf('day');
+                            return currentDay.isSame(urgencyDate);
+                        });
+                        console.log("Is Urgent Day:", isUrgentDay);
+                        //console.log("Is Vacation Day:", isVacationDay);
                         if (currentDay.isBefore(today)) {
                             cell.css('background-color', '#e9ecef');
                             cell.css('cursor', 'not-allowed');
@@ -729,6 +737,10 @@
                         } else if (isVacationDay) {
                             cell.addClass('cell-with-background');
                             cell.attr('title', 'Le docteur est en vacances ce jour.');
+                        } else if (isUrgentDay) {
+                            cell.addClass('cell-with-background');
+                            cell.css('background-color', '#ffe6e6'); // light red
+                            cell.attr('title', 'Urgence: Le docteur est en urgence ce jour.');
                         } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
                             // Check availability for all appointment types
                             $.ajax({
