@@ -2,234 +2,453 @@
 
 @section('content')
 <div class="chat-container">
+
     <!-- Inclusion de Font Awesome pour les icônes -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <!-- Chargement de Firebase avec compatibilité -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <input type="hidden" id="chatId" value="{{ $chatId ?? '' }}">
 
     <!-- En-tête du Chat -->
-  <div class="chat-header">
+    <div class="chat-header">
 
-        <img src="{{ asset('images/icons/a.png') }}" alt="Icône discussion médicale" class="custom-icon" width="40" height="40">
-        <h2>Docteur & Télésecrétariat Discussion </h2>
+        <img src="{{ asset('images/icons/iconn.png') }}" alt="Icône discussion médicale" class="custom-icon" width="40" height="40">
+        <h1>Docteur & Patient Discussion </h1>
     </div>
-
 
     <!-- Contenu Principal -->
     <div class="chat-main">
-        <!-- Liste des Conversations (Doctors) -->
+        <!-- Liste des Conversations -->
         <div class="conversation-list">
-    <div class="conversation-header">
-        <h6>La liste des télésecrétariats</h6>
-    </div>
-    @if(isset($teleSecretariats) && $teleSecretariats->count() > 0)
-        @foreach($teleSecretariats as $doctorTelesecretariat)
-            @if($doctorTelesecretariat->telesecretariat)
+            <div class="conversation-header">
+                @if(auth()->user()->doctor)
+                    <h4>Listes des Patients</h4>
+                @elseif(auth()->user()->patient)
+                    <h3>Doctors</h3>
+                @endif
+            </div>
+
             @php
-                    // Correction clé d'accès avec user_id
-                    $teleUserId = $doctorTelesecretariat->telesecretariat->user_id;
-                    $lastMessageForTele = $lastMessages[$teleUserId] ?? null; // <-- Clé correcte
-                    @endphp
-<a href="{{ route('chatT.show', ['doctorUserId' => auth()->id(), 'teleSecretariatUserId' => $teleUserId]) }}" 
-   class="conversation-item" 
-   data-id="{{ $doctorTelesecretariat->telesecretariat->id }}" 
-   data-user-id="{{ $teleUserId }}">
-    <div class="telesecretariat-avatar">
-        <i class="fas fa-user"></i>
-    </div>
-    <div class="telesecretariat-info">
-        <span class="name">{{ $doctorTelesecretariat->telesecretariat->nomCentre }}</span>
-        <span class="status online"></span>
-        @if($lastMessageForTele)
-    <div class="last-message">
-        <p class="last-message-text">
-            {{ $lastMessageForTele['content'] ?? '[Fichier joint]' }}
-        </p>
-        <span class="last-message-time">
-            {{ \Carbon\Carbon::parse($lastMessageForTele['timestamp'])->format('H:i') }}
-        </span>
+                // Récupérer l'utilisateur authentifié et déterminer son rôle
+                $user = auth()->user();
+                $isDoctor = $user->doctor !== null;
+                $isPatient = $user->patient !== null;
+                $formattedConversations = [];
+
+                if ($isDoctor && $patients->count() > 0) {
+                    // Pour un médecin, récupérer les patients associés
+                    foreach ($patients as $doctorPatient) {
+                        if ($doctorPatient->patient != null) { // Vérifie si patient n'est pas null
+                            // Générer le chatId en fonction des IDs
+                            $chatId = $user->id . '-' . $doctorPatient->patient->user_id;
+                            if ($user->id > $doctorPatient->patient->user_id) {
+                                $chatId = $doctorPatient->patient->user_id . '-' . $user->id;
+                            }
+                            // URL Firestore pour récupérer les messages dans le chat
+                            $firestore_url = 'https://firestore.googleapis.com/v1/projects/wic-doctor-b83e0/databases/(default)/documents/messages/' . $chatId . '/chats';
+                            $response = Http::get($firestore_url);
+                            $data = $response->json();
+                            // Les documents se trouvent dans "documents"
+                            $messagesData = $data['documents'] ?? [];
+
+                            // Trouver le dernier message
+                            $lastMessage = null;
+                            foreach ($messagesData as $messageDoc) {
+                                $fields = $messageDoc['fields'] ?? [];
+                                $time = isset($fields['time']['integerValue']) ? (int)$fields['time']['integerValue'] : 0;
+                                $content = $fields['text']['stringValue'] ?? '';
+                                if (!$lastMessage || $time > $lastMessage['time']) {
+                                    $lastMessage = [
+                                        'content' => $content,
+                                        'time' => date('H:i', $time)
+                                    ];
+                                }
+                            }
+
+                            $formattedConversations[] = [
+                                'id' => $doctorPatient->patient->id,
+                                'user_id' => $doctorPatient->patient->user_id,
+'name' => $doctorPatient->patient ? $doctorPatient->patient->user ? $doctorPatient->patient->user->name : 'N/A' : 'N/A',
+                                'last_message' => $lastMessage
+                            ];
+                        }
+                    }
+                } elseif ($isPatient && $doctors->count() > 0) {
+                    // Pour un patient, récupérer les médecins associés
+                    foreach ($doctors as $doctor) {
+                        if ($doctor->doctor) {
+                            $chatId = $user->id . '-' . $doctor->doctor->user_id;
+                            if ($user->id > $doctor->doctor->user_id) {
+                                $chatId = $doctor->doctor->user_id . '-' . $user->id;
+                            }
+                            // Corriger la faute de frappe : $firestore_url (et non $firstore_url)
+                            $firestore_url = 'https://firestore.googleapis.com/v1/projects/wic-doctor-b83e0/databases/(default)/documents/chats/' . $chatId . '/messages';
+                            $response = Http::get($firestore_url);
+                            $data = $response->json();
+                            $messagesData = $data['documents'] ?? [];
+
+                            $lastMessage = null;
+                            foreach ($messagesData as $messageDoc) {
+                                $fields = $messageDoc['fields'] ?? [];
+                                $time = isset($fields['time']['integerValue']) ? (int)$fields['time']['integerValue'] : 0;
+                                $content = $fields['text']['stringValue'] ?? '';
+                                if (!$lastMessage || $time > $lastMessage['time']) {
+                                    $lastMessage = [
+                                        'content' => $content,
+                                        'time' => $time,
+                                        'time' => date('H:i', $time)
+                                    ];
+                                }
+                            }
+
+                            $formattedConversations[] = [
+                                'id' => $doctor->doctor->id,
+                                'user_id' => $doctor->doctor->user_id,
+                                'name' => $doctor->doctor->user->name,
+                                'last_message' => $lastMessage
+                            ];
+                        }
+                    }
+                }
+
+                // Trier les conversations par time du dernier message (du plus récent au plus ancien)
+                usort($formattedConversations, function ($a, $b) {
+                    return ($b['last_message']['time'] ?? 0) <=> ($a['last_message']['time'] ?? 0);
+                });
+            @endphp
+@if(count($formattedConversations) > 0)
+    <div class="conversation-items">
+        @foreach($formattedConversations as $conv)
+            <a href="{{ route('chatDP.show', [
+                'doctorUserId' => $isDoctor ? auth()->id() : $conv['user_id'],
+                'patientUserId' => $isDoctor ? $conv['user_id'] : auth()->id()
+            ]) }}" class="conversation-item">
+                <div class="avatar">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="info">
+                    <span class="name">{{ $conv['name'] }}</span>
+                    @if($conv['last_message'])
+                        <div class="last-message">
+                            <p>{{ Str::limit($conv['last_message']['content'], 30) }}</p>
+                            <span>{{ $conv['last_message']['time'] }}</span>
+                        </div>
+                    @endif
+                </div>
+            </a>
+        @endforeach
     </div>
 @else
-    <div class="no-message">Pas encore de messages !</div>
-@endif
+@if(!empty($conversations)  && count($conversations) > 0)
 
-    </div>
-</a>
-
-            @endif
-        @endforeach
-    @else
-        <div class="empty-state">
-            <i class="fas fa-comment-slash"></i>
-            <p>No télésecrétariats available</p>
-        </div>
-    @endif
+<div class="conversation-items">
+    @foreach($conversations as $conv)
+        <a href="{{ route('chatDP.show', [
+            'doctorUserId' => $isDoctor ? auth()->id() : $conv['user_id'],
+            'patientUserId' => $isDoctor ? $conv['user_id'] : auth()->id()
+        ]) }}" class="conversation-item">
+            <div class="avatar">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <div class="info">
+                <span class="name">{{ $conv['name'] }}</span>
+                @if($conv['last_message'])
+                    <div class="last-message">
+                        <p>{{ Str::limit($conv['last_message']['text'], 30) }}</p>
+                        <span>{{ date('H:i', $conv['last_message']['time']) }}</span>
+                    </div>
+                @endif
+            </div>
+        </a>
+    @endforeach
 </div>
-<div class="chat-area">
-<div class="chat-messages" id="chat-messages">
-    @if(isset($messages) && count($messages) > 0)
-        @foreach($messages as $message)
-            <!-- Log pour déboguer -->
-            {{ \Log::info('Message affiché:', ['message' => $message]) }}
+@else
+            <div class="empty-state">
+                <i class="fas fa-comment-slash"></i>
+                <p>Pas encore de messages !</p>
+            </div>
+        @endif
+@endif
+</div>
 
-            <div class="message {{ $message['sender_id'] == auth()->id() ? 'sent' : 'received' }}" data-timestamp="{{ $message['timestamp'] }}" data-message-id="{{ $message['id'] }}">
-                <div class="message-content">
-                    <div class="message-header">
-                        <span class="sender">{{ $message['sender_name'] }}</span>
-                        <span class="time">{{ \Carbon\Carbon::createFromTimestamp($message['timestamp'])->format('H:i') }}</span>
-                        @if($message['sender_id'] == auth()->id())
-                        <button class="delete-btn" onclick="deleteMessage('{{ $chatId }}', '{{ $message['id'] }}', this)" title="Supprimer le message">
-    <i class="fas fa-trash-alt"></i>
+                                                        <!-- Zone de Chat Principale -->
+        <div class="chat-area">
+    <div class="chat-messages" id="chat-messages">
+        @if(isset($messages) && count($messages) > 0)
+            @foreach($messages as $message)
+                <div class="message {{ ((string)$message['sender']['id'] === (string)auth()->id()) ? 'sent' : 'received' }}" 
+                     data-time="{{ $message['time'] }}" 
+                     data-message-id="{{ $message['id'] }}">
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="sender">{{ $message['sender']['name'] }}</span>
+                            @if(((string)$message['sender']['id'] !== (string)auth()->id()))
+                                <span class="receiver">{{ $patientUser->name }}</span>
+                            @endif
+                            <span class="time">{{ \Carbon\Carbon::createFromTimestamp($message['time'])->format('H:i') }}</span>
+                            @if(((string)$message['sender']['id']) === ((string)auth()->id()))
+                            <!-- REMPLACER TOUS LES onclick PAR data-attributes -->
+                            <button class="delete-btn" 
+        onclick="deleteMessage('{{ $chatId }}', '{{ $message['id'] }}', this)">
+    <i class="fas fa-trash-alt"></i> 
 </button>
+
+                            @endif
+                        </div>
+                        <p class="text">{{ $message['text'] }}</p>
+                        @if(!empty($message['fileUrl']))
+                            <div class="message-file">
+                                @php
+                                    $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                                    $textExtensions = ['txt'];
+                                    $fileExtension = pathinfo($message['fileUrl'], PATHINFO_EXTENSION);
+                                @endphp
+
+                                @if(in_array(strtolower($fileExtension), $imageExtensions))
+                                    <div class="message-image">
+                                        <img src="{{ $message['fileUrl'] }}" alt="Image envoyée" class="chat-image">
+                                        <div class="file-actions">
+                                            <a href="{{ $message['fileUrl'] }}" download class="download-btn">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                @elseif(in_array(strtolower($fileExtension), $textExtensions))
+                                    <div class="file-preview">
+                                        <i class="fas fa-file-alt"></i>
+                                        <a href="{{ $message['fileUrl'] }}" target="_blank" class="file-link">
+                                            Voir le fichier 
+                                        </a>
+                                        <a href="{{ $message['fileUrl'] }}" download class="download-link">
+                                            <i class="fas fa-download"></i> 
+                                        </a>
+                                    </div>
+                                @else
+                                    <div class="file-preview">
+                                        <i class="fas fa-file-alt"></i>
+                                        <a href="{{ $message['fileUrl'] }}" target="_blank" class="file-link">
+                                            Voir le fichier
+                                        </a>
+                                        <a href="{{ $message['fileUrl'] }}" download class="download-link">
+                                            <i class="fas fa-download"></i> 
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
                         @endif
                     </div>
-                    <p class="text">{{ $message['content'] }}</p>
-                    @if(!empty($message['file_url']))
-    @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $message['file_url']))
-        <img src="{{ $message['file_url'] }}" alt="Image" class="file-image">
-    @else
-        <a href="{{ $message['file_url'] }}" target="_blank" class="file-link">Voir le fichier</a>
-    @endif
-@endif
-
                 </div>
-            </div>
-        @endforeach
-    @else
-        <div class="empty-state">
-            <i class="fas fa-comment-slash"></i>
-            <p>Pas encore de messages !</p>
-        </div>
-    @endif
+            @endforeach
+        @else
+           
+        @endif
 </div>
 
-    <div class="chat-input">
-        <form action="{{ route('chatT.send') }}" method="POST" enctype="multipart/form-data">
+            <!-- Formulaire d'envoi de message -->
+            <div class="chat-input">
+            <form id="chat-form" action="{{ route('chatDP.send') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <input type="hidden" name="receiver_id" id="receiver_id" value="{{ $teleSecretariatUserId ?? '' }}" required>
-            <input type="text" name="message" id="message-input" placeholder="Écrire un message..." required>
+        <input type="hidden" name="receiver_id" id="receiver_id" value="{{ $patientUserId ?? '' }}" required>
+        
+        <div class="input-container">
+            <input type="text" name="message" id="message-input" placeholder="Écrire un message..." >
             <label for="file-input" class="file-icon">
                 <i class="fas fa-paperclip"></i>
             </label>
-            <input type="file" name="file" id="file-input" style="display: none;">
+            <input type="file" name="file" id="file-input" style="display: none;" accept="image/*, .pdf, .docx">
             <button type="submit"><i class="fas fa-paper-plane"></i></button>
-        </form>
-        <div id="output"></div>
-    </div>    </div>
-    </div>
+        </div>
+    </form>
+</div>
 
+                
+                <div id="output"></div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
 @section('scripts')
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script>
-$(document).ready(function() {
-    const teleSecretariatUserId = {{ $teleSecretariatUserId ?? 'null' }};
-    if (teleSecretariatUserId) {
-        loadMessages(teleSecretariatUserId);
+  window.deleteMessage = function(chatId, messageId, button) {
+    if (!confirm('Supprimer ce message définitivement ?')) return;
+
+    fetch(`/messages/${chatId}/chats/${messageId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            button.closest('.message').remove();
+        } else {
+            alert('Erreur: ' + (data.message || 'Action impossible'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur réseau');
+    });
+};
+    // Configuration Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyA8T2qplVSv9ZwXBW_rKOkOFjQv2hA1UKY",
+        authDomain: "wic-doctor-b83e0.firebaseapp.com",
+        databaseURL: "https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "wic-doctor-b83e0",
+        storageBucket: "wic-doctor-b83e0.appspot.com",
+        messagingSenderId: "895957208558",
+        appId: "1:895957208558:web:322c25347af966f5f512ff"
+    };
+
+    // Initialiser Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Gestion de l'envoi de message
+    document.getElementById('chat-formE').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    console.log('Form submitted'); // Ajout de cette ligne
+
+    const formData = new FormData(this);
+
+    try {
+        const response = await fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            }
+        });
+
+        console.log('Response received', response); // Ajout de cette ligne
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Data received', data); // Ajout de cette ligne
+            if (data.success) {
+                // ... votre code de traitement des messages ...
+            } else {
+                alert('Erreur: ' + (data.error || 'Échec de l\'envoi du message'));
+            }
+        } else {
+            alert('Une erreur s\'est produite lors de l\'envoi du message.');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Une erreur s\'est produite lors de l\'envoi du message.');
+    }
+});
+
+
+    // Fonctions utilitaires
+    function addMessageToUI(message, type) {
+        const messagesContainer = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <div class="message-header">
+                    <span class="sender">${message.sender_name}</span>
+                    <span class="time">${message.time}</span>
+                </div>
+                <p class="text">${message.content}</p>
+                ${message.file_url ? `
+                    <div class="message-file">
+                        <a href="${message.file_url}" target="_blank">Fichier joint</a>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        messagesContainer.appendChild(messageDiv);
     }
 
-    // Fonction pour charger les messages
-    function loadMessages(receiverId) {
-        const senderId = {{ auth()->id() }};
-        const chatId = senderId < receiverId ? `${senderId}-${receiverId}` : `${receiverId}-${senderId}`;
+    function scrollToBottom() {
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 
-        $.get(`/chatT/fetch-messages/${receiverId}`, function(response) {
-            const chatMessages = $('#chat-messages');
-            chatMessages.empty();
+   // Écoute des nouveaux messages Firebase
+    function initFirebaseListener() {
+        const userId = {{ auth()->user()->id }};
+        const doctorUserId = "{{ $doctorUserId ?? '' }}";
+        
+        if (!doctorUserId) return;
 
-            if (response.messages.length > 0) {
-                response.messages.forEach(message => {
-                    const messageClass = message.sender_id == senderId ? 'sent' : 'received';
-                    const messageContent = `
-                        <div class="message ${messageClass}">
-                            <div class="message-content">
-                                <div class="message-header">
-                                    <span class="sender">${message.sender_name}</span>
-                                    <span class="time">${new Date(message.timestamp * 1000).toLocaleTimeString()}</span>
-                                    ${message.sender_id == senderId ? `
-                                      
-                                    ` : ''}
-                                </div>
-                                <p class="text">${message.content}</p>
-                                ${message.file_url ? `<a href="${message.file_url}" target="_blank" class="file-link">Voir le fichier</a>` : ''}
-                            </div>
-                        </div>
-                    `;
-                    chatMessages.append(messageContent);
-                });
-            } else {
-                chatMessages.html('<div class="empty-state"><i class="fas fa-comment-slash"></i><p>Pas encore de messages !</p></div>');
+        const chatId = userId < doctorUserId ? `${userId}-${doctorUserId}` : `${doctorUserId}-${userId}`;
+        const chatRef = database.ref(`chats/${chatId}/messages`);
+
+        chatRef.on('child_added', (snapshot) => {
+            const message = snapshot.val();
+            if (message.receiver_id == userId) {
+                addMessageToUI({
+                    ...message,
+                    time: new Date(message.timestamp * 1000).toLocaleTimeString()
+                }, 'received');
+                scrollToBottom();
             }
-            chatMessages.scrollTop(chatMessages[0].scrollHeight);
         });
     }
 
-    // Vérifier les nouveaux messages toutes les 5 secondes
-    setInterval(() => {
-        const teleSecretariatUserId = {{ $teleSecretariatUserId ?? 'null' }};
-        if (teleSecretariatUserId) {
-            loadMessages(teleSecretariatUserId);
-        }
-    }, 5000);
+
+   
+    // Initialisation
+
+</script>
+
+<script>
+// Configuration IMPÉRATIVE
+const firebaseConfig = {
+    apiKey: "AIzaSyA8T2qplVSv9ZwXBW_rKOkOFjQv2hA1UKY",
+    authDomain: "wic-doctor-b83e0.firebaseapp.com",
+    projectId: "wic-doctor-b83e0",
+    storageBucket: "wic-doctor-b83e0.appspot.com",
+    messagingSenderId: "895957208558",
+    appId: "1:895957208558:web:322c25347af966f5f512ff"
+};
+
+// Initialisation EXPLICITE
+const firebaseApp = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth(firebaseApp); // <-- Spécifier l'instance
+const firestore = firebase.firestore(firebaseApp); // <-- Spécifier l'instance
+
+// 3. Déclarer la fonction AVANT son utilisation
+
+// 4. Gestionnaire d'événements MODERN
+function setupDeleteHandlers() {
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.removeEventListener('click', handleDelete); // Nettoyage
+        button.addEventListener('click', handleDelete);
+    });
+}
+
+// 5. Handler séparé pour meilleur contrôle
+
+// 6. Initialisation GARANTIE
+document.addEventListener('DOMContentLoaded', () => {
+    setupDeleteHandlers();
 });
-function deleteMessage(chatId, firebaseMessageId, buttonElement) {
-    const deleteUrl = `https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chatTE/${chatId}/messages/${firebaseMessageId}.json`;
-
-    fetch(deleteUrl, { method: 'DELETE' })
-    .then(response => {
-        if (response.ok) {
-            buttonElement.closest('.message').remove();
-        } else {
-            console.error("Échec de la suppression");
-        }
-    })
-    .catch(error => console.error("Erreur:", error));
-}
-function listenForDeletedMessages(chatId) {
-    const chatRef = firebase.database().ref(`chatTE/${chatId}/messages`);
-
-    chatRef.on('child_removed', (snapshot) => {
-        const deletedMessageId = snapshot.key;
-        console.log("Message supprimé :", deletedMessageId);
-
-        // Supprimer le message de l'interface utilisateur
-        const messageElement = document.querySelector(`.message[data-id="${deletedMessageId}"]`);
-        if (messageElement) {
-            messageElement.remove();
-        }
-    });
-}
-
-function listenForDeletedMessages(doctorUserId) {
-    const userId = {{ auth()->user()->id }}; // Assuming you're using Laravel Blade to inject this value
-    const chatId = userId < doctorUserId ? `${userId}-${doctorUserId}` : `${doctorUserId}-${userId}`;
-
-    const chatRef = firebase.database().ref(`chatTE/${chatId}/messages`);
-    chatRef.on('child_removed', (snapshot) => {
-        const messageId = snapshot.key;
-        const messageElement = document.querySelector(`.message[data-id="${messageId}"]`);
-        if (messageElement) {
-            messageElement.remove();
-        }
-    });
-}
-
-
-    // Fonction pour vérifier les nouveaux messages
-    function checkForNewMessages() {
-        const teleSecretariatUserId = {{ $teleSecretariatUserId ?? 'null' }};
-        if (teleSecretariatUserId) {
-            loadMessages(teleSecretariatUserId);
-        }
-    }
 </script>
 @endsection
-
 @section('styles')
 <style>
-    /* Chat Container */
-      /* Chat Container */
-      .chat-container {
+    .chat-container {
         display: flex;
         flex-direction: column;
         height: 100vh;
@@ -623,5 +842,6 @@ input[type="file"] {
                                                     border-radius: 5px;
                                                     margin-right: 10px;
                                                 }
+
 </style>
 @endsection
