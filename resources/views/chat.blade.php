@@ -108,10 +108,9 @@
             <!-- Affichage pour les fichiers non-image -->
             <div class="message-file">
                 <i class="fas fa-file-alt"></i> <!-- Icône pour fichier -->
-                <a href="{{ $message['file_url'] }}" target="_blank">Voir le fichier</a>
+                <a href="{{ $message['file_url'] }}" target="_blank"></a>
                 <a href="{{ $message['file_url'] }}" download="{{ basename($message['file_url']) }}" class="download-link">
-                    <i class="fas fa-download"></i> Télécharger
-                </a>
+                    <i class="fas fa-download"></i> </a>
             </div>
         @endif
     </div>
