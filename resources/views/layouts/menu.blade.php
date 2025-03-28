@@ -418,7 +418,7 @@
     </li>
 @endcan
 
- @can('chatT.show')
+ @can('chatTE.index')
 
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('chatTE*') ? 'active' : '' }}" href="{{ url('/chatTE') }}">
