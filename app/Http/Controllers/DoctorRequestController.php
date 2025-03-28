@@ -39,7 +39,7 @@ public function show($id)
             'lastname' => $doctorRequest->lastname ?? 'Non spécifié',
             'email' => $doctorRequest->email ?? 'Non spécifié',
             'Phone' => $doctorRequest->Phone ?? 'Non spécifié',
-            'speciality_id' => $doctorRequest->speciality ? $doctorRequest->speciality->name : 'Non spécifié', // Gérer le cas où la spécialité est null
+            'speciality_id' => $doctorRequest->speciality ? $doctorRequest->speciality->name : 'Non spécifié', // Gérer le cas où la spéialité est null
             'description' => $doctorRequest->description ?? 'Non spécifié',
             'adresse' => $doctorRequest->adresse ?? 'Non spécifié',
             'pays' => $doctorRequest->pays ?? 'Non spécifié',
@@ -67,7 +67,7 @@ public function show($id)
 public function create()
 {
     $user = null; 
-    $specialities = Speciality::all(); // Récupération de toutes les spécialités
+    $specialities = Speciality::all(); // Récupération de toutes les spécialiés
     return view('doctor_requests.create', compact('user', 'specialities')); 
 }
 
@@ -226,72 +226,86 @@ public function store(Request $request)
 
 public function createUserFromDoctorRequest($doctorRequestId, Request $request)
 {
+    // Récupérer la demande de docteur
     $doctorRequest = DoctorRequest::findOrFail($doctorRequestId);
         $availabilityMode = $request->input('availability_mode'); // Récupérer la valeur du formulaire
 
 
+    // Vérifier que la demande est de type "Docteur"
     if ($doctorRequest->type !== 'Docteur') {
         return redirect()->back()->with('error', 'Seules les demandes de type "Docteur" sont autorisées.');
     }
 
+    Log::info('Traitement de la demande de docteur', ['id' => $doctorRequestId]);
+
     try {
-        $doctorPassword = Str::random(8); // Toujours générer un mot de passe pour le docteur
-        $patientPassword = null; // Initialiser la variable pour le mot de passe patient
+        // Générer un mot de passe aléatoire pour le docteur
+        $doctorPassword = Str::random(8);
+        $patientPassword = null;
 
-        // Rechercher un utilisateur existant
-    $user = User::where('email', $doctorRequest->email)
-        ->when($doctorRequest->Phone, function ($query, $phone) {
-            $query->orWhere('phone_number', $phone);
-        })
-        ->first();
+        Log::info('Génération du mot de passe du docteur');
 
+        // Vérifier si l'utilisateur existe déjà
+        $user = User::where('email', $doctorRequest->email)->first();
 
-    Log::info('Vérification de l\'utilisateur existant.', [
-        'email_recherche' => $doctorRequest->email,
-        'phone_recherche' => $doctorRequest->Phone,
-        'user_retourne' => $user ? $user->toArray() : 'Aucun utilisateur trouvé',
-    ]);
+        if ($user) {
+            Log::info('Utilisateur existant trouvé', ['email' => $user->email]);
+        } else {
+            Log::info('Utilisateur non trouvé, création dans Firebase et SQL');
+        }
 
+        // Si l'utilisateur n'existe pas, le créer dans Firebase et SQL
         if (!$user) {
-            // Création d'un nouvel utilisateur
-            $patientPassword = Str::random(8); // Générer un nouveau mot de passe patient
+            $patientPassword = Str::random(8);
+
+            // 🔹 Créer l'utilisateur dans Firebase
+            $auth = app(FirebaseAuth::class);
+            try {
+                Log::info('Création de l\'utilisateur dans Firebase');
+
+                $firebaseUser = $auth->createUser([
+                    'email' => $doctorRequest->email,
+                    'password' => $doctorPassword,
+                    'displayName' => $doctorRequest->name . ' ' . $doctorRequest->lastname,
+                    'phoneNumber' => $doctorRequest->phone,
+                ]);
+
+                // Récupérer l'UID Firebase
+                $firebaseUid = $firebaseUser->uid;
+                Log::info('Utilisateur créé dans Firebase avec UID : ' . $firebaseUid);
+            } catch (FirebaseEmailExists $e) {
+                Log::error('Utilisateur déjà existant dans Firebase.');
+                return redirect()->back()->with('error', 'Cet utilisateur existe déjà dans Firebase.');
+            } catch (\Exception $e) {
+                Log::error('Erreur Firebase : ' . $e->getMessage());
+                return redirect()->back()->with('error', 'Erreur lors de la création Firebase.');
+            }
+
+            // 🔹 Créer l'utilisateur dans la base de données SQL
             $user = User::create([
                 'name' => $doctorRequest->name,
                 'lastname' => $doctorRequest->lastname,
                 'email' => $doctorRequest->email,
-                'phone_number' => $doctorRequest->Phone,
+                'phone_number' => $doctorRequest->phone,
                 'password' => bcrypt($doctorPassword),
                 'passwordpatient' => Hash::make($patientPassword),
+                'firebase_uid' => $firebaseUid, // Stocker l'UID Firebase
             ]);
-
-            // Logguer le dernier utilisateur créé
-            Log::info('Nouvel utilisateur créé.', ['user_id' => $user->id]);
         } else {
-            // Si l'utilisateur existe déjà
-            if ($user->passwordpatient) {
-                $patientPassword = 'Mot de passe déjà défini';
-            } else {
-                $patientPassword = Str::random(8);
-                $user->passwordpatient = Hash::make($patientPassword);
-            }
-
+            // Mettre à jour les mots de passe si nécessaire
             if (!$user->password) {
                 $user->password = bcrypt($doctorPassword);
             }
+            if (!$user->passwordpatient) {
+                $patientPassword = Str::random(8);
+                $user->passwordpatient = Hash::make($patientPassword);
+            }
             $user->save();
-
-            // Logguer l'utilisateur existant
-            Log::info('Utilisateur existant utilisé.', ['user_id' => $user->id]);
         }
 
-        // Vérifier si l'utilisateur est déjà associé à un docteur
+        // Vérifier si un docteur existe déjà pour cet utilisateur
         $existingDoctor = Doctor::where('user_id', $user->id)->first();
         if ($existingDoctor) {
-            // Logguer une tentative de doublon
-            Log::warning('Tentative de conventionnement pour un utilisateur déjà existant.', [
-                'user_id' => $user->id,
-                'doctorRequestId' => $doctorRequestId,
-            ]);
             return redirect()->back()->with('error', 'Docteur déjà conventionné pour cet utilisateur.');
         }
 
@@ -299,7 +313,7 @@ public function createUserFromDoctorRequest($doctorRequestId, Request $request)
         $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode);
 
 
-        // Vérifier si le patient existe déjà
+        // Créer le patient si nécessaire
         $existingPatient = Patient::where('user_id', $user->id)->first();
         if (!$existingPatient) {
             $this->createPatient($user, $doctorRequest);
@@ -464,9 +478,9 @@ private function executeNodeScript($doctor)
     $adresse_exacte = $address ? $address->address : null;
     // Récupérer le titre de l'expérience, si existante
     $title = $experience ? $experience->title : null;
-    // Récupérer les spécialités du médecin
+    // Récupérer les spécalités du médecin
     $specialities = $doctor->specialities;
-    // Récupérer les spécialités et construire le tableau
+    // Récupérer les spéciaités et construire le tableau
     $specialitiesData = $specialities->map(function($speciality) {
         return [
             'id' => $speciality->id,

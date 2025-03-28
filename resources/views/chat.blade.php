@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <div class="chat-header">
 
-    <img src="{{ asset('storage/images/e.png') }}" 
+    <img src="{{ asset('images/icons/e.png') }}" 
      alt="Icône discussion médicale" 
      class="custom-icon"
      width="40" 
@@ -58,7 +58,7 @@
         </span>
     </div>
 @else
-    <div class="no-message">No messages yet</div>
+    <div class="no-message">Pas encore de messages !</div>
 @endif
             </div>
         </div>
@@ -124,7 +124,7 @@
         @else
             <div class="empty-state">
                 <i class="fas fa-comment-slash"></i>
-                <p>No messages yet</p>
+                <p>Pas encore de messages !</p>
             </div>
         @endif
     </div>
@@ -232,7 +232,7 @@
                     chatMessagesContainer.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-comment-slash"></i>
-                            <p>No messages yet</p>
+                            <p>Pas encore de messages !</p>
                         </div>
                     `;
                 }
@@ -1209,6 +1209,4 @@ z-index: 1000;
     top: 60px;
     height: calc(100vh - 60px);
 }                                     
-                                           
-                                           
                                             </style>

@@ -1,26 +1,11 @@
 <?php
-/*
- * File name: web.php
- * Last modified: 2024.04.15 at 19:06:55
- * Author: SmarterVision - https://codecanyon.net/user/smartervision
- * Copyright (c) 2024
- */
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
 use App\Http\Controllers\AppointmentController;
 //use App\Http\Controllers\PharmacyController;
 //use App\Http\Controllers\PharmacyTypeController;
 use App\Http\Controllers\MessagerieController;
 use App\Http\Controllers\PatientDoctorChatController;
+use App\Http\Controllers\TeleseceteriatDoctorsController;
 
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\PrescriptionController;
@@ -700,4 +685,19 @@ Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotifica
         return view('components.active-doctor', compact('activeDoctor'));
     })->middleware('auth');
 });
+Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
+->name('chatT.show')
+->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
+Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
+Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
+Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
+Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
 
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+
+Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
+Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
+Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
+Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
