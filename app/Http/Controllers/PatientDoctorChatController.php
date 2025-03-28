@@ -454,11 +454,12 @@ public function index(Request $request)
 
     // Process relationships to fetch conversations
     foreach ($relationships as $rel) {
+        // Ensure that the patient or doctor is not null before accessing user data
         $target = $isDoctor ? $rel->patient : $rel->doctor;
-        $otherUser = $target->user;
+        
+        if ($target && $target->user) {
+            $otherUser = $target->user;
 
-        // Ensure $otherUser is not null before proceeding
-        if ($otherUser) {
             // Create chatId based on user IDs
             $chatId = $user->id < $otherUser->id 
                 ? $user->id . '-' . $otherUser->id 
@@ -486,8 +487,7 @@ public function index(Request $request)
                 'last_message' => $lastMessage
             ];
         } else {
-            // If $otherUser is null, you can log or handle this case as needed
-            // For example, log an error:
+            // Log the missing user or handle the case where the target is null
             \Log::warning('User data is missing for relationship: ', ['relationship' => $rel]);
         }
     }
@@ -503,6 +503,7 @@ public function index(Request $request)
         'isDoctor' => $isDoctor
     ]);
 }
+
 
     
 }
