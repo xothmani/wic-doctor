@@ -31,8 +31,10 @@
             $lastMessage = $lastMessages[$doctor->user_id] ?? null;
         @endphp
  
-        <div class="conversation-item {{ $loop->first ? 'active' : '' }}" data-id="{{ $doctor->id }}" data-user-id="{{ $doctor->user_id }}" onclick="loadMessages('{{ $doctor->user_id }}')">
-        <div class="doctor-avatar">
+ <div class="conversation-item {{ isset($doctorUserId) && $doctor->user_id == $doctorUserId ? 'active' : '' }}" 
+     data-id="{{ $doctor->id }}" 
+     data-user-id="{{ $doctor->user_id }}" 
+     onclick="loadMessages('{{ $doctor->user_id }}')">        <div class="doctor-avatar">
   <i class="fas fa-user-md" 
      style="width: 40px;
             height: 40px;
@@ -911,7 +913,31 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
     line-height: 1.5;
 }
 
+.conversation-item {
+    transition: background-color 0.2s ease;
+}
 
+.conversation-item.active {
+    background-color: #f0f2f5;
+    border-left: 4px solid #007bff;
+    position: relative;
+}
+
+.conversation-item.active::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 2px;
+    background-color: #007bff;
+}
+
+.conversation-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(3px);
+}
                                               
                                                 .doctor-info {
                                                     flex: 1;
