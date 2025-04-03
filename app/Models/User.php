@@ -21,7 +21,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\DoctorPatients;
+
+
 /**
  * Class User
  * @package App\Models
@@ -161,6 +163,11 @@ class User extends Authenticatable implements HasMedia
             return asset('images/avatar_default.png');
         }
     }
+    public function isOnline()
+    {
+        return Cache::has('user-is-online-'.$this->id);
+    }
+
 
     public function getCustomFieldsAttribute(): array
     {
@@ -198,10 +205,13 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsToMany(Clinic::class, 'clinic_users');
     }
 
-    public function doctor()
-    {
-        return $this->hasOne(Doctor::class, 'user_id');
-    }
+    
+
+public function telesecretariat()
+{
+    return $this->hasOne(Telesecretariat::class, 'user_id');
+}
+// app/Models/Telesecretariat.php
 
 
     /**
@@ -326,6 +336,16 @@ class User extends Authenticatable implements HasMedia
      *
      * @return int|null
      */
+        public function doctorPatients()
+{
+    return $this->hasMany(DoctorPatient::class, 'patient_id');
+}
+        public function doctor()
+    {
+        return $this->hasOne(Doctor::class, 'user_id');
+    }
+
+
     public function getActiveDoctorId(): ?int
     {
         if ($this->hasRole('Telesecretary')) {

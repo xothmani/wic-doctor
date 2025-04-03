@@ -19,6 +19,7 @@
                 {!! Form::label('start_date', trans("lang.start_date"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
                 <div class="col-md-9">
                     {!! Form::date('start_date', $profileManagement->start_date ?? null, ['class' => 'form-control']) !!}
+                    <span class="text-danger">*</span>
                     <div class="form-text text-muted">
                         {{ trans("lang.start_date_help") ?? '' }}
                     </div>
@@ -30,6 +31,7 @@
             <!-- End Date Field -->
             <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
                 {!! Form::label('end_date', trans("lang.end_date"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+                <span class="text-danger">*</span>
                 <div class="col-md-9">
                     {!! Form::date('end_date', $profileManagement->end_date ?? null, ['class' => 'form-control']) !!}
                     <div class="form-text text-muted">
@@ -41,6 +43,7 @@
             <!-- Is Active Field -->
             <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
                 {!! Form::label('is_active', trans("lang.is_active"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+                <span class="text-danger">*</span>
                 <div class="col-md-9 d-flex align-items-center">
                     <div class="custom-control custom-switch">
                         {!! Form::checkbox('is_active', 1, isset($profileManagement) ? $profileManagement->is_active : false, [
@@ -64,6 +67,7 @@
         <!-- Name Field -->
         <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
             {!! Form::label('name', trans("lang.user_name"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+            <span class="text-danger">*</span>
             <div class="col-md-9">
                 {!! Form::text('name', null, [
             'class' => 'form-control',
@@ -78,6 +82,7 @@
         <!-- Email Field -->
         <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
             {!! Form::label('email', trans("lang.user_email"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+            <span class="text-danger">*</span>
             <div class="col-md-9">
                 {!! Form::email('email', null, [
             'class' => 'form-control',
@@ -113,6 +118,7 @@
         <!-- Password Field -->
         <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
             {!! Form::label('password', trans("lang.user_password"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+            <span class="text-danger">*</span>
             <div class="col-md-9">
                 {!! Form::password('password', [
             'class' => 'form-control',
@@ -127,6 +133,7 @@
         <!-- Start Date Field -->
         <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
             {!! Form::label('start_date', trans("lang.start_date"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+            <span class="text-danger">*</span>
             <div class="col-md-9">
                 {!! Form::date('start_date', $profileManagement->start_date ?? null, ['class' => 'form-control']) !!}
                 <div class="form-text text-muted">
@@ -159,6 +166,7 @@
         <!-- Role Field -->
         <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
             {!! Form::label('role', trans("lang.user_role_id"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+            <span class="text-danger">*</span>
             <div class="col-md-9">
                 <select name="role" class="form-control">
                     @foreach($roles as $value => $label)

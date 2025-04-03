@@ -54,7 +54,7 @@
                     @can('parrainers.parrainer') 
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('parrainers/parrainer') ? 'active-tab' : '' }}" href="{!! route('parrainers.parrainer') !!}">
-                                <i class="fa fa-plus mr-2"></i>{{trans('Créer un filleul')}}
+                                <i class="fa fa-plus mr-2"></i>{{trans('Créer un parrain')}}
                             </a>
                         </li>
                     @endcan
@@ -67,15 +67,8 @@
                 <div class="card-body">
                     <h3 style="margin-bottom: 20px;">Parrainage</h3>
                     <p class="mb-4" style="font-size: 1.2em; margin-top: 10px;">
-                    Cher Docteur,</br>
-
-Nous vous invitons à partager ce lien avec vos collègues afin qu'ils puissent également découvrir les avantages exclusifs de WIC Doctor . En transmettant ce lien, vous leur offrez l’opportunité de profiter d’une offre promotionnelle spéciale 🎁.
-Grâce à notre programme de parrainage, chaque médecin que vous recommandez pourra accéder à des services innovants tels que la téléconsultation, la prise de rendez-vous simplifiée, la gestion optimisée de leur visibilité en ligne et bien plus encore.
-N’hésitez pas à en parler autour de vous et à encourager vos confrères à rejoindre WIC Doctor, afin qu’ils puissent eux aussi bénéficier de cette offre avantageuse.
-
-Votre réseau mérite le meilleur de la technologie médicale ! 🌟
-
-                    </p>
+                    Cher Docteur,
+                    Nous vous invitons à partager ce lien avec vos collègues afin qu'ils puissent également bénéficier de cette offre promotionnelle exclusive. En transmettant ce lien, vous leur offrez l'opportunité de profiter d'avantages spéciaux 🎁 tout en contribuant à élargir notre réseau de professionnels de santé 🌍. N’hésitez pas à solliciter d'autres médecins et à les encourager à participer pour qu'ils puissent eux aussi bénéficier de cette offre avantageuse.              </p>
 
                     @if(isset($link))
                         <div class="mb-4">
@@ -119,7 +112,7 @@ Votre réseau mérite le meilleur de la technologie médicale ! 🌟
                     <form action="/envoyer-email" method="POST">
                         @csrf
                         <div class="mb-4">
-                            <label for="email" class="form-label">Inviter un filleul par e-mail</label>
+                            <label for="email" class="form-label">Inviter un parrain par e-mail</label>
                             <input 
                                 type="email" 
                                 name="email" 
@@ -204,22 +197,47 @@ Votre réseau mérite le meilleur de la technologie médicale ! 🌟
         document.addEventListener("DOMContentLoaded", function() {
     var link = "{{ $link }}";
     if (link) {
-        // Crée un QR Code
-        var qrcode = new QRCode(document.getElementById("qrcode"), {
+        var qrcodeContainer = document.getElementById("qrcode");
+        var qrcode = new QRCode(qrcodeContainer, {
             text: link,
             width: 150,
             height: 150,
             correctLevel: QRCode.CorrectLevel.H
         });
 
-        // Ajoute un bouton de téléchargement
-        var downloadButton = document.createElement('a');
-        downloadButton.href = document.getElementById("qrcode").querySelector('img').src;  // Prendre l'image générée
-        downloadButton.download = "qrcode.png";  // Nom du fichier à télécharger
-        downloadButton.innerHTML = '<i class="bi bi-download custom-icon-size"></i> ';
-        document.querySelector('.btn-container').appendChild(downloadButton);
+        setTimeout(function () {
+            var qrImg = qrcodeContainer.querySelector("img");
+
+            if (qrImg) {
+                // Crée un canvas pour convertir l'image en téléchargeable
+                var canvas = document.createElement("canvas");
+                var context = canvas.getContext("2d");
+                canvas.width = qrImg.width;
+                canvas.height = qrImg.height;
+                
+                var img = new Image();
+                img.crossOrigin = "Anonymous"; // Éviter les problèmes CORS
+                img.src = qrImg.src;
+
+                img.onload = function() {
+                    context.drawImage(img, 0, 0);
+                    
+                    // Crée un lien de téléchargement
+                    var downloadButton = document.createElement('a');
+                    downloadButton.href = canvas.toDataURL("image/png"); // Convertir en base64
+                    downloadButton.download = "qrcode.png";  
+                    downloadButton.classList.add("btn", "btn-sm", "btn-secondary", "d-flex", "align-items-center"); // Bouton fin et gris
+                    downloadButton.innerHTML = '<i class="bi bi-download me-1 custom-icon"></i> ';
+
+                    document.querySelector('.btn-container').appendChild(downloadButton);
+                };
+            }
+        }, 500); // Attendre que le QR Code soit généré
     }
 });
+
+
+    </script>
 
     </script>
 

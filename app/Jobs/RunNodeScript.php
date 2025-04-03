@@ -24,16 +24,32 @@ class RunNodeScript implements ShouldQueue
 
     public function handle()
     {
+        // Escaping the path to your Node.js script and parameters
         $nodeScript = escapeshellarg(base_path('public/script-spec/nodejs.js'));
-        $command = "node $nodeScript " . escapeshellarg($this->specialityId) . " " . escapeshellarg($this->specialityName) . " 2>&1";
-        
+        $specialityId = escapeshellarg($this->specialityId);
+        $specialityName = escapeshellarg($this->specialityName);
+    
+        // Command to execute Node.js script
+        $command = "node $nodeScript $specialityId $specialityName 2>&1";
+    
+        // Execute the command and capture the output and return status
         exec($command, $output, $return_var);
-        
-       // Log::info("Execution Node.js Output: " . implode("\n", $output));
-       // Log::info("Node.js Exit Code: $return_var");
-
+    
+        // Log the command being executed for debugging purposes
+        Log::info("Executing command: $command");
+    
+        // Log the output of the Node.js script
+        Log::info("Node.js Output: " . implode("\n", $output));
+    
+        // Log the exit code of the Node.js process
+        Log::info("Node.js Exit Code: $return_var");
+    
+        // Check if the Node.js script failed
         if ($return_var !== 0) {
-            Log::error("Erreur lors de l'exécution du script Node.js !");
+            // Log the error message with more details
+            Log::error("Erreur lors de l'exécution du script Node.js. Exit Code: $return_var");
+            Log::error("Output: " . implode("\n", $output)); // This will show detailed output/errors
         }
     }
+    
 }

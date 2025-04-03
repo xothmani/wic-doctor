@@ -628,7 +628,6 @@
                 }
             });
 
-            //console.log("🏖 Vacations loaded:", vacations);
             //console.log("Availability Days at Load:", availabilityDays);
             function initializeCalendar() {
                 calendar = $('#calendar').fullCalendar({
@@ -741,11 +740,13 @@
                             return currentDay.isSameOrAfter(start) && currentDay.isSameOrBefore(end);
                         });
                         const isUrgentDay = urgencies.some(urgency => {
+
                             const urgencyDate = moment(urgency.jour, 'YYYY-MM-DD');
                             //console.log(`Comparing ${urgencyDate.format('YYYY-MM-DD')} === ${currentDay.format('YYYY-MM-DD')}`);
                             return currentDay.isSame(urgencyDate, 'day');
                         });
                         //console.log("Is Urgent Day:", isUrgentDay);
+
                         //console.log("Is Vacation Day:", isVacationDay);
                         if (currentDay.isBefore(today)) {
                             cell.css('background-color', '#e9ecef');
@@ -760,6 +761,10 @@
                             cell.css('cursor', 'not-allowed');
                             cell.css('background-color', '#f2f2f2');
                             cell.attr('title', 'Le docteur est en vacances ce jour.');
+                        } else if (isUrgentDay) {
+                            cell.addClass('cell-with-background');
+                            cell.css('background-color', '#ffe6e6'); // light red
+                            cell.attr('title', 'Urgence: Le docteur est en urgence ce jour.');
                         } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
                             // Check availability for all appointment types
                             $.ajax({
