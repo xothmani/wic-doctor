@@ -885,22 +885,20 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
                                                     background-color: #f8f9fa;
                                                     border-bottom: 1px solid #ddd;
                                                 }
-
                                                 .conversation-item {
-                                                    display: flex;
-                                                    align-items: center;
-                                                    padding: 10px;
-                                                    cursor: pointer;
-                                                    transition: background-color 0.3s;
-                                                }
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    background-color: white; /* Couleur unifiée */
+    transition: none; /* Supprime la transition */
+}
 
-                                                .conversation-item:hover {
-                                                    background-color: #f0f2f5;
-                                                }
+/* SUPPRIMER CE BLOC ENTIEREMENT */
 
-                                                .conversation-item.active {
-                                                    background-color: #e9ecef;
-                                                }
+
+
+                                  
                                                 .friendly-title {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 32px;
