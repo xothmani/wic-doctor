@@ -31,8 +31,10 @@
             $lastMessage = $lastMessages[$doctor->user_id] ?? null;
         @endphp
  
-        <div class="conversation-item {{ $loop->first ? 'active' : '' }}" data-id="{{ $doctor->id }}" data-user-id="{{ $doctor->user_id }}" onclick="loadMessages('{{ $doctor->user_id }}')">
-        <div class="doctor-avatar">
+ <div class="conversation-item {{ isset($doctorUserId) && $doctor->user_id == $doctorUserId ? 'active' : '' }}" 
+     data-id="{{ $doctor->id }}" 
+     data-user-id="{{ $doctor->user_id }}" 
+     onclick="loadMessages('{{ $doctor->user_id }}')">        <div class="doctor-avatar">
   <i class="fas fa-user-md" 
      style="width: 40px;
             height: 40px;
@@ -99,9 +101,7 @@
                 <a href="{{ $message['file_url'] }}" data-lightbox="image-{{ $message['id'] }}" data-title="Chat Image">
                     <img src="{{ $message['file_url'] }}" alt="Chat Image">
                 </a>
-                <a href="{{ route('download.file', ['filename' => basename($message['file_url'])]) }}" download="{{ basename($message['file_url']) }}" class="download-link">
-    <i class="fas fa-download"></i> 
-</a>    
+                
                 
             </div>
         @else
@@ -109,8 +109,8 @@
             <div class="message-file">
                 <i class="fas fa-file-alt"></i> <!-- Icône pour fichier -->
                 <a href="{{ $message['file_url'] }}" target="_blank">Voir le fichier</a>
-                <a href="{{ $message['file_url'] }}" download="{{ basename($message['file_url']) }}" class="download-link">
-                    <i class="fas fa-download"></i> Télécharger
+                <a href="{{ $message['file_url'] }}" download="{{ basename(path: $message['file_url']) }}" class="download-link">
+                <i class="fas fa-download"></i> Télécharger
                 </a>
             </div>
         @endif
@@ -143,7 +143,7 @@
             <div id="output"></div>
 
             <!-- Champ de message -->
-            <input type="text" name="message" id="message-input" placeholder="Écrire un message..." required>
+            <input type="text" name="message" id="message-input" placeholder="Écrire un message..." >
             <div id="output"></div>
 
             <!-- Bouton d'envoi -->
@@ -887,22 +887,20 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
                                                     background-color: #f8f9fa;
                                                     border-bottom: 1px solid #ddd;
                                                 }
-
                                                 .conversation-item {
-                                                    display: flex;
-                                                    align-items: center;
-                                                    padding: 10px;
-                                                    cursor: pointer;
-                                                    transition: background-color 0.3s;
-                                                }
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    background-color: white; /* Couleur unifiée */
+    transition: none; /* Supprime la transition */
+}
 
-                                                .conversation-item:hover {
-                                                    background-color: #f0f2f5;
-                                                }
+/* SUPPRIMER CE BLOC ENTIEREMENT */
 
-                                                .conversation-item.active {
-                                                    background-color: #e9ecef;
-                                                }
+
+
+                                  
                                                 .friendly-title {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 32px;
@@ -915,7 +913,31 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
     line-height: 1.5;
 }
 
+.conversation-item {
+    transition: background-color 0.2s ease;
+}
 
+.conversation-item.active {
+    background-color: #f0f2f5;
+    border-left: 4px solid #007bff;
+    position: relative;
+}
+
+.conversation-item.active::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 2px;
+    background-color: #007bff;
+}
+
+.conversation-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(3px);
+}
                                               
                                                 .doctor-info {
                                                     flex: 1;
