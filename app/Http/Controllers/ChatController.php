@@ -178,7 +178,7 @@ public function fetchMessages($doctorId)
                 'sender_name' => $senderName,
                 'receiver_id' => $message['receiver_id'],
                 'receiver_name' => $receiverName,
-                'content' => $message['content'],
+'content' => $message['content'] ?? null,
                 'timestamp' => $message['timestamp'],
                 'file_url' => $message['file_url'] ?? null,
             ];
@@ -290,7 +290,7 @@ private function getChatMessages($chatId)
             'id' => $message['id'] ?? $key,
             'sender_id' => $message['sender_id'],
             'sender_name' => $sender->name ?? 'Unknown',
-            'content' => $message['content'],
+'content' => $message['content'] ?? null,
             'timestamp' => $message['timestamp'],
             'file_url' => $message['file_url'] ?? null,
         ];
