@@ -44,7 +44,6 @@ WicDoctor/
 
 WicDoctor
 public/Back-WIc-Doctors
-public/Back-NodeJS/Back-WIc-Doctors
 public/script-detail-med/file.json
 public/script-detail-med/html-content-2.html
 public/script-detail-med/html-content.html
@@ -52,7 +51,6 @@ bootstrap/
 public/
 
 public/Back-NodeJS/Back-WIc-Doctors
-public/Back-NodeJS/Back-WIc-Doctors
-public/Back-NodeJS/Back-WIc-Doctors
+
 composer.lock
 composer.lock
