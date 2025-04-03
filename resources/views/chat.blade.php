@@ -99,18 +99,17 @@
                 <a href="{{ $message['file_url'] }}" data-lightbox="image-{{ $message['id'] }}" data-title="Chat Image">
                     <img src="{{ $message['file_url'] }}" alt="Chat Image">
                 </a>
-                <a href="{{ route('download.file', ['filename' => basename($message['file_url'])]) }}" download="{{ basename($message['file_url']) }}" class="download-link">
-    <i class="fas fa-download"></i> 
-</a>    
+                
                 
             </div>
         @else
             <!-- Affichage pour les fichiers non-image -->
             <div class="message-file">
                 <i class="fas fa-file-alt"></i> <!-- Icône pour fichier -->
-                <a href="{{ $message['file_url'] }}" target="_blank"></a>
-                <a href="{{ $message['file_url'] }}" download="{{ basename($message['file_url']) }}" class="download-link">
-                    <i class="fas fa-download"></i> </a>
+                <a href="{{ $message['file_url'] }}" target="_blank">Voir le fichier</a>
+                <a href="{{ $message['file_url'] }}" download="{{ basename(path: $message['file_url']) }}" class="download-link">
+                <i class="fas fa-download"></i> Télécharger
+                </a>
             </div>
         @endif
     </div>
@@ -142,7 +141,7 @@
             <div id="output"></div>
 
             <!-- Champ de message -->
-            <input type="text" name="message" id="message-input" placeholder="Écrire un message..." required>
+            <input type="text" name="message" id="message-input" placeholder="Écrire un message..." >
             <div id="output"></div>
 
             <!-- Bouton d'envoi -->
@@ -195,7 +194,7 @@
     }
     setTimeout(() => {
     location.reload(true); // Recharge la page depuis le serveur sans utiliser le cache
-}, 80000); // Rafraîchit après 
+}, 100000); // Rafraîchit après 
 
     // Fonction pour charger les nouveaux messages
     function loadMessages(userId) {
