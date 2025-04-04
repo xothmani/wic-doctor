@@ -52,8 +52,7 @@
     <div class="container">
         <img src="https://wic-doctor.com/inscription-professionnel/assets/images/wic-dr-logo.png" alt="WicDoctor Logo" class="logo">
         <h2>📢 Invitation exclusive – Rejoignez WicDoctor et profitez du parrainage !</h2>
-        <p>Vous avez reçu une invitation de la part de <strong>{{ $senderName }}</strong> pour rejoindre WicDoctor, la plateforme innovante dédiée aux professionnels de santé.</p>
-
+        <p>Nous avons le plaisir de vous inviter à rejoindre <strong>Wic-Doctor</strong>, la plateforme innovante dédiée aux professionnels de santé.</p>
         <p>Avec Wic-Doctor, simplifiez la gestion de votre activité et améliorez votre communication avec vos patients grâce à des outils performants.</p>
         <h3>🎁 Offre spéciale : Profitez du programme de parrainage !</h3>
         <p>En rejoignant Wic-Doctor, vous pouvez inviter vos confrères et bénéficier d’avantages exclusifs sur nos services pour chaque médecin parrainé !</p>
@@ -63,7 +62,7 @@
             <li>✅ Un espace de télécsonsultation sécurisé et conforme aux normes de santé</li>
             <li>✅ Une visibilité accrue dans notre annuaire médical</li>
             <li>✅ Des outils de communication avancés (SMS, notifications, etc.)</li>
-            ...et bien plus encore !
+            <li>...et bien plus encore !</li>
         </ul>
         <a href="{{ $link }}" class="button" style="color: white;            background-color: #3498db;
  text-decoration: none; font-weight: bold;">

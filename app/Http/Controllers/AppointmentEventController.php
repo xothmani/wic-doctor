@@ -18,8 +18,45 @@ use Benwilkins\FCM\FcmMessage;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use GuzzleHttp\Client;
 use App\Notifications\StatusChangedAppointment;
+use App\Events\AppointmentChangedEvent;
+use App\Events\AppointmentStatusChangedEvent;
+
+
+use App\Repositories\DoctorRepository;
+use App\Repositories\PatientRepository;
+use App\Repositories\ClinicRepository;
+
 class AppointmentEventController extends Controller
 {
+
+    /**
+     * @var DoctorRepository
+     */
+    private DoctorRepository $doctorRepository;
+    /**
+     * @var ClinicRepository
+     */
+    private ClinicRepository $clinicRepository;
+
+    /**
+     * @var PatientRepository
+     */
+    private PatientRepository $patientRepository;
+
+
+
+    public function __construct(
+        DoctorRepository $doctorRepository,
+        ClinicRepository $clinicRepository,
+        PatientRepository $patientRepository,
+    ) {
+
+        parent::__construct();
+        $this->doctorRepository = $doctorRepository;
+        $this->clinicRepository = $clinicRepository;
+        $this->patientRepository = $patientRepository;
+    }
+
 
     public function index(Request $request)
     {
@@ -50,7 +87,13 @@ class AppointmentEventController extends Controller
                 ->where('doctor_id', $doctorId)
                 ->select('start_date', 'end_date')
                 ->get();
-
+            $urgencies = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->select('jour', 'heurDebut', 'heurFin', 'reason')
+                ->get()
+                ->map(function ($item) {
+                    return (array) $item; // convert stdClass to array
+                });
             //Log::info("Vacations retrieved", ['vacations' => $vacations]);
 
             if ($request->ajax()) {
@@ -140,9 +183,10 @@ class AppointmentEventController extends Controller
             })->select('id', 'first_name', 'last_name', 'phone_number')->get();
 
             //Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
+            Log::info('Urgencies retrieved for doctor:', ['doctor_id' => $doctorId, 'urgencies' => $urgencies->toArray()]);
 
             // Pass availabilityDays and vacations to the view
-            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations', 'patternsByType', ));
+            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations', 'patternsByType', 'urgencies'));
 
 
         } else {
@@ -164,7 +208,13 @@ class AppointmentEventController extends Controller
                 ->where('doctor_id', $doctorId)
                 ->select('start_date', 'end_date')
                 ->get();
-
+            $urgencies = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->select('jour', 'heurDebut', 'heurFin', 'reason')
+                ->get()
+                ->map(function ($item) {
+                    return (array) $item; // convert stdClass to array
+                });
             $patterns = DB::table('pattern')
                 ->select('id', 'nom')
                 ->where('doctor_id', $doctorId)
@@ -249,7 +299,8 @@ class AppointmentEventController extends Controller
                 'patients',
                 'availabilityDays',
                 'patterns',
-                'vacations'
+                'vacations',
+                'urgencies'
             ));
         }
     }
@@ -398,6 +449,15 @@ class AppointmentEventController extends Controller
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
 
+             /** solve problem cast */
+             $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
+             $appointment->doctor = $doctor;
+             $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
+             $appointment->clinic = $clinic;
+             $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
+             $appointment->patient = $patient;
+             /**** */
+
             // Check if the status is "Canceled" (use the correct status ID for "Canceled")
             if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
                 $appointment->cancel_reason = $request->cancel_Reason ?? "Aucune raison fournie";
@@ -416,19 +476,31 @@ class AppointmentEventController extends Controller
                     'patern_id' => $motifId,
                 ]);
             }
-		$patientUserId = $appointment->user_id;
+		        $patientUserId = $appointment->user_id;
             $userId = User::find($patientUserId);
             // Update the appointment status
             $appointment->appointment_status_id = $request->appointment_status_id;
             $appointment->save();
 
-            if ($appointment->user) {
+            /*** Send notification FCM code hamza ***/
+            Log::info("Notification envoyé NotificationController Status changed event");
+            //event(new AppointmentChangedEvent($appointment));
+            //$appointment->doctor = $this->doctor
+            if ($userId->device_token != null) {
                 event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'], $user->device_token));
+            } 
+
+
+            /*if ($appointment->user) {
+                $appointment->user->notify(new StatusChangedAppointment($appointment));
+
             }
 
             //Log::info('Creating message for appointment status update');
             // Log the message creation
             //Log::info('Creating message for appointment status update');
+
+
             if ($appointment->appointment_status_id < 2) {
                 $message = $this->createMessageForAppointment($appointment, $appointment->doctor_id);
             } else {
@@ -476,7 +548,9 @@ class AppointmentEventController extends Controller
                 }
 
 
-            }
+
+            }*/
+
             return response()->json([
                 'message' => 'Status updated successfully',
                 'refresh' => true,
@@ -897,6 +971,7 @@ class AppointmentEventController extends Controller
                 $subQuery->where('doctor_id', $doctor->id);
             });
 
+
             // Search by name, phone number, or birthdate
             if ($search) {
                 $query->where(function ($subQuery) use ($search) {
@@ -914,6 +989,7 @@ class AppointmentEventController extends Controller
             }
 
             // Select id, concatenated text fields with birthday
+
             $patients = $query->select(
                 'id',
                 DB::raw("
@@ -926,12 +1002,14 @@ class AppointmentEventController extends Controller
                         WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
                         ELSE last_name 
                     END, ' - ',
+
                     phone_number, ' - ',
                     DATE_FORMAT(date_naissance, '%d/%m/%Y')
                 ) as text
             ")
             )
                 ->when($search, fn($q) => $q->limit(20)) // Limit results when searching
+
                 ->get();
 
             return response()->json($patients);
@@ -1465,6 +1543,7 @@ class AppointmentEventController extends Controller
 
         // Parse selected date
         $selectedDate = $selectedDate ? Carbon::parse($selectedDate) : Carbon::now();
+
         $dayName = $selectedDate->format('l');
 
         // Get the doctor's availability mode
@@ -1564,6 +1643,7 @@ class AppointmentEventController extends Controller
                 'error' => 'Unsupported availability mode: ' . $availabilityMode
             ]);
         }
+
     }
 
 

@@ -35,6 +35,8 @@ class DoctorVacation extends Model
     public $timestamps = false;
     public $table = 'vacance';
 
+    protected array $translatable = ['raison'];
+
     protected $fillable = [
         'doctor_id',
         'reason',

@@ -8,7 +8,7 @@ class DoctorTelesecretariat extends Model
 {
     // Nom de la table dans la base de données
     protected $table = 'doctor_telesecretariat';
-
+    
     // Indiquer que la table n'a pas de champ `id` auto-incrémenté
     public $incrementing = false;
 
@@ -23,16 +23,26 @@ class DoctorTelesecretariat extends Model
     /**
      * Relation avec le modèle Doctor
      */
-    public function doctor()
-    {
-        return $this->belongsTo(Doctor::class, 'doctor_id');
-    }
+// Dans le modèle DoctorTelesecretariat
+public function doctor()
+{
+    return $this->belongsTo(Doctor::class, 'doctor_id');
+}
 
+    protected $primaryKey = ['doctor_id', 'telesecretariat_id'];
     /**
      * Relation avec le modèle Telesecretariat
      */
-    public function telesecretariat()
-    {
-        return $this->belongsTo(Telesecretariat::class, 'telesecretariat_id');
-    }
+
+
+     public function doctorTelesecretariats()
+     {
+         return $this->hasMany(DoctorTelesecretariat::class, 'doctor_id');
+     }
+ 
+public function telesecretariat()
+{
+    return $this->belongsTo(Telesecretariat::class, 'telesecretariat_id');
+}
+    
 }

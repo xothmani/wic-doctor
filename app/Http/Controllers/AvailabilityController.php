@@ -25,7 +25,6 @@ class AvailabilityController extends Controller
             'end' => '17:00',
             'break_start' => null,
             'break_end' => null
-
         ],
         'teleconsultation' => [
             'start' => '19:00',
@@ -376,21 +375,6 @@ class AvailabilityController extends Controller
                             'session_duration' => $dayData['slots']['duration'][$index] ?? 30,
                             'is_available' => true,
                             'mode' => 'precise'
-                        ]);
-                        DB::table('availability_hours_tunisie')->insert([
-                            'doctor_id' => $doctorId,
-                            'day' => $day,
-                            'start_at' => $startTime,
-                            'end_at' => $dayData['slots']['end'][$index],
-                            'patern_id' => $dayData['slots']['pattern'][$index] ?? null,
-                            'session_duration' => $dayData['slots']['duration'][$index] ?? 30,
-                            'is_available' => true,
-                            'onligne' => $type, // Assuming 'onligne' is meant to represent the type (cabinet/home_visit/etc)
-                            'pause_from' => null,
-                            'pause_to' => null,
-                            'data' => null, // If you want to store additional data later
-                            'created_at' => now(),
-                            'updated_at' => now(),
                         ]);
                     }
                 }
