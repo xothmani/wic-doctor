@@ -478,7 +478,9 @@ class AppointmentEventController extends Controller
                     'patern_id' => $motifId,
                 ]);
             }
+
             $patientUserId = $appointment->user_id;
+
             $userId = User::find($patientUserId);
             // Update the appointment status
             $appointment->appointment_status_id = $request->appointment_status_id;
@@ -490,13 +492,13 @@ class AppointmentEventController extends Controller
             //$appointment->doctor = $this->doctor
             if ($userId->device_token != null) {
                 event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'], $user->device_token));
-            }
 
-            /*** End send notification fcm */
+            }
 
 
             /*if ($appointment->user) {
                 $appointment->user->notify(new StatusChangedAppointment($appointment));
+
             }
 
             //Log::info('Creating message for appointment status update');
@@ -1390,7 +1392,7 @@ class AppointmentEventController extends Controller
             'motif_id' => $validated['motif_id'] ?? null,
             'online' => $validated['appointment_type'],
             'appointment_status_id' => 1,
-            'appointment_at' => $appointmentAt,
+            'appointment_at' => $startAt,
             'start_at' => $startAt,
             'ends_at' => $endsAt,
             'hint' => $validated['notes'] ?? null,
