@@ -90,8 +90,6 @@
         @endcan
     @endif
 
-
-
 </div>
 <script>
     function confirmDelete(id) {
