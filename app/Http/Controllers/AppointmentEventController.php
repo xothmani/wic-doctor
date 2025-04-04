@@ -247,8 +247,8 @@ class AppointmentEventController extends Controller
                         'appointments.hint',
                         'appointments.cancel_reason',
                         'appointments.type',
-                        DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
-                        DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.start_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as start_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.ends_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
                         'appointment_status.status as status',
@@ -1423,8 +1423,8 @@ class AppointmentEventController extends Controller
             'motif_id' => 'required|exists:pattern,id',
         ]);
 
-        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_start_time']);
-        $endsAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_end_time']);
+        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
+        $endsAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_end_time'], 'Africa/Tunis');
 
         // Check for overlapping appointments
         $overlappingAppointment = Appointment::where('doctor_id', $doctorId)
