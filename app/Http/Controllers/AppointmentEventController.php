@@ -1423,7 +1423,7 @@ class AppointmentEventController extends Controller
             'motif_id' => 'required|exists:pattern,id',
         ]);
 
-        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
+        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_start_time'], 'Africa/Tunis');
         $endsAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_end_time'], 'Africa/Tunis');
 
         // Check for overlapping appointments
