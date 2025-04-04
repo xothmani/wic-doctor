@@ -69,8 +69,8 @@ class AppointmentEventController extends Controller
                         'appointments.user_id',
                         'appointments.patient_id',
                         'appointments.hint',
-                        DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
-                        DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.start_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as start_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.ends_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
                         'appointment_status.status as status',
@@ -282,7 +282,7 @@ class AppointmentEventController extends Controller
 
 
             // 5) Create start_at from date + time
-            $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time']);
+            $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
             $dayName = $startAt->format('l'); // e.g. "Wednesday"
             \Log::info('Day Name:', ['day' => $dayName]);
             $type = $validated['appointment_type'];
@@ -314,7 +314,7 @@ class AppointmentEventController extends Controller
                 'motif_id' => $validated['patern_id'] ?? null,
                 'online' => $validated['appointment_type'],
                 'appointment_status_id' => 1,
-                'appointment_at' => $appointmentAt,
+                'appointment_at' => $startAt,
                 'start_at' => $startAt,
                 'ends_at' => $endsAt,
                 'hint' => $validated['notes'] ?? null,
@@ -416,13 +416,14 @@ class AppointmentEventController extends Controller
                     'patern_id' => $motifId,
                 ]);
             }
-
+		$patientUserId = $appointment->user_id;
+            $userId = User::find($patientUserId);
             // Update the appointment status
             $appointment->appointment_status_id = $request->appointment_status_id;
             $appointment->save();
 
             if ($appointment->user) {
-                $appointment->user->notify(new StatusChangedAppointment($appointment));
+                event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'], $user->device_token));
             }
 
             //Log::info('Creating message for appointment status update');
@@ -1271,7 +1272,7 @@ class AppointmentEventController extends Controller
 
 
         // 5) Create start_at from date + time
-        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time']);
+        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
         $dayName = $startAt->format('l'); // e.g. "Wednesday"
         $type = $validated['appointment_type'];
 
@@ -1308,7 +1309,7 @@ class AppointmentEventController extends Controller
             'motif_id' => $validated['motif_id'] ?? null,
             'online' => $validated['appointment_type'],
             'appointment_status_id' => 1,
-            'appointment_at' => $appointmentAt,
+            'appointment_at' => $startAt,
             'start_at' => $startAt,
             'ends_at' => $endsAt,
             'hint' => $validated['notes'] ?? null,
