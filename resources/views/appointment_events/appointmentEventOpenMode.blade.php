@@ -997,7 +997,7 @@
                                                 // If this is the first type with available slots, select its tab
                                                 if (!$('#appointmentModal').is(':visible')) {
                                                     $('#appointmentModal').modal('show');
-                                                    $(`#appointmentTypeTabs a[data-type="${type}"]`).tab('show');
+                                                    $(`#appointmentTypeTabs a[data-type="cabinet"]`).tab('show');
                                                     fetchTimeSlotsForType(selectedDate, type);
                                                 }
                                             }
