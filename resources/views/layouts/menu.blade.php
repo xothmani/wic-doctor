@@ -399,7 +399,7 @@
         <ul class="nav nav-treeview">
             @can('chat.index')
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('chat*') ? 'active' : '' }}" href="{{ url('/chat') }}">
+<a class="nav-link {{ Request::is('chat') ? 'active' : '' }}" href="{{ url('/chat') }}">
                         @if($icons)
                         <i class="nav-icon fas fa-user-md"></i>
                         @endif
