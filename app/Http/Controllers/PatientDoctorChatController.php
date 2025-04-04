@@ -113,85 +113,83 @@ class PatientDoctorChatController extends Controller
         return hash('sha256', implode('_', $sorted));
     }
     public function showChat($doctorUserId, $patientUserId)
-{
-    $user = auth()->user();
-    $patients = $patients ?? collect();
+    {
+        $user = auth()->user();
+        $patients = $patients ?? collect();
     $doctors = $doctors ?? collect();
+        // Vérifier l'authentification
+        if (!$user) {
+            abort(403, 'Unauthorized access.');
+        }
 
-    // Vérifier l'authentification
-    if (!$user) {
-        abort(403, 'Unauthorized access.');
-    }
-
-    // Déterminer le rôle de l'utilisateur
-    $isDoctor = $user->doctor !== null;
-    $isPatient = $user->patient !== null;
-
-    if (!$isDoctor && !$isPatient) {
-        abort(403, 'Unauthorized access. You must be a doctor or a patient.');
-    }
-
-    // Récupérer les relations associées
-    if ($isDoctor) {
-        $patients = DoctorPatients::where('doctor_id', $user->doctor->id)
-            ->with('patient')
-            ->get();
-        $doctors = null;
-    } else {
-        $doctors = DoctorPatients::where('patient_id', $user->patient->id)
-            ->with('doctor')
-            ->get();
-        $patients = DoctorPatients::where('patient_id', $user->patient->id)
-            ->with('doctor')
-            ->get();
-    }
-
-    // Générer le chat ID
-    $chatId = $this->getChatId($doctorUserId, $patientUserId);
-
-    // Récupérer les messages depuis Firestore
-    $messages = $this->firestore->getDocuments("messages/$chatId/chats");
-
-    // Formatage et tri des messages
-    $messagesArray = collect($messages)->map(function ($message) {
-        $fields = $message['fields'] ?? [];
-
-        // Nouvelle structure de données avec firestoreId
-        return [
-            'firestoreId' => $message['name'] ? basename($message['name']) : Str::random(20), // Ajout de l'ID Firestore
-            'id' => $fields['id']['stringValue'] ?? '',
-            'text' => $fields['text']['stringValue'] ?? '',
-            'fileUrl' => $fields['fileUrl']['stringValue'] ?? null,
-            'time' => $fields['time']['integerValue'] ?? 0,
-            'sender' => [
-                'id' => $fields['sender']['mapValue']['fields']['id']['stringValue'] ?? '',
-                'name' => $fields['sender']['mapValue']['fields']['name']['stringValue'] ?? '',
-                'imageUrl' => $fields['sender']['mapValue']['fields']['imageUrl']['stringValue'] ?? ''
-            ],
-            'receiver' => [
-                'id' => $fields['receiver']['mapValue']['fields']['id']['stringValue'] ?? '',
-                'name' => $fields['receiver']['mapValue']['fields']['name']['stringValue'] ?? '',
-                'imageUrl' => $fields['receiver']['mapValue']['fields']['imageUrl']['stringValue'] ?? ''
-            ]
-        ];
-    })->sortBy('time')->values()->all();
-
-    // Récupérer les informations du patient sélectionné
-    $patientUser = User::find($patientUserId);
-    $patient = DoctorPatients::where('patient_id', $patientUserId)->first();
-
-    return view('chatDP', [
-        'chatId' => $chatId,
-        'messages' => $messagesArray,
-        'patient' => $patient,
-        'patientUser' => $patientUser,
-        'patients' => $patients,
-        'doctors' => $doctors,
-        'doctorUserId' => $doctorUserId,
-        'patientUserId' => $patientUserId,
-    ]);
-}
-     private function getChatId($senderId, $receiverId)
+    
+        // Déterminer le rôle de l'utilisateur
+        $isDoctor = $user->doctor !== null;
+        $isPatient = $user->patient !== null;
+    
+        if (!$isDoctor && !$isPatient) {
+            abort(403, 'Unauthorized access. You must be a doctor or a patient.');
+        }
+    
+        // Récupérer les relations associées
+        if ($isDoctor) {
+            $patients = DoctorPatients::where('doctor_id', $user->doctor->id)
+                ->with('patient')
+                ->get();
+            $doctors = null;
+        } else {
+            $doctors = DoctorPatients::where('patient_id', $user->patient->id)
+                ->with('doctor')
+                ->get();
+            $patients = DoctorPatients::where('patient_id', $user->patient->id)
+                ->with('doctor')
+                ->get();
+        }
+    
+        // Générer le chat ID
+        $chatId = $this->getChatId($doctorUserId, $patientUserId);
+    
+        // Récupérer les messages depuis Firestore
+        $messages = $this->firestore->getDocuments("messages/$chatId/chats");
+    
+        // Formatage et tri des messages
+        $messagesArray = collect($messages)->map(function ($message) {
+            $fields = $message['fields'] ?? [];
+    
+            // Nouvelle structure de données
+            return [
+                'id' => $fields['id']['stringValue'] ?? '',
+                'text' => $fields['text']['stringValue'] ?? '',
+                'fileUrl' => $fields['fileUrl']['stringValue'] ?? null,
+                'time' => $fields['time']['integerValue'] ?? 0,
+                'sender' => [
+                    'id' => $fields['sender']['mapValue']['fields']['id']['stringValue'] ?? '',
+                    'name' => $fields['sender']['mapValue']['fields']['name']['stringValue'] ?? '',
+                    'imageUrl' => $fields['sender']['mapValue']['fields']['imageUrl']['stringValue'] ?? ''
+                ],
+                'receiver' => [
+                    'id' => $fields['receiver']['mapValue']['fields']['id']['stringValue'] ?? '',
+                    'name' => $fields['receiver']['mapValue']['fields']['name']['stringValue'] ?? '',
+                    'imageUrl' => $fields['receiver']['mapValue']['fields']['imageUrl']['stringValue'] ?? ''
+                ]
+            ];
+        })->sortBy('time')->values()->all();
+    
+        // Récupérer les informations du patient sélectionné
+        $patientUser = User::find($patientUserId);
+        $patient = DoctorPatients::where('patient_id', $patientUserId)->first();
+    
+        return view('chatDP', [
+            'chatId' => $chatId,
+            'messages' => $messagesArray,
+            'patient' => $patient,
+            'patientUser' => $patientUser,
+            'patients' => $patients,
+            'doctors' => $doctors,
+            'doctorUserId' => $doctorUserId,
+            'patientUserId' => $patientUserId,
+        ]);
+    }      private function getChatId($senderId, $receiverId)
     {
         return $senderId < $receiverId
             ? $senderId . '-' . $receiverId
@@ -250,7 +248,39 @@ class PatientDoctorChatController extends Controller
     }
 
     
-        public function sendMessage(Request $request)
+    public function deleteMessage($chatId, $messageId)
+    {
+        try {
+            // Authentification avec Service Account
+            $client = new Client();
+            $client->setAuthConfig(storage_path(env('FIREBASE_CREDENTIALS', 'app/firebase-credentials.json')));
+            $client->addScope(Firestore::CLOUD_PLATFORM);
+            $token = $client->fetchAccessTokenWithAssertion();
+    
+            $firestoreUrl = "https://firestore.googleapis.com/v1/projects/wic-doctor-b83e0/databases/(default)/documents/messages/".urlencode($chatId)."/chats/".urlencode($messageId);
+    
+            // Vérifier l'existence
+            $response = Http::withToken($token['access_token'])->get($firestoreUrl);
+            
+            if ($response->status() === 404) {
+                return response()->json(['success' => false, 'message' => 'Message non trouvé'], 404);
+            }
+    
+            // Suppression
+            $deleteResponse = Http::withToken($token['access_token'])->delete($firestoreUrl);
+    
+            return $deleteResponse->successful() 
+                ? response()->json(['success' => true])
+                : response()->json(['success' => false, 'message' => 'Erreur Firestore'], 500);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur serveur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    public function sendMessage(Request $request)
     {
         $request->validate([
             'message' => 'nullable|string|max:255',
@@ -394,57 +424,76 @@ class PatientDoctorChatController extends Controller
     }
    
     
-    public function index(Request $request)
+public function index(Request $request)
 {
     $user = auth()->user();
     $isDoctor = $user->doctor !== null;
 
-    // Récupération des conversations avec dernier message
+    // Initialize variables to avoid undefined errors
     $conversations = [];
+    $patients = collect();
+    $relationships = collect(); // Initialize here
 
-    $patients = collect(); // Initialize the $patients variable
-
+    // Fetch doctor-patient relationships
     if ($isDoctor) {
         $relationships = DoctorPatients::where('doctor_id', $user->doctor->id)
             ->with(['patient.user'])
             ->get();
         
-        // Assign patients to the variable
         $patients = $relationships->map(function ($rel) {
             return $rel->patient;
         });
-    } 
-
-    foreach ($relationships as $rel) {
-        $target = $isDoctor ? $rel->patient : $rel->doctor;
-        $otherUser = $target->user;
-
-        // Récupération dernier message depuis Firestore
-        $chatId = $user->id < $otherUser->id 
-            ? $user->id . '-' . $otherUser->id 
-            : $otherUser->id . '-' . $user->id;
-
-        $messages = $this->firestore->getDocuments("messages/{$chatId}/chats");
-
-        $lastMessage = null;
-        foreach ($messages as $message) {
-            $time = $message['fields']['time']['integerValue'] ?? 0;
-            if (!$lastMessage || $time > $lastMessage['time']) {
-                $lastMessage = [
-                    'text' => $message['fields']['text']['stringValue'] ?? '',
-                    'time' => $time
-                ];
-            }
+    } else {
+        // If the user is a patient, get doctor relationships
+        if ($user->patient) {
+            $relationships = DoctorPatients::where('patient_id', $user->patient->id)
+                ->with(['doctor.user'])
+                ->get();
         }
-
-        $conversations[] = [
-            'user_id' => $otherUser->id,
-            'name' => $otherUser->name,
-            'last_message' => $lastMessage
-        ];
     }
 
-    // Tri par dernier message
+    // Process relationships to fetch conversations
+    foreach ($relationships as $rel) {
+        // Ensure that the patient or doctor is not null before accessing user data
+        $target = $isDoctor ? $rel->patient : $rel->doctor;
+        
+        // Check if the target (patient or doctor) and its associated user exist
+        if ($target && $target->user) {
+            $otherUser = $target->user;
+
+            // Create chatId based on user IDs
+            $chatId = $user->id < $otherUser->id 
+                ? $user->id . '-' . $otherUser->id 
+                : $otherUser->id . '-' . $user->id;
+
+            // Retrieve messages from Firestore
+            $messages = $this->firestore->getDocuments("messages/{$chatId}/chats");
+
+            // Find the latest message
+            $lastMessage = null;
+            foreach ($messages as $message) {
+                $time = $message['fields']['time']['integerValue'] ?? 0;
+                if (!$lastMessage || $time > $lastMessage['time']) {
+                    $lastMessage = [
+                        'text' => $message['fields']['text']['stringValue'] ?? '',
+                        'time' => $time
+                    ];
+                }
+            }
+
+            // Add conversation to the list
+            $conversations[] = [
+                'user_id' => $otherUser->id,
+                'name' => $otherUser->name,
+                'last_message' => $lastMessage
+            ];
+        } else {
+            // Log the missing user or handle the case where the target is null
+            \Log::warning('User data is missing for relationship: ', ['relationship' => $rel]);
+        }
+    }
+
+    // Sort conversations by the last message time
     usort($conversations, function ($a, $b) {
         return ($b['last_message']['time'] ?? 0) <=> ($a['last_message']['time'] ?? 0);
     });
@@ -456,5 +505,6 @@ class PatientDoctorChatController extends Controller
     ]);
 }
 
+    
     
 }
