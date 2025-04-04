@@ -25,6 +25,7 @@ use App\Events\AppointmentStatusChangedEvent;
 use App\Repositories\DoctorRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\ClinicRepository;
+use function PHPUnit\Framework\isNull;
 
 class AppointmentEventController extends Controller
 {
@@ -112,8 +113,8 @@ class AppointmentEventController extends Controller
                         'appointments.user_id',
                         'appointments.patient_id',
                         'appointments.hint',
-                        DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
-                        DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.start_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as start_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.ends_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
                         'appointment_status.status as status',
@@ -333,7 +334,7 @@ class AppointmentEventController extends Controller
 
 
             // 5) Create start_at from date + time
-            $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time']);
+            $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
             $dayName = $startAt->format('l'); // e.g. "Wednesday"
             \Log::info('Day Name:', ['day' => $dayName]);
             $type = $validated['appointment_type'];
@@ -365,7 +366,7 @@ class AppointmentEventController extends Controller
                 'motif_id' => $validated['patern_id'] ?? null,
                 'online' => $validated['appointment_type'],
                 'appointment_status_id' => 1,
-                'appointment_at' => $appointmentAt,
+                'appointment_at' => $startAt,
                 'start_at' => $startAt,
                 'ends_at' => $endsAt,
                 'hint' => $validated['notes'] ?? null,
@@ -444,19 +445,20 @@ class AppointmentEventController extends Controller
 
     public function updateStatus(Request $request)
     {
+
         Log::info('Checking if user exists by email or phone number.', request()->all());
         try {
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
 
-             /** solve problem cast */
-             $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
-             $appointment->doctor = $doctor;
-             $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
-             $appointment->clinic = $clinic;
-             $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
-             $appointment->patient = $patient;
-             /**** */
+            /** solve problem cast */
+            $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
+            $appointment->doctor = $doctor;
+            $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
+            $appointment->clinic = $clinic;
+            $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
+            $appointment->patient = $patient;
+            /**** */
 
             // Check if the status is "Canceled" (use the correct status ID for "Canceled")
             if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
@@ -476,7 +478,8 @@ class AppointmentEventController extends Controller
                     'patern_id' => $motifId,
                 ]);
             }
-
+            $patientUserId = $appointment->user_id;
+            $userId = User::find($patientUserId);
             // Update the appointment status
             $appointment->appointment_status_id = $request->appointment_status_id;
             $appointment->save();
@@ -485,7 +488,10 @@ class AppointmentEventController extends Controller
             Log::info("Notification envoyé NotificationController Status changed event");
             //event(new AppointmentChangedEvent($appointment));
             //$appointment->doctor = $this->doctor
-            event(new AppointmentStatusChangedEvent($appointment ,$appointment->appointment_status_id,$appointment->user->device_token));
+            if ($userId->device_token != null) {
+                event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'], $user->device_token));
+            }
+
             /*** End send notification fcm */
 
 
@@ -955,63 +961,61 @@ class AppointmentEventController extends Controller
             if (!$doctorId) {
                 return response()->json(['error' => 'Doctor not found'], 404);
             }
-            $doctor = Doctor::where('id', $doctorId)->first();
-
-            if (!$doctor) {
-                return response()->json(['error' => 'Doctor not found'], 404);
-            }
 
             $search = $request->input('q');
 
-            // Query patients linked to the logged-in doctor
-            $query = Patient::whereHas('doctors', function ($subQuery) use ($doctor) {
-                $subQuery->where('doctor_id', $doctor->id);
-            });
+            // Step 1: Get patient IDs linked to this doctor from the pivot table
+            $patientIds = DB::table('doctor_patients')
+                ->where('doctor_id', $doctorId)
+                ->pluck('patient_id');
 
-
-            // Search by name, phone number, or birthdate
+            // Step 2: Query patients by those IDs
+            $query = Patient::whereIn('id', $patientIds);
+            $searchLower = mb_strtolower($search);
+            // Step 3: Apply search if needed
             if ($search) {
-                $query->where(function ($subQuery) use ($search) {
+                $query->where(function ($subQuery) use ($search, $searchLower) {
                     $subQuery->whereRaw("
-                    (JSON_VALID(first_name) AND JSON_EXTRACT(first_name, '$.fr') LIKE ?)
-                    OR first_name LIKE ?
-                ", ["%{$search}%", "%{$search}%"])
+                        (JSON_VALID(first_name) AND LOWER(JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr'))) LIKE ?)
+                        OR LOWER(first_name) LIKE ?
+                    ", ["%{$searchLower}%", "%{$searchLower}%"])
                         ->orWhereRaw("
-                    (JSON_VALID(last_name) AND JSON_EXTRACT(last_name, '$.fr') LIKE ?)
-                    OR last_name LIKE ?
-                ", ["%{$search}%", "%{$search}%"])
+                        (JSON_VALID(last_name) AND LOWER(JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr'))) LIKE ?)
+                        OR LOWER(last_name) LIKE ?
+                    ", ["%{$searchLower}%", "%{$searchLower}%"])
                         ->orWhere('phone_number', 'like', "%{$search}%")
-                        ->orWhereRaw("DATE_FORMAT(date_naissance, '%Y-%m-%d') LIKE ?", ["%{$search}%"]); // Search by birthday
+                        ->orWhereRaw("DATE_FORMAT(date_naissance, '%Y-%m-%d') LIKE ?", ["%{$search}%"]);
                 });
             }
-
-            // Select id, concatenated text fields with birthday
 
             $patients = $query->select(
                 'id',
                 DB::raw("
-                CONCAT(
-                    CASE 
-                        WHEN JSON_VALID(first_name) THEN JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr')) 
-                        ELSE first_name 
-                    END, ' ',
-                    CASE 
-                        WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
-                        ELSE last_name 
-                    END, ' - ',
-
-                    phone_number, ' - ',
-                    DATE_FORMAT(date_naissance, '%d/%m/%Y')
-                ) as text
-            ")
+                    CONCAT(
+                        CASE 
+                            WHEN JSON_VALID(first_name) THEN JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr')) 
+                            ELSE first_name 
+                        END, ' ',
+                        CASE 
+                            WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
+                            ELSE last_name 
+                        END, ' - ',
+                        IFNULL(phone_number, 'N° inconnu'), ' - ',
+                        IFNULL(DATE_FORMAT(date_naissance, '%d/%m/%Y'), 'N/S')
+                    ) as text
+                ")
             )
-                ->when($search, fn($q) => $q->limit(20)) // Limit results when searching
-
+                ->when($search, fn($q) => $q->limit(20))
                 ->get();
+
+            // ✅ Log for debugging
+            \Log::info('[getPatients] Found patients:', $patients->toArray());
 
             return response()->json($patients);
         }
     }
+
+
 
 
 
@@ -1330,7 +1334,9 @@ class AppointmentEventController extends Controller
         if (!$doctorId) {
             return back()->withErrors(['error' => 'No associated doctor found.']);
         }
-
+        $doctor = Doctor::find($doctorId);
+        $doctorTimezone = $doctor->timezone;
+        \Log::info('Doctor timezone:', ['timezone' => $doctorTimezone]);
         // 2) Validate incoming data
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
@@ -1347,7 +1353,7 @@ class AppointmentEventController extends Controller
 
 
         // 5) Create start_at from date + time
-        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time']);
+        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
         $dayName = $startAt->format('l'); // e.g. "Wednesday"
         $type = $validated['appointment_type'];
 

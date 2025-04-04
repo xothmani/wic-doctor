@@ -241,7 +241,7 @@ class AppointmentController extends Controller
                 $appointment->customFieldsValues()
                     ->updateOrCreate(['custom_field_id' => $value['custom_field_id']], $value);
             }
-            event(new AppointmentStatusChangedEvent($appointment,$input['payment_status_id'] ,$user->device_token));
+            event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'], $user->device_token));
         } catch (ValidatorException $e) {
             Flash::error($e->getMessage());
         }
@@ -282,8 +282,7 @@ class AppointmentController extends Controller
 
     public function getTodayCompletedAppointments(): \Illuminate\View\View
     {
-        $userId = auth()->user()->id;
-
+        $doctorId = auth()->user()->getDoctorId();
 
         $appointments = \DB::table('appointments')
             ->join('users', 'appointments.user_id', '=', 'users.id')
@@ -291,7 +290,7 @@ class AppointmentController extends Controller
             ->join('appointment_statuses', 'appointments.appointment_status_id', '=', 'appointment_statuses.id')
             ->join('doctors', 'appointments.doctor_id', '=', 'doctors.id')
             ->leftJoin('pattern', 'appointments.motif_id', '=', 'pattern.id') // Jointure avec la table pattern
-            ->where('doctors.user_id', $userId)
+            ->where('doctors.id', $doctorId)
             ->where('appointment_statuses.status', 'Ready')
             ->whereDate('appointments.appointment_at', now()->toDateString())
             ->orderBy('appointments.start_at', 'asc')
@@ -308,10 +307,8 @@ class AppointmentController extends Controller
             )
             ->paginate(10); // Limite à 10 par page
 
-
         return view('todayAppointment.show', compact('appointments'));
     }
-
 
 
 
