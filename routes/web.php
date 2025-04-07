@@ -686,7 +686,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     })->middleware('auth');
 });
 Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
-Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
 ->name('chatT.show')
 ->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
@@ -700,4 +700,3 @@ Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->nam
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
-Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');

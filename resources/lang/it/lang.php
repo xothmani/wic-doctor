@@ -19,7 +19,6 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
-    'all_types' => 'Tous',
     'doctor_user_edit' => 'Modifier l’utilisateur',
     'manage_users_desc' => 'Gérer les utilisateurs associés au médecin.',
     'start_date_required' => 'La date de début est obligatoire',
@@ -222,7 +221,7 @@ return [
     'pharmacy_create' => 'Créer une pharmacie',
     'teleconsultation_plural' => 'Téléconsultation',
     'pattern_name' => 'Nom',
-    'adomicile' => 'A domicile',
+    'adomicile' => 'Adomicile',
     'not_associated_to_clinic' => 'Non associé à une clinique',
     'unexpected_error' => 'Une erreur inattendue est survenue. Veuillez réessayer plus tard.',
     'pattern_cannot_be_deleted' => 'Le modèle ne peut pas être supprimé car il est associé à d\'autres enregistrements.',
@@ -1826,14 +1825,14 @@ return [
 
 
     'prescription_medicament_code' => 'Nom Commercial',
-    'prescription_medicament_dosage' => 'Posologie',
+    'prescription_medicament_dosage' => 'Dosage',
     'prescription_medicament_duration' => 'Durée traitement',
     'prescription_medicament_days' => 'Jour',
     'prescription_medicament_weeks' => 'Semaine',
     'prescription_medicament_months' => 'Mois',
 
     'prescription_medicament_schedule' => 'Horaire',
-    'prescription_medicament_times' => 'Nombre de fois',
+    'prescription_medicament_times' => 'Nombre de fois/Jour',
     'prescription_details' => 'Détails',
 
 
@@ -1848,7 +1847,7 @@ return [
     'prescription' => 'Préscription',
     'prescription' => 'Préscription',
     'phone_number' => 'Téléphone',
-    'prescription_medicament_frequency' => 'Nb de fois',
+    'prescription_medicament_frequency' => 'Nb/Jour',
     'prescription_select_frequency' => 'Sélectionner le nbr de fois/J',
     'fiche_details' => 'Fiche Patient',
     'patient_details' => 'Détails du patient',
@@ -2168,8 +2167,4 @@ return [
     'consultation_status_closed' => 'Consultation clôturée',
     'active' => 'Actif',
     'inactive' => 'Inactif',
-    'prescription_medicament_per_day' => 'fois/jour',
-    'prescription_medicament_per_week' => 'fois/semaine',
-    'prescription_medicament_per_month' => 'fois/mois',
-    'prescription_medicament_per_year' => 'fois/an',
 ];

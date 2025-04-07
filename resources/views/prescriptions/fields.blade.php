@@ -110,6 +110,21 @@
 
             <input type="text" name="medicaments[0][dosage]" required class="form-control">
         </div>
+
+        <div class="col-md">
+    {!! Form::label('medicaments[0][nb_de_fois]', trans("lang.prescription_medicament_frequency")) !!}
+    <span class="text-danger">*</span>
+    
+    <div class="input-group">
+        <input type="number" name="medicaments[0][nb_de_fois]" class="form-control" min="1" max="10" required placeholder="{{ trans('lang.prescription_medicament_frequency') }}" />
+        <select name="medicaments[0][frequency_unit]" required class="form-control">
+            <option value="fois par jour">{{ trans('lang.prescription_medicament_per_day') }}</option>
+            <option value="fois par semaine">{{ trans('lang.prescription_medicament_per_week') }}</option>
+            <option value="fois par mois">{{ trans('lang.prescription_medicament_per_month') }}</option>
+            <option value="fois par an">{{ trans('lang.prescription_medicament_per_year') }}</option>
+        </select>
+    </div>
+</div>
         
         <div class="col-md">
             {!! Form::label('medicaments[0][nb_de_jours]', trans("lang.prescription_medicament_duration")) !!}
@@ -126,21 +141,17 @@
         </div>
 
         <div class="col-md">
-            {!! Form::label('medicaments[0][horaire]', trans("lang.prescription_medicament_schedule")) !!}
-            <span class="text-danger">*</span>
+    {!! Form::label('medicaments[0][horaire]', trans("lang.prescription_medicament_schedule")) !!}
 
-            <select name="medicaments[0][horaire]" required class="form-control">
-                <option value="avant repas">Avant repas</option>
-                <option value="après repas">Après repas</option>
-            </select>
-        </div>
+    <select name="medicaments[0][horaire]" required class="form-control">
+        <option value="" disabled selected>-- Choisir un horaire --</option>
+        <option value="avant repas">Avant repas</option>
+        <option value="après repas">Après repas</option>
+    </select>
+</div>
+
         
-        <div class="col-md">
-            {!! Form::label('medicaments[0][nb_de_fois]', trans("lang.prescription_medicament_frequency")) !!} 
-            <span class="text-danger">*</span>
-
-            <input type="number" name="medicaments[0][nb_de_fois]" class="form-control" min="1" max="10" required placeholder="{{ trans('lang.prescription_medicament_frequency') }}" />
-        </div>
+       
 
         <!-- Delete Icon -->
         <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.delete_medicament') }}" href="#" onclick="removeMedicament(this)" class="btn btn-link p-1 mt-4">

@@ -97,7 +97,7 @@ class PrescriptionController extends Controller
             $rules['medicaments.*.dosage'] = 'required|string';
             $rules['medicaments.*.nb_de_jours'] = 'required|string';
             $rules['medicaments.*.duration_unit'] = 'required|string|in:jours,semaines,mois';
-            $rules['medicaments.*.horaire'] = 'required|string';
+            $rules['medicaments.*.horaire'] = 'nullable|string';
             $rules['medicaments.*.nb_de_fois'] = 'required|string';
         } elseif ($request->input('type') === 'Analyse') {
             $rules['analyses'] = 'required|array';
@@ -150,8 +150,8 @@ class PrescriptionController extends Controller
                         'medicament_id' => $medicament->id, // Référence à fr_medicament
                         'dosage' => $medicamentData['dosage'],
                         'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
-                        'horaire' => $medicamentData['horaire'],
-                        'nb_de_fois' => $medicamentData['nb_de_fois'] . ' fois',
+                        'horaire' => $medicamentData['horaire'] ?? null,
+                        'nb_de_fois' => $medicamentData['nb_de_fois'] . ' ' . $medicamentData['frequency_unit'],
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
@@ -168,8 +168,8 @@ class PrescriptionController extends Controller
                         'medicament_CODE_PCT' => $medicament->CODE_PCT, // Référence à medicaments
                         'dosage' => $medicamentData['dosage'],
                         'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
-                        'horaire' => $medicamentData['horaire'],
-                        'nb_de_fois' => $medicamentData['nb_de_fois'] . ' fois',
+                        'horaire' => $medicamentData['horaire'] ?? null,
+                        'nb_de_fois' => $medicamentData['nb_de_fois'] . ' ' . $medicamentData['frequency_unit'],
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);

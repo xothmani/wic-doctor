@@ -304,7 +304,6 @@
 <!-- Date Naissance Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
     {!! Form::label('date_naissance', trans("lang.patient_date_naissance"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-    <span class="text-danger">*</span>
 
     <div class="col-md-9">
         {!! Form::date('date_naissance', old('date_naissance', $patient->date_naissance ?? null), ['class' => 'form-control']) !!}
