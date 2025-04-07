@@ -212,9 +212,11 @@ class PatientController extends Controller
             }
             // Vérifiez si le short link a été généré avec succès
             $shortUrlResponse = $this->genererLink();
+            Log::info("Short URL response: " . $shortUrlResponse);
 
             if ($shortUrlResponse instanceof \Illuminate\Http\JsonResponse) {
                 $responseData = json_decode($shortUrlResponse->getContent(), true);
+                Log::info("Short URL decoded data: " . print_r($responseData, true));
 
                 if (isset($responseData['short_link'])) {
                     $shortUrl = $responseData['short_link'];
@@ -247,6 +249,7 @@ class PatientController extends Controller
 
 
             $shortUrlResponse = $this->genererLink();
+            Log::info("Short URL response: " . $shortUrlResponse);
 
 
             $doctorId = auth()->user()->getDoctorId();
@@ -265,6 +268,7 @@ class PatientController extends Controller
             // Ensure that the response is a valid JsonResponse before accessing it
             if ($shortUrlResponse instanceof \Illuminate\Http\JsonResponse) {
                 $responseData = json_decode($shortUrlResponse->getContent(), true); // Decode the response content into an array
+                Log::info("Short URL decoded data: " . print_r($responseData, true));
 
                 // Check if the 'short_link' exists in the response data
                 if (isset($responseData['short_link'])) {
@@ -277,10 +281,10 @@ class PatientController extends Controller
                     $alphasender = 'Wic doctor';
 
                     // SMS message with short link
-                    $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name . " chez Wic-Doctor.\n" .
-                        "Nom d'utilisateur : " . $request->phone_number . "\n" .
-                        "Mot de passe : $generatedPassword\n" .
-                        "Lien RDV : $shortUrl\n";
+                    $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name . " chez Wic-Dr avec Dr." . $doctor->name . ".\n".
+                        "Utilisateur: " . $request->phone_number . "\n" .
+                        "MDP:  $generatedPassword\n" .
+                        "RDV: $shortUrl\n";
 
 
                     // Send SMS

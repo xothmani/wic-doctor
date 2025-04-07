@@ -43,10 +43,7 @@
             font-size: 1em; /* Taille de police ajustée */
         }
 
-        .signature {
-            text-align: right;
-            margin-top: 20px; /* Espacement réduit */
-        }
+
 
         h1 {
             font-size: 1.5em; /* Taille de police ajustée */
@@ -112,7 +109,7 @@
                 <h2>Médicaments</h2>
                 <div class="medications">
                     @foreach ($medicaments as $medicament)
-                        <p>{{ $medicament['nom_commercial'] }} - {{ $medicament['dosage'] }}, {{ $medicament['nb_de_fois'] }} fois, {{ $medicament['horaire'] }} pendant {{ $medicament['nb_de_jours'] }} jours.</p>
+                    <p>{{ $medicament['nom_commercial'] }} - {{ $medicament['dosage'] }}, {{ $medicament['nb_de_fois'] }}, {{ $medicament['horaire'] }} pendant {{ $medicament['nb_de_jours'] }}.</p>
                     @endforeach
                 </div>
             @elseif($type === 'Analyse')
@@ -156,10 +153,7 @@
                 <strong>{{ trans('lang.total') }} {{ $type }}:</strong> {{ count($other_treatments) }}
             @endif
         </div>
-        <div class="signature">
-            <p>{{ trans('lang.signature') }}</p>
-            <p>____________________</p>
-        </div>
+        
     </footer>
 </body>
 </html>

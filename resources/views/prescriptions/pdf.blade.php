@@ -22,10 +22,6 @@
             width: 90%;
             margin-bottom: 20px;
         }
-        .signature {
-            margin-top: 30px;
-            text-align: right;
-        }
     </style>
 </head>
 <body>
@@ -38,7 +34,7 @@
             @if ($type === 'Médicament')
                 <h3>Médicaments</h3>
                 @foreach ($medicaments as $medicament)
-                    <p>{{ $medicament['nom_commercial'] }} - {{ $medicament['dosage'] }}, {{ $medicament['nb_de_fois'] }} fois, {{ $medicament['horaire'] }} pendant {{ $medicament['nb_de_jours'] }} jours.</p>
+                    <p>{{ $medicament['nom_commercial'] }} - {{ $medicament['dosage'] }}, {{ $medicament['nb_de_fois'] }}, {{ $medicament['horaire'] }} pendant {{ $medicament['nb_de_jours'] }}.</p>
                 @endforeach
             @elseif($type === 'Analyse')
                 <h3>Analyses</h3>
@@ -74,10 +70,6 @@
             @else
                 <strong>Total {{ $type }}:</strong> {{ count($other_treatments) }}
             @endif
-        </div>
-        <div class="signature">
-            <p>Signature</p>
-            <p>____________________</p>
         </div>
     </footer>
 </body>

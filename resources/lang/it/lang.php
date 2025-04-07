@@ -1825,14 +1825,14 @@ return [
 
 
     'prescription_medicament_code' => 'Nom Commercial',
-    'prescription_medicament_dosage' => 'Posologie',
+    'prescription_medicament_dosage' => 'Dosage',
     'prescription_medicament_duration' => 'Durée traitement',
     'prescription_medicament_days' => 'Jour',
     'prescription_medicament_weeks' => 'Semaine',
     'prescription_medicament_months' => 'Mois',
 
     'prescription_medicament_schedule' => 'Horaire',
-    'prescription_medicament_times' => 'Nombre de fois',
+    'prescription_medicament_times' => 'Nombre de fois/Jour',
     'prescription_details' => 'Détails',
 
 
@@ -1847,7 +1847,7 @@ return [
     'prescription' => 'Préscription',
     'prescription' => 'Préscription',
     'phone_number' => 'Téléphone',
-    'prescription_medicament_frequency' => 'Nb de fois',
+    'prescription_medicament_frequency' => 'Nb/Jour',
     'prescription_select_frequency' => 'Sélectionner le nbr de fois/J',
     'fiche_details' => 'Fiche Patient',
     'patient_details' => 'Détails du patient',
@@ -2167,8 +2167,4 @@ return [
     'consultation_status_closed' => 'Consultation clôturée',
     'active' => 'Actif',
     'inactive' => 'Inactif',
-    'prescription_medicament_per_day' => 'fois/jour',
-    'prescription_medicament_per_week' => 'fois/semaine',
-    'prescription_medicament_per_month' => 'fois/mois',
-    'prescription_medicament_per_year' => 'fois/an',
 ];
