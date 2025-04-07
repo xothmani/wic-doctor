@@ -57,6 +57,10 @@ class UserAPIController extends Controller
                 // Authentication passed...
                 $user = auth()->user();
                 $user->device_token = $request->input('device_token', '');
+
+                //ajouter par hamza pour voir role utilisateur connecter
+                $user = $user->load('roles');
+
                 $user->save();
                 return $this->sendResponse($user, 'User retrieved successfully');
             } else {
@@ -87,7 +91,7 @@ class UserAPIController extends Controller
             $user->phone_verified_at = $request->input('phone_verified_at');
             $user->device_token = $request->input('device_token', '');
             $user->password = Hash::make($request->input('passwordpatient'));
-	    $user->passwordpatient = Hash::make($request->input('passwordpatient'));
+            $user->passwordpatient = Hash::make($request->input('passwordpatient'));
             $user->api_token = Str::random(60);
             $user->save();
 
@@ -112,28 +116,28 @@ class UserAPIController extends Controller
     }
 
 
-	function resetPassword(string $phoneNumber, Request $request): JsonResponse
+    function resetPassword(string $phoneNumber, Request $request): JsonResponse
     {
         // Find user by phone number
         $user = $this->userRepository->findWhere(['phone_number' => $phoneNumber])->first();
         if (!$user) {
             return $this->sendError(__('User not found'), 404);
         }
-    
+
         // Validate the new password
         $validator = Validator::make($request->all(), [
             'new_password' => 'required|string|min:8|confirmed', // Ensure password confirmation
         ]);
-    
+
         if ($validator->fails()) {
             return $this->sendError($validator->errors()->first(), 422); // Return validation error
         }
-    
+
         try {
             // Update the user's password
             $user->password = Hash::make($request->input('new_password'));
             $user->save();
-    
+
             return $this->sendResponse($user, __('Password updated successfully.'));
         } catch (Exception $e) {
             return $this->sendError(__('An error occurred while updating the password.'), 500);
@@ -141,32 +145,32 @@ class UserAPIController extends Controller
     }
 
 
-        public function checkPhoneNumber(Request $request)
-{
-    $phoneNumber = $request->input('phone_number');
+    public function checkPhoneNumber(Request $request)
+    {
+        $phoneNumber = $request->input('phone_number');
 
-    if (!$phoneNumber) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Phone number is required.',
-        ], 400);
+        if (!$phoneNumber) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phone number is required.',
+            ], 400);
+        }
+
+        // Check if the phone number exists in the database
+        $user = $this->userRepository->findWhere(['phone_number' => $phoneNumber])->first();
+
+        if ($user) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Phone number exists.',
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phone number does not exist.',
+            ], 404);
+        }
     }
-
-    // Check if the phone number exists in the database
-    $user = $this->userRepository->findWhere(['phone_number' => $phoneNumber])->first();
-
-    if ($user) {
-        return response()->json([
-            'success' => true,
-            'message' => 'Phone number exists.',
-        ], 200);
-    } else {
-        return response()->json([
-            'success' => false,
-            'message' => 'Phone number does not exist.',
-        ], 404);
-    }
-}
 
     function logout(Request $request)
     {
@@ -197,7 +201,8 @@ class UserAPIController extends Controller
     function settings(Request $request)
     {
         $settings = setting()->all();
-        $settings = array_intersect_key($settings,
+        $settings = array_intersect_key(
+            $settings,
             [
                 'default_tax' => '',
                 'default_currency' => '',
