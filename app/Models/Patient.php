@@ -77,7 +77,7 @@ class Patient extends Model implements HasMedia, Castable
         'gender' => 'required|max:127',
        // 'weight' => 'required|max:127',
        // 'height' => 'required|max:127',
-        'date_naissance' => 'required|date', 
+        'date_naissance' => 'nullable|date', 
     ];
 
     public array $translatable = [
