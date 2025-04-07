@@ -424,7 +424,8 @@ class PatientDoctorChatController extends Controller
     }
    
     
-public function index(Request $request)
+    public function index(Request $request)
+
 {
     $user = auth()->user();
     $isDoctor = $user->doctor !== null;

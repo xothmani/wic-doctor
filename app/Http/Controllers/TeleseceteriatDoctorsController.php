@@ -159,7 +159,7 @@ public function showChat($doctorUserId = null, $teleSecretariatUserId = null)
                 if (!isset($lastMessages[$partnerId]) || 
                     $message['timestamp'] > $lastMessages[$partnerId]['timestamp']) {
                     $lastMessages[$partnerId] = [
-                        'content' => $message['content'],
+'content' => $message['content'] ?? null,
                         'timestamp' => $message['timestamp']
                     ];
                 }
@@ -181,7 +181,7 @@ public function showChat($doctorUserId = null, $teleSecretariatUserId = null)
             'sender_name' => User::find($message['sender_id'])->name,
             'receiver_id' => $message['receiver_id'],
             'receiver_name' => User::find($message['receiver_id'])->name,
-            'content' => $message['content'],
+'content' => $message['content'] ?? null,
             'timestamp' => $message['timestamp'],
             'file_url' => $message['file_url'] ?? null,
             ];
@@ -272,7 +272,7 @@ public function sendMessage(Request $request)
     // Données du message
     $data = [
         'id' => Str::uuid()->toString(),
-        'content' => $messageContent,
+'content' => $message['f'] ?? null,
         'file_url' => $fileUrl,
         'timestamp' => now()->timestamp,
         'sender_id' => $senderId,
