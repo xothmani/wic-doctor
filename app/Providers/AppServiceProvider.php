@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Stripe\Stripe;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Doctor;
@@ -38,8 +39,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        App::setLocale('fr');
         Schema::defaultStringLength(191);
         try {
+
             config(['mail.driver' => setting('mail_driver', 'smtp')]);
             config(['mail.host' => setting('mail_host', 'smtp.mailgun.org')]);
             config(['mail.port' => setting('mail_port', 587)]);
@@ -75,7 +78,7 @@ class AppServiceProvider extends ServiceProvider
             config(['services.fcm.key' => setting('fcm_key', '')]);
 
             //config(['paypal.mode' => setting('paypal_mode', '0') != '0' ? 'live' : 'sandbox']);
-            //config(['paypal.mode' => 'sandbox']);
+            // config(['paypal.mode' => 'sandbox']);
             config(['paypal.mode' => 'live']);
             config(['paypal.currency' => Str::upper(setting('default_currency_code', 'USD'))]);
 

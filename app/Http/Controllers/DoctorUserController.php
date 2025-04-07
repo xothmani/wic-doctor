@@ -92,11 +92,19 @@ class DoctorUserController extends Controller
         }
 
         $doctorId = $doctor->id;
-
+        $roleTranslations = [
+            'Secretary' => 'Secrétaire',
+            'Telesecretary' => 'Télésecrétaire',
+            'Substitue' => 'Remplaçant',
+            // add more if needed
+        ];
         // Fetch roles created by any user (can refine this later)
         $roles = DB::table('role_for_doctors')
-            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id') // Join with the roles table
-            ->pluck('roles.name', 'roles.name'); // Retrieve role names
+            ->join('roles', 'roles.id', '=', 'role_for_doctors.role_id')
+            ->pluck('roles.name', 'roles.name')
+            ->map(function ($value, $key) use ($roleTranslations) {
+                return $roleTranslations[$key] ?? $key;
+            });
         $rolesSelected = []; // No roles selected by default for a new user
 
         // Pass the logged-in doctor's ID to the view

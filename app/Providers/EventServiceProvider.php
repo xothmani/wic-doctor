@@ -11,6 +11,10 @@ namespace App\Providers;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use App\Events\AppointmentStatusChangedEvent;
+use App\Listeners\SendNotificationOnAppointmentStatusChanged;
+
+
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -36,6 +40,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\AppointmentStatusChangedEvent' => [
             'App\Listeners\SendAppointmentStatusNotificationsListener'
         ],
+        AppointmentStatusChangedEvent::class=>[
+            SendNotificationOnAppointmentStatusChanged::class
+        ]
 
     ];
 

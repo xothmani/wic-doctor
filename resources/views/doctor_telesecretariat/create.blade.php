@@ -130,7 +130,7 @@
 
                 <!-- Submit Buttons -->
                 <div class="d-flex justify-content-end gap-3 mt-4">
-                    <a href="{{ route('doctor_requests.index') }}" class="btn btn-light border me-2">
+                    <a href="{{ route('doctor_telesecretariat.create') }}" class="btn btn-light border me-2">
                         <i class="fa fa-undo me-1"></i> {{ trans('lang.cancel') }}
                     </a>
                     <button type="submit" class="btn btn-primary-custom">
