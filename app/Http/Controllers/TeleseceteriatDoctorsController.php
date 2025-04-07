@@ -272,7 +272,7 @@ public function sendMessage(Request $request)
     // Données du message
     $data = [
         'id' => Str::uuid()->toString(),
-'content' => $message['f'] ?? null,
+        'content' => $messageContent,
         'file_url' => $fileUrl,
         'timestamp' => now()->timestamp,
         'sender_id' => $senderId,
