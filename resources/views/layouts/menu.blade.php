@@ -418,16 +418,19 @@
         </a>
     </li>
 @endcan
- @can('chatTE.index')
+  @can('chatTE.index')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('chatTE*') ? 'active' : '' }}" href="{{ url('/chatTE') }}">
                         @if($icons)
                             <i class="nav-icon fas fa-headset"></i>
                         @endif
-                        <p>Télésecrétariat&Docteur</p>
+                        <p style="font-size: 13.5px;">Télésecrétariat & Docteur</p>
                     </a>
                 </li>
             @endcan
+        </ul>
+    </li>
+@endcan
         </ul>
     </li>
 @endcan
