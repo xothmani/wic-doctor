@@ -9,6 +9,7 @@ use App\Repositories\PatientRepository;
 use App\Repositories\CustomFieldRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\UploadRepository;
+use App\Services\AuditLogService;
 use Exception;
 use Flash;
 use Illuminate\Contracts\Foundation\Application;
@@ -48,24 +49,30 @@ class PatientController extends Controller
      * @var UserRepository
      */
     private UserRepository $userRepository;
+
     /**
      * @var UploadRepository
      */
     private UploadRepository $uploadRepository;
 
+    /**
+     * @var AuditLogService
+     */
+    private $auditLogService;
+
     public function __construct(
         PatientRepository $patientRepo,
         CustomFieldRepository $customFieldRepo,
-        UserRepository $userRepo
-        ,
-        UploadRepository $uploadRepo
+        UserRepository $userRepo,
+        UploadRepository $uploadRepo,
+        \App\Services\AuditLogService $auditLogService
     ) {
         parent::__construct();
         $this->patientRepository = $patientRepo;
         $this->customFieldRepository = $customFieldRepo;
         $this->userRepository = $userRepo;
         $this->uploadRepository = $uploadRepo;
-
+        $this->auditLogService = $auditLogService;
     }
 
     /**
@@ -117,6 +124,7 @@ class PatientController extends Controller
     public function store(CreatePatientRequest $request): RedirectResponse
     {
         $input = $request->all();
+        $oldValues = [];
 
         // Générez un mot de passe si aucun mot de passe n'est fourni
         if (empty($request->passwordpatient)) {
@@ -164,6 +172,13 @@ class PatientController extends Controller
 
                 // Associez l'utilisateur à un patient existant
                 $patient = $this->patientRepository->create(array_merge($input, ['user_id' => $existingUser->id]));
+            
+            // Log patient creation
+            $this->auditLogService->logPatientCreation(
+                $patient->id,
+                $patient->toArray(),
+                auth()->user()->getDoctorId()
+            );
                 Log::info("Patient ID: " . $patient->id . " associated with User ID: " . $existingUser->id);
 
                 // Établir la relation doctor-patient
@@ -203,6 +218,13 @@ class PatientController extends Controller
                 'user_id' => $user->id,
                 'email' => $user->email,
             ]));
+
+            // Log patient creation with new user
+            $this->auditLogService->logPatientCreation(
+                $patient->id,
+                $patient->toArray(),
+                auth()->user()->getDoctorId()
+            );
             Log::info("New patient created with ID: " . $patient->id);
 
             // Établir la relation doctor-patient
@@ -478,12 +500,23 @@ class PatientController extends Controller
             Flash::error(__('lang.not_found', ['operator' => __('lang.patient')]));
             return redirect(route('patients.index'));
         }
+
+        // Store old values before update
+        $oldValues = $patient->toArray();
         $input = $request->all();
 
         $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->patientRepository->model());
         try {
             //dd($input);
             $patient = $this->patientRepository->update($input, $id);
+
+            // Log patient update
+            $this->auditLogService->logPatientUpdate(
+                $patient->id,
+                $oldValues,
+                $patient->toArray(),
+                auth()->user()->getDoctorId()
+            );
             if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
                 foreach ($input['image'] as $fileUuid) {
                     $cacheUpload = $this->uploadRepository->getByUuid($fileUuid);
@@ -518,9 +551,11 @@ class PatientController extends Controller
      */
     public function destroy(int $id): RedirectResponse
     {
-
         // Trouver le patient par ID
         $patient = $this->patientRepository->findWithoutFail($id);
+        
+        // Store patient data before deletion for audit log
+        $patientData = $patient ? $patient->toArray() : [];
 
         // Si le patient n'est pas trouvé, retourner une erreur
         if (empty($patient)) {
@@ -539,6 +574,13 @@ class PatientController extends Controller
 
         // Si une telle association existe, la supprimer
         if ($doctorPatient) {
+            // Log patient deletion
+            $this->auditLogService->logPatientDeletion(
+                $id,
+                $patientData,
+                auth()->user()->getDoctorId()
+            );
+
             \DB::table('doctor_patients')
                 ->where('patient_id', $id)
                 ->where('doctor_id', $doctorId)
