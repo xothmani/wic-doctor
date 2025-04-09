@@ -505,7 +505,6 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     Route::get('/listdoctors', [ParrainerController::class, 'listDoctors'])->name('parrainers.listdoctors');
 
-    //Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::post('/adresse/store', [AddressController::class, 'store']);
     Route::get('editProfil', [DoctorController::class, 'editProfil'])->name('doctors.editProfil');
     Route::post('/edit-info-personnelle', [DoctorController::class, 'editInfoPersonnelle'])->name('editInfoPersonnelle');
@@ -617,6 +616,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
     Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
     Route::get('/chat', [ChatController::class, 'showForm']);
+    
     Route::get('storage/{file}', function ($file) {
         $path = storage_path('app/public/' . $file);
 
@@ -688,7 +688,10 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
 Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
-->name('chatT.show')
+->name('chatT.show');
+// Routes
+Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
+     ->name('chatT.show')
 ->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
