@@ -63,7 +63,7 @@
             padding: 15px;
             border-radius: 6px;
             margin: 20px auto;
-            max-width: 80%;
+            max-width: 80%; 
             word-break: break-all;
         }
     </style>
