@@ -424,7 +424,7 @@
                         @if($icons)
                             <i class="nav-icon fas fa-headset"></i>
                         @endif
-                        <p>Télésecrétariat&Docteur</p>
+                        <p style="font-size: 13.5px;">Télésecrétariat & Docteur</p>
                     </a>
                 </li>
             @endcan
