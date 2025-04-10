@@ -23,7 +23,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\OpeningHours\OpeningHours;
 use Illuminate\Support\Facades\Log;
 use App\Models\Address;
-use App\Models\Doctor;
 
 
 /**

@@ -388,7 +388,7 @@
 @endcan
 
 
-@can('chat.index')
+@can('chatA.index')
     <li class="nav-item has-treeview {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'menu-open' : '' }}">
         <a href="#" class="nav-link {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'active' : '' }}">
             @if($icons)
@@ -424,7 +424,7 @@
                         @if($icons)
                             <i class="nav-icon fas fa-headset"></i>
                         @endif
-                        <p>Télésecrétariat&Docteur</p>
+                        <p style="font-size: 13.5px;">Télésecrétariat & Docteur</p>
                     </a>
                 </li>
             @endcan

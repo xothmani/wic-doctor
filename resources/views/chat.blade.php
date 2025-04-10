@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <div class="chat-header">
@@ -318,7 +320,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Vérification des nouveaux messages toutes les 5 secondes
     setInterval(checkForNewMessages, 5000);
 
-
     function deleteMessage(chatId, messageId, buttonElement) {
     // URL Firebase pour récupérer les messages du chat
     const messagesUrl = `https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/${chatId}/messages.json`;
@@ -340,36 +341,58 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (firebaseMessageId) {
-                // URL Firebase pour supprimer le message
-                const deleteUrl = `https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/${chatId}/messages/${firebaseMessageId}.json`;
+                // Afficher la confirmation avec SweetAlert2 avant de supprimer
+                Swal.fire({
+                    title: 'Supprimer ce message ?',
+                    text: "Cette action est irréversible.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Oui, supprimer',
+                    cancelButtonText: 'Annuler'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // URL Firebase pour supprimer le message
+                        const deleteUrl = `https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/${chatId}/messages/${firebaseMessageId}.json`;
 
-                return fetch(deleteUrl, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                        fetch(deleteUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log("Message supprimé avec succès.");
+
+                                // Supprimer le message de l'interface utilisateur
+                                const messageElement = buttonElement.closest('.message');
+                                if (messageElement) {
+                                    messageElement.remove();
+                                }
+
+                                // Afficher un message de succès
+                                Swal.fire('Supprimé !', 'Le message a été supprimé.', 'success');
+                            } else {
+                                Swal.fire('Erreur', 'Une erreur est survenue.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Erreur :", error);
+                            Swal.fire('Erreur', 'Impossible de supprimer ce message.', 'error');
+                        });
+                    }
                 });
             } else {
                 throw new Error("Message non trouvé dans Firebase.");
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log("Message supprimé avec succès.");
-
-                // Supprimer le message de l'interface utilisateur
-                const messageElement = buttonElement.closest('.message');
-                if (messageElement) {
-                    messageElement.remove();
-                }
-            } else {
-                console.error("Erreur lors de la suppression :", response.statusText);
             }
         })
         .catch(error => {
             console.error("Erreur :", error);
         });
 }
+
 function listenForDeletedMessages(chatId) {
     const chatRef = firebase.database().ref(`chats/${chatId}/messages`);
 

@@ -89,10 +89,12 @@ class AddressAPIController extends Controller
      *
      * @return JsonResponse
      */
-    public function store(CreateAddressRequest $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
+        //return response()->json($request->all());
         $input = $request->all();
         $input['user_id'] = auth()->id();
+        
         try {
             $address = $this->addressRepository->create($input);
         } catch (Exception $e) {
