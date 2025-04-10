@@ -436,6 +436,19 @@
     text-align: center;
 }
 </style> 
+
+
+@can('assistance.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('assistance*') ? 'active' : '' }}" href="{{ route('helpdesk.index') }}">
+            @if($icons)
+                <i class="nav-icon fas fa-wrench"></i> <!-- Icône de service d'assistance -->
+            @endif
+            <p>Service d'assistance</p> <!-- Texte modifié ici -->
+        </a>
+    </li>
+@endcan
+
 <!-- @can('addresses.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"

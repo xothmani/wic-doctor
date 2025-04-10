@@ -7,6 +7,7 @@ use App\Http\Controllers\MessagerieController;
 use App\Http\Controllers\PatientDoctorChatController;
 use App\Http\Controllers\TeleseceteriatDoctorsController;
 
+use App\Http\Controllers\HelpDeskController;
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\PatientController;
@@ -703,3 +704,7 @@ Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->nam
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
+
+
+Route::get('/helpdesk', [HelpDeskController::class, 'index'])->name('helpdesk.index');
+Route::post('/helpdesk', [HelpDeskController::class, 'store'])->name('helpdesk.store');
