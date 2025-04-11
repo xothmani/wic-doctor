@@ -40,9 +40,11 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\AppointmentStatusChangedEvent' => [
             'App\Listeners\SendAppointmentStatusNotificationsListener'
         ],
-        AppointmentStatusChangedEvent::class=>[
+        AppointmentStatusChangedEvent::class => [
             SendNotificationOnAppointmentStatusChanged::class
-        ]
+        ],
+        'App\Events\AppointmentCreated' => [], // Add this line
+
 
     ];
 
@@ -56,5 +58,11 @@ class EventServiceProvider extends ServiceProvider
         parent::boot();
 
         //
+    }
+    // In app/Providers/EventServiceProvider.php
+
+    public function shouldBroadcast($event)
+    {
+        return true;
     }
 }

@@ -181,6 +181,29 @@
 <script src="{{asset('dist/js/adminlte.min.js')}}"></script>
 <script src="{{asset('js/scripts.min.js')}}"></script>
 <script src="{{ asset('js/services/doctorService.js') }}"></script>
+
+⌄
+⌄
+<!-- Pusher JS -->
+<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+
+<!-- Laravel Echo -->
+<script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
+
+<!-- Pass Pusher Config to JavaScript -->
+<script>
+    window.PusherConfig = {
+        key: '{{ config("broadcasting.connections.pusher.key") }}',
+        cluster: '{{ config("broadcasting.connections.pusher.options.cluster") }}'
+    };
+</script>
+
+<!-- Include Your Custom JavaScript -->
+<script src="{{ asset('js/pusher.js') }}"></script> <!-- Or the new file if created -->
+
+<!-- Include Agenda Handler -->
+<script src="{{ asset('js/agenda-handler.js') }}"></script>
+
 @stack('scripts')
 </body>
 </html>

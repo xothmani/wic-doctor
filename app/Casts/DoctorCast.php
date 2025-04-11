@@ -23,6 +23,9 @@ class DoctorCast implements CastsAttributes
      */
     public function get($model, string $key, $value, array $attributes): ?Doctor
     {
+        if ($value === null) {
+            return null; // Return null if the value is null
+        }
         Log::info("DoctorCast get method called", ['value' => $value]);
 
         // Decode the value and check if it's valid
@@ -48,7 +51,7 @@ class DoctorCast implements CastsAttributes
      */
     public function set($model, string $key, $value, array $attributes): array
     {
-//        if (!$value instanceof Doctor) {
+        //        if (!$value instanceof Doctor) {
 //            throw new InvalidArgumentException('The given value is not a Doctor instance.');
 //        }
         return [

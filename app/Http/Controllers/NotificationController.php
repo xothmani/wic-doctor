@@ -37,9 +37,11 @@ class NotificationController extends Controller
 
     private UserRepository $userRepository;
 
-    public function __construct(NotificationRepository $notificationRepo, CustomFieldRepository $customFieldRepo,
-                                UserRepository $userRepo)
-    {
+    public function __construct(
+        NotificationRepository $notificationRepo,
+        CustomFieldRepository $customFieldRepo,
+        UserRepository $userRepo
+    ) {
         parent::__construct();
         $this->notificationRepository = $notificationRepo;
         $this->customFieldRepository = $customFieldRepo;
@@ -62,7 +64,7 @@ class NotificationController extends Controller
      *
      * @return View
      */
-    public function create():View
+    public function create(): View
     {
         $user = $this->userRepository->pluck('name', 'id');
 
@@ -81,7 +83,7 @@ class NotificationController extends Controller
      *
      * @return RedirectResponse
      */
-    public function store(CreateNotificationRequest $request):RedirectResponse
+    public function store(CreateNotificationRequest $request): RedirectResponse
     {
         $input = $request->all();
         $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->notificationRepository->model());
@@ -105,7 +107,7 @@ class NotificationController extends Controller
      *
      * @return RedirectResponse|View
      */
-    public function show(int $id):RedirectResponse|View
+    public function show(int $id): RedirectResponse|View
     {
         $notification = $this->notificationRepository->findWithoutFail($id);
 
@@ -159,7 +161,7 @@ class NotificationController extends Controller
      *
      * @return RedirectResponse
      */
-    public function update(int $id, UpdateNotificationRequest $request):RedirectResponse
+    public function update(int $id, UpdateNotificationRequest $request): RedirectResponse
     {
         $notification = $this->notificationRepository->findWithoutFail($id);
 
@@ -191,7 +193,7 @@ class NotificationController extends Controller
      *
      * @return RedirectResponse
      */
-    public function destroy(int $id):RedirectResponse
+    public function destroy(int $id): RedirectResponse
     {
         $notification = $this->notificationRepository->findWithoutFail($id);
 
@@ -206,5 +208,17 @@ class NotificationController extends Controller
         Flash::success(__('lang.deleted_successfully', ['operator' => __('lang.notification')]));
 
         return redirect(route('notifications.index'));
+    }
+
+    public function getUnreadCount()
+    {
+        $unreadCount = auth()->user()->notifications()->whereNull('read_at')->count();
+        return response()->json(['unread_count' => $unreadCount]);
+    }
+
+    public function markAllAsRead()
+    {
+        auth()->user()->notifications()->update(['read_at' => now()]);
+        return response()->json(['success' => true]);
     }
 }

@@ -23,7 +23,6 @@
         "infyomlabs/adminlte-templates": "^v6.0.0",
         "kreait/firebase-bundle": "^5.6",
         "kreait/laravel-firebase": "^5.10",
-        "kreait/laravel-firebase": "*",
         "laravel/cashier": "^v15.3.2",
         "laravel/framework": "^v10.48.8",
         "laravel/legacy-factories": "^1.4",

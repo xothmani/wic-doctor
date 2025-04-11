@@ -21,8 +21,11 @@ class PatientCast implements CastsAttributes
     /**
      * @inheritDoc
      */
-    public function get($model, string $key, $value, array $attributes): Patient
+    public function get($model, string $key, $value, array $attributes): ?Patient
     {
+        if ($value === null) {
+            return null; // Return null if the value is null
+        }
         $decodedValue = json_decode($value, true);
         $patient = Patient::find($decodedValue['id']);
         if (!empty($patient)) {
@@ -40,7 +43,7 @@ class PatientCast implements CastsAttributes
      */
     public function set($model, string $key, $value, array $attributes): array
     {
-//        if (!$value instanceof Patient) {
+        //        if (!$value instanceof Patient) {
 //            throw new InvalidArgumentException('The given value is not a Patient instance.');
 //        }
 

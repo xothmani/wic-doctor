@@ -216,6 +216,9 @@ class Appointment extends Model
 
     public function getSubtotal(): float
     {
+        if ($this->doctor == null) {
+            return 0;
+        }
         return $this->doctor->getPrice();
     }
 

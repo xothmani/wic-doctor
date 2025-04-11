@@ -691,3 +691,22 @@
     outline: none;
 }
 
+/* Highlighted Event Style */
+.highlight-event {
+    animation: glowing 2s ease-in-out;
+    border: 2px solid #ffcc00 !important; /* Yellow glowing border */
+    background-color: #fff3cd !important; /* Light yellow background */
+}
+
+/* Glowing Animation */
+@keyframes glowing {
+    0% {
+        box-shadow: 0 0 10px #ffcc00;
+    }
+    50% {
+        box-shadow: 0 0 20px #ffcc00;
+    }
+    100% {
+        box-shadow: 0 0 10px #ffcc00;
+    }
+}

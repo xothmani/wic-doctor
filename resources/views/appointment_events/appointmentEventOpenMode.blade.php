@@ -359,7 +359,7 @@
         let vacations = @json($vacations);
         let urgencies = @json($urgencies);
         //console.log("🩺 Urgencies loaded:", urgencies);
-
+        window.activeDoctorId = {{ $doctorId ?? 'null' }};
         $(document).ready(function () {
             //
             fetchAvailableDaysAndInitializeCalendar();
@@ -381,7 +381,7 @@
             }
 
             // Set interval to refresh calendar every 30 seconds
-            setInterval(refreshCalendarEvents, 10000);
+            //setInterval(refreshCalendarEvents, 10000);
 
             //const timeSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
             const timeSlotsContainer = document.getElementById('time-slots');
@@ -627,6 +627,7 @@
                     cache: true
                 }
             });
+            let existingEventIds = []; // Array to store existing event IDs
 
             //console.log("Availability Days at Load:", availabilityDays);
             function initializeCalendar() {
@@ -643,8 +644,11 @@
                     minTime: "08:00:00",
                     allDaySlot: true,
                     allDayText: '',
+                    events: '/appointment-event',
                     eventLimit: true,
                     viewRender: function (view) {
+                        console.log('Calendar view changed:', view);
+
                         // console.log('[DEBUG] viewRender triggered:', view.name);
 
                         if (view.name === 'agendaWeek') {
@@ -665,7 +669,7 @@
                                     // Mark it as done before we do anything else
                                     $(this).addClass('substitute-initialized');
                                     $(this).find('.day-header-divider, .custom-day-label, .custom-number-label').remove();
-                                    console.log('[DEBUG] Setting up header for:', $(this).data('date'));
+                                    //console.log('[DEBUG] Setting up header for:', $(this).data('date'));
                                     // Prevent multiple double-renders in the same pass
                                     if (!$(this).hasClass('substitute-initialized')) {
                                         $(this).addClass('substitute-initialized');
@@ -883,8 +887,38 @@
                             }
                         });
                     },
-                    eventRender: function (event, element) {
+                    loading: function (isLoading, view) {
+                        if (!isLoading) {
+                            // Delay highlighting to ensure events are fully loaded
+                            setTimeout(() => {
+                                //console.log("Events loaded, highlighting new events...");
 
+                                // Log all events fetched by FullCalendar
+                                const allEvents = $('#calendar').fullCalendar('clientEvents');
+                                //console.log('All Events:', allEvents);
+
+                                highlightNewEvents();
+                            }, 100); // Small delay to ensure events are fully loaded
+                        }
+                    },
+                    eventRender: function (event, element) {
+                        // Add a custom data-id attribute to the event element
+                        element.attr('data-id', event.id);
+
+                        //console.log('Rendering event:', event);
+
+                        // Highlight the event if it's marked as new
+                        if (event.isNew) {
+                            console.log('Highlighting new event:', event);
+                            element.addClass('highlight-event'); // Add the highlight class
+
+                            setTimeout(() => {
+                                element.removeClass('highlight-event'); // Remove the class after 2 seconds
+                                event.isNew = false; // Reset the isNew flag
+                            }, 2000);
+                        } else {
+                            //console.log('Event is not new:', event);
+                        }
                         // Adding title attribute for simple tooltip
                         let icon;
 
@@ -997,7 +1031,7 @@
                                                 // If this is the first type with available slots, select its tab
                                                 if (!$('#appointmentModal').is(':visible')) {
                                                     $('#appointmentModal').modal('show');
-                                                    $(`#appointmentTypeTabs a[data-type="cabinet"]`).tab('show');
+                                                    $(`#appointmentTypeTabs a[data-type="${type}"]`).tab('show');
                                                     fetchTimeSlotsForType(selectedDate, type);
                                                 }
                                             }
@@ -1170,7 +1204,7 @@
                             icon: "success"
                         }).then((result) => {
                             $('#appointmentModal').modal('hide');
-                            $('#calendar').fullCalendar('refetchEvents');
+                            // $('#calendar').fullCalendar('refetchEvents');
                         });
                     },
                     error: function (xhr) {
@@ -1334,6 +1368,38 @@
                 }
                 // Show the modal
                 $("#appointmentDetailsModal").modal("show");
+            }
+            // Function to highlight new events
+            function highlightNewEvents() {
+                const currentEvents = $('#calendar').fullCalendar('clientEvents'); // Get all current events
+                const currentEventIds = currentEvents.map(event => event.id); // Extract event IDs
+
+                //console.log('Existing Event IDs:', existingEventIds);
+                //console.log('Current Event IDs:', currentEventIds);
+
+                // Identify new events
+                const newEventIds = currentEventIds.filter(id => !existingEventIds.includes(id));
+
+                //console.log('New Event IDs:', newEventIds);
+
+                // Directly highlight new events
+                newEventIds.forEach(id => {
+                    const eventElement = $(`.fc-event[data-id="${id}"]`); // Find the event element
+                    //console.log(`Event Element for ID ${id}:`, eventElement);
+                    if (eventElement.length > 0) {
+                        //console.log(`Highlighting new event with ID: ${id}`);
+                        eventElement.addClass('highlight-event'); // Add the highlight class
+
+                        setTimeout(() => {
+                            eventElement.removeClass('highlight-event'); // Remove the class after 2 seconds
+                        }, 2000);
+                    }
+                });
+
+                // Update the list of existing event IDs
+                existingEventIds = currentEventIds;
+
+                console.log(`Highlighted ${newEventIds.length} new events.`);
             }
         });
     </script>
