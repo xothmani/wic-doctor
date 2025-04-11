@@ -486,6 +486,17 @@
     </li>
 @endcan
 
+@can('doctor.logs')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor/logs*') ? 'active' : '' }}" href="{!! route('audit-logs.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-history"></i>
+            @endif
+            <p>{{ trans('lang.doctor_logs') }}</p>
+        </a>
+    </li>
+@endcan
+
 
 
 @can('coupons.index')

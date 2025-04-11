@@ -38,10 +38,15 @@ use App\Models\Doctor;
 use App\Models\Speciality;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AuditLogService;
+
 class DoctorController extends Controller
 {
     /** @var  DoctorRepository */
     private DoctorRepository $doctorRepository;
+
+    /** @var AuditLogService */
+    private AuditLogService $auditLogService;
 
     /**
      * @var CustomFieldRepository
@@ -70,21 +75,25 @@ class DoctorController extends Controller
      */
     private RoleRepository $roleRepository;
 
-    public function __construct(DoctorRepository $doctorRepo, RoleRepository $roleRepo, CustomFieldRepository $customFieldRepo, UploadRepository $uploadRepo
-        , SpecialityRepository $specialityRepo
-        , ClinicRepository $clinicRepo
-        ,UserRepository $userRepo)
-
-    {
+    public function __construct(
+        DoctorRepository $doctorRepo,
+        RoleRepository $roleRepo,
+        CustomFieldRepository $customFieldRepo,
+        UploadRepository $uploadRepo,
+        SpecialityRepository $specialityRepo,
+        ClinicRepository $clinicRepo,
+        UserRepository $userRepo,
+        AuditLogService $auditLogService
+    ) {
         parent::__construct();
         $this->doctorRepository = $doctorRepo;
         $this->roleRepository = $roleRepo;
-
         $this->customFieldRepository = $customFieldRepo;
         $this->uploadRepository = $uploadRepo;
         $this->specialityRepository = $specialityRepo;
         $this->clinicRepository = $clinicRepo;
         $this->userRepository = $userRepo;
+        $this->auditLogService = $auditLogService;
     }
 
     /**
@@ -138,6 +147,16 @@ class DoctorController extends Controller
                     $mediaItem->copy($doctor, 'image');
                 }
             }
+            
+            // Log doctor creation
+            $this->auditLogService->log(
+                'doctor_create',
+                'doctor',
+                $doctor->id,
+                'Nouveau médecin créé',
+                [],
+                $doctor->toArray()
+            );
         } catch (ValidatorException $e) {
             Flash::error($e->getMessage());
         }
@@ -235,6 +254,16 @@ class DoctorController extends Controller
                 $doctor->customFieldsValues()
                     ->updateOrCreate(['custom_field_id' => $value['custom_field_id']], $value);
             }
+
+            // Log doctor update
+            $this->auditLogService->log(
+                'doctor_update',
+                'doctor',
+                $doctor->id,
+                'Informations du médecin mises à jour',
+                $doctor->getOriginal(),
+                $doctor->toArray()
+            );
         } catch (ValidatorException $e) {
             Flash::error($e->getMessage());
         }
@@ -263,7 +292,20 @@ class DoctorController extends Controller
             return redirect(route('doctors.index'));
         }
 
+        // Get doctor data before deletion for audit log
+        $doctorData = $doctor->toArray();
+
         $this->doctorRepository->delete($id);
+
+        // Log doctor deletion
+        $this->auditLogService->log(
+            'doctor_delete',
+            'doctor',
+            $id,
+            'Médecin supprimé',
+            $doctorData,
+            []
+        );
 
         Flash::success(__('lang.deleted_successfully', ['operator' => __('lang.doctor')]));
 
@@ -420,7 +462,9 @@ class DoctorController extends Controller
         if (!$doctor) {
             return response()->json(['error' => 'Le médecin n\'existe pas.'], 404);
         }
-    
+    // Store old values for logging
+    $oldUserValues = $user->toArray();
+    $oldDoctorValues = $doctor->toArray();
         $user->update([
             'name' => $request->input('lastname'),
             'lastname' => $request->input('name'),
@@ -462,6 +506,27 @@ class DoctorController extends Controller
 
             // Sauvegarder les modifications du médecin
             $doctor->save();
+
+            // Log the update of user and doctor information
+    $this->auditLogService->log(
+        'user_update',
+        'user',
+        $user->id,
+        "User information updated",
+        $oldUserValues,
+        $user->toArray(),
+        $doctor->id
+    );
+
+    $this->auditLogService->log(
+        'doctor_update',
+        'doctor',
+        $doctor->id,
+        "Doctor information updated",
+        $oldDoctorValues,
+        $doctor->toArray(),
+        $doctor->id
+    );
             $this->executeNodeScript($doctor);
 
         
@@ -479,7 +544,8 @@ class DoctorController extends Controller
         if (!$doctor) {
             return response()->json(['error' => 'Le médecin n\'existe pas.'], 404);
         }
-        
+        $oldDoctorValues = $doctor->toArray();
+
         // Récupérer les langues sélectionnées
         $langues = $request->input('langues', []);
         
@@ -523,7 +589,28 @@ class DoctorController extends Controller
 
         // Mettre à jour le pourcentage du CV
         $doctor->update(['pourcentage_cv' => $pourcentage_cv]);
-
+        $newDoctorValues = $doctor->toArray();
+        $this->auditLogService->log(
+            'doctor_cv_update',
+            'doctor',
+            $doctor->id,
+            "Doctor CV information updated",
+            $oldDoctorValues,
+            $newDoctorValues,
+            $doctor->id
+        );
+    
+        // Log diploma changes
+        $this->auditLogService->log(
+            'doctor_diploma_update',
+            'diploma',
+            $doctor->id,
+            "Doctor diplomas updated",
+            ['old_diplomas' => $oldDiplomes],
+            ['new_diplomas' => $diplomes],
+            $doctor->id
+        );
+    
         return response()->json(['success' => 'Informations mises à jour avec succès.']);
     }    
     

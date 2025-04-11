@@ -38,7 +38,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PhotosCabinetController;
 use App\Http\Controllers\DoctorUserController;
 use App\Http\Controllers\ChatController;
-
+use App\Http\Controllers\AuditLogController;
 use Illuminate\Http\Request;
 //use App\Http\Controllers\MailController;
 use Illuminate\Support\Facades\Response;
@@ -96,6 +96,14 @@ Route::post('/urgency/store', [DoctorUrgencyController::class, 'store'])->name('
 Route::get('/doctor/urgencies', [DoctorUrgencyController::class, 'index'])->name('urgency.index');
 Route::delete('urgencies/{id}', [DoctorUrgencyController::class, 'destroy'])->name('urgencies.destroy');
 Route::put('/urgencies/{id}', [DoctorUrgencyController::class, 'update'])->name('urgencies.update');
+
+Route::group(['middleware' => ['auth']], function () {
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('/audit-logs/filter', [AuditLogController::class, 'filter'])->name('audit-logs.filter');
+    Route::get('/audit-logs/user-history', [AuditLogController::class, 'userHistory'])->name('audit-logs.user-history');
+    Route::get('/doctor/logs', [AuditLogController::class, 'userHistory'])->name('doctor.logs');
+    Route::get('/audit-logs/{id}', [AuditLogController::class, 'getDetails'])->name('audit-logs.show');
+});
 Route::get('payments/failed', 'PayPalController@index')->name('payments.failed');
 Route::get('payments/razorpay/checkout', 'RazorPayController@checkout');
 Route::post('payments/razorpay/pay-success/{appointmentId}', 'RazorPayController@paySuccess');
