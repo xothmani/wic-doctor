@@ -1,0 +1,41 @@
+{
+    "actions": {
+        "create_appointment": "Create Appointment",
+        "update_appointment_status": "Update Appointment Status",
+        "update_appointment": "Update Appointment",
+        "delete_appointment": "Delete Appointment",
+        "create_patient": "Create Patient",
+        "update_patient": "Update Patient",
+        "delete_patient": "Delete Patient",
+        "login": "Login",
+        "logout": "Logout"
+    },
+    "entities": {
+        "appointment": "Appointment",
+        "patient": "Patient",
+        "user": "User"
+    },
+    "fields": {
+        "status": "Status",
+        "date": "Date",
+        "time": "Time",
+        "doctor_id": "Doctor",
+        "patient_id": "Patient",
+        "creator_id": "Created By",
+        "first_name": "First Name",
+        "last_name": "Last Name",
+        "email": "Email",
+        "phone": "Phone"
+    },
+    "columns": {
+        "user": "User",
+        "doctor": "Doctor",
+        "user_role": "Role",
+        "action": "Action",
+        "entity_type": "Type",
+        "entity_id": "ID",
+        "description": "Description",
+        "old_values": "Previous Values",
+        "new_values": "New Values"
+    }
+}

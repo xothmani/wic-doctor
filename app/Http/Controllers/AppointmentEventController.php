@@ -372,7 +372,23 @@ class AppointmentEventController extends Controller
                 'hint' => $validated['notes'] ?? null,
             ]);
 
-            Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
+            // Log appointment creation in audit system
+            app(\App\Services\AuditLogService::class)->logAppointment(
+                $appointment->id,
+                'create_appointment',
+                trans('audit.create_appointment'),
+                [],
+                [
+                    'creator_id' => auth()->id(),
+                    'doctor_id' => $doctorId,
+                    'patient_id' => $validated['patient_id'],
+                    'start_at' => $startAt->toDateTimeString(),
+                    'ends_at' => $endsAt->toDateTimeString(),
+                    'appointment_type' => trans('audit.appointment_type.' . $validated['appointment_type']),
+                    'notes' => $validated['notes'] ?? null
+                ],
+                $doctorId
+            );
 
 
             return response()->json([
@@ -445,8 +461,8 @@ class AppointmentEventController extends Controller
 
     public function updateStatus(Request $request)
     {
-
         Log::info('Checking if user exists by email or phone number.', request()->all());
+        $auditLogService = app(\App\Services\AuditLogService::class);
         try {
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
@@ -483,8 +499,35 @@ class AppointmentEventController extends Controller
 
             $userId = User::find($patientUserId);
             // Update the appointment status
+            $oldStatus = $appointment->appointment_status_id;
             $appointment->appointment_status_id = $request->appointment_status_id;
             $appointment->save();
+
+            // Get status names for audit log
+            $oldStatusName = DB::table('appointment_statuses')
+                ->where('id', $oldStatus)
+                ->value('status');
+            $newStatusName = DB::table('appointment_statuses')
+                ->where('id', $request->appointment_status_id)
+                ->value('status');
+
+            // Log status change in audit system with localization
+            $auditLogService->logAppointment(
+                $appointment->id,
+                'update_appointment_status',
+                'appointment_status_changed',
+                ['old_status' => $oldStatusName, 'new_status' => $newStatusName],
+                [
+                    'old_status_id' => $oldStatus,
+                    'new_status_id' => $request->appointment_status_id,
+                    'cancel_reason' => $request->cancel_Reason ?? null,
+                    'doctor_id' => $appointment->doctor_id,
+                    'patient_id' => $appointment->patient_id,
+                    'start_at' => $appointment->start_at,
+                    'ends_at' => $appointment->ends_at
+                ],
+                $appointment->doctor_id
+            );
 
             /*** Send notification FCM code hamza ***/
             Log::info("Notification envoyé NotificationController Status changed event");
@@ -496,65 +539,7 @@ class AppointmentEventController extends Controller
             }
 
 
-            /*if ($appointment->user) {
-                $appointment->user->notify(new StatusChangedAppointment($appointment));
-
-            }
-
-            //Log::info('Creating message for appointment status update');
-            // Log the message creation
-            //Log::info('Creating message for appointment status update');
-
-
-            if ($appointment->appointment_status_id < 2) {
-                $message = $this->createMessageForAppointment($appointment, $appointment->doctor_id);
-            } else {
-                $message = $this->createMessageForAppointment($appointment, $appointment->user_id);
-            }
-            // Log the message data
-            if ($message !== null) {
-                Log::info('Message created:' . $message->formatData());
-                $serviceAccountPath = env('OAUTH_SERVICE_ACCOUNT');
-                Log::info('Service account path retrieved', ['path' => $serviceAccountPath]);
-
-                $credentials = new ServiceAccountCredentials(
-                    ['https://www.googleapis.com/auth/firebase.messaging'],
-                    $serviceAccountPath
-                );
-                Log::info('ServiceAccountCredentials created');
-
-                // Fetch the access token
-                $accessToken = $credentials->fetchAuthToken()['access_token'];
-                Log::info('Access token fetched', ['token' => $accessToken]);
-
-                // Send API request
-                try {
-                    $response = (new Client())->post($this->getApiUri(), [
-                        'headers' => [
-                            'Authorization' => 'Bearer ' . $accessToken,
-                            'Content-Type' => 'application/json',
-                        ],
-                        'body' => $message->formatData(),
-                    ]);
-                    Log::info('API request sent successfully', ['response' => $response->getBody()->getContents()]);
-                } catch (\Exception $e) {
-                    Log::error('Failed to send API request', [
-                        'message' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
-                    ]);
-                    throw $e;
-                }
-
-                // Handle the response if needed
-                if ($response->getStatusCode() !== 200) {
-                    // Log the error message
-                    Log::error('Failed to send API request:', ['message' => $response->getReasonPhrase()]);
-                    return $this->sendError('Failed to send API request');
-                }
-
-
-
-            }*/
+           
 
             return response()->json([
                 'message' => 'Status updated successfully',
@@ -1399,6 +1384,24 @@ class AppointmentEventController extends Controller
         ]);
 
         // \Log::info("Appointment created:", ['id' => $appointment->id]);
+
+        // Log appointment creation in audit system
+        app(\App\Services\AuditLogService::class)->logAppointment(
+            $appointment->id,
+            'create_appointment',
+            'Appointment created',
+            [],
+            [
+                'creator_id' => auth()->id(),
+                'doctor_id' => $doctorId,
+                'patient_id' => $validated['patient_id'],
+                'start_at' => $startAt->toDateTimeString(),
+                'ends_at' => $endsAt->toDateTimeString(),
+                'appointment_type' => $validated['appointment_type'],
+                'notes' => $validated['notes'] ?? null
+            ],
+            $doctorId
+        );
 
         // 10) Redirect back
         return redirect()->back()->with('success', 'Appointment created successfully');
