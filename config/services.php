@@ -72,10 +72,13 @@ return [
         'secret' => '9km0kMtOjh00nIHjlzaDK6Hc'
     ],
 
+    'firebase' => [
+        'credentials' => base_path('app/Notifications/service_account.json'),
+    ],
     'fcm' => [
         'service_account' => storage_path('app/wic-doctor-b83e0-firebase-adminsdk-jhztu-26628b5fc7.json'),
     ],
-    'firebase' => [
-'key'=>env('FCM_SERVER_KEY'),
+    'firebaseKey' => [
+        'key'=>env('FCM_SERVER_KEY'),
     ]
 ];

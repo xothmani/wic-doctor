@@ -18,8 +18,46 @@ use Benwilkins\FCM\FcmMessage;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use GuzzleHttp\Client;
 use App\Notifications\StatusChangedAppointment;
+use App\Events\AppointmentChangedEvent;
+use App\Events\AppointmentStatusChangedEvent;
+
+
+use App\Repositories\DoctorRepository;
+use App\Repositories\PatientRepository;
+use App\Repositories\ClinicRepository;
+use function PHPUnit\Framework\isNull;
+
 class AppointmentEventController extends Controller
 {
+
+    /**
+     * @var DoctorRepository
+     */
+    private DoctorRepository $doctorRepository;
+    /**
+     * @var ClinicRepository
+     */
+    private ClinicRepository $clinicRepository;
+
+    /**
+     * @var PatientRepository
+     */
+    private PatientRepository $patientRepository;
+
+
+
+    public function __construct(
+        DoctorRepository $doctorRepository,
+        ClinicRepository $clinicRepository,
+        PatientRepository $patientRepository,
+    ) {
+
+        parent::__construct();
+        $this->doctorRepository = $doctorRepository;
+        $this->clinicRepository = $clinicRepository;
+        $this->patientRepository = $patientRepository;
+    }
+
 
     public function index(Request $request)
     {
@@ -50,7 +88,13 @@ class AppointmentEventController extends Controller
                 ->where('doctor_id', $doctorId)
                 ->select('start_date', 'end_date')
                 ->get();
-
+            $urgencies = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->select('jour', 'heurDebut', 'heurFin', 'reason')
+                ->get()
+                ->map(function ($item) {
+                    return (array) $item; // convert stdClass to array
+                });
             //Log::info("Vacations retrieved", ['vacations' => $vacations]);
 
             if ($request->ajax()) {
@@ -69,8 +113,8 @@ class AppointmentEventController extends Controller
                         'appointments.user_id',
                         'appointments.patient_id',
                         'appointments.hint',
-                        DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
-                        DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.start_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as start_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.ends_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
                         'appointment_status.status as status',
@@ -113,7 +157,6 @@ class AppointmentEventController extends Controller
                     ];
                 }));
             }
-
             $patterns = DB::table('pattern')
                 ->select('id', 'nom')
                 ->where('doctor_id', $doctorId)
@@ -123,6 +166,17 @@ class AppointmentEventController extends Controller
                     return [$pattern->id => $name[app()->getLocale()] ?? $name['fr']];
                 })
                 ->toArray();
+            $patternsByType = DB::table('pattern')
+                ->select('id', 'nom', 'type')
+                ->where('doctor_id', $doctorId)
+                ->get()
+                ->groupBy('type')
+                ->map(function ($group) {
+                    return $group->mapWithKeys(function ($pattern) {
+                        $name = json_decode($pattern->nom, true);
+                        return [$pattern->id => $name[app()->getLocale()] ?? $name['fr']];
+                    });
+                });
 
             // Retrieve patients related to the doctor
             $patients = Patient::whereHas('doctors', function ($query) use ($doctorId) {
@@ -130,9 +184,10 @@ class AppointmentEventController extends Controller
             })->select('id', 'first_name', 'last_name', 'phone_number')->get();
 
             //Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
+            Log::info('Urgencies retrieved for doctor:', ['doctor_id' => $doctorId, 'urgencies' => $urgencies->toArray()]);
 
             // Pass availabilityDays and vacations to the view
-            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations'));
+            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations', 'patternsByType', 'urgencies'));
 
 
         } else {
@@ -154,7 +209,13 @@ class AppointmentEventController extends Controller
                 ->where('doctor_id', $doctorId)
                 ->select('start_date', 'end_date')
                 ->get();
-
+            $urgencies = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->select('jour', 'heurDebut', 'heurFin', 'reason')
+                ->get()
+                ->map(function ($item) {
+                    return (array) $item; // convert stdClass to array
+                });
             $patterns = DB::table('pattern')
                 ->select('id', 'nom')
                 ->where('doctor_id', $doctorId)
@@ -186,8 +247,8 @@ class AppointmentEventController extends Controller
                         'appointments.hint',
                         'appointments.cancel_reason',
                         'appointments.type',
-                        DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
-                        DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.start_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as start_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.ends_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
                         'appointment_status.status as status',
@@ -239,7 +300,8 @@ class AppointmentEventController extends Controller
                 'patients',
                 'availabilityDays',
                 'patterns',
-                'vacations'
+                'vacations',
+                'urgencies'
             ));
         }
     }
@@ -319,6 +381,7 @@ class AppointmentEventController extends Controller
             Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
             // Log appointment creation in audit system
             /* app(\App\Services\AuditLogService::class)->logAppointment(
+
                 $appointment->id,
                 'create_appointment',
                 trans('audit.create_appointment'),
@@ -333,7 +396,9 @@ class AppointmentEventController extends Controller
                     'notes' => $validated['notes'] ?? null
                 ],
                 $doctorId
+
             ); */
+
 
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
@@ -347,6 +412,8 @@ class AppointmentEventController extends Controller
 
             $to = $patient->phone_number;
             $doctor = Doctor::find($doctorId);
+	            \Log::info('diffInMinutes', ['diff' => $diffInMinutes]);
+
              if ($diffInMinutes > 30) {
                 // Optional: build a link (or remove this line if you don’t use shortUrl)
                 $shortUrl = url('/'); // Change this to your appointment detail route if needed
@@ -437,10 +504,20 @@ class AppointmentEventController extends Controller
 
     public function updateStatus(Request $request)
     {
+
         Log::info('Checking if user exists by email or phone number.', request()->all());
         try {
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
+
+            /** solve problem cast */
+            $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
+            $appointment->doctor = $doctor;
+            $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
+            $appointment->clinic = $clinic;
+            $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
+            $appointment->patient = $patient;
+            /**** */
 
             // Check if the status is "Canceled" (use the correct status ID for "Canceled")
             if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
@@ -461,17 +538,33 @@ class AppointmentEventController extends Controller
                 ]);
             }
 
+            $patientUserId = $appointment->user_id;
+
+            $userId = User::find($patientUserId);
             // Update the appointment status
             $appointment->appointment_status_id = $request->appointment_status_id;
             $appointment->save();
 
-            if ($appointment->user) {
-                $appointment->user->notify(new StatusChangedAppointment($appointment));
+            /*** Send notification FCM code hamza ***/
+            Log::info("Notification envoyé NotificationController Status changed event");
+            //event(new AppointmentChangedEvent($appointment));
+            //$appointment->doctor = $this->doctor
+            if ($userId->device_token != null) {
+                event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'], $user->device_token));
+
             }
 
-            Log::info('Creating message for appointment status update');
+
+            /*if ($appointment->user) {
+                $appointment->user->notify(new StatusChangedAppointment($appointment));
+
+            }
+
+            //Log::info('Creating message for appointment status update');
             // Log the message creation
-            Log::info('Creating message for appointment status update');
+            //Log::info('Creating message for appointment status update');
+
+
             if ($appointment->appointment_status_id < 2) {
                 $message = $this->createMessageForAppointment($appointment, $appointment->doctor_id);
             } else {
@@ -519,7 +612,9 @@ class AppointmentEventController extends Controller
                 }
 
 
-            }
+
+            }*/
+
             return response()->json([
                 'message' => 'Status updated successfully',
                 'refresh' => true,
@@ -927,59 +1022,61 @@ class AppointmentEventController extends Controller
             if (!$doctorId) {
                 return response()->json(['error' => 'Doctor not found'], 404);
             }
-            $doctor = Doctor::where('id', $doctorId)->first();
-
-            if (!$doctor) {
-                return response()->json(['error' => 'Doctor not found'], 404);
-            }
 
             $search = $request->input('q');
 
-            // Query patients linked to the logged-in doctor
-            $query = Patient::whereHas('doctors', function ($subQuery) use ($doctor) {
-                $subQuery->where('doctor_id', $doctor->id);
-            });
+            // Step 1: Get patient IDs linked to this doctor from the pivot table
+            $patientIds = DB::table('doctor_patients')
+                ->where('doctor_id', $doctorId)
+                ->pluck('patient_id');
 
-            // Search by name, phone number, or birthdate
+            // Step 2: Query patients by those IDs
+            $query = Patient::whereIn('id', $patientIds);
+            $searchLower = mb_strtolower($search);
+            // Step 3: Apply search if needed
             if ($search) {
-                $query->where(function ($subQuery) use ($search) {
+                $query->where(function ($subQuery) use ($search, $searchLower) {
                     $subQuery->whereRaw("
-                    (JSON_VALID(first_name) AND JSON_EXTRACT(first_name, '$.fr') LIKE ?)
-                    OR first_name LIKE ?
-                ", ["%{$search}%", "%{$search}%"])
+                        (JSON_VALID(first_name) AND LOWER(JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr'))) LIKE ?)
+                        OR LOWER(first_name) LIKE ?
+                    ", ["%{$searchLower}%", "%{$searchLower}%"])
                         ->orWhereRaw("
-                    (JSON_VALID(last_name) AND JSON_EXTRACT(last_name, '$.fr') LIKE ?)
-                    OR last_name LIKE ?
-                ", ["%{$search}%", "%{$search}%"])
+                        (JSON_VALID(last_name) AND LOWER(JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr'))) LIKE ?)
+                        OR LOWER(last_name) LIKE ?
+                    ", ["%{$searchLower}%", "%{$searchLower}%"])
                         ->orWhere('phone_number', 'like', "%{$search}%")
-                        ->orWhereRaw("DATE_FORMAT(date_naissance, '%Y-%m-%d') LIKE ?", ["%{$search}%"]); // Search by birthday
+                        ->orWhereRaw("DATE_FORMAT(date_naissance, '%Y-%m-%d') LIKE ?", ["%{$search}%"]);
                 });
             }
 
-            // Select id, concatenated text fields with birthday
             $patients = $query->select(
                 'id',
                 DB::raw("
-                CONCAT(
-                    CASE 
-                        WHEN JSON_VALID(first_name) THEN JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr')) 
-                        ELSE first_name 
-                    END, ' ',
-                    CASE 
-                        WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
-                        ELSE last_name 
-                    END, ' - ',
-                    phone_number, ' - ',
-                    DATE_FORMAT(date_naissance, '%d/%m/%Y')
-                ) as text
-            ")
+                    CONCAT(
+                        CASE 
+                            WHEN JSON_VALID(first_name) THEN JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr')) 
+                            ELSE first_name 
+                        END, ' ',
+                        CASE 
+                            WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
+                            ELSE last_name 
+                        END, ' - ',
+                        IFNULL(phone_number, 'N° inconnu'), ' - ',
+                        IFNULL(DATE_FORMAT(date_naissance, '%d/%m/%Y'), 'N/S')
+                    ) as text
+                ")
             )
-                ->when($search, fn($q) => $q->limit(20)) // Limit results when searching
+                ->when($search, fn($q) => $q->limit(20))
                 ->get();
+
+            // ✅ Log for debugging
+            \Log::info('[getPatients] Found patients:', $patients->toArray());
 
             return response()->json($patients);
         }
     }
+
+
 
 
 
@@ -1577,123 +1674,121 @@ class AppointmentEventController extends Controller
         return response()->json($substitutes);
     }
     public function getAppointmentStats($doctorId, $selectedDate = null)
-{
-    \Log::info('Fetching Appointment Stats:', [
-        'doctor_id' => $doctorId,
-        'selected_date' => $selectedDate,
-    ]);
+    {
+        \Log::info('Fetching Appointment Stats:', [
+            'doctor_id' => $doctorId,
+            'selected_date' => $selectedDate,
+        ]);
 
-    // Validate doctor ID
-    if (!$doctorId) {
-        return response()->json(['error' => 'Missing doctor ID'], 400);
-    }
-
-    // Parse selected date
-    $selectedDate = $selectedDate ? Carbon::parse($selectedDate) : Carbon::now();
-    $dayName = $selectedDate->format('l');
-
-    // Get the doctor's availability mode
-    $doctor = DB::table('doctors')->where('id', $doctorId)->first();
-    if (!$doctor) {
-        return response()->json(['error' => 'Doctor not found'], 404);
-    }
-
-    $availabilityMode = $doctor->availability_mode;
-
-    if ($availabilityMode === 'precise') {
-        // ✅ Precise mode logic
-        $availabilities = DB::table('availability_hours')
-            ->where('doctor_id', $doctorId)
-            ->where('is_available', 1)
-            ->where('day', $dayName)
-            ->where('mode', 'precise')
-            ->get();
-
-        $totalAvailableSlots = 0;
-        $takenSlots = [];
-
-        foreach ($availabilities as $availability) {
-            $startTime = Carbon::parse($availability->start_at);
-            $endTime = Carbon::parse($availability->end_at);
-            $sessionDuration = (int) $availability->session_duration;
-
-            while ($startTime->lessThan($endTime)) {
-                $slotTime = $startTime->format('H:i');
-
-                $totalAvailableSlots++;
-
-                $slotTaken = DB::table('appointments')
-                    ->where('doctor_id', $doctorId)
-                    ->whereDate('start_at', $selectedDate->format('Y-m-d'))
-                    ->whereTime('start_at', $slotTime)
-                    ->whereNotIn('appointment_status_id', [6, 7])
-                    ->exists();
-
-                if ($slotTaken) {
-                    $takenSlots[] = $slotTime;
-                }
-
-                $startTime->addMinutes($sessionDuration);
-            }
+        // Validate doctor ID
+        if (!$doctorId) {
+            return response()->json(['error' => 'Missing doctor ID'], 400);
         }
 
-        return response()->json([
-            'availability_mode' => $availabilityMode,
-            'total_appointments' => $totalAvailableSlots ?? 0,
-            'appointments_taken' => count($takenSlots ?? []),
-            'available_slots' => ($totalAvailableSlots ?? 0) - count($takenSlots ?? [])
-        ]);
-    }
+        // Parse selected date
+        $selectedDate = $selectedDate ? Carbon::parse($selectedDate) : Carbon::now();
 
-    elseif ($availabilityMode === 'open') {
-        // ✅ Open mode: Just count appointments on that date (no time/session logic)
-        $availabilities = DB::table('availability_hours')
-        ->where('doctor_id', $doctorId)
-        ->where('is_available', 1)
-        ->where('day', $dayName)
-        ->where('mode', 'open')
-        ->get();
-        $totalAvailableSlots = 0;
-        $takenSlots = [];
+        $dayName = $selectedDate->format('l');
 
-        foreach ($availabilities as $availability) {
-            $startTime = Carbon::parse($availability->start_at);
-            $endTime = Carbon::parse($availability->end_at);
-            $sessionDuration = (int) $availability->session_duration;
-
-            while ($startTime->lessThan($endTime)) {
-                $slotTime = $startTime->format('H:i');
-
-                $totalAvailableSlots++;
-
-                $slotTaken = DB::table('appointments')
-                    ->where('doctor_id', $doctorId)
-                    ->whereDate('start_at', $selectedDate->format('Y-m-d'))
-                    ->whereTime('start_at', $slotTime)
-                    ->whereNotIn('appointment_status_id', [6, 7])
-                    ->exists();
-
-                if ($slotTaken) {
-                    $takenSlots[] = $slotTime;
-                }
-
-                $startTime->addMinutes($sessionDuration);
-            }
+        // Get the doctor's availability mode
+        $doctor = DB::table('doctors')->where('id', $doctorId)->first();
+        if (!$doctor) {
+            return response()->json(['error' => 'Doctor not found'], 404);
         }
-        return response()->json([
-            'availability_mode' => $availabilityMode,
-            'total_appointments' => $totalAvailableSlots ?? 0,
-            'appointments_taken' => count($takenSlots ?? []),
-            'available_slots' => ($totalAvailableSlots ?? 0) - count($takenSlots ?? [])
-        ]);
-    }
 
-    else {
-        return response()->json([
-            'error' => 'Unsupported availability mode: ' . $availabilityMode
-        ]);
+        $availabilityMode = $doctor->availability_mode;
+
+        if ($availabilityMode === 'precise') {
+            // ✅ Precise mode logic
+            $availabilities = DB::table('availability_hours')
+                ->where('doctor_id', $doctorId)
+                ->where('is_available', 1)
+                ->where('day', $dayName)
+                ->where('mode', 'precise')
+                ->get();
+
+            $totalAvailableSlots = 0;
+            $takenSlots = [];
+
+            foreach ($availabilities as $availability) {
+                $startTime = Carbon::parse($availability->start_at);
+                $endTime = Carbon::parse($availability->end_at);
+                $sessionDuration = (int) $availability->session_duration;
+
+                while ($startTime->lessThan($endTime)) {
+                    $slotTime = $startTime->format('H:i');
+
+                    $totalAvailableSlots++;
+
+                    $slotTaken = DB::table('appointments')
+                        ->where('doctor_id', $doctorId)
+                        ->whereDate('start_at', $selectedDate->format('Y-m-d'))
+                        ->whereTime('start_at', $slotTime)
+                        ->whereNotIn('appointment_status_id', [6, 7])
+                        ->exists();
+
+                    if ($slotTaken) {
+                        $takenSlots[] = $slotTime;
+                    }
+
+                    $startTime->addMinutes($sessionDuration);
+                }
+            }
+
+            return response()->json([
+                'availability_mode' => $availabilityMode,
+                'total_appointments' => $totalAvailableSlots ?? 0,
+                'appointments_taken' => count($takenSlots ?? []),
+                'available_slots' => ($totalAvailableSlots ?? 0) - count($takenSlots ?? [])
+            ]);
+        } elseif ($availabilityMode === 'open') {
+            // ✅ Open mode: Just count appointments on that date (no time/session logic)
+            $availabilities = DB::table('availability_hours')
+                ->where('doctor_id', $doctorId)
+                ->where('is_available', 1)
+                ->where('day', $dayName)
+                ->where('mode', 'open')
+                ->get();
+            $totalAvailableSlots = 0;
+            $takenSlots = [];
+
+            foreach ($availabilities as $availability) {
+                $startTime = Carbon::parse($availability->start_at);
+                $endTime = Carbon::parse($availability->end_at);
+                $sessionDuration = (int) $availability->session_duration;
+
+                while ($startTime->lessThan($endTime)) {
+                    $slotTime = $startTime->format('H:i');
+
+                    $totalAvailableSlots++;
+
+                    $slotTaken = DB::table('appointments')
+                        ->where('doctor_id', $doctorId)
+                        ->whereDate('start_at', $selectedDate->format('Y-m-d'))
+                        ->whereTime('start_at', $slotTime)
+                        ->whereNotIn('appointment_status_id', [6, 7])
+                        ->exists();
+
+                    if ($slotTaken) {
+                        $takenSlots[] = $slotTime;
+                    }
+
+                    $startTime->addMinutes($sessionDuration);
+                }
+            }
+            return response()->json([
+                'availability_mode' => $availabilityMode,
+                'total_appointments' => $totalAvailableSlots ?? 0,
+                'appointments_taken' => count($takenSlots ?? []),
+                'available_slots' => ($totalAvailableSlots ?? 0) - count($takenSlots ?? [])
+            ]);
+        } else {
+            return response()->json([
+                'error' => 'Unsupported availability mode: ' . $availabilityMode
+            ]);
+        }
+
     }
-}
 
 private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor')
     {

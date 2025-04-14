@@ -36,7 +36,6 @@
                             <th>Email</th>
                             <th>Code Parent</th>
                             <th>Status</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>

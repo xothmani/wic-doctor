@@ -23,8 +23,8 @@ class AvailabilityController extends Controller
         'cabinet' => [
             'start' => '09:00',
             'end' => '17:00',
-            'break_start' => '14:00',
-            'break_end' => '15:00'
+            'break_start' => null,
+            'break_end' => null
         ],
         'teleconsultation' => [
             'start' => '19:00',
@@ -406,6 +406,7 @@ class AvailabilityController extends Controller
                 }
             }
 
+            //$this->syncAvailabilityHoursTunisie($doctorId, $validated['availability'], $type, $currentDuration);
             DB::commit();
             return redirect()->back()->with('success', 'Disponibilité sauvegardée avec succès !');
         } catch (\Exception $e) {
@@ -478,7 +479,49 @@ class AvailabilityController extends Controller
             throw $e;
         }
     }
+    private function syncAvailabilityHoursTunisie($doctorId, $data, $type, $sessionDuration)
+    {
+        try {
+            $onlineValue = match ($type) {
+                'cabinet' => 0,
+                'teleconsultation' => 1,
+                'home_visit' => 2,
+                default => throw new \Exception('Invalid consultation type')
+            };
+            // Delete existing records for this doctor and type
+            DB::table('availability_hours_tunisie')
+                ->where('doctor_id', $doctorId)
+                ->where('onligne', $onlineValue)
+                ->delete();
 
+            // Insert new records
+            foreach ($data as $availability) {
+                if (isset($availability['is_available']) && $availability['is_available']) {
+                    DB::table('availability_hours_tunisie')->insert([
+                        'doctor_id' => $doctorId,
+                        'day' => $availability['day'],
+                        'start_at' => $availability['from'],
+                        'end_at' => $availability['to'],
+                        'session_duration' => $sessionDuration,
+                        'is_available' => true,
+                        'onligne' => $onlineValue, // Using integer value instead of type string
+                        'pause_from' => $availability['pause_from'] ?? null,
+                        'pause_to' => $availability['pause_to'] ?? null,
+                        'data' => null,
+                    ]);
+                }
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Error syncing availability_hours_tunisie:', [
+                'error' => $e->getMessage(),
+                'doctor_id' => $doctorId,
+                'type' => $type
+            ]);
+            throw $e;
+        }
+    }
     public function storeOpen(Request $request)
     {
         \Log::info('Request store received:', ['request' => $request->all()]);
@@ -642,6 +685,18 @@ class AvailabilityController extends Controller
                         'is_available' => true
                     ]);
 
+                    DB::table('availability_hours_tunisie')->insert([
+                        'doctor_id' => $doctorId,
+                        'day' => $data['day'],
+                        'start_at' => $data['from'],
+                        'end_at' => $data['to'],
+                        'session_duration' => $sessionDuration,
+                        'is_available' => true,
+                        'onligne' => $type, // Assuming 'onligne' is meant to represent the type (cabinet/home_visit/etc)
+                        'pause_from' => null,
+                        'pause_to' => null,
+                        'data' => null,
+                    ]);
                     Log::info("Created availability with breaks", [
                         'day' => $data['day'],
                         'pause_from' => $pauseFrom,
@@ -656,7 +711,7 @@ class AvailabilityController extends Controller
                 session()->flash('old_duration', $currentSessionDuration);
                 session()->flash('new_duration', $newSessionDuration);
             }
-
+            //$this->syncAvailabilityHoursTunisie($doctorId, $validated['availability'], $type, $sessionDuration);
             DB::commit();
             return redirect()->back()->with('success', __('messages.availability_saved'));
 
