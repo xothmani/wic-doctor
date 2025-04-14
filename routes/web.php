@@ -98,11 +98,14 @@ Route::delete('urgencies/{id}', [DoctorUrgencyController::class, 'destroy'])->na
 Route::put('/urgencies/{id}', [DoctorUrgencyController::class, 'update'])->name('urgencies.update');
 
 Route::group(['middleware' => ['auth']], function () {
+    // Static routes first
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-    Route::get('/audit-logs/filter', [AuditLogController::class, 'filter'])->name('audit-logs.filter');
-    Route::get('/audit-logs/user-history', [AuditLogController::class, 'userHistory'])->name('audit-logs.user-history');
-    Route::get('/doctor/logs', [AuditLogController::class, 'userHistory'])->name('doctor.logs');
-    Route::get('/audit-logs/{id}', [AuditLogController::class, 'getDetails'])->name('audit-logs.show');
+    Route::get('/audit-logs/unread-count', [AuditLogController::class, 'unreadCount']);
+    Route::get('/audit-logs/recent', [AuditLogController::class, 'recent']);
+    Route::get('/audit-logs/filter', [AuditLogController::class, 'filter']);
+
+    // Dynamic parameterized route last
+    Route::get('/audit-logs/{id}', [AuditLogController::class, 'getDetails']);
 });
 Route::get('payments/failed', 'PayPalController@index')->name('payments.failed');
 Route::get('payments/razorpay/checkout', 'RazorPayController@checkout');
@@ -694,10 +697,11 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     })->middleware('auth');
 });
 Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
-Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
-->name('chatT.show')
-->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
+    ->name('chatT.show')
+    ->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
@@ -709,3 +713,4 @@ Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::c
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
 Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
+

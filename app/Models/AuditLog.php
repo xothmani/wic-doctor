@@ -16,7 +16,10 @@ class AuditLog extends Model
         'entity_id',
         'description',
         'old_values',
-        'new_values'
+        'new_values',
+        'read_at',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -24,6 +27,7 @@ class AuditLog extends Model
         'new_values' => 'array'
     ];
 
+    protected $dates = ['read_at'];
     /**
      * Get the user that performed the action.
      */

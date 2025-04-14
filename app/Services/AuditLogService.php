@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
+use App\Events\AuditLogCreatedEvent;
+use Illuminate\Support\Facades\Log;
 
 class AuditLogService
 {
@@ -29,8 +31,9 @@ class AuditLogService
         ?int $doctorId = null
     ): AuditLog {
         $user = Auth::user();
-        
-        return AuditLog::create([
+
+        // Create the audit log entry
+        $auditLog = AuditLog::create([
             'user_id' => $user?->id,
             'doctor_id' => $doctorId ?? $user?->doctor_id ?? null,
             'user_role' => $user?->roles->first()?->name ?? 'system',
@@ -39,8 +42,17 @@ class AuditLogService
             'entity_id' => $entityId,
             'description' => $description,
             'old_values' => $oldValues,
-            'new_values' => $newValues
+            'new_values' => $newValues,
+            'read_at' => null, // Initially unread
         ]);
+
+        // Trigger the AuditLogCreatedEvent if a doctor ID is available
+        if ($auditLog->doctor_id) {
+            Log::info('Audit log created:', ['auditLog' => $auditLog]);
+            event(new AuditLogCreatedEvent($auditLog));
+        }
+
+        return $auditLog;
     }
 
     /**
