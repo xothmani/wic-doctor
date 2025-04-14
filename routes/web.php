@@ -495,6 +495,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
 
 
+
     Route::get('/generer-link', [PatientController::class, 'genererLink'])->name('generer.link');
     Route::resource('/tags', TagController::class);
     Route::get('/tags/{id}/edit', [TagController::class, 'edit']);

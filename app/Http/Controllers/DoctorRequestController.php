@@ -555,6 +555,7 @@ private function executeNodeScriptFrance($doctor)
     'adresse_exacte' => $adresse_exacte, 
     'aleatoire' => $doctor->id_aleatoire,
     'specialities' => $specialitiesData, 
+    'availability_mode'=> $doctor->availability_mode, 
     'type' => "conventionné", 
         ];
 

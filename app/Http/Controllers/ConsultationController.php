@@ -49,12 +49,10 @@ class ConsultationController extends Controller
     }
     public function store(CreateConsultationRequest $request): RedirectResponse
     {
-        // Récupérer les données du formulaire
         $input = $request->all();
         $input['motif'] = strip_tags($request->input('motif'));
         $input['raison'] = strip_tags($request->input('raison'));
-    
-        // Récupérer l'ID du patient
+        
         $patient_id = $request->input('patient_id');
         $patient = Patient::find($patient_id);
     
@@ -62,6 +60,19 @@ class ConsultationController extends Controller
             Flash::error('Patient non trouvé');
             return redirect()->back()->withInput();
         }
+        
+        // Mettre à jour les données du patient si l'option est activée
+            $patient->update([
+                'weight' => $request->input('weight'),
+                'height' => $request->input('height'),
+                'groupe_sanguin' => $request->input('groupe_sanguin'),
+                'medical_history' => $request->input('medical_history'),
+                'allergie' => $request->input('allergie'),
+                'antecedent' => $request->input('antecedent')
+            ]);
+            
+            \Log::info('Données patient mises à jour', ['patient_id' => $patient->id]);
+    
     
         // Récupérer l'ID de l'utilisateur authentifié (le médecin)
         $user_id = auth()->id();
