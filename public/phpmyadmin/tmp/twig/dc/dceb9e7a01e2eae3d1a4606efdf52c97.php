@@ -105,6 +105,6 @@ echo _gettext("Error");
 
     public function getSourceContext()
     {
-        return new Source("", "error/generic.twig", "/var/www/doctor.way-interactive-convergence.com/public/phpmyadmin/templates/error/generic.twig");
+        return new Source("", "error/generic.twig", "/home/samar/Documents/devversion1/wic-doctor/public/phpmyadmin/templates/error/generic.twig");
     }
 }

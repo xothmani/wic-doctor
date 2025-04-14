@@ -30,17 +30,26 @@
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('type', trans('lang.pattern_type'), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
+        <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="type" id="type_all" value="all"
+        {{ (isset($pattern) && is_null($pattern->type)) || !isset($pattern) ? 'checked' : '' }}>
+            <label class="form-check-label" for="type_all">{{ trans('lang.all_types') }}</label>
+</div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="type" id="type_cabinet" value="cabinet" {{ !$isClinicSet && !$isAdomicileSet ? 'checked' : '' }}>
                 <label class="form-check-label" for="type_cabinet">{{ trans("lang.cabinet") }}</label>
             </div>
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="type" id="type_clinique" value="clinique" {{ $isClinicSet ? 'checked' : '' }}>
-                <label class="form-check-label" for="type_clinique">{{ trans("lang.clinique") }}</label>
+                <input class="form-check-input" type="radio" name="type" id="type_teleconsultation" value="teleconsultation" {{ $isTeleconsultationSet ? 'checked' : '' }}>
+                <label class="form-check-label" for="type_teleconsultation">{{ trans("lang.teleconsultation") }}</label>
             </div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="type" id="type_adomicile" value="adomicile" {{ $isAdomicileSet ? 'checked' : '' }}>
                 <label class="form-check-label" for="type_adomicile">{{ trans("lang.adomicile") }}</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="type" id="type_clinique" value="clinique" {{ $isClinicSet ? 'checked' : '' }}>
+                <label class="form-check-label" for="type_clinique">{{ trans("lang.clinique") }}</label>
             </div>
         </div>
     </div>
@@ -112,6 +121,8 @@
         const radioAdomicile = document.getElementById('type_adomicile');
         const isClinicSet = @json($isClinicSet);
         const isAdomicileSet = @json($isAdomicileSet);
+        const radioTeleconsultation = document.getElementById('type_teleconsultation');
+
 
         function toggleFields() {
             if (radioClinique.checked) {
@@ -128,5 +139,7 @@
         radioCabinet.addEventListener('change', toggleFields);
         radioClinique.addEventListener('change', toggleFields);
         radioAdomicile.addEventListener('change', toggleFields);
+        radioTeleconsultation.addEventListener('change', toggleFields);
+
     });
 </script>

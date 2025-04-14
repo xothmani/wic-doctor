@@ -19,6 +19,7 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
+    'all_types' => 'Tous',
     'doctor_user_edit' => 'Modifier l’utilisateur',
     'manage_users_desc' => 'Gérer les utilisateurs associés au médecin.',
     'start_date_required' => 'La date de début est obligatoire',
@@ -221,7 +222,7 @@ return [
     'pharmacy_create' => 'Créer une pharmacie',
     'teleconsultation_plural' => 'Téléconsultation',
     'pattern_name' => 'Nom',
-    'adomicile' => 'Adomicile',
+    'adomicile' => 'A domicile',
     'not_associated_to_clinic' => 'Non associé à une clinique',
     'unexpected_error' => 'Une erreur inattendue est survenue. Veuillez réessayer plus tard.',
     'pattern_cannot_be_deleted' => 'Le modèle ne peut pas être supprimé car il est associé à d\'autres enregistrements.',

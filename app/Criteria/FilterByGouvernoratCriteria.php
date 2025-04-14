@@ -5,6 +5,7 @@ namespace App\Criteria;
 use Prettus\Repository\Contracts\CriteriaInterface;
 use Prettus\Repository\Contracts\RepositoryInterface;
 use Illuminate\Support\Facades\DB;
+use Log;
 
 class FilterByGouvernoratCriteria implements CriteriaInterface
 {
