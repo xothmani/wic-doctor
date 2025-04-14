@@ -312,11 +312,12 @@ class AppointmentEventController extends Controller
         \Log::info('Appointment Data Received:', $request->all());
         try {
             $doctorId = auth()->user()->getDoctorId();
-
+            $doctor = Doctor::find($doctorId);
             if (!$doctorId) {
                 return response()->json(['error' => 'Doctor not found'], 404);
             }
-
+            \Log::info('Doctor ID:', ['doctor_id' => $doctorId]);
+            \Log::info('Doctor:', ['doctor' => $doctor]);
             Log::info('Appointment Data Received:', $request->all());
 
             // Validate the incoming request data
@@ -359,7 +360,7 @@ class AppointmentEventController extends Controller
             // 8) appointment_at = just the date portion
             $appointmentAt = $startAt->copy()->startOfDay();
             // Create the appointment
-            $appointment = Appointment::create([
+            $appointment = $doctor->appointments()->create([
                 'doctor_id' => $doctorId,
                 'patient_id' => $validated['patient_id'],
                 'user_id' => $patientUserId,
@@ -372,15 +373,68 @@ class AppointmentEventController extends Controller
                 'hint' => $validated['notes'] ?? null,
             ]);
 
+
+            \Log::info('About to broadcast event');
+            event(new AppointmentCreated($appointment));
+            \Log::info('Event broadcasted');
+
             Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
+            // Log appointment creation in audit system
+            app(\App\Services\AuditLogService::class)->logAppointment(
+                $appointment->id,
+                'create_appointment',
+                trans('audit.create_appointment'),
+                [],
+                [
+                    'creator_id' => auth()->id(),
+                    'doctor_id' => $doctorId,
+                    'patient_id' => $validated['patient_id'],
+                    'start_at' => $startAt->toDateTimeString(),
+                    'ends_at' => $endsAt->toDateTimeString(),
+                    'appointment_type' => trans('audit.appointment_type.' . $validated['appointment_type']),
+                    'notes' => $validated['notes'] ?? null
+                ],
+                $doctorId
+            );
 
+            $now = Carbon::now('Africa/Tunis');
+            $diffInMinutes = $now->diffInMinutes($startAt, false);
+            \Log::info('sending sms');
+            $numFrance = $doctor->num_france;
 
+            $api = $doctor->api_key;
+            $api_key = $api; // Or fetch from config/env
+            $from = $numFrance; // Your approved sender number
+            $alphasender = 'Wic doctor';
+
+            $to = $patient->phone_number;
+            $doctor = Doctor::find($doctorId);
+             if ($diffInMinutes > 30) {
+                // Optional: build a link (or remove this line if you don’t use shortUrl)
+                $shortUrl = url('/'); // Change this to your appointment detail route if needed
+
+                $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name .
+                    " chez Wic-Dr avec Dr." . $doctor->name . ".\n" .
+                    "RDV: " . $startAt->format('d/m/Y H:i') . "\n" .
+                    "Plus d'infos: $shortUrl";
+
+                $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+
+                if ($smsResult) {
+                    Log::info("SMS envoyé avec succès à $to : $message");
+                } else {
+                    Log::error("Échec de l'envoi du SMS à $to.");
+                }
+            } else {
+                Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
+            } 
             return response()->json([
                 'appointment_id' => $appointment->id,
                 'status' => 'success',
                 'refresh' => true,
                 'agenda' => $this->refreshAgenda()->getData() // Get fresh agenda data
             ]);
+
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation Errors:', $e->errors());
@@ -1397,8 +1451,60 @@ class AppointmentEventController extends Controller
             'ends_at' => $endsAt,
             'hint' => $validated['notes'] ?? null,
         ]);
+        \Log::info('About to broadcast event');
 
+        event(new AppointmentCreated($appointment));
+        \Log::info('Event broadcasted');
         // \Log::info("Appointment created:", ['id' => $appointment->id]);
+        $now = Carbon::now('Africa/Tunis');
+        $diffInMinutes = $now->diffInMinutes($startAt, false);
+        \Log::info('sending sms');
+        $numFrance = $doctor->num_france;
+
+
+        $api = $doctor->api_key;
+        $api_key = $api; // Or fetch from config/env
+        $from = $numFrance; // Your approved sender number
+        $alphasender = 'Wic doctor';
+
+        $to = $patient->phone_number;
+        $doctor = Doctor::find($doctorId);
+        if ($diffInMinutes > 30) {
+            // Optional: build a link (or remove this line if you don’t use shortUrl)
+            $shortUrl = url('/'); // Change this to your appointment detail route if needed
+
+            $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name .
+                " chez Wic-Dr avec Dr." . $doctor->name . ".\n" .
+                "RDV: " . $startAt->format('d/m/Y H:i') . "\n" .
+                "Plus d'infos: $shortUrl";
+
+            $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+
+            if ($smsResult) {
+                Log::info("SMS envoyé avec succès à $to : $message");
+            } else {
+                Log::error("Échec de l'envoi du SMS à $to.");
+            }
+        } else {
+            Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
+        }
+        // Log appointment creation in audit system
+        app(\App\Services\AuditLogService::class)->logAppointment(
+            $appointment->id,
+            'create_appointment',
+            'Appointment created',
+            [],
+            [
+                'creator_id' => auth()->id(),
+                'doctor_id' => $doctorId,
+                'patient_id' => $validated['patient_id'],
+                'start_at' => $startAt->toDateTimeString(),
+                'ends_at' => $endsAt->toDateTimeString(),
+                'appointment_type' => $validated['appointment_type'],
+                'notes' => $validated['notes'] ?? null
+            ],
+            $doctorId
+        );
 
         // 10) Redirect back
         return redirect()->back()->with('success', 'Appointment created successfully');
@@ -1462,7 +1568,37 @@ class AppointmentEventController extends Controller
                 'ends_at' => $endsAt,
                 'hint' => $validated['notes'] ?? null,
             ]);
+            $now = Carbon::now('Africa/Tunis');
+            $diffInMinutes = $now->diffInMinutes($startAt, false);
+            \Log::info('sending sms');
+            $numFrance = $doctor->num_france;
 
+            $api = $doctor->api_key;
+            $api_key = $api; // Or fetch from config/env
+            $from = $numFrance; // Your approved sender number
+            $alphasender = 'Wic doctor';
+
+            $to = $patient->phone_number;
+            $doctor = Doctor::find($doctorId);
+            if ($diffInMinutes > 30) {
+                // Optional: build a link (or remove this line if you don’t use shortUrl)
+                $shortUrl = url('/'); // Change this to your appointment detail route if needed
+
+                $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name .
+                    " chez Wic-Dr avec Dr." . $doctor->name . ".\n" .
+                    "RDV: " . $startAt->format('d/m/Y H:i') . "\n" .
+                    "Plus d'infos: $shortUrl";
+
+                $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+
+                if ($smsResult) {
+                    Log::info("SMS envoyé avec succès à $to : $message");
+                } else {
+                    Log::error("Échec de l'envoi du SMS à $to.");
+                }
+            } else {
+                Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'Rendez-vous forcé créé avec succès.',
@@ -1478,9 +1614,7 @@ class AppointmentEventController extends Controller
                 ]
             ], 500);
         }
-    }
-
-    public function getAvailableDays()
+    }    public function getAvailableDays()
     {
         $doctorId = auth()->user()->getDoctorId();
 

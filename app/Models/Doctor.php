@@ -122,7 +122,9 @@ class Doctor extends Model implements HasMedia, Castable
         'pourcentage_cabinet',
         'pourcentage_profil',
         'pourcentage_tags',
-        'verif_chart',   
+        'verif_chart',
+        'availability_mode'
+
     ];
     /**
      * The attributes that should be casted to native types.
@@ -758,15 +760,20 @@ public function diplomes()
 {
     return $this->hasMany(DoctorDiplome::class);
 
-}
-public function getTotalPourcentage()
+    }
+    public function getTotalPourcentage()
+    {
+        return $this->pourcentage_avatar +
+            $this->pourcentage_adresse +
+            $this->pourcentage_cv +
+            $this->pourcentage_cabinet +
+            $this->pourcentage_tags +
+            $this->pourcentage_profil;
+    }
+public function appointments()
 {
-    return $this->pourcentage_avatar +
-           $this->pourcentage_adresse +
-           $this->pourcentage_cv +
-           $this->pourcentage_cabinet +
-           $this->pourcentage_tags +
-           $this->pourcentage_profil;
+    return $this->hasMany(Appointment::class);
+
 }
 
 

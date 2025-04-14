@@ -540,6 +540,7 @@ class DoctorRequestController extends Controller
 
         // Données JSON à écrire
         $data = [
+
             'id_doctor' => $doctor->id,
             'name' => json_encode(['fr' => $doctor->name]),
             'doctor_photo' => $doctor->doctor_photo,
@@ -557,6 +558,7 @@ class DoctorRequestController extends Controller
             'aleatoire' => $doctor->id_aleatoire,
             'specialities' => $specialitiesData,
             'type' => "conventionné",
+
         ];
 
         file_put_contents($filePath, json_encode([$data], JSON_UNESCAPED_UNICODE));

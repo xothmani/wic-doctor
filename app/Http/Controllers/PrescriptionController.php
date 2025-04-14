@@ -56,9 +56,16 @@ class PrescriptionController extends Controller
      
          // Vérifier si le pays est la France
          $isFrance = $pays === 'france';
+         Log::info('Requête pour récupérer les médicaments', [
+            'isFrance' => $isFrance
+        ]);
+        
      
          // Sélectionner les médicaments en fonction du pays
-         $medicaments = $isFrance ? MedicamentFrance::all() : Medicament::all();
+// Sélectionner les médicaments en fonction du pays et les trier par nom_commercial
+$medicaments = $isFrance 
+    ? MedicamentFrance::orderBy('nom_commercial', 'asc')->get() 
+    : Medicament::orderBy('nom_commercial', 'asc')->get();
      
          // Log des médicaments récupérés
          Log::info('Médicaments récupérés', [

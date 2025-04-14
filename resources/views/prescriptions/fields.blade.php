@@ -94,13 +94,15 @@
     <span class="text-danger">*</span>
 
     <select name="medicaments[0][CODE_PCT]" required class="form-control">
-        <option value="" disabled selected>{{ trans('lang.prescription_select_medicament') }}</option>
-        @foreach($medicaments as $medicament)
-            <option value="{{ $isFrance ? $medicament->name : $medicament->CODE_PCT }}">
-                {{ $isFrance ? $medicament->name : $medicament->NOM_COMMERCIAL }}
-            </option>
-        @endforeach
-    </select>
+    <option value="" disabled selected>{{ trans('lang.prescription_select_medicament') }}</option>
+    @foreach($medicaments as $medicament)
+        <option value="{{ $isFrance ? $medicament->name : $medicament->CODE_PCT }}">
+            {{ $isFrance ? $medicament->name : "{$medicament->NOM_COMMERCIAL} - 
+            {$medicament->category} - {$medicament->format} - {$medicament->form}" }}
+        </option>
+    @endforeach
+</select>
+
 </div>
 
 
