@@ -665,6 +665,10 @@ class Doctor extends Model implements HasMedia, Castable
             $this->pourcentage_tags +
             $this->pourcentage_profil;
     }
+public function appointments()
+{
+    return $this->hasMany(Appointment::class);
+}
 
 
 }
