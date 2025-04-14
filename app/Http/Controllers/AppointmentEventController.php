@@ -380,7 +380,8 @@ class AppointmentEventController extends Controller
 
             Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
             // Log appointment creation in audit system
-            /*app(\App\Services\AuditLogService::class)->logAppointment(
+            /* app(\App\Services\AuditLogService::class)->logAppointment(
+
                 $appointment->id,
                 'create_appointment',
                 trans('audit.create_appointment'),
@@ -395,7 +396,9 @@ class AppointmentEventController extends Controller
                     'notes' => $validated['notes'] ?? null
                 ],
                 $doctorId
-            );*/
+
+            ); */
+
 
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
@@ -1491,7 +1494,7 @@ class AppointmentEventController extends Controller
             Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
         }
         // Log appointment creation in audit system
-        app(\App\Services\AuditLogService::class)->logAppointment(
+        /* app(\App\Services\AuditLogService::class)->logAppointment(
             $appointment->id,
             'create_appointment',
             'Appointment created',
@@ -1506,7 +1509,7 @@ class AppointmentEventController extends Controller
                 'notes' => $validated['notes'] ?? null
             ],
             $doctorId
-        );
+        ); */
 
         // 10) Redirect back
         return redirect()->back()->with('success', 'Appointment created successfully');

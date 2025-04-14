@@ -250,7 +250,18 @@
         </a>
     </li>
 @endcan
+@can('telesecretariats.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('telesecretariats') ? 'active' : '' }}"
+            href="{!! route('telesecretariats.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
+            @endif
 
+            <p>{{ trans('lang.telesecretariat_plural') }}</p>
+        </a>
+    </li>
+@endcan
 
 
 
