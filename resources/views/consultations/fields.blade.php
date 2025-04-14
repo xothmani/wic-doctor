@@ -1,3 +1,4 @@
+
 @if($customFields)
     <h5 class="col-12 pb-4">{!! trans('lang.main_fields') !!}</h5>
 @endif
@@ -26,59 +27,161 @@
         border-radius: 8px;
         box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
     }
+    .large-badge {
+        font-size: 1rem; /* Augmente la taille du texte */
+        padding: 0.5rem 1rem; /* Ajuste le padding */
+    }
 </style>
-
 <div class="d-flex flex-column col-sm-12 col-md-6">
-<p class="text-left mb-2" style="font-size: 14px; color: red; font-weight: bold;">
-  * {{trans('lang.required_fields')}}
-</p>
+
     <!-- Hidden Patient ID Field -->
     {!! Form::hidden('patient_id', optional($selectedPatient)->id) !!}
 
-<!-- Hidden User ID Field -->
-{!! Form::hidden('user_id', auth()->user()->id) !!}
+    <!-- Hidden User ID Field -->
+    {!! Form::hidden('user_id', auth()->user()->id) !!}
 
-    <!-- Patient Name Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-        {!! Form::label('patient_name', trans("lang.consultation_patient"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-        <div class="col-md-9">
-            {!! Form::text('patient_name', optional($selectedPatient)->full_name, ['class' => 'form-control', 'disabled' => 'disabled'])  !!}
-        </div>
+    <div class="form-group row d-flex align-items-center mb-2">
+    <!-- Nom du patient -->
+    <div class="col-md-4 d-flex align-items-center mb-2">
+        <span class="badge large-badge" style="background-color:rgb(190, 150, 147)     ; color: #fff;">
+            @if(optional($selectedPatient)->gender == 'femme')
+                <i class="fas fa-venus fa-lg me-1" aria-hidden="true"></i>
+            @elseif(optional($selectedPatient)->gender == 'homme')
+                <i class="fas fa-mars fa-lg me-1" aria-hidden="true"></i>
+            @endif
+            {{ optional($selectedPatient)->full_name }}
+        </span>
     </div>
 
-    <!-- Age Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-        {!! Form::label('age', trans("lang.patient_age"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-        <div class="col-md-9">
-            {!! Form::number('age', optional($selectedPatient)->age, ['class' => 'form-control', 'disabled' => 'disabled']) !!}
-        </div>
+    <!-- Date de naissance -->
+    <div class="col-md-4 d-flex align-items-center mb-2">
+        <span class="badge  large-badge" style="background-color:rgb(190, 150, 147)     ; color: #fff;">
+            <i class="fas fa-calendar-alt fa-lg me-1" aria-hidden="true"></i>
+            {{ optional($selectedPatient)->date_naissance ? \Carbon\Carbon::parse($selectedPatient->date_naissance)->format('d/m/Y') : '' }}
+        </span>
     </div>
 
-    <!-- Weight Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-        {!! Form::label('weight', trans("lang.patient_weight"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-        <div class="col-md-9">
-            {!! Form::number('weight', optional($selectedPatient)->weight, ['class' => 'form-control', 'disabled' => 'disabled'])  !!}
-        </div>
-    </div>
-
-        <!-- groupe sanguin Field -->
-        <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-        {!! Form::label('groupe_sanguin', trans("lang.patient_groupe_sanguin"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-        <div class="col-md-9">
-            {!! Form::text('groupe_sanguin', optional($selectedPatient)->groupe_sanguin, ['class' => 'form-control', 'disabled' => 'disabled'])  !!}
-        </div>
-    </div>
-
-<!-- Medical History Field -->
-<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-    {!! Form::label('medical_history', trans("lang.medical_history"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-    <div class="col-md-9">
-        <div class="form-control" style="min-height: 120px; background-color: #e9ecef; padding: 10px; overflow-wrap: break-word;">
-            {!! optional($selectedPatient)->medical_history !!}
-        </div>
+    <!-- Âge -->
+    <div class="col-md-4 d-flex align-items-center mb-2">
+        <span class="badge large-badge" style="background-color:rgb(190, 150, 147)     ; color: #fff;">
+            <i class="fas fa-birthday-cake fa-lg me-1" aria-hidden="true"> </i>
+            {{ optional($selectedPatient)->age }}
+        </span>
     </div>
 </div>
+
+
+ <!-- Weight Field -->
+<div class="form-group d-flex flex-column mb-2">
+    {!! Form::label('weight', trans("lang.patient_weight"), ['class' => 'control-label mx-1']) !!}
+    <div>
+        {!! Form::number('weight', optional($selectedPatient)->weight, [
+            'class' => 'form-control',
+            'placeholder' => 'Insérer le poids'
+        ]) !!}
+    </div>
+</div>
+
+<!-- Height Field -->
+<div class="form-group d-flex flex-column mb-2">
+    {!! Form::label('height', trans("lang.patient_height"), ['class' => 'control-label mx-1']) !!}
+    <div>
+        {!! Form::number('height', optional($selectedPatient)->height, [
+            'class' => 'form-control',
+            'placeholder' => 'Insérer la taille'
+        ]) !!}
+    </div>
+</div>
+
+    <div class="form-group d-flex flex-column mb-2">
+    {!! Form::label('groupe_sanguin', trans("lang.patient_groupe_sanguin"), ['class' => 'control-label mx-1']) !!}
+    <div>
+        {!! Form::select('groupe_sanguin', [
+            '' => trans('lang.select_groupe_sanguin'), // Option vide par défaut
+            'A+' => 'A+',
+            'A-' => 'A-',
+            'B+' => 'B+',
+            'B-' => 'B-',
+            'AB+' => 'AB+',
+            'AB-' => 'AB-',
+            'O+' => 'O+',
+            'O-' => 'O-'
+        ], optional($selectedPatient)->groupe_sanguin, ['class' => 'select2 form-control']) !!}
+        
+      
+    </div>
+</div>
+
+
+
+
+
+
+
+<!-- Allergie Field -->
+<div class="form-group d-flex flex-column mb-2">
+    {!! Form::label('allergie', trans("lang.patient_allergie"), ['class' => 'control-label mx-1']) !!}
+    <div>
+        {!! Form::textarea('allergie', optional($selectedPatient)->allergie, [
+            'class' => 'form-control',
+            'rows' => 5,
+            'placeholder' => 'Indiquer les allergies du patient'
+        ]) !!}
+    </div>
+</div>
+
+<!-- Antécédent Field -->
+<div class="form-group d-flex flex-column mb-2">
+    {!! Form::label('antecedent', trans("lang.patient_antecedent"), ['class' => 'control-label mx-1']) !!}
+    <div>
+        {!! Form::textarea('antecedent', optional($selectedPatient)->antecedent, [
+            'class' => 'form-control',
+            'rows' => 5,
+            'placeholder' => 'Indiquer les antécédents médicaux du patient'
+        ]) !!}
+    </div>
+</div>
+<!-- Medical History Field -->
+<div class="form-group d-flex flex-column mb-2">
+    {!! Form::label('medical_history', trans("lang.medical_history"), ['class' => 'control-label mx-1']) !!}
+    <div>
+        {!! Form::textarea('medical_history', optional($selectedPatient)->medical_history, [
+            'class' => 'form-control',
+            'rows' => 5,
+            'placeholder' => 'Saisissez ici l’historique médical du patient...'
+        ]) !!}
+    </div>
+</div>
+
+</div>
+
+
+
+
+
+<div class="d-flex flex-column col-sm-12 col-md-6">
+
+
+<p class="text-left mb-2" style="font-size: 14px; color: red; font-weight: bold;">
+  * {{trans('lang.required_fields')}}
+</p>
+
+<!-- Date Consultation Field -->
+<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+    {!! Form::label('dateConsultation', trans("lang.consultation_date"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+    <span class="text-danger">*</span>
+
+    <div class="col-md-9">
+        {!! Form::date('dateConsultation', date('Y-m-d'), ['class' => 'form-control']) !!}
+    </div>
+</div>
+
+
+
+
+
+
+
 
 <!-- Raison Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row" style="position: relative;">
@@ -92,7 +195,6 @@
             'rows' => 6,
             'style' => 'padding-right: 50px;' // Ajout d'espace pour le bouton
         ]) !!}
-        <div class="form-text text-muted">{{ trans("lang.consultation_reason_help") }}</div>
 
         <!-- Microphone Button -->
         <button type="button" 
@@ -104,78 +206,7 @@
     </div>
 </div>
 
-
-<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-    {!! Form::label('audio_recording', trans("Enregistrement Audio"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-    <div class="col-md-9 d-flex flex-column align-items-start">
-        <div class="d-flex align-items-center gap-2">
-            <button type="button" id="recordButton" class="btn bg-{{setting('theme_color')}} d-flex align-items-center">
-                <i class="fas fa-microphone mr-2"></i> Enregistrer
-            </button>
-            <button type="button" id="playButton" class="btn btn-secondary d-flex align-items-center" disabled>
-                <i class="fas fa-play mr-2"></i> Écouter
-            </button>
-        </div>
-
-        <audio id="audioPreview" class=" rounded shadow-sm" controls style="display: none;"></audio>
-        <div class="">
-        </div>
-        <input type="hidden" id="audioBlob" name="audio_blob">
-    </div>
-</div>
-
-</div>
-
-
-
-<div class="d-flex flex-column col-sm-12 col-md-6">
-<!-- Date Consultation Field -->
-<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-    {!! Form::label('dateConsultation', trans("lang.consultation_date"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-    <div class="col-md-9">
-        {!! Form::date('dateConsultation', date('Y-m-d'), ['class' => 'form-control']) !!}
-    </div>
-</div>
-
-
-<!-- Gender Field -->
-<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-    {!! Form::label('gender', trans("lang.patient_gender"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-    <div class="col-md-9">
-    {!! Form::text('patient_gender', optional($selectedPatient)->gender, ['class' => 'form-control', 'disabled' => 'disabled'])  !!}
-    </div>
-</div>
-
-    <!-- Height Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-        {!! Form::label('height', trans("lang.patient_height"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-        <div class="col-md-9">
-            {!! Form::number('height', optional($selectedPatient)->height, ['class' => 'form-control', 'disabled' => 'disabled'])  !!}
-        </div>
-    </div>
-
-   <!-- allergie Field -->
-   <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-    {!! Form::label('allergie', trans("lang.patient_allergie"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-    <div class="col-md-9">
-        <div class="form-control" style="min-height: 120px; background-color: #e9ecef; padding: 10px; overflow-wrap: break-word;">
-            {!! optional($selectedPatient)->allergie !!}
-        </div>
-    </div>
-</div>
-
-   <!-- antecedent Field -->
-<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-    {!! Form::label('antecedent', trans("lang.patient_antecedent"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-    <div class="col-md-9">
-        <div class="form-control" style="min-height: 120px; background-color: #e9ecef; padding: 10px; overflow-wrap: break-word;">
-            {!! optional($selectedPatient)->antecedent !!}
-        </div>
-    </div>
-</div>
-
-
-    <!-- Motif Field -->
+       <!-- Motif Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row" style="position: relative;">
     {!! Form::label('motif', trans("lang.consultation_motif"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
     <span class="text-danger">*</span>
@@ -187,7 +218,6 @@
             'rows' => 6, 
             'style' => 'padding-right: 50px;' // Ajout d'espace pour le bouton
         ]) !!}
-        <div class="form-text text-muted">{{ trans("lang.consultation_motif_help") }}</div>
 
         <!-- Microphone Button -->
         <button type="button" 
@@ -197,8 +227,38 @@
             <i name="microphone-motif" class="fas fa-microphone-slash"></i>
         </button>
     </div>
+</div> 
+<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+    <!-- Label avec cadre simple -->
+    <div class="col-md-12">
+        <div class="border p-3">
+            <!-- Titre du champ -->
+            <div class="mb-3">
+            <span class="badge bg-danger ms-2">Innover Ensemble</span> <!-- Badge New -->
+                <p>Cet enregistrement audio est analysé par notre intelligence artificielle pour générer automatiquement un rapport médical structuré au format PDF, offrant une restitution précise et détaillée de la consultation. <b> Cliquez sur le button micro pour commencer à enregistrer.</b></p>
+            </div>
+
+            <!-- Enregistrement Audio -->
+            <div class="d-flex flex-column">
+                <div class="col-md-9 d-flex flex-column align-items-start">
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" id="recordButton" class="btn bg-{{setting('theme_color')}} d-flex align-items-center">
+                            <i class="fas fa-microphone mr-2"></i> Micro
+                        </button>
+              
+                        <button type="button" id="playButton" class="btn btn-secondary d-flex align-items-center" disabled>
+                            <i class="fas fa-play mr-2"></i> Écouter
+                        </button>
+                    </div>
+
+                    <audio id="audioPreview" class="rounded shadow-sm" controls style="display: none;"></audio>
+                    <input type="hidden" id="audioBlob" name="audio_blob">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-    
+
 </div>
 
 @if($customFields)

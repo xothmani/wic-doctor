@@ -172,36 +172,9 @@ class PatientDataTable extends DataTable
                 'title' => trans('lang.patient_phone_number'),
 
             ],
-            /**            [
-                            'data' => 'mobile_number',
-                            'title' => trans('lang.patient_mobile_number'),
-
-                        ],
-               **/ [
-                'data' => 'age',
-                'title' => trans('lang.patient_age'),
-
-            ],
-            [
-                'data' => 'gender',
-                'title' => trans('lang.patient_gender'),
-
-            ],
-            /**      [
-                      'data' => 'weight',
-                      'title' => trans('lang.patient_weight'),
-
-                  ],
-                  [
-                      'data' => 'height',
-                      'title' => trans('lang.patient_height'),
-
-                  ],
-                  [
-                      'data' => 'updated_at',
-                      'title' => trans('lang.patient_updated_at'),
-                      'searchable' => false,
-                  ]**/
+        
+       
+           
         ];
 
         $hasCustomField = in_array(Patient::class, setting('custom_field_models', []));

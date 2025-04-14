@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="{{asset('vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css')}}">
     <link rel="stylesheet" href="{{asset('vendor/summernote/summernote-bs4.min.css')}}">
     <link rel="stylesheet" href="{{asset('vendor/dropzone/min/dropzone.min.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 @endpush
 @section('content')
     <!-- Content Header (Page header) -->
@@ -60,6 +62,7 @@
 @push('scripts_lib')
     <script src="{{asset('vendor/select2/js/select2.full.min.js')}}"></script>
     <script src="{{asset('vendor/dropzone/min/dropzone.min.js')}}"></script>
+    
     <script type="text/javascript">
         Dropzone.autoDiscover = false;
         var dropzoneFields = [];

@@ -122,7 +122,9 @@ class Doctor extends Model implements HasMedia, Castable
         'pourcentage_cabinet',
         'pourcentage_profil',
         'pourcentage_tags',
-        'verif_chart',   
+        'verif_chart',
+        'availability_mode'
+
     ];
     /**
      * The attributes that should be casted to native types.
