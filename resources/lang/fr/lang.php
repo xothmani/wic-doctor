@@ -19,6 +19,17 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
+    'view_changes' => 'Voir les modifications',
+    'mark_as_read' => 'Marquer comme lu',
+    'read' => 'Lu',
+    'na' => 'N/A',
+    'no_old_values' => 'Aucune ancienne valeur',
+    'no_new_values' => 'Aucune nouvelle valeur',
+    'system' => 'Système',
+    'create_appointment' => 'Création de rendez-vous',
+    'update_appointment_status' => 'Mise à jour du statut du rendez-vous',
+    'appointment' => 'Rendez-vous',
+
     'details' => 'Détails',
     'close' => 'Fermer',
     'old_values' => 'Anciennes valeurs',
@@ -212,7 +223,7 @@ return [
     'apply_filters' => 'Appliquer les filtres',
     'audit_logs_table' => 'Table des journaux d\'audit',
     'retour' => 'Retourner',
-'appointment_details' => 'Détails du rendez-vous: ',
+    'appointment_details' => 'Détails du rendez-vous: ',
     'creator_id' => "ID du créateur: ",
     'doctor_id' => "ID du médecin: ",
     'patient_id' => "ID du patient: ",

@@ -408,7 +408,8 @@ class AppointmentEventController extends Controller
 
             $to = $patient->phone_number;
             $doctor = Doctor::find($doctorId);
-            /* if ($diffInMinutes > 30) {
+            \Log::info('diffInMinutes', ['diff' => $diffInMinutes]);
+            if ($diffInMinutes > 30) {
                 // Optional: build a link (or remove this line if you don’t use shortUrl)
                 $shortUrl = url('/'); // Change this to your appointment detail route if needed
 
@@ -426,7 +427,7 @@ class AppointmentEventController extends Controller
                 }
             } else {
                 Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
-            } */
+            }
             return response()->json([
                 'appointment_id' => $appointment->id,
                 'status' => 'success',

@@ -7,14 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
 use Yajra\DataTables\Services\DataTable;
-use Illuminate\Support\Str;
-
 
 class AuditLogDataTable extends DataTable
 {
-    /**
-     * Build DataTable class.
-     */
     public function dataTable($query)
     {
         \Log::info('[AUDIT DATATABLE] dataTable triggered');
@@ -33,83 +28,21 @@ class AuditLogDataTable extends DataTable
             ->addColumn('created_at', function (AuditLog $auditLog) {
                 return $auditLog->created_at->format('Y-m-d H:i:s');
             })
+            ->addColumn('changes', function (AuditLog $auditLog) {
+                return '<button type="button" class="btn btn-xs btn-primary view-changes" data-id="' . $auditLog->id . '"><i class="fa fa-eye"></i> ' . __('lang.view_changes') . '</button>';
+            })
+            ->addColumn('mark_as_read', function (AuditLog $auditLog) {
+                if (!$auditLog->read_at) {
+                    return '<button type="button" class="btn btn-xs btn-info mark-read" data-id="' . $auditLog->id . '"><i class="fa fa-check"></i> ' . __('lang.mark_as_read') . '</button>';
+                }
+                return '<span class="badge bg-success">' . __('lang.read') . '</span>';
+            })
             ->editColumn('action', function (AuditLog $auditLog) use ($translations) {
                 return $translations['actions'][$auditLog->action] ?? $auditLog->action;
             })
             ->editColumn('entity_type', function (AuditLog $auditLog) use ($translations) {
                 return $translations['entities'][$auditLog->entity_type] ?? $auditLog->entity_type;
             })
-            ->editColumn('old_values', function (AuditLog $auditLog) {
-                $oldValues = $auditLog->old_values;
-
-                // Replace the user and doctor IDs with names
-                if (isset($newValues['creator_id'])) {
-                    $user = $auditLog->user ? $auditLog->user->name . ' ' : 'System';
-                    $newValues['creator_id'] = $user;  // Replace ID with name
-                }
-                if (isset($oldValues['doctor_id'])) {
-                    $doctor = $auditLog->doctor ? $auditLog->doctor->name . ' ' . $auditLog->doctor->name : 'N/A';
-                    $oldValues['doctor_id'] = $doctor;  // Replace ID with name
-                }
-                if (isset($newValues['patient_id'])) {
-                    // Log the current values
-                    \Log::info('newvalues:', ['new_values' => $newValues]);
-                    \Log::info('auditlog:', ['auditlog' => $auditLog]);
-
-                    // Get the patient ID from new_values
-                    $patientId = $newValues['patient_id'];
-
-                    // Directly fetch the patient from the database using the ID
-                    $patientModel = \App\Models\Patient::find($patientId);
-
-                    if ($patientModel) {
-                        $patient = $patientModel->first_name . ' ' . $patientModel->last_name;
-                    } else {
-                        $patient = 'N/A (ID: ' . $patientId . ')';
-                    }
-
-                    \Log::info('patient:', ['patient' => $patient]);
-                    $newValues['patient_id'] = $patient;  // Replace ID with name
-                }
-                return '<button type="button" class="btn btn-sm btn-primary view-values" data-toggle="modal" data-target="#valuesModal" data-values=\'' . htmlspecialchars(json_encode($oldValues), ENT_QUOTES, 'UTF-8') . '\' data-title="' . __('Old Values') . '"><i class="fa fa-eye"></i> ' . __('View') . '</button>';
-            })
-            ->editColumn('new_values', function (AuditLog $auditLog) {
-                $newValues = $auditLog->new_values;
-                \Log::info('newvalues:', ['new_values' => $newValues]);
-                // Replace the user and doctor IDs with names
-                if (isset($newValues['creator_id'])) {
-                    $user = $auditLog->user ? $auditLog->user->name . ' ' : 'System';
-                    $newValues['creator_id'] = $user;
-                }
-                if (isset($newValues['doctor_id'])) {
-                    $doctor = $auditLog->doctor ? $auditLog->doctor->name . ' ' : 'N/A';
-                    $newValues['doctor_id'] = $doctor;  // Replace ID with name
-    
-                }
-                if (isset($newValues['patient_id'])) {
-                    // Log the current values
-                    \Log::info('newvalues:', ['new_values' => $newValues]);
-                    \Log::info('auditlog:', ['auditlog' => $auditLog]);
-
-                    // Get the patient ID from new_values
-                    $patientId = $newValues['patient_id'];
-
-                    // Directly fetch the patient from the database using the ID
-                    $patientModel = \App\Models\Patient::find($patientId);
-
-                    if ($patientModel) {
-                        $patient = $patientModel->first_name . ' ' . $patientModel->last_name;
-                    } else {
-                        $patient = 'N/A (ID: ' . $patientId . ')';
-                    }
-
-                    \Log::info('patient:', ['patient' => $patient]);
-                    $newValues['patient_id'] = $patient;  // Replace ID with name
-                }
-                return '<button type="button" class="btn btn-sm btn-primary view-values" data-toggle="modal" data-target="#valuesModal" data-values=\'' . htmlspecialchars(json_encode($newValues), ENT_QUOTES, 'UTF-8') . '\' data-title="' . __('New Values') . '"><i class="fa fa-eye"></i> ' . __('View') . '</button>';
-            })
-
-
             ->filterColumn('action', function ($query, $keyword) {
                 \Log::info('[AUDIT DATATABLE] Filtering action', ['keyword' => $keyword]);
                 $query->where('action', 'like', "%{$keyword}%");
@@ -118,7 +51,7 @@ class AuditLogDataTable extends DataTable
                 \Log::info('[AUDIT DATATABLE] Filtering date', ['keyword' => $keyword]);
                 $query->whereDate('created_at', $keyword);
             })
-            ->rawColumns(['action', 'old_values', 'new_values', 'see_all_info'])
+            ->rawColumns(['changes', 'mark_as_read', 'action'])
             ->setRowId('id')
             ->setRowClass(function (AuditLog $auditLog) {
                 return $auditLog->read_at ? '' : 'fw-bold';
@@ -127,9 +60,12 @@ class AuditLogDataTable extends DataTable
                 'data-read-at' => function (AuditLog $auditLog) {
                     return $auditLog->read_at;
                 },
-            ]);
+            ])
+            ->orderColumn('created_at', 'created_at $1')
+            ->order(function ($query) {
+                $query->orderBy('created_at', 'desc');
+            });
     }
-
 
     public function query(AuditLog $model)
     {
@@ -137,31 +73,27 @@ class AuditLogDataTable extends DataTable
 
         $query = $model->newQuery();
         $user = Auth::user();
-        $doctorId = $user->doctor_id;
+        $doctorId = auth()->user()->getDoctorId();
 
         \Log::info('[AUDIT DATATABLE] User info', [
             'user_id' => $user->id,
             'roles' => $user->getRoleNames(),
             'doctor_id' => $doctorId
         ]);
+
         if ($user->hasRole('admin')) {
-            return $query; // admin → accès total
+            return $query;
         }
 
-        // 🧑‍⚕️ Cas médecin
         if ($user->hasRole('doctor') && $doctorId) {
             $query->where('doctor_id', $doctorId);
-        }
-
-        // 🧑‍💼 Cas secrétaire ou télésécrétaire
-        elseif ($user->hasRole(['secretary', 'telesecretary']) && $doctorId) {
+        } elseif ($user->hasRole(['secretary', 'telesecretary']) && $doctorId) {
             $query->where(function ($q) use ($doctorId, $user) {
                 $q->where('doctor_id', $doctorId)
                     ->orWhere('user_id', $user->id);
             });
         }
 
-        // ✅ Filtres dynamiques (action/date)
         if ($action = $this->request()->get('action')) {
             $query->where('action', $action);
         }
@@ -174,6 +106,10 @@ class AuditLogDataTable extends DataTable
             $query->whereDate('created_at', '<=', $end);
         }
 
+        if ($id = $this->request()->get('id')) {
+            $query->where('id', $id);
+        }
+
         \Log::info('[AUDIT DATATABLE] Final query', [
             'sql' => $query->toSql(),
             'bindings' => $query->getBindings()
@@ -182,19 +118,12 @@ class AuditLogDataTable extends DataTable
         return $query;
     }
 
-
-
-
-    /**
-     * Optional method if you want to use html builder.
-     */
     public function html()
     {
         return $this->builder()
             ->setTableId('audit-logs-table')
             ->columns($this->getColumns())
             ->minifiedAjax()
-            ->dom('frtip') // No buttons
             ->orderBy(1)
             ->parameters([
                 'language' => json_decode(
@@ -206,9 +135,6 @@ class AuditLogDataTable extends DataTable
             ]);
     }
 
-    /**
-     * Get columns.
-     */
     protected function getColumns()
     {
         $locale = app()->getLocale();
@@ -216,22 +142,19 @@ class AuditLogDataTable extends DataTable
         $columnTranslations = $translations['columns'] ?? [];
 
         return [
-            Column::make('id'),
+            Column::make('id')->hidden(),
             Column::make('user')->title($columnTranslations['user'] ?? 'User'),
             Column::make('doctor')->title($columnTranslations['doctor'] ?? 'Doctor'),
             Column::make('user_role')->title($columnTranslations['user_role'] ?? 'Role'),
             Column::make('action')->title($columnTranslations['action'] ?? 'Action'),
             Column::make('entity_type')->title($columnTranslations['entity_type'] ?? 'Entity Type'),
-            Column::make('entity_id')->title($columnTranslations['entity_id'] ?? 'Entity ID'),
             Column::make('description')->title($columnTranslations['description'] ?? 'Description'),
-            Column::make('old_values')->title($columnTranslations['old_values'] ?? 'Old Values'),
-            Column::make('new_values')->title($columnTranslations['new_values'] ?? 'New Values'),
+            Column::make('changes')->title($columnTranslations['changes'] ?? 'Changes'),
+            Column::make('created_at')->title($columnTranslations['created_at'] ?? 'Date'),
+            Column::make('mark_as_read')->title($columnTranslations['mark_as_read'] ?? 'Status'),
         ];
     }
 
-    /**
-     * Get filename for export.
-     */
     protected function filename(): string
     {
         return 'AuditLogs_' . date('YmdHis');

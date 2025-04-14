@@ -98,14 +98,13 @@ Route::delete('urgencies/{id}', [DoctorUrgencyController::class, 'destroy'])->na
 Route::put('/urgencies/{id}', [DoctorUrgencyController::class, 'update'])->name('urgencies.update');
 
 Route::group(['middleware' => ['auth']], function () {
-    // Static routes first
-    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-    Route::get('/audit-logs/unread-count', [AuditLogController::class, 'unreadCount']);
-    Route::get('/audit-logs/recent', [AuditLogController::class, 'recent']);
-    Route::get('/audit-logs/filter', [AuditLogController::class, 'filter']);
-
-    // Dynamic parameterized route last
-    Route::get('/audit-logs/{id}', [AuditLogController::class, 'getDetails']);
+    Route::get('/audit-logs', [App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('/audit-logs/unread-count', [App\Http\Controllers\AuditLogController::class, 'unreadCount']);
+    Route::get('/audit-logs/recent', [App\Http\Controllers\AuditLogController::class, 'recent']);
+    Route::get('/audit-logs/filter', [App\Http\Controllers\AuditLogController::class, 'filter'])->name('audit-logs.filter');
+    Route::get('/audit-logs/details/{id}', [App\Http\Controllers\AuditLogController::class, 'getDetails'])->name('audit-logs.details');
+    Route::post('/audit-logs/{id}/mark-read', [App\Http\Controllers\AuditLogController::class, 'markAsRead'])->name('audit-logs.mark-read');
+    Route::get('/audit-logs/user-history', [App\Http\Controllers\AuditLogController::class, 'userHistory'])->name('audit-logs.user_history');
 });
 Route::get('payments/failed', 'PayPalController@index')->name('payments.failed');
 Route::get('payments/razorpay/checkout', 'RazorPayController@checkout');
