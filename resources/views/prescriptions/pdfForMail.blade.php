@@ -109,7 +109,16 @@
                 <h2>Médicaments</h2>
                 <div class="medications">
                     @foreach ($medicaments as $medicament)
-                    <p>{{ $medicament['nom_commercial'] }} - {{ $medicament['dosage'] }}, {{ $medicament['nb_de_fois'] }}, {{ $medicament['horaire'] }} pendant {{ $medicament['nb_de_jours'] }}.</p>
+                    <p>
+    {{ $medicament['nom_commercial'] }} - 
+    {{ $medicament['category'] }} - 
+    {{ $medicament['format'] }} - 
+    {{ $medicament['form'] }} :
+    {{ $medicament['dosage'] }}, 
+    {{ $medicament['nb_de_fois'] }}, 
+    {{ $medicament['horaire'] }} pendant 
+    {{ $medicament['nb_de_jours'] }} jours.
+</p>
                     @endforeach
                 </div>
             @elseif($type === 'Analyse')

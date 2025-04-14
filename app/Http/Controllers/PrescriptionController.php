@@ -298,6 +298,9 @@ $medicaments = $isFrance
                 ->where('medicament_prescription.prescription_id', $prescription->id)
                 ->select(
                     'medicaments.NOM_COMMERCIAL as nom_commercial',
+                    'medicaments.category',
+                    'medicaments.format',
+                    'medicaments.form',
                     'medicament_prescription.dosage',
                     'medicament_prescription.nb_de_fois',
                     'medicament_prescription.horaire',
@@ -408,6 +411,9 @@ public function showDetails($prescriptionId)
             ->where('medicament_prescription.prescription_id', $prescription->id)
             ->select(
                 'medicaments.NOM_COMMERCIAL as nom_commercial',
+                'medicaments.category',
+                'medicaments.format',
+                'medicaments.form',
                 'medicament_prescription.dosage',
                 'medicament_prescription.nb_de_fois',
                 'medicament_prescription.horaire',

@@ -234,7 +234,7 @@
     response.medicaments.forEach(function(medicament) {
         prescriptionDetails += `
             <p>
-                <span style="color: #0080FF;">${medicament.nom_commercial}</span> - 
+                <span style="color: #0080FF;">${medicament.nom_commercial}- ${medicament.category} - ${medicament.format} - ${medicament.form}</span>
                 <span style="color: darkblue;">${medicament.dosage}</span>, 
                 <span style="color: darkblue;">${medicament.nb_de_fois}</span>, 
                 ${medicament.horaire ? `<span style="color: darkblue;">${medicament.horaire}</span>` : ''}
