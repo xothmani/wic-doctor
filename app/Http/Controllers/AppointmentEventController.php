@@ -313,12 +313,12 @@ class AppointmentEventController extends Controller
 
 
             \Log::info('About to broadcast event');
-            event(new AppointmentCreated($appointment));
+            //event(new AppointmentCreated($appointment));
             \Log::info('Event broadcasted');
 
             Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
             // Log appointment creation in audit system
-            app(\App\Services\AuditLogService::class)->logAppointment(
+            /* app(\App\Services\AuditLogService::class)->logAppointment(
                 $appointment->id,
                 'create_appointment',
                 trans('audit.create_appointment'),
@@ -333,7 +333,7 @@ class AppointmentEventController extends Controller
                     'notes' => $validated['notes'] ?? null
                 ],
                 $doctorId
-            );
+            ); */
 
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
@@ -1361,7 +1361,7 @@ class AppointmentEventController extends Controller
         ]);
         \Log::info('About to broadcast event');
 
-        event(new AppointmentCreated($appointment));
+        //event(new AppointmentCreated($appointment));
         \Log::info('Event broadcasted');
         // \Log::info("Appointment created:", ['id' => $appointment->id]);
         $now = Carbon::now('Africa/Tunis');
@@ -1397,7 +1397,7 @@ class AppointmentEventController extends Controller
             Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
         }
         // Log appointment creation in audit system
-        app(\App\Services\AuditLogService::class)->logAppointment(
+        /* app(\App\Services\AuditLogService::class)->logAppointment(
             $appointment->id,
             'create_appointment',
             'Appointment created',
@@ -1412,7 +1412,7 @@ class AppointmentEventController extends Controller
                 'notes' => $validated['notes'] ?? null
             ],
             $doctorId
-        );
+        ); */
 
         // 10) Redirect back
         return redirect()->back()->with('success', 'Appointment created successfully');
@@ -1695,6 +1695,45 @@ class AppointmentEventController extends Controller
     }
 }
 
+private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor')
+    {
+        $url = 'https://dashboard.wic-sms.com/apis/smscontact/';
 
+        // Supprimer le "+" au début si présent
+        if (strpos($to, '+') === 0) {
+            $to = substr($to, 1); // Supprime le premier caractère '+'
+        }
+
+        $fields = [
+            'apikey' => $api_key,
+            'from' => $from,
+            'to' => $to,
+            'message' => $message,
+            'alphasender' => $alphasender,
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+
+        $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        Log::info("HTTP Code: $httpCode");
+        Log::info("API Response: $result");
+
+        // Analyse de la réponse
+        $response = json_decode($result, true);
+        if (isset($response['status']) && $response['status'] === "0") {
+            Log::info("SMS envoyé avec succès à $to : $message from:  $from avec api key:  $api_key ");
+        } else {
+            Log::error("Échec de l'envoi du SMS. Réponse de l'API : " . $result);
+        }
+
+        return $result;
+    }
 
 }
