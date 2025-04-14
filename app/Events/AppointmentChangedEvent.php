@@ -15,19 +15,19 @@ use Illuminate\Queue\SerializesModels;
 
 class AppointmentChangedEvent
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+        use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public Appointment $appointment;
+        public Appointment $appointment;
 
-    /**
-     * AppointmentChangedEvent constructor.
-     * @param $appointment
-     */
-    public function __construct($appointment)
-    {
-        $this->appointment = $appointment;
-        parent::__construct();
-    }
+        /**
+         * AppointmentChangedEvent constructor.
+         * @param $appointment
+         */
+        public function __construct($appointment)
+        {
+                $this->appointment = $appointment;
+                //parent::__construct();
+        }
 
 
 }

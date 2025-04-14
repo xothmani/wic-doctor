@@ -50,6 +50,7 @@ class UploadAPIController extends Controller
      */
     public function clear(UploadRequest $request)
     {
+        //return response()->json($request->all());
         $input = $request->all();
         if (!isset($input['uuid'])) {
             return $this->sendResponse(false, 'Media not found');
@@ -58,7 +59,7 @@ class UploadAPIController extends Controller
             if (is_array($input['uuid'])) {
                 $result = $this->uploadRepository->clearWhereIn($input['uuid']);
             } else {
-                $result = $this->uploadRepository->clear($input['uuid']);
+                return response()->json("data uuids is not array");
             }
             return $this->sendResponse($result, 'Media deleted successfully');
         } catch (Exception $e) {

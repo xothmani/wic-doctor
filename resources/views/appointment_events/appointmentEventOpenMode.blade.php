@@ -16,27 +16,7 @@
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
 
         <!-- Content Header (Page header) -->
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-md-6">
-                        <h1 class="m-0 text-bold">{{ trans('lang.appointment_plural') }}
-                            <small class="mx-3">|</small><small>{{ trans('lang.appointment_desc') }}</small>
-                        </h1>
-                    </div>
-                    <div class="col-md-6">
-                        <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
-                            <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i
-                                        class="fas fa-tachometer-alt mx-1"></i> {{ trans('lang.dashboard') }}</a></li>
-                            <li class="breadcrumb-item">
-                                <a href="{!! route('appointments.index') !!}">{{ trans('lang.appointment_plural') }}</a>
-                            </li>
-                            <li class="breadcrumb-item active">{{ trans('lang.calendar_view') }}</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
+
         <!-- Second Modal -->
         <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
             aria-hidden="true">
@@ -180,23 +160,34 @@
                                     </div>
 
                                     <!-- Pattern Selection -->
-                                    <div class="form-group">
-                                        <label for="patern_id"
-                                            class="font-weight-bold">{{ trans('lang.availability_hour_pattern') }}</label>
-                                        <div class="d-flex align-items-center">
-                                            <select id="patern_id" name="patern_id" class="form-control select2-ajax" required
-                                                style="flex-grow: 1;">
-                                                <option value="" disabled selected>{{ trans('lang.select_pattern') }}</option>
-                                                @foreach($patterns as $id => $nom)
-                                                    <option value="{{ $id }}">{{ $nom }}</option>
-                                                @endforeach
-                                            </select>
-                                            <a href="{{ route('patterns.create') }}" class="btn btn-success d-flex"
-                                                id="addNewPatient">
-                                                <i class="fa fa-user-plus"></i>
-                                            </a>
-                                        </div>
+                                    <div class="form-group pattern-select-group" data-type="cabinet">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_cabinet" class="form-control">
+                                            @foreach($patternsByType[1] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
+
+                                    <div class="form-group pattern-select-group d-none" data-type="teleconsultation">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_teleconsultation" class="form-control">
+                                            @foreach($patternsByType[4] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group pattern-select-group d-none" data-type="home_visit">
+                                        <label>{{ trans('lang.availability_hour_pattern') }}</label>
+                                        <select name="patern_id" id="patern_id_home_visit" class="form-control">
+                                            @foreach($patternsByType[3] ?? [] as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+
                                     <!-- Add this after the Pattern Selection div -->
                                     <div class="form-group">
                                         <label for="appointment_notes" class="font-weight-bold">{{ trans('lang.notes') }}</label>
@@ -269,16 +260,7 @@
             <div class="clearfix"></div>
             @include('flash::message')
             <div class="card shadow-sm">
-                <div class="card-header">
-                    <ul class="nav nav-tabs d-flex flex-md-row flex-column-reverse align-items-start card-header-tabs">
-                        <div class="d-flex flex-row">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="{!! url()->current() !!}"><i
-                                        class="fa fa-calendar mr-2"></i>{{ trans('lang.calendar_view') }}</a>
-                            </li>
-                        </div>
-                    </ul>
-                </div>
+
                 <div class="card-body">
                     <!-- Calendar Container -->
                     <div id="calendar-container">
@@ -373,6 +355,10 @@
             }
         });
         let availableDays = [];
+        let availabilityDays = @json($availabilityDays);
+        let vacations = @json($vacations);
+        let urgencies = @json($urgencies);
+        //console.log("🩺 Urgencies loaded:", urgencies);
 
         $(document).ready(function () {
             //
@@ -391,7 +377,7 @@
             $('#patientRef, #patientPass').on('change', toggleFields);
             function refreshCalendarEvents() {
                 $('#calendar').fullCalendar('refetchEvents'); // Fetch and reload events
-                console.log("Calendar events refreshed");
+                //console.log("Calendar events refreshed");
             }
 
             // Set interval to refresh calendar every 30 seconds
@@ -401,33 +387,29 @@
             const timeSlotsContainer = document.getElementById('time-slots');
             function updateAvailableTimeSlots(response) {
                 const { all_slots, taken_slots, type } = response;
-                console.log("Response received:", response);
+                //console.log("Response received:", response);
 
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty();
 
                 // Handle vacation case
                 if (response.vacation) {
-                    timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                    timeSlotsWrapper.append(` <div class="alert alert-warning text-center"> Le docteur est en vacances pour ce jour. Aucune disponibilité n'est disponible. </div> `);
+
                     return;
                 }
 
                 // If no slots available for this type
                 if (!all_slots || all_slots.length === 0) {
-                    timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Aucun créneau disponible pour ${getTypeLabel(type)}.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
+                    timeSlotsWrapper.append(` <div class="alert alert-info text-center"> Aucun créneau disponible pour ${getTypeLabel(type)}. </div> `);
+
                     return;
                 }
 
                 const selectedDate = $("#appointmentDate").val();
                 const isToday = selectedDate === moment().format("YYYY-MM-DD");
+
+
 
                 all_slots.forEach(slot => {
                     const time = typeof slot === "object" ? slot.time || slot.slot : slot;
@@ -492,11 +474,14 @@
                 // Reset hidden type input
                 $('#appointmentType').val('cabinet');
                 $('#patientDropdown').val(null).trigger('change');
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_cabinet').closest('.pattern-select-group').removeClass('d-none');
+
             });
             ///////////////////////////////////////////////
             $("#appointmentTypeTabs a").on("click", function (e) {
                 e.preventDefault();
-                console.log("Tab Clicked:", this);
+                //console.log("Tab Clicked:", this);
                 const selectedType = $(this).data("type");
                 const selectedDate = $("#appointmentDate").val();
 
@@ -505,15 +490,21 @@
 
                 // Show this tab
                 $(this).tab('show');
-                console.log("Selected Type:", selectedType);
+                //console.log("Selected Type:", selectedType);
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_' + selectedType).closest('.pattern-select-group').removeClass('d-none');
+
                 if (selectedDate) {
                     fetchTimeSlotsForType(selectedDate, selectedType);
                 }
             });
             $('#appointmentTypeTabs a').on('shown.bs.tab', function (e) {
-                console.log("Tab Shown:", e.target);
+                //console.log("Tab Shown:", e.target);
                 const selectedType = $(e.target).data('type');
                 const selectedDate = $('#appointmentDate').val();
+                $('#appointmentType').val(selectedType);
+                $('.pattern-select-group').addClass('d-none');
+                $('#patern_id_' + selectedType).closest('.pattern-select-group').removeClass('d-none');
 
                 if (selectedDate) {
                     fetchTimeSlotsForType(selectedDate, selectedType);
@@ -524,7 +515,7 @@
                     url: "/get-available-time-slots", // Ensure this API returns the available days
                     type: "GET",
                     success: function (response) {
-                        console.log("Fetched Available Days:", response);
+                        //console.log("Fetched Available Days:", response);
                         availabilityDays = response.available_days.map(day => day.toLowerCase()); // Convert to lowercase
 
                         // Now initialize the calendar AFTER fetching availability days
@@ -547,7 +538,7 @@
                         type: type
                     },
                     success: function (response) {
-                        console.log("Fetched Time Slots Response:", response);
+                        //console.log("Fetched Time Slots Response:", response);
 
                         if (response.vacation) {
                             // If doctor is on vacation, show a warning alert (still using Swal)
@@ -565,11 +556,7 @@
 
                         if (!response.all_slots || response.all_slots.length === 0) {
                             // No available slots → Show a message inside the modal
-                            $("#time-slots").html(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-warning text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucune disponibilité pour ce type de rendez-vous à cette date.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                            $("#time-slots").html(` <div class="alert alert-warning text-center"> Aucune disponibilité pour ce type de rendez-vous à cette date. </div> `);
                             return;
                         }
 
@@ -592,11 +579,8 @@
             function clearTimeSlots() {
                 const timeSlotsWrapper = $("#time-slots");
                 timeSlotsWrapper.empty(); // Clear the container
-                timeSlotsWrapper.append(`
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="alert alert-info text-center">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Aucun créneau disponible trouvé.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                timeSlotsWrapper.append(` <div class="alert alert-info text-center"> Aucun créneau disponible trouvé. </div> `);
+
             }
             //////////////////////////////////////////////////////////////////////////////
             function fetchSubstitutes(doctorId) {
@@ -643,14 +627,13 @@
                     cache: true
                 }
             });
-            let availabilityDays = @json($availabilityDays);
-            let vacations = @json($vacations);
-            console.log("Availability Days at Load:", availabilityDays);
+
+            //console.log("Availability Days at Load:", availabilityDays);
             function initializeCalendar() {
                 calendar = $('#calendar').fullCalendar({
                     locale: 'fr',
                     editable: true,
-                    height: 600,
+                    height: 670,
                     header: {
                         left: 'prev,next today',
                         center: 'title',
@@ -662,6 +645,7 @@
                     allDayText: '',
                     eventLimit: true,
                     viewRender: function (view) {
+                        // console.log('[DEBUG] viewRender triggered:', view.name);
 
                         if (view.name === 'agendaWeek') {
                             const doctorId = {{ auth()->user()->getDoctorId() }};
@@ -674,6 +658,20 @@
                             fetchSubstitutes(doctorId).then(substitutes => {
                                 //console.log("Substitutes:", substitutes);
                                 $('.fc-day-header').each(function () {
+                                    //$(this).find('.day-header-divider, .custom-day-label, .custom-number-label').remove();
+                                    if ($(this).hasClass('substitute-initialized')) {
+                                        return;
+                                    }
+                                    // Mark it as done before we do anything else
+                                    $(this).addClass('substitute-initialized');
+                                    $(this).find('.day-header-divider, .custom-day-label, .custom-number-label').remove();
+                                    console.log('[DEBUG] Setting up header for:', $(this).data('date'));
+                                    // Prevent multiple double-renders in the same pass
+                                    if (!$(this).hasClass('substitute-initialized')) {
+                                        $(this).addClass('substitute-initialized');
+                                        // ... fetch & append your custom elements ...
+                                    }
+
                                     let dayDate = $(this).data('date');
                                     let dayMoment = moment(dayDate);
 
@@ -693,12 +691,8 @@
 
                                         // Create custom label with hover functionality
                                         // Append all elements with proper structure
-                                        $(this).append(`
-                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-day-label substitute-hover">${substituteName}</div>
-                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-number-label">${staticNumber}</div>
-                                                                                                                                                                                                                                                                                                                                                                    `);
+                                        $(this).append(` <hr class="day-header-divider"> <div class="custom-day-label substitute-hover">${substituteName}</div> <hr class="day-header-divider"> <div class="custom-number-label">${staticNumber}</div> `);
+
                                         if (activeSubstitute) {
                                             $(this).find('.custom-day-label').hover(
                                                 function (e) {
@@ -731,7 +725,8 @@
                         }
                     },
                     dayRender: function (date, cell) {
-                        console.log("Day Rendered:", date.format());
+
+                        //console.log("Day Rendered:", date.format());
                         const formattedDayName = date.locale('en').format('dddd').toLowerCase();
                         const normalizedAvailabilityDays = availabilityDays.map(day => day.toLowerCase());
                         const today = moment().startOf('day');
@@ -740,11 +735,19 @@
 
                         // Check vacation days first
                         const isVacationDay = vacations.some(vacation => {
-                            const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
-                            const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
-                            return currentDay.isSameOrAfter(vacationStart) && currentDay.isSameOrBefore(vacationEnd);
+                            const start = moment(vacation.start_date, 'YYYY-MM-DD').startOf('day');
+                            const end = moment(vacation.end_date, 'YYYY-MM-DD').endOf('day');
+                            return currentDay.isSameOrAfter(start) && currentDay.isSameOrBefore(end);
                         });
+                        const isUrgentDay = urgencies.some(urgency => {
 
+                            const urgencyDate = moment(urgency.jour, 'YYYY-MM-DD');
+                            //console.log(`Comparing ${urgencyDate.format('YYYY-MM-DD')} === ${currentDay.format('YYYY-MM-DD')}`);
+                            return currentDay.isSame(urgencyDate, 'day');
+                        });
+                        //console.log("Is Urgent Day:", isUrgentDay);
+
+                        //console.log("Is Vacation Day:", isVacationDay);
                         if (currentDay.isBefore(today)) {
                             cell.css('background-color', '#e9ecef');
                             cell.css('cursor', 'not-allowed');
@@ -753,8 +756,15 @@
                             cell.append('<span class="dot past-dot"></span>');
                             cell.attr('title', 'Ce jour est dans le passé.');
                         } else if (isVacationDay) {
+                            //console.log("Rendering urgent UI for:", formattedDate);
                             cell.addClass('cell-with-background');
+                            cell.css('cursor', 'not-allowed');
+                            cell.css('background-color', '#f2f2f2');
                             cell.attr('title', 'Le docteur est en vacances ce jour.');
+                        } else if (isUrgentDay) {
+                            cell.addClass('cell-with-background');
+                            cell.css('background-color', '#ffe6e6'); // light red
+                            cell.attr('title', 'Urgence: Le docteur est en urgence ce jour.');
                         } else if (normalizedAvailabilityDays.includes(formattedDayName)) {
                             // Check availability for all appointment types
                             $.ajax({
@@ -883,7 +893,7 @@
                             case 'cabinet':
                                 icon = '<i class="fas fa-briefcase-medical" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
-                            case 'Téléconsultation':
+                            case 'teleconsultation':
                                 icon = '<i class="fas fa-video" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Video icon
                                 break;
                             case 'home_visit':
@@ -917,9 +927,10 @@
                         //const selectedDayName = start.format('dddd').toLowerCase(); // Get day name in lowercase
                         const selectedDayName = moment(selectedDate).locale('en').format("dddd").toLowerCase(); // Ensure English name
                         const today = moment().format("YYYY-MM-DD");
-                        console.log("Selected Date:", selectedDate);
+                        //console.log("Selected Date:", selectedDate);
                         //console.log("Selected Day:", selectedDay);
-                        console.log("Selected Day Name:", selectedDayName);
+                        //console.log("Selected Day Name:", selectedDayName);
+                        const currentDay = start.clone().startOf('day');
 
                         // First check if date is in the past
                         if (moment(selectedDate).isBefore(today)) {
@@ -930,10 +941,11 @@
 
                         // Check if it's a vacation day
                         const isVacationDay = vacations.some(vacation => {
-                            const vacationStart = moment(vacation.dateDebut, 'YYYY-MM-DD').startOf('day');
-                            const vacationEnd = moment(vacation.dateFin, 'YYYY-MM-DD').endOf('day');
-                            return moment(selectedDate).isSameOrAfter(vacationStart) && moment(selectedDate).isSameOrBefore(vacationEnd);
+                            const start = moment(vacation.start_date, 'YYYY-MM-DD').startOf('day');
+                            const end = moment(vacation.end_date, 'YYYY-MM-DD').endOf('day');
+                            return currentDay.isSameOrAfter(start) && currentDay.isSameOrBefore(end);
                         });
+
 
                         if (isVacationDay) {
                             Swal.fire({
@@ -950,7 +962,7 @@
                             url: "/get-available-time-slots",
                             type: "GET",
                             success: function (response) {
-                                console.log("Available Days Response:", response);
+                                //console.log("Available Days Response:", response);
                                 const availableDays = response.available_days.map(day => day.toLowerCase());
 
                                 if (!availableDays.includes(selectedDayName)) {
@@ -985,7 +997,7 @@
                                                 // If this is the first type with available slots, select its tab
                                                 if (!$('#appointmentModal').is(':visible')) {
                                                     $('#appointmentModal').modal('show');
-                                                    $(`#appointmentTypeTabs a[data-type="${type}"]`).tab('show');
+                                                    $(`#appointmentTypeTabs a[data-type="cabinet"]`).tab('show');
                                                     fetchTimeSlotsForType(selectedDate, type);
                                                 }
                                             }
@@ -1032,8 +1044,8 @@
                             success: function () {
                                 calendar.fullCalendar('refetchEvents');
                                 alert("Rendez-vous mis à jour avec succès.");
-                                console.log("Start At:", start_at);
-                                console.log("End At:", ends_at);
+                                //console.log("Start At:", start_at);
+                                //console.log("End At:", ends_at);
                             }
                         });
                     },
@@ -1098,23 +1110,23 @@
             }
             $('#saveAppointment').on('click', function (e) {
                 e.preventDefault();
-                console.log('Save button clicked'); // Debug log
+                //console.log('Save button clicked'); // Debug log
                 const activeTab = $('#appointmentTypeTabs .nav-link.active');
                 const appointmentType = activeTab.data('type');
-                console.log('Active tab type:', appointmentType); // Debug log
-
+                //console.log('Active tab type:', appointmentType); // Debug log
+                const patternSelectId = '#patern_id_' + appointmentType;
                 // Get form data
                 const appointmentData = {
                     patient_id: $('#patientDropdown').val(),
                     appointment_date: $('#appointmentDate').val(),
                     appointment_time: $('#appointment_time').val(),
-                    patern_id: $('#patern_id').val(),
+                    patern_id: $(patternSelectId).val(),
                     appointment_type: appointmentType, // Use the active tab's type
                     notes: $('#appointment_notes').val(), // Add notes field
                     _token: $('meta[name="csrf-token"]').attr('content')
                 };
 
-                console.log('Appointment Data:', appointmentData); // Debug log
+                //console.log('Appointment Data:', appointmentData); // Debug log
 
                 // Validate form data
                 if (!appointmentData.patient_id) {
@@ -1150,7 +1162,7 @@
                     method: "POST",
                     data: appointmentData,
                     success: function (response) {
-                        console.log('Success:', response); // Debug log
+                        //console.log('Success:', response); // Debug log
 
                         Swal.fire({
                             title: "Succès",
@@ -1162,7 +1174,7 @@
                         });
                     },
                     error: function (xhr) {
-                        console.log('Error:', xhr); // Debug log
+                        //console.log('Error:', xhr); // Debug log
 
                         let errorMessage = "Une erreur s'est produite";
                         if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -1189,7 +1201,7 @@
                     appointment_status_id: statusId,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 };
-
+                //console.log("Update Status Data:", data);
                 if (reason) {
                     data.cancel_reason = reason;
                 }
@@ -1208,7 +1220,7 @@
                             $('#cancelReasonModal').modal('hide');
                             $('#appointmentDetailsModal').modal('hide');
                             $('#calendar').fullCalendar('refetchEvents');
-                            console.log("Appointment status updated successfully.");
+                            //console.log("Appointment status updated successfully.");
 
                         });
                         $('#calendar').fullCalendar('refetchEvents');

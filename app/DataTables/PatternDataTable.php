@@ -33,6 +33,7 @@ class PatternDataTable extends DataTable
                     1 => trans('lang.cabinet'),
                     2 => trans('lang.clinique'),
                     3 => trans('lang.adomicile'),
+                    4 => trans('lang.teleconsultation'),
                 ];
                 return $typeMapping[$pattern->type] ?? '';
             })

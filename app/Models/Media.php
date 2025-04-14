@@ -90,7 +90,7 @@ class Media extends BaseMedia implements HasMedia
         if (!$this->hasGeneratedConversion('thumb')) {
             parent::makeHidden('thumb');
         }
-        parent::makeHidden(['model_type', 'model_id', 'collection_name', 'file_name', 'mime_type', 'disk','conversions_disk', 'size', 'manipulations', 'custom_properties','generated_conversions','uuid']);
+        parent::makeHidden(['model_type', 'model_id', 'collection_name', 'file_name', 'mime_type', 'disk','conversions_disk', 'size', 'manipulations', 'custom_properties','generated_conversions']);
         return parent::toArray();
     }
 }

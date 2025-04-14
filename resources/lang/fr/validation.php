@@ -39,7 +39,6 @@ return [
     'digits_between' => 'The :attribute must be between :min and :max digits.',
     'dimensions' => 'The :attribute has invalid image dimensions.',
     'distinct' => 'The :attribute field has a duplicate value.',
-    'email' => 'The :attribute must be a valid email address.',
     'ends_with' => 'The :attribute must end with one of the following: :values.',
     'exists' => 'The selected :attribute is invalid.',
     'file' => 'The :attribute must be a file.',
@@ -159,6 +158,14 @@ return [
                 'after' => 'L\'heure de fin de pause doit être postérieure à l\'heure de début de pause.',
             ],
         ],
+
+        'email' => [
+            'unique' => 'This email has already been taken.',
+            'email' => 'Please enter a valid email address.',
+        ],
+        'phone_number' => [
+            'unique' => 'This phone number has already been taken.',
+        ],
     ],
 
     /*
@@ -180,5 +187,8 @@ return [
         'gender' => 'sexe',
         'date_naissance' => 'date de naissance',
     ],
+
+
+    
 
 ];
