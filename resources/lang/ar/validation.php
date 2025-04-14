@@ -44,7 +44,6 @@ return [
     'digits_between' => 'يجب أن يحتوي :attribute بين :min و :max رقمًا/أرقام .',
     'dimensions' => 'الـ :attribute يحتوي على أبعاد صورة غير صالحة.',
     'distinct' => 'للحقل :attribute قيمة مُكرّرة.',
-    'email' => 'يجب أن يكون :attribute عنوان بريد إلكتروني صحيح البُنية.',
     'ends_with' => 'يجب أن ينتهي :attribute بأحد القيم التالية: :values',
     'exists' => 'القيمة المحددة :attribute غير موجودة.',
     'file' => 'الـ :attribute يجب أن يكون ملفا.',
@@ -138,6 +137,14 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+
+        'email' => [
+            'unique' => 'This email has already been taken.',
+            'email' => 'Please enter a valid email address.',
+        ],
+        'phone_number' => [
+            'unique' => 'This phone number has already been taken.',
+        ],
     ],
 
     /*
@@ -182,4 +189,7 @@ return [
         'available' => 'مُتاح',
         'size' => 'الحجم',
     ],
+
+
+    
 ];

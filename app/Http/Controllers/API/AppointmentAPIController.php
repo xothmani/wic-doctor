@@ -233,7 +233,7 @@ class AppointmentAPIController extends Controller
                     'appointment_statuses.status as appointment_status_name',
                     'appointment_statuses.order as appointment_status_order'
                 )->where('appointments.user_id', '=', $userId)
-                ->orderBy('appointments.appointment_at', 'desc') // Sort by closest appointment time
+                ->orderBy('appointments.start_at', 'desc') // Sort by closest appointment time
                 ->get();
             Log::info("test get price doctor id", ['appointments' => $appointments[0]]);
             // Format the appointments to include nested objects
@@ -608,6 +608,9 @@ class AppointmentAPIController extends Controller
             ], 500);
         }
     }
+
+
+
 
 
     /**

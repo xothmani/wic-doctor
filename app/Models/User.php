@@ -22,6 +22,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Permission\Models\Permission;
 use App\Models\DoctorPatients;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 
 /**
