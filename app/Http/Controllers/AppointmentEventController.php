@@ -417,11 +417,9 @@ class AppointmentEventController extends Controller
              if ($diffInMinutes > 30) {
                 // Optional: build a link (or remove this line if you don’t use shortUrl)
                 $shortUrl = url('/'); // Change this to your appointment detail route if needed
-
-                $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name .
-                    " chez Wic-Dr avec Dr." . $doctor->name . ".\n" .
-                    "RDV: " . $startAt->format('d/m/Y H:i') . "\n" .
-                    "Plus d'infos: $shortUrl";
+                $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
+                "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+     
 
                 $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
 
@@ -1477,11 +1475,9 @@ class AppointmentEventController extends Controller
         if ($diffInMinutes > 30) {
             // Optional: build a link (or remove this line if you don’t use shortUrl)
             $shortUrl = url('/'); // Change this to your appointment detail route if needed
-
-            $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name .
-                " chez Wic-Dr avec Dr." . $doctor->name . ".\n" .
-                "RDV: " . $startAt->format('d/m/Y H:i') . "\n" .
-                "Plus d'infos: $shortUrl";
+            $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
+            "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+ 
 
             $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
 
@@ -1589,10 +1585,9 @@ class AppointmentEventController extends Controller
                 // Optional: build a link (or remove this line if you don’t use shortUrl)
                 $shortUrl = url('/'); // Change this to your appointment detail route if needed
 
-                $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name .
-                    " chez Wic-Dr avec Dr." . $doctor->name . ".\n" .
-                    "RDV: " . $startAt->format('d/m/Y H:i') . "\n" .
-                    "Plus d'infos: $shortUrl";
+                $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
+                "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+     
 
                 $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
 
