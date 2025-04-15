@@ -55,7 +55,8 @@
                 </div>
             </div>
         </div>
-        <!-- Modal for Viewing and Updating Appointment Details -->
+        <!-- Appointment Details Modal -->
+        <!-- Appointment Details Modal -->
         <div class="modal fade" id="appointmentDetailsModal" tabindex="-1" role="dialog"
             aria-labelledby="appointmentDetailsModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
@@ -63,30 +64,105 @@
                     <div class="modal-header">
                         <h5 class="modal-title" id="appointmentDetailsModalLabel">{{ trans('lang.appointment_details') }}</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
+                            <span aria-hidden="true">×</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div id="appointment-info">
-                            <!-- Patient Details will be dynamically filled here -->
-                            <p><strong>{{ trans('lang.patient_nom') }}:</strong> <span id="patientName"></span></p>
-                            <p><strong>{{ trans('lang.appointment_status') }}:</strong> <span id="appointmentStatus"></span></p>
-                            <p><strong>{{ trans('lang.motif_name') }}:</strong> <span id="motifName"></span></p>
-                            <p><strong>{{ trans('lang.note') }}:</strong> <span id="note"></span></p>
+                        <ul class="nav nav-tabs" id="appointmentTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab"
+                                    aria-controls="details" aria-selected="true">{{ trans('lang.details') }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="edit-tab" data-toggle="tab" href="#edit" role="tab" aria-controls="edit"
+                                    aria-selected="false">{{ trans('lang.edit_appointment') }}</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="appointmentTabContent">
+                            <!-- Details and Status Tab -->
+                            <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+                                <div class="appointment-info">
+                                    <p><strong>{{ trans('lang.patient_nom') }}:</strong> <span id="patientName"></span></p>
+                                    <p><strong>{{ trans('lang.appointment_status') }}:</strong> <span
+                                            id="appointmentStatus"></span></p>
+                                    <p><strong>{{ trans('lang.motif_name') }}:</strong> <span id="motifName"></span></p>
+                                    <p><strong>{{ trans('lang.note') }}:</strong> <span id="note"></span></p>
+                                </div>
+                            </div>
+                            <!-- Edit Appointment Tab -->
+                            <div class="tab-pane fade" id="edit" role="tabpanel" aria-labelledby="edit-tab">
+                                <form id="appointmentForm">
+                                    <input type="hidden" id="appointmentId">
+                                    <div class="form-group">
+                                        <label><strong>{{ trans('lang.patient_nom') }}:</strong></label>
+                                        <input type="text" class="form-control" id="patientNameEdit" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label><strong>{{ trans('lang.appointment_date') }}:</strong></label>
+                                        <input type="datetime-local" class="form-control" id="appointmentDate">
+                                    </div>
+                                    <div class="form-group pattern-select-group">
+                                        <label><strong>{{ trans('lang.availability_hour_pattern') }}:</strong></label>
+                                        <select name="patern_id" id="patern_id_cabinet" class="form-control">
+                                            <option value="">{{ trans('lang.select_pattern') }}</option>
+                                            <!-- Populated dynamically -->
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label><strong>{{ trans('lang.note') }}:</strong></label>
+                                        <textarea class="form-control" id="notes" rows="4"></textarea>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary d-none" id="createTeleconsultation"
-                            style="background-color: #AEC6CF; color: #000;">{{ trans('lang.create_teleconsultation') }}</button>
-                        <button type="button" class="btn btn-danger" id="markAsFailed"
-                            style="background-color: #F4C2C2; color: #000;">{{ trans('lang.mark_failed') }}</button>
-                        <button type="button" class="btn btn-success" id="markAsDone"
-                            style="background-color: #B1E5D6; color: #000;">{{ trans('lang.mark_ready') }}</button>
+                        <div class="delete-button-container">
+                            <button type="button" class="btn btn-danger btn-modern"
+                                id="deleteAppointment">{{ trans('lang.delete') }}</button>
+                        </div>
+                        <div class="status-buttons">
+                            <button type="button" class="btn btn-primary btn-modern d-none" id="createTeleconsultation"
+                                style="background-color: #AEC6CF; color: #000;">{{ trans('lang.create_teleconsultation') }}</button>
+                            <button type="button" class="btn btn-danger btn-modern" id="markAsFailed"
+                                style="background-color: #F4C2C2; color: #000;">{{ trans('lang.mark_failed') }}</button>
+                            <button type="button" class="btn btn-success btn-modern" id="markAsDone"
+                                style="background-color: #B1E5D6; color: #000;">{{ trans('lang.mark_ready') }}</button>
+                            <button type="button" class="btn btn-primary btn-modern" id="updateAppointment"
+                                style="display: none;">{{ trans('lang.update') }}</button>
+                            <button type="button" class="btn btn-secondary btn-modern"
+                                id="closeModal">{{ trans('lang.close') }}</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
+        <!-- Cancel Reason Modal -->
+        <div class="modal fade" id="cancelReasonModal" tabindex="-1" role="dialog" aria-labelledby="cancelReasonModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cancelReasonModalLabel">{{ trans('lang.cancel_appointment') }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="cancelReason">{{ trans('lang.cancel_reason') }}:</label>
+                            <textarea class="form-control" id="cancelReason" rows="4"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary btn-modern"
+                            id="confirmCancel">{{ trans('lang.confirm') }}</button>
+                        <button type="button" class="btn btn-secondary btn-modern"
+                            data-dismiss="modal">{{ trans('lang.close') }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Modal for Creating Appointment -->
         <div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel"
             aria-hidden="true">
@@ -1107,21 +1183,42 @@
                             patient_last_name: event.patient_last_name,
                             email: event.email,
                             patient_id: event.patient_id,
+                            status_id: event.status_id,
                             status: event.status,
+                            motif_id: event.motif_id,
                             motif_name: event.motif_name,
                             online: event.online,
                             start: event.start.format(),
-                            phone: event.patient_phone_number // Include the patient phone number
+                            end: event.end ? event.end.format() : null,
+                            notes: event.notes,
+                            phone: event.patient_phone_number
                         };
-                        $('#patientName').text(event.patient_name);
-                        $('#appointmentStatus').text(event.status);
-                        $('#appointmentDetails').text(event.details || 'No additional details');
-                        $('#motifName').text(event.motif_name || 'No motif name available');
-                        $('#note').text(event.note || 'No note available');
-                        //console.log(event.motif_name);
-                        //console.log(event.patient_name);
-                        // Show the modal
-                        openAppointmentModal(appointment);
+
+                        // Populate modal fields
+                        $('#appointmentId').val(appointment.appointment_id);
+                        $('#patientName').val(appointment.patient_name);
+                        $('#appointmentDate').val(moment(appointment.start).format('YYYY-MM-DDTHH:mm'));
+                        $('#notes').val(appointment.notes || '');
+
+                        // Populate motif dropdown
+                        $.get('/motifs', function (motifs) {
+                            $('#motifId').empty();
+                            $('#motifId').append('<option value="">Select Motif</option>');
+                            motifs.forEach(motif => {
+                                $('#motifId').append(`<option value="${motif.id}" ${motif.id == appointment.motif_id ? 'selected' : ''}>${motif.name}</option>`);
+                            });
+                        });
+
+                        // Populate status dropdown
+                        $.get('/appointment-statuses', function (statuses) {
+                            $('#appointmentStatus').empty();
+                            $('#appointmentStatus').append('<option value="">Select Status</option>');
+                            statuses.forEach(status => {
+                                $('#appointmentStatus').append(`<option value="${status.id}" ${status.id == appointment.status_id ? 'selected' : ''}>${status.status}</option>`);
+                            });
+                        });
+
+                        // Show modal
                         $('#appointmentDetailsModal').modal('show');
 
                         // Event handler for "Mark as Failed"
@@ -1131,13 +1228,89 @@
 
                             $('#confirmCancel').off('click').on('click', function () {
                                 const reason = $('#cancelReason').val() || "Aucune raison fournie";
-                                updateAppointmentStatus(appointment.appointment_id, 7, reason); // 7 is the Failed/Canceled status
+                                updateAppointmentStatus(appointment.appointment_id, 7, reason);
                             });
                         });
 
                         // Event handler for "Mark as Done"
                         $('#markAsDone').off('click').on('click', function () {
-                            updateAppointmentStatus(event.id, 5); // 5 is the Done status
+                            updateAppointmentStatus(appointment.appointment_id, 5);
+                        });
+
+                        // Event handler for "Save Changes"
+                        $('#saveAppointment').off('click').on('click', function () {
+                            const data = {
+                                id: $('#appointmentId').val(),
+                                appointment_at: $('#appointmentDate').val(),
+                                motif_id: $('#motifId').val(),
+                                appointment_status_id: $('#appointmentStatus').val(),
+                                notes: $('#notes').val(),
+                                _token: $('meta[name="csrf-token"]').attr('content')
+                            };
+
+                            $.ajax({
+                                url: '/appointments/update',
+                                method: 'POST',
+                                data: data,
+                                success: function (response) {
+                                    Swal.fire({
+                                        title: 'Succès',
+                                        text: 'Appointment updated successfully',
+                                        icon: 'success',
+                                        confirmButtonText: 'OK'
+                                    }).then(() => {
+                                        $('#appointmentDetailsModal').modal('hide');
+                                        $('#calendar').fullCalendar('refetchEvents');
+                                    });
+                                },
+                                error: function (xhr) {
+                                    Swal.fire({
+                                        title: 'Erreur',
+                                        text: xhr.responseJSON.error || 'Failed to update appointment',
+                                        icon: 'error',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            });
+                        });
+
+                        // Event handler for "Delete Appointment"
+                        $('#deleteAppointment').off('click').on('click', function () {
+                            Swal.fire({
+                                title: 'Are you sure?',
+                                text: 'This action cannot be undone!',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonText: 'Yes, delete it!',
+                                cancelButtonText: 'No, keep it'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    $.ajax({
+                                        url: `/appointments/delete/${$('#appointmentId').val()}`,
+                                        method: 'DELETE',
+                                        data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                                        success: function () {
+                                            Swal.fire({
+                                                title: 'Succès',
+                                                text: 'Appointment deleted successfully',
+                                                icon: 'success',
+                                                confirmButtonText: 'OK'
+                                            }).then(() => {
+                                                $('#appointmentDetailsModal').modal('hide');
+                                                $('#calendar').fullCalendar('refetchEvents');
+                                            });
+                                        },
+                                        error: function (xhr) {
+                                            Swal.fire({
+                                                title: 'Erreur',
+                                                text: xhr.responseJSON.error || 'Failed to delete appointment',
+                                                icon: 'error',
+                                                confirmButtonText: 'OK'
+                                            });
+                                        }
+                                    });
+                                }
+                            });
                         });
                     }
                 });

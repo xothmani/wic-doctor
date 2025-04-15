@@ -19,6 +19,8 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
+
+
     'view_changes' => 'Voir les modifications',
     'mark_as_read' => 'Marquer comme lu',
     'read' => 'Lu',

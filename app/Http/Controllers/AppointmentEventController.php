@@ -25,9 +25,11 @@ use App\Repositories\DoctorRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\ClinicRepository;
 use function PHPUnit\Framework\isNull;
+use App\Services\AuditLogService;
 
 class AppointmentEventController extends Controller
 {
+    protected $auditLogService;
 
     /**
      * @var DoctorRepository
@@ -49,12 +51,15 @@ class AppointmentEventController extends Controller
         DoctorRepository $doctorRepository,
         ClinicRepository $clinicRepository,
         PatientRepository $patientRepository,
+        AuditLogService $auditLogService,
     ) {
 
         parent::__construct();
         $this->doctorRepository = $doctorRepository;
         $this->clinicRepository = $clinicRepository;
         $this->patientRepository = $patientRepository;
+        $this->auditLogService = $auditLogService;
+
     }
 
 
@@ -379,7 +384,7 @@ class AppointmentEventController extends Controller
 
             Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
             // Log appointment creation in audit system
-            app(\App\Services\AuditLogService::class)->logAppointment(
+            /* app(\App\Services\AuditLogService::class)->logAppointment(
                 $appointment->id,
                 'create_appointment',
                 trans('audit.create_appointment'),
@@ -394,8 +399,35 @@ class AppointmentEventController extends Controller
                     'notes' => $validated['notes'] ?? null
                 ],
                 $doctorId
-            );
+            ); */
+            $fieldTypes = [
+                'creator_id' => 'user',
+                'doctor_id' => 'doctor',
+                'patient_id' => 'patient',
+                'start_at' => 'datetime', // Changed to 'datetime' to format timestamps
+                'ends_at' => 'datetime',
+                'appointment_type' => 'appointment_type',
+                'notes' => 'text',
+            ];
+            $newValues = [
+                'creator_id' => auth()->id(),
+                'doctor_id' => $appointment->doctor_id,
+                'patient_id' => $appointment->patient_id,
+                'start_at' => $appointment->start_at,
+                'ends_at' => $appointment->ends_at,
+                'appointment_type' => $appointment->online,
+                'notes' => $appointment->hint,
+            ];
 
+            $this->auditLogService->createAuditLog(
+                'create_appointment',
+                'appointment',
+                'create_appointment',
+                [], // old_values
+                $newValues,
+                $fieldTypes,
+                $appointment->doctor_id
+            );
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
             \Log::info('sending sms');
@@ -507,14 +539,13 @@ class AppointmentEventController extends Controller
         try {
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
-
-            /** solve problem cast */
-            $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
-            $appointment->doctor = $doctor;
-            $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
-            $appointment->clinic = $clinic;
-            $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
-            $appointment->patient = $patient;
+            $appointment->appointment_at = $request->appointment_at;
+            $appointment->start_at = $request->appointment_at;
+            $appointment->ends_at = Carbon::parse($request->appointment_at)->addMinutes(30); // Adjust duration as needed
+            $appointment->motif_id = $request->motif_id;
+            $appointment->appointment_status_id = $request->appointment_status_id;
+            $appointment->hint = $request->notes;
+            $appointment->save();
             /**** */
 
             // Check if the status is "Canceled" (use the correct status ID for "Canceled")
@@ -619,10 +650,40 @@ class AppointmentEventController extends Controller
         return 'https://fcm.googleapis.com/v1/projects/' . $projectId . '/messages:send';
     }
 
+
+    ///////////////
+    public function delete($id)
+    {
+        try {
+            $appointment = Appointment::findOrFail($id);
+            $appointment->delete();
+
+            // Log audit event
+            $auditLogService = app(\App\Services\AuditLogService::class);
+            $auditLogService->logAppointment(
+                $id,
+                'delete_appointment',
+                'appointment_deleted',
+                ['appointment_id' => $id],
+                [],
+                $appointment->doctor_id
+            );
+
+            return response()->json(['message' => 'Appointment deleted successfully']);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to delete appointment: ' . $e->getMessage()], 500);
+        }
+    }
+    /////////////////
     //////////////////////
 // les getters
 /////////////////////
 
+
+    public function getStatuses()
+    {
+        return DB::table('appointment_statuses')->select('id', 'status')->get();
+    }
     public function getAvailableTimeSlots(Request $request)
     {
         \Log::info('Request received-1', ['request' => $request->all()]);

@@ -92,19 +92,19 @@
     <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white">
-      <h5 class="modal-title" id="changesModalLabel">{{ trans('lang.changes_details') }}</h5>
+      <h5 class="modal-title" id="changesModalLabel">{{ trans('audit.changes_details') }}</h5>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
       <div class="row mb-4">
         <div class="col-md-6">
-        <h6 class="text-muted mb-3">{{ trans('lang.old_values') }}</h6>
+        <h6 class="text-muted mb-3">{{ trans('audit.old_values') }}</h6>
         <div class="table-responsive">
           <table class="table table-sm table-bordered table-hover" id="oldValuesTable">
           <thead class="table-light">
             <tr>
-            <th>{{ trans('lang.field') }}</th>
-            <th>{{ trans('lang.value') }}</th>
+            <th>{{ trans('audit.field') }}</th>
+            <th>{{ trans('audit.value') }}</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -112,13 +112,13 @@
         </div>
         </div>
         <div class="col-md-6">
-        <h6 class="text-muted mb-3">{{ trans('lang.new_values') }}</h6>
+        <h6 class="text-muted mb-3">{{ trans('audit.new_values') }}</h6>
         <div class="table-responsive">
           <table class="table table-sm table-bordered table-hover" id="newValuesTable">
           <thead class="table-light">
             <tr>
-            <th>{{ trans('lang.field') }}</th>
-            <th>{{ trans('lang.value') }}</th>
+            <th>{{ trans('audit.field') }}</th>
+            <th>{{ trans('audit.value') }}</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -127,25 +127,24 @@
         </div>
       </div>
       <div class="details-section">
-        <p class="mb-2"><span class="label">{{ trans('lang.action') }}:</span> <span id="modalAction"
+        <p class="mb-2"><span class="label">{{ trans('audit.action') }}:</span> <span id="modalAction"
           class="value"></span></p>
-        <p class="mb-2"><span class="label">{{ trans('lang.entity_type') }}:</span> <span id="modalEntityType"
+        <p class="mb-2"><span class="label">{{ trans('audit.entity_type') }}:</span> <span id="modalEntityType"
           class="value"></span></p>
-        <p class="mb-2"><span class="label">{{ trans('lang.description') }}:</span> <span id="modalDescription"
+        <p class="mb-2"><span class="label">{{ trans('audit.description') }}:</span> <span id="modalDescription"
           class="value"></span></p>
-        <p class="mb-2"><span class="label">{{ trans('lang.by') }}:</span> <span id="modalUser" class="value"></span>
+        <p class="mb-2"><span class="label">{{ trans('audit.by') }}:</span> <span id="modalUser" class="value"></span>
         </p>
-        <p class="mb-2"><span class="label">{{ trans('lang.date') }}:</span> <span id="modalDate"
+        <p class="mb-2"><span class="label">{{ trans('audit.date') }}:</span> <span id="modalDate"
           class="value"></span></p>
       </div>
       </div>
       <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('lang.close') }}</button>
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('audit.close') }}</button>
       </div>
     </div>
     </div>
   </div>
-
   <!-- Inline CSS for Modal Styling -->
   <style>
     /* Custom button size (smaller than btn-sm) */

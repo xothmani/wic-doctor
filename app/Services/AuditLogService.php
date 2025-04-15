@@ -3,9 +3,13 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
+use App\Models\User;
+use App\Models\Doctor;
+use App\Models\Patient;
 use Illuminate\Support\Facades\Auth;
 use App\Events\AuditLogCreatedEvent;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class AuditLogService
 {
@@ -342,5 +346,117 @@ class AuditLogService
             [],
             $doctorId
         );
+    }
+
+    public function createAuditLog($action, $entityType, $description, $oldValues = [], $newValues = [], $fieldTypes = [], $doctorId = null)
+    {
+        \Log::info('[AUDIT SERVICE] Creating audit log', ['action' => $action, 'entity_type' => $entityType]);
+
+        // Preprocess old_values and new_values
+        $processedOldValues = $this->preprocessValues($oldValues, $fieldTypes);
+        $processedNewValues = $this->preprocessValues($newValues, $fieldTypes);
+
+        // Create the audit log
+        $auditLog = new AuditLog();
+        $auditLog->action = $action;
+        $auditLog->entity_type = $entityType;
+        $auditLog->description = $description;
+        $auditLog->old_values = $processedOldValues;
+        $auditLog->new_values = $processedNewValues;
+        $auditLog->user_id = Auth::id();
+        $auditLog->doctor_id = $doctorId ?? (Auth::user()->hasRole('doctor') ? Auth::user()->doctor_id : null);
+        $auditLog->save();
+
+        \Log::info('[AUDIT SERVICE] Audit log created', ['id' => $auditLog->id]);
+        return $auditLog;
+    }
+
+    /**
+     * Preprocess the values based on their field types.
+     *
+     * @param array $values
+     * @param array $fieldTypes
+     * @return array
+     */
+    protected function preprocessValues($values, $fieldTypes)
+    {
+        if (empty($values)) {
+            return [];
+        }
+
+        $processedValues = [];
+
+        foreach ($values as $key => $value) {
+            // Skip developer-specific fields
+            $fieldsToHide = ['metadata'];
+            if (in_array($key, $fieldsToHide)) {
+                continue;
+            }
+
+            // Determine the field type
+            $fieldType = $fieldTypes[$key] ?? 'text'; // Default to 'text' if type not specified
+
+            // Resolve the value based on the field type
+            $processedValue = $this->resolveValue($key, $value, $fieldType);
+
+            // Translate the field name
+            $translatedKey = __('audit.fields.' . $key, [], ucfirst(str_replace('_', ' ', $key)));
+
+            // Add to processed values
+            $processedValues[$translatedKey] = $processedValue;
+        }
+
+        return $processedValues;
+    }
+
+    /**
+     * Resolve the value based on its field type.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @param string $fieldType
+     * @return mixed
+     */
+    protected function resolveValue($key, $value, $fieldType)
+    {
+        // Handle 'N/A' globally
+        if ($value === 'N/A') {
+            return __('audit.na');
+        }
+
+        switch ($fieldType) {
+            case 'user':
+                $user = User::find($value);
+                return $user ? trim($user->name . ' ' . $user->last_name) : __('audit.na');
+
+            case 'doctor':
+                $doctor = Doctor::find($value);
+                return $doctor ? trim($doctor->name) : __('audit.na');
+
+            case 'patient':
+                $patient = Patient::find($value);
+                return $patient ? trim($patient->first_name . ' ' . $patient->last_name) : __('audit.na');
+
+            case 'status':
+                return __('audit.statuses.' . (is_numeric($value) ? $value : strtolower($value)), [], $value);
+
+            case 'appointment_type':
+                $typeKey = str_replace('audit.appointment_type.', '', $value);
+                return __('audit.appointment_types.' . $typeKey, [], $value);
+            case 'datetime':
+                \Log::info('Formatting datetime in AuditLogService', ['value' => $value]);
+                try {
+                    $date = Carbon::parse($value);
+                    $formatted = $date->format('Y-m-d H:i:s');
+                    \Log::info('Formatted datetime in AuditLogService', ['value' => $value, 'formatted' => $formatted]);
+                    return $formatted;
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to parse datetime in AuditLogService', ['value' => $value, 'error' => $e->getMessage()]);
+                    return $value;
+                }
+            case 'text':
+            default:
+                return $value;
+        }
     }
 }

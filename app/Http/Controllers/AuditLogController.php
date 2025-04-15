@@ -101,53 +101,6 @@ class AuditLogController extends Controller
         try {
             $auditLog = AuditLog::with(['user', 'doctor'])->findOrFail($id);
 
-            // Prepare old and new values with names instead of IDs
-            $oldValues = $auditLog->old_values ?? [];
-            $newValues = $auditLog->new_values ?? [];
-
-            // Helper function to resolve IDs to names
-            $resolveNames = function ($values) {
-                if (isset($values['creator_id'])) {
-                    $user = User::find($values['creator_id']);
-                    $values['creator_id'] = $user ? $user->name : __('lang.na');
-                }
-                if (isset($values['doctor_id'])) {
-                    $doctor = Doctor::find($values['doctor_id']);
-                    $values['doctor_id'] = $doctor ? $doctor->name : __('lang.na');
-                }
-                if (isset($values['patient_id'])) {
-                    $patient = Patient::find($values['patient_id']);
-                    $values['patient_id'] = $patient ? trim($patient->first_name . ' ' . $patient->last_name) : __('lang.na');
-                }
-                return $values;
-            };
-
-            $oldValues = $resolveNames($oldValues);
-            $newValues = $resolveNames($newValues);
-
-            $response = [
-                'action' => $auditLog->action,
-                'entity_type' => $auditLog->entity_type,
-                'description' => $auditLog->description,
-                'user_name' => $auditLog->user ? $auditLog->user->name : __('lang.system'),
-                'created_at' => $auditLog->created_at->format('Y-m-d H:i:s'),
-                'old_values' => $oldValues,
-                'new_values' => $newValues,
-            ];
-
-            \Log::info('[AUDIT CONTROLLER] Audit log details fetched', ['id' => $id]);
-            return response()->json($response);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching audit log details: ' . $e->getMessage(), ['id' => $id]);
-            return response()->json(['error' => 'Audit log not found'], 404);
-        }
-    } */
-    public function getDetails($id)
-    {
-        \Log::info('[AUDIT CONTROLLER] Fetching audit log details', ['id' => $id]);
-        try {
-            $auditLog = AuditLog::with(['user', 'doctor'])->findOrFail($id);
-
             // Prepare old and new values with names and translations
             $oldValues = $auditLog->old_values ?? [];
             $newValues = $auditLog->new_values ?? [];
@@ -209,6 +162,31 @@ class AuditLogController extends Controller
                 'created_at' => $auditLog->created_at->format('Y-m-d H:i:s'),
                 'old_values' => $oldValues,
                 'new_values' => $newValues,
+            ];
+
+            \Log::info('[AUDIT CONTROLLER] Audit log details fetched', ['id' => $id]);
+            return response()->json($response);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching audit log details: ' . $e->getMessage(), ['id' => $id]);
+            return response()->json(['error' => 'Audit log not found'], 404);
+        }
+    }
+ */
+
+    public function getDetails($id)
+    {
+        \Log::info('[AUDIT CONTROLLER] Fetching audit log details', ['id' => $id]);
+        try {
+            $auditLog = AuditLog::with(['user', 'doctor'])->findOrFail($id);
+
+            $response = [
+                'action' => __('audit.actions.' . $auditLog->action, [], $auditLog->action),
+                'entity_type' => __('audit.entities.' . $auditLog->entity_type, [], $auditLog->entity_type),
+                'description' => __('audit.descriptions.' . $auditLog->description, [], $auditLog->description),
+                'user_name' => $auditLog->user ? $auditLog->user->name : __('audit.system'),
+                'created_at' => $auditLog->created_at->format('Y-m-d H:i:s'),
+                'old_values' => $auditLog->old_values ?? [],
+                'new_values' => $auditLog->new_values ?? [],
             ];
 
             \Log::info('[AUDIT CONTROLLER] Audit log details fetched', ['id' => $id]);
