@@ -1917,7 +1917,7 @@ return [
 
     'send_email' => 'Envoyer email',
     'send_whatsapp' => 'Envoyer whatsapp',
-    'medical_history_antecedent' => 'Antécédent et historique médical',
+    'medical_history_antecedent' => 'Antécédent',
 
     'assurance_plural' => 'Assurances',
     'assurance' => 'Assurance',

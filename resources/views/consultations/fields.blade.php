@@ -144,14 +144,12 @@
 <!-- Medical History Field -->
 <div class="form-group d-flex flex-column mb-2">
     {!! Form::label('medical_history', trans("lang.medical_history"), ['class' => 'control-label mx-1']) !!}
-    <div>
-        {!! Form::textarea('medical_history', optional($selectedPatient)->medical_history, [
-            'class' => 'form-control',
-            'rows' => 5,
-            'placeholder' => 'Saisissez ici l’historique médical du patient...'
-        ]) !!}
+    <div class="border p-2" style="min-height: 100px; max-height: 200px; overflow-y: auto; background-color: #f9f9f9;">
+        {!! $historiqueMedical !!}
     </div>
 </div>
+
+
 
 </div>
 

@@ -157,9 +157,7 @@
             <div class="col-md-12">
             <p><strong>{{trans('lang.patient_antecedent')}}:</strong> {{ $fiche->patient->antecedent }}</p>
           </div>
-          <div class="col-md-12">
-          <p><strong>{{trans('lang.medical_history')}}:</strong> {{ $fiche->patient->medical_history ?? 'N/A' }}</p>
-          </div>
+         
             </div>
           </div>
         </div>
