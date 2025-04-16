@@ -37,16 +37,30 @@ class ConsultationController extends Controller
     {
         $patient_id = $request->query('patient_id');
         $selectedPatient = null;
+        $customFields = '';
+        $historiqueMedical = '';
+    
         if ($patient_id) {
             $selectedPatient = Patient::find($patient_id);
             if ($selectedPatient) {
                 $selectedPatient->full_name = $selectedPatient->first_name . ' ' . $selectedPatient->last_name;
+    
+                // Récupérer les consultations du patient avec ce médecin
+                $consultations = Consultation::where('patient_id', $patient_id)
+                    ->where('user_id', auth()->id()) // médecin connecté
+                    ->orderBy('dateConsultation', 'desc')
+                    ->get();
+    
+                // Construire l’historique médical
+                foreach ($consultations as $consultation) {
+                    $historiqueMedical .= "<p><strong>📅 " . $consultation->dateConsultation . "</strong> : " . $consultation->motif . "</p>";
+                }
             }
         }
-
-        $customFields = '';
-        return view('consultations.create', compact('selectedPatient', 'customFields'));
+    
+        return view('consultations.create', compact('selectedPatient', 'customFields', 'historiqueMedical'));
     }
+    
     public function store(CreateConsultationRequest $request): RedirectResponse
     {
         $input = $request->all();
