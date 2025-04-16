@@ -418,5 +418,11 @@
     "Thank you! your review has been added" : "Merci! votre avis a ete ajouté",
     "Tell us something about this clinic": "Parlez-nous de cette clinique",
     "How do you feel this doctor?": "Comment vous sentez-vous ce docteur?",
-    "Swipe item left or right to delete it.": "Faites glisser l'objet vers la gauche ou la droite pour le supprimer."
+    "Swipe item left or right to delete it.": "Faites glisser l'objet vers la gauche ou la droite pour le supprimer.",
+    "Should be a valid phone number": "Doit etre un numero de telephone valide",
+    "Invalid Mobile Number": "Numero de telephone invalide",
+    "No available times found.": "Aucune heure disponible.",
+    "Sorry, this doctor is not available on the selected date.": "Dommage, ce docteur n'est pas disponible sur la date choisie.",
+    "politique de confidentialité" : "Politique de confidentialité",
+    "Conditions générales" : "Conditions générales"
 }
