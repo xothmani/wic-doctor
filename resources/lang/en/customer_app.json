@@ -382,5 +382,11 @@
     "Thank you! your review has been added" : "Thank you! your review has been added",
     "Tell us something about this clinic": "Tell us something about this clinic",
     "How do you feel this doctor?": "How do you feel this doctor?",
-    "Swipe item left or right to delete it.": "Swipe item left or right to delete it."
+    "Swipe item left or right to delete it.": "Swipe item left or right to delete it.",
+    "Should be a valid phone number": "Should be a valid phone number",
+    "Invalid Mobile Number": "Invalid Mobile Number",
+    "No available times found.": "No available times found.",
+    "Sorry, this doctor is not available on the selected date.": "Sorry, this doctor is not available on the selected date.",
+    "politique de confidentialité" : "Privacy Policy",
+    "Conditions générales" : "General Terms"
 }
