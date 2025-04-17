@@ -464,34 +464,36 @@ function toggleFields() {
 document.addEventListener('DOMContentLoaded', function () {
     var input = document.querySelector("#phone-input");
     var phoneInput = window.intlTelInput(input, {
-        initialCountry: "TN", // Pays par défaut (Tunisie)
+        initialCountry: "TN",
         geoIpLookup: function(callback) {
             fetch("https://ipinfo.io")
-                .then(function(response) { return response.json(); })
-                .then(function(location) {
-                    var countryCode = location && location.country ? location.country : "TN"; // Défaut: TN
+                .then(response => response.json())
+                .then(location => {
+                    const countryCode = location && location.country ? location.country : "TN";
                     callback(countryCode);
                 });
         },
-        preferredCountries: ["us", "ca", "fr", "tn"], // Pays préférés
-        separateDialCode: true, // Code séparé
+        preferredCountries: ["us", "ca", "fr", "tn"],
+        separateDialCode: true,
         utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
     });
 
-    // Associer le code téléphonique au numéro de téléphone
-    input.addEventListener('blur', function() {
-        var countryData = phoneInput.getSelectedCountryData(); // Obtenir les infos pays
-        var dialCode = countryData.dialCode; // Récupérer le code téléphonique, ex: "216"
-        var phoneNumber = input.value; // Numéro de téléphone saisi
+    // ✅ Remplir le champ avec le numéro complet s'il existe
+    const storedNumber = @json(old('phone_number', $patient->phone_number ?? ''));
+    if (storedNumber) {
+        phoneInput.setNumber(storedNumber); // => format +21622222222
+    }
 
-        // Associer le code au numéro si ce n'est pas déjà fait
-        if (phoneNumber && !phoneNumber.startsWith("+" + dialCode)) {
-            input.value = "+" + dialCode + phoneNumber; // Ajouter le code au début
-        }
-    });
+    // ✅ À l'envoi du formulaire, forcer le bon format
+    const form = input.closest("form");
+    if (form) {
+        form.addEventListener("submit", function () {
+            input.value = phoneInput.getNumber(); // Enregistre +21622222222
+        });
+    }
 });
-
 </script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         @if(session()->has('showModal') && session('showModal') == true)
