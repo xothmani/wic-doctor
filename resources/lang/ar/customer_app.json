@@ -95,7 +95,7 @@
     "Help & Support": "ساعد لدعم",
     "Hint": "ملحوظة",
     "Hire & Pay Now": "استئجار وادفع الآن",
-    "Home": "مسكن",
+    "Home": "الصفحة الرئيسية",
     "Home page refreshed successfully": "تم تحديث الصفحة الرئيسية بنجاح",
     "How do you feel this doctors?": "ما هو شعورك بهذا الأطباء؟",
     "ID #": "بطاقة تعريف #",
@@ -418,5 +418,11 @@
     "Thank you! your review has been added" : "شكرا! تمت اضافة التقييم الخاص بك",
     "Tell us something about this clinic": "قل لنا شيء عن هذه العيادة",
     "How do you feel this doctor?": "ما هو شعورك تجاه هذا الطبيب؟",
-    "Swipe item left or right to delete it.": "اسحب العنصر لليسار او اليمين للحذف."
+    "Swipe item left or right to delete it.": "اسحب العنصر لليسار او اليمين للحذف.",
+    "Should be a valid phone number": "يجب ان يكون رقم هاتف صحيح",
+    "Invalid Mobile Number": "رقم هاتف غير صحيح",
+    "No available times found.": "لم يتم العثور على اوقات متاحة.",
+    "Sorry, this doctor is not available on the selected date.": "عذرا، هذا الطبيب غير متاح على التاريخ المحدد.",
+    "politique de confidentialité" : "سياسة الخصوصية",
+    "Conditions générales" : "الشروط العامة"
 }
