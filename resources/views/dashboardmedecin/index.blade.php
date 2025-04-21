@@ -255,7 +255,7 @@
         data: {
             labels: ['Homme', 'Femme'],
             datasets: [{
-                data: [60, 40], // valeurs dynamiques si besoin
+                data: [60, 40], 
                 backgroundColor: ['#4e73df', '#e83e8c'],
                 borderWidth: 0
             }]
