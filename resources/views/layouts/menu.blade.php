@@ -488,6 +488,17 @@
         </a>
     </li>
 @endcan
+@can('dashboard.medecin')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('dashboard.medecin') ? 'active' : '' }}" href="{!! route('dashboard.medecin') !!}">
+            @if($icons)
+            <i class="nav-icon fas fa-chart-line"></i> <!-- Icône de statistiques -->
+            @endif
+            <p>{{ trans('lang.stat') }}</p>
+        </a>
+    </li>
+@endcan
+
 @can('photos_cabinet.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('photos_cabinet') ? 'active' : '' }}"
