@@ -380,7 +380,7 @@
      
 
 <!-- Medical Historic Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row ">
+<!--     <div class="form-group align-items-baseline d-flex flex-column flex-md-row ">
         {!! Form::label('medical_history', trans("lang.patient_medical_history"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             {!! Form::textarea('medical_history', null, ['class' => 'form-control','placeholder'=>
@@ -388,7 +388,7 @@
             <div class="form-text text-muted">{{ trans("lang.patient_medical_history_help") }}</div>
         </div>
     </div>
-
+ -->
 
 
 </div>

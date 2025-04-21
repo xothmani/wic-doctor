@@ -479,7 +479,7 @@ class AvailabilityController extends Controller
             throw $e;
         }
     }
-    private function syncAvailabilityHoursTunisie($doctorId, $data, $type, $sessionDuration)
+   /*  private function syncAvailabilityHoursTunisie($doctorId, $data, $type, $sessionDuration)
     {
         try {
             $onlineValue = match ($type) {
@@ -521,7 +521,7 @@ class AvailabilityController extends Controller
             ]);
             throw $e;
         }
-    }
+    } */
     public function storeOpen(Request $request)
     {
         \Log::info('Request store received:', ['request' => $request->all()]);
@@ -685,7 +685,7 @@ class AvailabilityController extends Controller
                         'is_available' => true
                     ]);
 
-                    DB::table('availability_hours_tunisie')->insert([
+                   /*  DB::table('availability_hours_tunisie')->insert([
                         'doctor_id' => $doctorId,
                         'day' => $data['day'],
                         'start_at' => $data['from'],
@@ -696,7 +696,7 @@ class AvailabilityController extends Controller
                         'pause_from' => null,
                         'pause_to' => null,
                         'data' => null,
-                    ]);
+                    ]); */
                     Log::info("Created availability with breaks", [
                         'day' => $data['day'],
                         'pause_from' => $pauseFrom,
