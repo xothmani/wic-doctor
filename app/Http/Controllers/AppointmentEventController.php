@@ -505,6 +505,7 @@ class AppointmentEventController extends Controller
 
         Log::info('Checking if user exists by email or phone number.', request()->all());
         try {
+            
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
 
@@ -521,19 +522,7 @@ class AppointmentEventController extends Controller
             if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
                 $appointment->cancel_reason = $request->cancel_Reason ?? "Aucune raison fournie";
                 // Retrieve the start and end times of the appointment
-                $startAt = $appointment->start_at; // Assuming you have these columns
-                $endAt = $appointment->ends_at; // Assuming you have these columns
-                $doctorId = $appointment->doctor_id;
-                $motifId = $appointment->motif_id;  // Adjust based on your schema
-                Log::info('ends_at', ['end' => $endAt]);
-                //Log::info('DoctorCast - Doctor value:', ['doctor' => $availabilityHours]);
-                // Insert or update availability in the `availability_hours` table
-                DB::table('availability_hours')->insertOrIgnore([
-                    'doctor_id' => $doctorId,
-                    'start_at' => $startAt,
-                    'end_at' => $endAt,
-                    'patern_id' => $motifId,
-                ]);
+               
             }
 
             $patientUserId = $appointment->user_id;
@@ -548,7 +537,7 @@ class AppointmentEventController extends Controller
             //event(new AppointmentChangedEvent($appointment));
             //$appointment->doctor = $this->doctor
             if ($userId->device_token != null) {
-                event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'], $user->device_token));
+                event(new AppointmentStatusChangedEvent($appointment, $request['payment_status_id'], $userId->device_token));
 
             }
 
@@ -1519,7 +1508,7 @@ class AppointmentEventController extends Controller
         if (!$doctorId) {
             return back()->withErrors(['error' => 'Médecin non trouvé.']);
         }
-
+        $doctor = 
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'appointment_type' => 'required', // Changed from strings to IDs

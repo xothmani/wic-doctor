@@ -2173,5 +2173,6 @@ return [
     'prescription_medicament_per_month' => 'fois/mois',
     'prescription_medicament_per_year' => 'fois/an',
     'patient_notes_placeholder' => 'Insérer des notes',
+    'stat' => 'Mes statistiques',
 
 ];
