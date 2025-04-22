@@ -551,7 +551,7 @@ private function createAssignedUser(array $userData): User
                 $patient->save();
             }
         }
-        
+    }
    
         /**
          * Remove the specified Patient from storage.
