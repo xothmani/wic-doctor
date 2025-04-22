@@ -1,35 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+    namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-class HelpDeskController extends Controller
-{
-    public function index()
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Storage;
+    use Illuminate\Support\Facades\Http;
+    use Illuminate\Support\Facades\Validator;
+    class HelpDeskController extends Controller
     {
-        // Affiche la vue du formulaire
-        return view('helpdesk.index');
-    }
-
-    public function store(Request $request)
-    {
-        // Validation des données du formulaire
-        $request->validate([
-            'prenom' => 'required|string|max:255',
-            'email' => 'required|email',
-            'telephone' => 'required|string|max:15',
-            'message' => 'required|string',
-            'fichier' => 'nullable|file|mimes:jpg,png,pdf,docx', // Optionnel et limité à certains formats
-        ]);
-
-        // Traitement du fichier s'il existe
-        if ($request->hasFile('fichier')) {
-            $path = $request->file('fichier')->store('helpdesk_files'); // Stocke dans un répertoire 'helpdesk_files'
+        public function index()
+        {
+            return view('helpdesk.index');
         }
 
-        // Traitement des données ici (enregistrement dans une table, envoi de mail, etc.)
-
-        return redirect()->back()->with('success', 'Votre demande a été envoyée avec succès!');
+        
+ 
     }
-}

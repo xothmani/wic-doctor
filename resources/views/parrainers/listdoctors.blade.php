@@ -17,7 +17,7 @@
                         <option>1</option>
                         <option>2</option>
                         <option>3</option>
-                    </select>
+                    </select> 
                     éléments
                 </div>
                 <div class="input-group w-25">

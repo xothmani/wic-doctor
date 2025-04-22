@@ -191,7 +191,9 @@ class PatientDoctorChatController extends Controller
             'isDoctor' => $isDoctor,
             'isPatient' => $isPatient
         ]);
+
     }    private function getChatId($senderId, $receiverId)
+
     {
         return $senderId < $receiverId
             ? $senderId . '-' . $receiverId
