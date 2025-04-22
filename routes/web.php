@@ -41,9 +41,9 @@ use App\Http\Controllers\DoctorUserController;
 use App\Http\Controllers\ChatController;
 
 use Illuminate\Http\Request;
-//use App\Http\Controllers\MailController;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardMedecinController;
 
 
 
@@ -482,6 +482,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
 
 
+
     Route::get('/generer-link', [PatientController::class, 'genererLink'])->name('generer.link');
     Route::resource('/tags', TagController::class);
     Route::get('/tags/{id}/edit', [TagController::class, 'edit']);
@@ -709,3 +710,5 @@ Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage
 
 Route::get('/helpdesk', [HelpDeskController::class, 'index'])->name('helpdesk.index');
 Route::post('/helpdesk', [HelpDeskController::class, 'store'])->name('helpdesk.store');
+
+Route::get('/dashboard-medecin', [DashboardMedecinController::class, 'index'])->name('dashboard.medecin');

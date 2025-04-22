@@ -363,6 +363,7 @@ class AddressController extends Controller
     'aleatoire' => $doctor->id_aleatoire,
     'adresse_exacte' => $adresse_exacte, 
     'specialities' => $specialitiesData, 
+    'availability_mode'=> $doctor->availability_mode, 
     'type' => "conventionné", 
         ];
 

@@ -848,7 +848,7 @@
         $('#patientDropdownForced').select2({
             allowClear: false,
             ajax: {
-                url: "/tele-patients/search",
+                url: "{{ route('patients.search') }}",
                 dataType: 'json',
                 delay: 250,
                 data: function (params) {
@@ -1565,7 +1565,7 @@
             $('#patientDropdown').select2({
                 allowClear: false,
                 ajax: {
-                    url: "/tele-patients/search",
+                    url: "{{ route('patients.search') }}",
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {

@@ -83,7 +83,19 @@ class UserAPIController extends Controller
     function register(Request $request)
     {
         try {
-            $this->validate($request, User::$rules);
+            $messages = [
+                'email.unique' => __('validation.custom.email.unique'),
+                'phone_number.unique' => __('validation.custom.phone_number.unique'),
+                // ajoute les autres au besoin
+            ];
+
+
+            //$this->validate($request, User::$rules);
+            $validator = Validator::make($request->all(), User::$rules, $messages);
+            if ($validator->fails()) {
+                throw new ValidationException($validator);
+            }
+            
             $user = new User;
             $user->name = $request->input('name');
             $user->email = $request->input('email');

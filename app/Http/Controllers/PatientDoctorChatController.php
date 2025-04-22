@@ -112,7 +112,7 @@ class PatientDoctorChatController extends Controller
         sort($sorted);
         return hash('sha256', implode('_', $sorted));
     }
-    public function showChat($doctorUserId, $patientUserId)
+      public function showChat($doctorUserId, $patientUserId)
     {
         $user = auth()->user();
         
@@ -191,7 +191,9 @@ class PatientDoctorChatController extends Controller
             'isDoctor' => $isDoctor,
             'isPatient' => $isPatient
         ]);
-    }   private function getChatId($senderId, $receiverId)
+
+    }    private function getChatId($senderId, $receiverId)
+
     {
         return $senderId < $receiverId
             ? $senderId . '-' . $receiverId

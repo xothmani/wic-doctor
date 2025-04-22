@@ -73,7 +73,7 @@ return [
     ],
 
     'firebase' => [
-        'credentials' => storage_path('app/firebase/service_account.json'),
+        'credentials' => base_path('app/Notifications/service_account.json'),
     ],
     'fcm' => [
         'service_account' => storage_path('app/wic-doctor-b83e0-firebase-adminsdk-jhztu-26628b5fc7.json'),

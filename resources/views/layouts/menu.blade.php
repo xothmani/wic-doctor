@@ -250,7 +250,18 @@
         </a>
     </li>
 @endcan
+@can('telesecretariats.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('telesecretariats') ? 'active' : '' }}"
+            href="{!! route('telesecretariats.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
+            @endif
 
+            <p>{{ trans('lang.telesecretariat_plural') }}</p>
+        </a>
+    </li>
+@endcan
 
 
 
@@ -477,6 +488,17 @@
         </a>
     </li>
 @endcan
+@can('dashboard.medecin')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('dashboard.medecin') ? 'active' : '' }}" href="{!! route('dashboard.medecin') !!}">
+            @if($icons)
+            <i class="nav-icon fas fa-chart-line"></i> <!-- Icône de statistiques -->
+            @endif
+            <p>{{ trans('lang.stat') }}</p>
+        </a>
+    </li>
+@endcan
+
 @can('photos_cabinet.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('photos_cabinet') ? 'active' : '' }}"
