@@ -512,12 +512,11 @@ class PatientController extends Controller
                     ->updateOrCreate(['custom_field_id' => $value['custom_field_id']], $value);
             }
         
-            // 🎯 Mise à jour de l'utilisateur associé
+            //  Mise à jour de l'utilisateur associé
             if ($patient->user) {
                 $patient->user->update([
                     'name' => $input['first_name'] ?? $patient->user->name,
                     'lastname' => $input['last_name'] ?? $patient->user->lastname,
-
                     'email' => $input['email'] ?? $patient->user->email,
                     'phone_number' => $input['phone_number'] ?? $patient->user->phone_number,
                 ]);
