@@ -1560,6 +1560,7 @@
         }
 
         // Function to refresh the patients dropdown
+        //test for git
         function refreshPatientDropdown() {
             //console.log('refpatient');
             $('#patientDropdown').select2({

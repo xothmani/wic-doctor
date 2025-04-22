@@ -532,9 +532,19 @@ private function createAssignedUser(array $userData): User
                 $needsSave = true;
             }
         
+            //  Mise à jour de l'utilisateur associé
+            if ($patient->user) {
+                $patient->user->update([
+                    'name' => $input['first_name'] ?? $patient->user->name,
+                    'lastname' => $input['last_name'] ?? $patient->user->lastname,
+                    'email' => $input['email'] ?? $patient->user->email,
+                    'phone_number' => $input['phone_number'] ?? $patient->user->phone_number,
+                ]);
+
             if ($patient->relationship_type !== $userData['relationship']) {
                 $patient->relationship_type = $userData['relationship'];
                 $needsSave = true;
+
             }
         
             if ($needsSave) {

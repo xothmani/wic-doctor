@@ -184,14 +184,15 @@
 
                     <!-- Pourcentages à droite -->
                     <div class="col-6">
-                        <div class="text-center mb-3">
-                            <div style="color: #4e73df; font-size: 1.5rem;"><strong>60%</strong></div>
-                            <div><b>Homme</b></div>
-                        </div>
-                        <div class="text-center">
-                            <div style="color: #e83e8c; font-size: 1.5rem;"><strong>40%</strong></div>
-                            <div><b>Femme</b></div>
-                        </div>
+                    <div class="text-center mb-3">
+    <div style="color: #4e73df; font-size: 1.5rem;"><strong>{{ $genderPercentages['Homme'] }}%</strong></div>
+    <div><b>Homme</b></div>
+</div>
+<div class="text-center">
+    <div style="color: #e83e8c; font-size: 1.5rem;"><strong>{{ $genderPercentages['Femme'] }}%</strong></div>
+    <div><b>Femme</b></div>
+</div>
+
                     </div>
                 </div>
             </div>
@@ -214,24 +215,26 @@
                 </div>
 
                 <!-- Pourcentages à droite -->
-<div class="col-6">
-    <div class="text-center mb-2">
-        <div style="color: #17a2b8; font-size: 1.3rem;"><strong>25%</strong></div>
-        <div><b>Reçu</b></div>
-    </div>
-    <div class="text-center mb-2">
-        <div style="color: #28a745; font-size: 1.3rem;"><strong>30%</strong></div>
-        <div><b>Prêt</b></div>
-    </div>
-    <div class="text-center mb-2">
-        <div style="color: #dc3545; font-size: 1.3rem;"><strong>20%</strong></div>
-        <div><b>Annulé</b></div>
-    </div>
-    <div class="text-center">
-        <div style="color: #6c757d; font-size: 1.3rem;"><strong>25%</strong></div>
-        <div><b>Terminé</b></div>
-    </div>
-</div>
+                <div class="text-center mb-2">
+                <div style="color: #17a2b8; font-size: 1.3rem;"><strong>{{ $statusDataToday['Reçu']['percent'] }}%</strong></div>
+                <div><b>Reçu</b></div>
+                </div>
+                <div class="text-center mb-2">
+                    <div style="color: #28a745; font-size: 1.3rem;"><strong>{{ $statusDataToday['Prêt']['percent'] }}%</strong></div>
+
+                    <div><b>Prêt</b></div>
+                </div>
+                <div class="text-center mb-2">
+                    <div style="color: #dc3545; font-size: 1.3rem;"><strong>{{ $statusDataToday['Annulé']['percent'] }}%</strong></div>
+
+                    <div><b>Annulé</b></div>
+                </div>
+                <div class="text-center">
+                    <div style="color: #6c757d; font-size: 1.3rem;"><strong>{{ $statusDataToday['Terminé']['percent'] }}%</strong></div>
+
+                    <div><b>Terminé</b></div>
+                </div>
+
 
             </div>
         </div>
@@ -255,7 +258,7 @@
         data: {
             labels: ['Homme', 'Femme'],
             datasets: [{
-                data: [60, 40], 
+                data: [{{ $genderCounts['Homme'] }}, {{ $genderCounts['Femme'] }}], // Utilisez les counts directement
                 backgroundColor: ['#4e73df', '#e83e8c'],
                 borderWidth: 0
             }]
@@ -269,7 +272,8 @@
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return context.label + ': ' + context.formattedValue + '%';
+                            // Affiche directement la valeur (count) au lieu du pourcentage
+                            return context.label + ': ' + context.raw;
                         }
                     }
                 }
@@ -277,6 +281,7 @@
         }
     });
 </script>
+
 <script>
     const ageData = @json(array_values($ageCounts)); // <-- on envoie les NOMBRES pour le graphe
     const ctxAge = document.getElementById('ageDonutChart').getContext('2d');
@@ -310,7 +315,6 @@
     });
 </script>
 
-
 <script>
     window.onload = function () {
         const ctx = document.getElementById('rdvStatusDonutChart').getContext('2d');
@@ -319,7 +323,14 @@
             data: {
                 labels: ['Reçu', 'Prêt', 'Annulé', 'Terminé'],
                 datasets: [{
-                    data: [25, 30, 20, 25], // À adapter selon tes vraies données
+                    data: [
+    {{ $statusDataToday['Reçu']['count'] }},
+    {{ $statusDataToday['Prêt']['count'] }},
+    {{ $statusDataToday['Annulé']['count'] }},
+    {{ $statusDataToday['Terminé']['count'] }}
+],
+
+
                     backgroundColor: ['#17a2b8', '#28a745', '#dc3545', '#6c757d'],
                     borderWidth: 0
                 }]
@@ -331,17 +342,21 @@
                         display: false
                     },
                     tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                return context.label + ': ' + context.formattedValue + '%';
-                            }
-                        }
-                    }
+    callbacks: {
+        label: function (context) {
+            const label = context.label || '';
+            const value = context.raw;
+            return `${label}: ${value} RDV`;
+        }
+    }
+},
+
                 }
             }
         });
     };
 </script>
+
 
 
 @endsection
