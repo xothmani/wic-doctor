@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fiche;
+use App\Models\User;
+
 use App\Models\Report;
 use App\Models\Patient;
 use App\Models\Consultation;
@@ -37,28 +39,39 @@ class ConsultationController extends Controller
     {
         $patient_id = $request->query('patient_id');
         $selectedPatient = null;
+        $assignedUser = null;
         $customFields = '';
         $historiqueMedical = '';
     
         if ($patient_id) {
-            $selectedPatient = Patient::find($patient_id);
+            $selectedPatient = Patient::with('assignedUser')->find($patient_id);
+    
             if ($selectedPatient) {
                 $selectedPatient->full_name = $selectedPatient->first_name . ' ' . $selectedPatient->last_name;
     
-                // Récupérer les consultations du patient avec ce médecin
+                // Récupérer l'utilisateur assigné
+                if ($selectedPatient->assigned_user_id) {
+                    $assignedUser = User::find($selectedPatient->assigned_user_id);
+                }
+    
+                // Récupérer l’historique médical du patient pour ce médecin
                 $consultations = Consultation::where('patient_id', $patient_id)
-                    ->where('user_id', auth()->id()) // médecin connecté
+                    ->where('user_id', auth()->id())
                     ->orderBy('dateConsultation', 'desc')
                     ->get();
     
-                // Construire l’historique médical
                 foreach ($consultations as $consultation) {
                     $historiqueMedical .= "<p><strong>📅 " . $consultation->dateConsultation . "</strong> : " . $consultation->motif . "</p>";
                 }
             }
         }
     
-        return view('consultations.create', compact('selectedPatient', 'customFields', 'historiqueMedical'));
+        return view('consultations.create', compact(
+            'selectedPatient',
+            'customFields',
+            'assignedUser',
+            'historiqueMedical'
+        ));
     }
     
     public function store(CreateConsultationRequest $request): RedirectResponse
@@ -310,4 +323,3 @@ public function addReport(Request $request) : JsonResponse
   
 
 }
-

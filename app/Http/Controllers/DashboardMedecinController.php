@@ -122,6 +122,82 @@ class DashboardMedecinController extends Controller
             $agePercentages[$group] = $totalPatients > 0 ? round(($count / $totalPatients) * 100) : 0;
         }
 
+        $patientsGender = DB::table('doctor_patients')
+    ->join('patients', 'doctor_patients.patient_id', '=', 'patients.id')
+    ->where('doctor_patients.doctor_id', $doctor->id)
+    ->select('patients.gender')
+    ->get();
+
+        $genderCounts = [
+            'Homme' => 0,
+            'Femme' => 0,
+        ];
+
+        foreach ($patientsGender as $patient) {
+            $sexe = strtolower(trim($patient->gender));
+            if ($sexe === 'homme') {
+                $genderCounts['Homme']++;
+            } elseif ($sexe === 'femme') {
+                $genderCounts['Femme']++;
+            }
+        }
+
+        $totalGender = $genderCounts['Homme'] + $genderCounts['Femme'];
+
+        $genderPercentages = [
+            'Homme' => $totalGender > 0 ? round(($genderCounts['Homme'] / $totalGender) * 100) : 0,
+            'Femme' => $totalGender > 0 ? round(($genderCounts['Femme'] / $totalGender) * 100) : 0,
+        ];
+
+// Date d'aujourd'hui
+$today = Carbon::today();
+
+// Récupérer tous les statuts
+$statuses = DB::table('appointment_statuses')->get()->keyBy('id');
+
+// Récupérer les RDV du jour groupés par statut
+$statusCountsToday = Appointment::where('doctor_id', $doctor->id)
+    ->whereDate('start_at', $today)
+    ->select('appointment_status_id', DB::raw('count(*) as total'))
+    ->groupBy('appointment_status_id')
+    ->get();
+
+// Total des RDV du jour
+$totalAppointmentsToday = $statusCountsToday->sum('total');
+// Initialisation
+$statusDataToday = [
+    'Reçu' => ['count' => 0, 'percent' => 0],
+    'Prêt' => ['count' => 0, 'percent' => 0],
+    'Annulé' => ['count' => 0, 'percent' => 0],
+    'Terminé' => ['count' => 0, 'percent' => 0],
+];
+
+// Calculs
+foreach ($statusCountsToday as $item) {
+    $statusName = strtolower($statuses[$item->appointment_status_id]->status);
+
+    switch ($statusName) {
+        case 'received':
+            $statusDataToday['Reçu']['count'] = $item->total;
+            break;
+        case 'ready':
+            $statusDataToday['Prêt']['count'] = $item->total;
+            break;
+        case 'failed':
+            $statusDataToday['Annulé']['count'] = $item->total;
+            break;
+        case 'done':
+            $statusDataToday['Terminé']['count'] = $item->total;
+            break;
+    }
+}
+
+// Calculer les pourcentages
+foreach ($statusDataToday as &$data) {
+    $data['percent'] = $totalAppointmentsToday > 0 ? round(($data['count'] / $totalAppointmentsToday) * 100) : 0;
+}
+
+
     
         return view('dashboardmedecin.index', compact(
             'user',
@@ -131,7 +207,13 @@ class DashboardMedecinController extends Controller
             'appointmentsThisWeek',
             'totalPatients',
             'agePercentages',
-            'ageCounts' 
+            'ageCounts',
+            'genderPercentages',
+            'genderCounts',
+            'statusDataToday'
+
+
+
         ));
     }
     

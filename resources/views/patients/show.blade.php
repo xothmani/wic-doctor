@@ -29,12 +29,57 @@
         <li class="nav-item">
           <a class="nav-link active" href="{!! route('patients.create') !!}"><i class="fas fa-plus mr-2"></i>{{trans('lang.patient_create')}}</a>
         </li>
-       
       </ul>
     </div>
     <div class="card-body">
       <div class="row">
         @include('patients.show_fields')
+
+        <!-- Afficher les relations du patient -->
+        @if(isset($relatedPatients) && count($relatedPatients) > 0)
+            <div class="col-12 mt-4">
+                <h4>
+                    @if($patient->is_main_profile)
+                        {{ trans('lang.related_patients') }}
+                    @else
+                        {{ trans('lang.main_profile') }}
+                    @endif
+                </h4>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>{{ trans('lang.name') }}</th>
+                                <th>{{ trans('lang.phone_number') }}</th>
+                                <th>{{ trans('lang.relationship') }}</th>
+                                <th>{{ trans('lang.actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($relatedPatients as $related)
+                                <tr>
+                                    <td>{{ $related->first_name }} {{ $related->last_name }}</td>
+                                    <td>{{ $related->phone_number }}</td>
+                                    <td>
+                                        @if(isset($related->relationship_type))
+                                            {{ trans('lang.'.$related->relationship_type) }}
+                                        @else
+                                            {{ trans('lang.main_profile') }}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('patients.show', $related->id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> {{ trans('lang.view') }}
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
 
         <!-- Back Field -->
         <div class="form-group col-12 text-md-right">
