@@ -486,47 +486,29 @@ class PatientController extends Controller
 
         $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->patientRepository->model());
         try {
-            // Mise à jour du patient
+            //dd($input);
             $patient = $this->patientRepository->update($input, $id);
-        
-            // Mise à jour des images
-            if (isset($input['image']) && is_array($input['image'])) {
+            if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
                 foreach ($input['image'] as $fileUuid) {
                     $cacheUpload = $this->uploadRepository->getByUuid($fileUuid);
                     $mediaItem = $cacheUpload->getMedia('image')->first();
                     $mediaItem->copy($patient, 'image');
                 }
             }
-        
-            if (isset($input['card_id']) && is_array($input['card_id'])) {
+            if (isset($input['card_id']) && $input['card_id'] && is_array($input['card_id'])) {
                 foreach ($input['card_id'] as $fileUuid) {
                     $cacheUpload = $this->uploadRepository->getByUuid($fileUuid);
                     $mediaItem = $cacheUpload->getMedia('card_id')->first();
                     $mediaItem->copy($patient, 'card_id');
                 }
             }
-        
-            // Mise à jour des custom fields
             foreach (getCustomFieldsValues($customFields, $request) as $value) {
                 $patient->customFieldsValues()
                     ->updateOrCreate(['custom_field_id' => $value['custom_field_id']], $value);
             }
-        
-            // 🎯 Mise à jour de l'utilisateur associé
-            if ($patient->user) {
-                $patient->user->update([
-                    'name' => $input['first_name'] ?? $patient->user->name,
-                    'lastname' => $input['last_name'] ?? $patient->user->lastname,
-
-                    'email' => $input['email'] ?? $patient->user->email,
-                    'phone_number' => $input['phone_number'] ?? $patient->user->phone_number,
-                ]);
-            }
-        
         } catch (ValidatorException $e) {
             Flash::error($e->getMessage());
         }
-        
         Flash::success(__('lang.updated_successfully', ['operator' => __('lang.patient')]));
         return redirect(route('patients.index'));
     }
