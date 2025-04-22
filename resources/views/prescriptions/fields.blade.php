@@ -788,7 +788,7 @@
 
                     const mockResult = {
                         rating: 7,
-                        reason: "Ce médicament présente une bonne compatibilité avec le patient, mais pourrait interagir avec certains de ses autres traitements.",
+                        reason: "Ce medicament pourrait introduire des effets non voulus avec certains autres traitements. Il faudrait bien verifier son compatibilité avec votre patient",
                         visual_indication: "yellow"
                     };
 
