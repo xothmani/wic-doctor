@@ -37,7 +37,7 @@ class DashboardMedecinController extends Controller
                                            ->whereBetween('start_at', [$startOfWeek, $endOfWeek])
                                            ->count();
     
-        // 🧠 Récupérer tous les patients de ce médecin
+        //  Récupérer tous les patients de ce médecin
         $patients = DB::table('doctor_patients')
                     ->join('patients', 'doctor_patients.patient_id', '=', 'patients.id')
                     ->where('doctor_patients.doctor_id', $doctor->id)
