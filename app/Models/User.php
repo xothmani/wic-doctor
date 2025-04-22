@@ -78,6 +78,8 @@ class User extends Authenticatable implements HasMedia
         'lastname',
         'device_token',
         'last_login_at',
+        'user_type', // 'patient', 'sub_profile', 'doctor', etc.
+        'assigned_to_patient_id'
 
 
     ];
@@ -356,7 +358,15 @@ class User extends Authenticatable implements HasMedia
     }
     public function patient()
     {
-        return $this->hasOne(Patient::class);
+        return $this->hasOne(Patient::class, 'user_id');
+    }
+
+
+
+
+    public function assignedPatient()
+    {
+        return $this->hasOne(Patient::class, 'assigned_user_id');
     }
     public function address(): HasOne
     {
