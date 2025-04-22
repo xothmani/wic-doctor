@@ -258,7 +258,9 @@
         data: {
             labels: ['Homme', 'Femme'],
             datasets: [{
+
                 data: [{{ $genderCounts['Homme'] }}, {{ $genderCounts['Femme'] }}], // Utilisez les counts directement
+
                 backgroundColor: ['#4e73df', '#e83e8c'],
                 borderWidth: 0
             }]
@@ -360,4 +362,3 @@
 
 
 @endsection
-
