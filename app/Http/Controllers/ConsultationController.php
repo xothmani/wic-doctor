@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Fiche;
+use App\Models\User;
+
 use App\Models\Report;
 use App\Models\Patient;
 use App\Models\Consultation;
@@ -37,24 +39,47 @@ class ConsultationController extends Controller
     {
         $patient_id = $request->query('patient_id');
         $selectedPatient = null;
+        $assignedUser = null;
+        $customFields = '';
+        $historiqueMedical = '';
+    
         if ($patient_id) {
-            $selectedPatient = Patient::find($patient_id);
+            $selectedPatient = Patient::with('assignedUser')->find($patient_id);
+    
             if ($selectedPatient) {
                 $selectedPatient->full_name = $selectedPatient->first_name . ' ' . $selectedPatient->last_name;
+    
+                // Récupérer l'utilisateur assigné
+                if ($selectedPatient->assigned_user_id) {
+                    $assignedUser = User::find($selectedPatient->assigned_user_id);
+                }
+    
+                // Récupérer l’historique médical du patient pour ce médecin
+                $consultations = Consultation::where('patient_id', $patient_id)
+                    ->where('user_id', auth()->id())
+                    ->orderBy('dateConsultation', 'desc')
+                    ->get();
+    
+                foreach ($consultations as $consultation) {
+                    $historiqueMedical .= "<p><strong>📅 " . $consultation->dateConsultation . "</strong> : " . $consultation->motif . "</p>";
+                }
             }
         }
-
-        $customFields = '';
-        return view('consultations.create', compact('selectedPatient', 'customFields'));
+    
+        return view('consultations.create', compact(
+            'selectedPatient',
+            'customFields',
+            'assignedUser',
+            'historiqueMedical'
+        ));
     }
+    
     public function store(CreateConsultationRequest $request): RedirectResponse
     {
-        // Récupérer les données du formulaire
         $input = $request->all();
         $input['motif'] = strip_tags($request->input('motif'));
         $input['raison'] = strip_tags($request->input('raison'));
-    
-        // Récupérer l'ID du patient
+        
         $patient_id = $request->input('patient_id');
         $patient = Patient::find($patient_id);
     
@@ -62,6 +87,19 @@ class ConsultationController extends Controller
             Flash::error('Patient non trouvé');
             return redirect()->back()->withInput();
         }
+        
+        // Mettre à jour les données du patient si l'option est activée
+            $patient->update([
+                'weight' => $request->input('weight'),
+                'height' => $request->input('height'),
+                'groupe_sanguin' => $request->input('groupe_sanguin'),
+                'medical_history' => $request->input('medical_history'),
+                'allergie' => $request->input('allergie'),
+                'antecedent' => $request->input('antecedent')
+            ]);
+            
+            \Log::info('Données patient mises à jour', ['patient_id' => $patient->id]);
+    
     
         // Récupérer l'ID de l'utilisateur authentifié (le médecin)
         $user_id = auth()->id();
@@ -285,4 +323,3 @@ public function addReport(Request $request) : JsonResponse
   
 
 }
-

@@ -1,3 +1,4 @@
+	
 @extends('layouts.app')
 
 @section('content')
@@ -35,6 +36,68 @@
     </strong> 
     {{ $fiche->patient->allergie }}
   </div>
+@endif
+
+@if($assignedUser)
+    <style>
+        .user-info-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .user-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            color: #000000;
+            flex: 1 1 45%;
+        }
+        .user-info-icon {
+            color: #0d6efd;
+            font-size: 1.2rem;
+        }
+        .user-info-header {
+            background-color: #ffffff;
+            color: #000000;
+            border-left: 4px solid #0d6efd;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .custom-icon-margin {
+            margin-right: 10px;
+        }
+    </style>
+
+    <header class="user-info-header mb-4 p-3">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-center mb-3">
+                <h5 class="d-flex align-items-center">
+                    <i class="fas fa-user-plus custom-icon-margin"></i>
+                    Utilisateur assigné à ce patient :
+                </h5>
+            </div>
+            <div class="user-info-box">
+                <div class="user-info-item">
+                    <i class="fas fa-user user-info-icon"></i>
+                    <strong>Nom complet:</strong> 
+                    <span>{{ json_decode($assignedUser->name)->fr ?? $assignedUser->name }} {{ json_decode($assignedUser->lastname)->fr ?? $assignedUser->lastname }}</span>
+                </div>
+                <div class="user-info-item">
+                💻                   <strong>Email:</strong> 
+                    <span>{{ $assignedUser->email ?? 'Non renseigné' }}</span>
+                </div>
+                <div class="user-info-item">
+                📱                    <strong>Téléphone:</strong> 
+                    <span>{{ $assignedUser->phone_number ?? 'Non renseigné' }}</span>
+                </div>
+            </div>
+        </div>
+    </header>
 @endif
 
 
@@ -307,7 +370,14 @@
                             <p class="text-center text-muted">{{ trans('lang.no_reports_found') }}</p>
                         @endif
 
+
+
+
                     </div>
+                    <!-- Afficher les informations de l'utilisateur associé si relationship_type existe -->
+
+<!-- Afficher les informations de l'utilisateur associé si relationship_type existe -->
+
                 </div>
             </div>
         </div>
@@ -321,9 +391,10 @@
         <a href="{!! route('patients.index') !!}" class="btn btn-default"><i class="fa fa-undo"></i> {{trans('lang.back')}}</a>
       </div>
 
-    </div>
-  </div>
-</div>
+      </div>
+      </div>
+      </div>
+
 
 @endsection
 

@@ -383,7 +383,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/teleconsultations', [MeetController::class, 'index'])->name('teleconsultations.index');
     Route::get('/teleconsultations/create', [MeetController::class, 'createMeet'])->name('teleconsultations.createMeet');
     Route::post('/teleconsultations/send-meeting-info', [MeetController::class, 'sendMeetingInfo'])->name('send.meeting.info');
-
+    Route::post('/patients/{patient}/assign-user', [PatientController::class, 'assignUser'])
+    ->name('patients.assign-user');
     Route::get('/teleconsultations/send-meeting-info-form', [MeetController::class, 'showSendMeetingInfoForm'])->name('show.meeting.info.form');
     Route::post('/teleconsultations/create-specific-meeting', [MeetController::class, 'createSpecificMeeting'])->name('create.specific.meeting');
     Route::post('/meet/{id}/status', [MeetController::class, 'updateStatus'])->name('meet.update.status');

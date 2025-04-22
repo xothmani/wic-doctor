@@ -115,15 +115,13 @@ class PatientDoctorChatController extends Controller
     public function showChat($doctorUserId, $patientUserId)
     {
         $user = auth()->user();
-        $patients = $patients ?? collect();
-    $doctors = $doctors ?? collect();
-        // Vérifier l'authentification
+        
+        // Check authentication
         if (!$user) {
             abort(403, 'Unauthorized access.');
         }
-
     
-        // Déterminer le rôle de l'utilisateur
+        // Determine user role
         $isDoctor = $user->doctor !== null;
         $isPatient = $user->patient !== null;
     
@@ -131,32 +129,27 @@ class PatientDoctorChatController extends Controller
             abort(403, 'Unauthorized access. You must be a doctor or a patient.');
         }
     
-        // Récupérer les relations associées
+        // Get relationships
         if ($isDoctor) {
             $patients = DoctorPatients::where('doctor_id', $user->doctor->id)
-                ->with('patient')
+                ->with(['patient.user'])
                 ->get();
-            $doctors = null;
         } else {
             $doctors = DoctorPatients::where('patient_id', $user->patient->id)
-                ->with('doctor')
-                ->get();
-            $patients = DoctorPatients::where('patient_id', $user->patient->id)
-                ->with('doctor')
+                ->with(['doctor.user'])
                 ->get();
         }
     
-        // Générer le chat ID
+        // Generate chat ID
         $chatId = $this->getChatId($doctorUserId, $patientUserId);
     
-        // Récupérer les messages depuis Firestore
+        // Get messages from Firestore
         $messages = $this->firestore->getDocuments("messages/$chatId/chats");
     
-        // Formatage et tri des messages
+        // Format and sort messages
         $messagesArray = collect($messages)->map(function ($message) {
             $fields = $message['fields'] ?? [];
-    
-            // Nouvelle structure de données
+            
             return [
                 'id' => $fields['id']['stringValue'] ?? '',
                 'text' => $fields['text']['stringValue'] ?? '',
@@ -175,21 +168,30 @@ class PatientDoctorChatController extends Controller
             ];
         })->sortBy('time')->values()->all();
     
-        // Récupérer les informations du patient sélectionné
+        // Get patient user info safely
         $patientUser = User::find($patientUserId);
-        $patient = DoctorPatients::where('patient_id', $patientUserId)->first();
+        if (!$patientUser) {
+            abort(404, 'Patient not found');
+        }
+    
+        // Get doctor patient relationship safely
+        $patient = DoctorPatients::where('patient_id', $patientUserId)
+            ->with(['patient'])
+            ->first();
     
         return view('chatDP', [
             'chatId' => $chatId,
             'messages' => $messagesArray,
             'patient' => $patient,
             'patientUser' => $patientUser,
-            'patients' => $patients,
-            'doctors' => $doctors,
+            'patients' => $isDoctor ? ($patients ?? collect()) : collect(),
+            'doctors' => $isPatient ? ($doctors ?? collect()) : collect(),
             'doctorUserId' => $doctorUserId,
             'patientUserId' => $patientUserId,
+            'isDoctor' => $isDoctor,
+            'isPatient' => $isPatient
         ]);
-    }      private function getChatId($senderId, $receiverId)
+    }   private function getChatId($senderId, $receiverId)
     {
         return $senderId < $receiverId
             ? $senderId . '-' . $receiverId

@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use App\Casts\PatientCast;
+use App\Models\PatientAssignedUser;
 use App\Traits\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model as Model;
@@ -35,6 +36,9 @@ class Patient extends Model implements HasMedia, Castable
         'phone_number',
         'mobile_number',
         'gender',
+        'assigned_user_id',
+        'relationship_type',
+        'is_main_profile',
         'weight',
         'height',
         'medical_history',
@@ -105,7 +109,16 @@ class Patient extends Model implements HasMedia, Castable
         // Supprime les balises HTML du champ 'notes'
         $this->attributes['notes'] = strip_tags($value);
     }
-
+// Dans app/Models/Patient.php
+public function assignedUsers()
+{
+    return $this->hasMany(PatientAssignedUser::class);
+}
+// Relation avec l'utilisateur assigné
+public function assignedUser()
+{
+    return $this->belongsTo(User::class, 'assigned_user_id');
+}
     // Mutateur pour nettoyer le champ 'allergie'
     public function setAllergieAttribute($value)
     {
