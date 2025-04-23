@@ -455,15 +455,15 @@ class AvailabilityController extends Controller
                         ->update([
                             'duration' => $newDuration
                         ]);
-                         // Log the adjustment of each appointment
-                $this->auditLogService->logAppointment(
-                    $appointment->id,
-                    'appointment_update',
-                    "Appointment duration updated for appointment ID {$appointment->id}",
-                    ['old_duration' => $oldDuration],
-                    ['new_duration' => $newDuration],
-                    $doctorId
-                );
+                    // Log the adjustment of each appointment
+                    $this->auditLogService->logAppointment(
+                        $appointment->id,
+                        'appointment_update',
+                        "Appointment duration updated for appointment ID {$appointment->id}",
+                        ['old_duration' => $oldDuration],
+                        ['new_duration' => $newDuration],
+                        $doctorId
+                    );
                 }
 
                 // Calculate end time of current group
@@ -487,15 +487,15 @@ class AvailabilityController extends Controller
                                 'appointment_at' => $groupEndTime->format('Y-m-d H:i:s'),
                                 'duration' => $newDuration
                             ]);
-                            // Log the shift of each appointment
-                            $this->auditLogService->logAppointment(
-                                $nextAppointment->id,
-                                'appointment_shift',
-                                "Appointment shifted for appointment ID {$nextAppointment->id} to new time {$newAppointmentAt}",
-                                ['old_appointment_at' => $nextAppointment->appointment_at],
-                                ['new_appointment_at' => $newAppointmentAt],
-                                $doctorId
-                            );
+                        // Log the shift of each appointment
+                        $this->auditLogService->logAppointment(
+                            $nextAppointment->id,
+                            'appointment_shift',
+                            "Appointment shifted for appointment ID {$nextAppointment->id} to new time {$newAppointmentAt}",
+                            ['old_appointment_at' => $nextAppointment->appointment_at],
+                            ['new_appointment_at' => $newAppointmentAt],
+                            $doctorId
+                        );
                         $groupEndTime->addMinutes($newDuration);
                     }
                 }
@@ -850,11 +850,11 @@ class AvailabilityController extends Controller
                     DB::table('availability_hours')->where('id', $existing->id)->update($data);
                 } else {
                     // Log the creation of the new availability slot
-                $this->auditLogService->logAvailabilityCreation(
-                    $newSlotId,
-                    array_merge($data, ['id' => $newSlotId]),
-                    $doctorId
-                );
+                    $this->auditLogService->logAvailabilityCreation(
+                        $newSlotId,
+                        array_merge($data, ['id' => $newSlotId]),
+                        $doctorId
+                    );
                     DB::table('availability_hours')->insert($data);
                 }
             }
@@ -869,280 +869,280 @@ class AvailabilityController extends Controller
 
 
     public function storeVacation(Request $request)
-{
-    \Log::info('Request received:', ['request' => $request->all()]);
-    $doctorId = auth()->user()->getDoctorId();
+    {
+        \Log::info('Request received:', ['request' => $request->all()]);
+        $doctorId = auth()->user()->getDoctorId();
 
-    try {
-        // Validate the request data
-        $validated = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'nullable|string|max:255'
-        ]);
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'reason' => 'nullable|string|max:255'
+            ]);
 
-        // Insert the vacation record into the database
-        $vacationId = DB::table('vacance')->insertGetId([
-            'doctor_id' => $doctorId,
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
-            'reason' => $validated['reason'],
-        ]);
-
-        // Log the creation of the vacation entry
-        $this->auditLogService->log(
-            'vacation_create',
-            'vacation',
-            $vacationId,
-            "Vacation created from {$validated['start_date']} to {$validated['end_date']}",
-            [],
-            [
+            // Insert the vacation record into the database
+            $vacationId = DB::table('vacance')->insertGetId([
+                'doctor_id' => $doctorId,
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
                 'reason' => $validated['reason'],
-            ],
-            $doctorId
-        );
+            ]);
 
-        return redirect()->back()->with('success', 'Vacances ajoutées avec succès!');
-    } catch (\Exception $e) {
-        Log::error('Error saving vacation:', ['error' => $e->getMessage()]);
+            // Log the creation of the vacation entry
+            $this->auditLogService->log(
+                'vacation_create',
+                'vacation',
+                $vacationId,
+                "Vacation created from {$validated['start_date']} to {$validated['end_date']}",
+                [],
+                [
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                    'reason' => $validated['reason'],
+                ],
+                $doctorId
+            );
 
-        // Log the error in the audit log
-        $this->auditLogService->log(
-            'error',
-            'vacation_create',
-            0, // Entity ID (not applicable here since it's a bulk operation)
-            "Error occurred while creating vacation: {$e->getMessage()}",
-            [],
-            [],
-            $doctorId
-        );
+            return redirect()->back()->with('success', 'Vacances ajoutées avec succès!');
+        } catch (\Exception $e) {
+            Log::error('Error saving vacation:', ['error' => $e->getMessage()]);
 
-        return redirect()->back()->withErrors(['error' => $e->getMessage()]);
-    }
-}
+            // Log the error in the audit log
+            $this->auditLogService->log(
+                'error',
+                'vacation_create',
+                0, // Entity ID (not applicable here since it's a bulk operation)
+                "Error occurred while creating vacation: {$e->getMessage()}",
+                [],
+                [],
+                $doctorId
+            );
 
-public function deleteVacation($id)
-{
-    $doctorId = auth()->user()->getDoctorId();
-
-    try {
-        // Fetch the vacation details before deletion for logging purposes
-        $vacation = DB::table('vacance')
-            ->where('id', $id)
-            ->where('doctor_id', $doctorId)
-            ->first();
-
-        if (!$vacation) {
-            Log::warning('Vacation not found for deletion:', ['id' => $id]);
-            return redirect()->back()->withErrors(['error' => 'Vacation not found']);
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
+    }
 
-        // Delete the vacation entry
-        DB::table('vacance')
-            ->where('id', $id)
-            ->where('doctor_id', $doctorId)
-            ->delete();
+    public function deleteVacation($id)
+    {
+        $doctorId = auth()->user()->getDoctorId();
 
-        // Log the deletion of the vacation entry
-        $this->auditLogService->log(
-            'vacation_delete',
-            'vacation',
-            $vacation->id,
-            "Vacation deleted: from {$vacation->start_date} to {$vacation->end_date}",
-            [
+        try {
+            // Fetch the vacation details before deletion for logging purposes
+            $vacation = DB::table('vacance')
+                ->where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->first();
+
+            if (!$vacation) {
+                Log::warning('Vacation not found for deletion:', ['id' => $id]);
+                return redirect()->back()->withErrors(['error' => 'Vacation not found']);
+            }
+
+            // Delete the vacation entry
+            DB::table('vacance')
+                ->where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->delete();
+
+            // Log the deletion of the vacation entry
+            $this->auditLogService->log(
+                'vacation_delete',
+                'vacation',
+                $vacation->id,
+                "Vacation deleted: from {$vacation->start_date} to {$vacation->end_date}",
+                [
+                    'start_date' => $vacation->start_date,
+                    'end_date' => $vacation->end_date,
+                    'reason' => $vacation->reason,
+                ],
+                [],
+                $doctorId
+            );
+
+            return redirect()->back()->with('success', 'Vacances supprimées avec succès!');
+        } catch (\Exception $e) {
+            Log::error('Error deleting vacation:', ['error' => $e->getMessage()]);
+
+            // Log the error in the audit log
+            $this->auditLogService->log(
+                'error',
+                'vacation_delete',
+                0, // Entity ID (not applicable here since it's a bulk operation)
+                "Error occurred while deleting vacation: {$e->getMessage()}",
+                [],
+                [],
+                $doctorId
+            );
+
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+    public function updateVacation($id, Request $request)
+    {
+        \Log::info('Update vacation request received:', ['request' => $request->all()]);
+        $doctorId = auth()->user()->getDoctorId();
+
+        try {
+            DB::beginTransaction();
+
+            // Validate the request data
+            $validated = $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'reason' => 'nullable|string|max:255'
+            ]);
+
+            // Check if vacation exists and belongs to doctor
+            $vacation = DB::table('vacance')
+                ->where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->first();
+
+            if (!$vacation) {
+                DB::rollBack();
+                \Log::warning('Vacation not found:', ['id' => $id]);
+
+                // Log the attempt to update a non-existent vacation
+                $this->auditLogService->log(
+                    'vacation_update_failed',
+                    'vacation',
+                    $id,
+                    "Attempted to update non-existent vacation",
+                    [],
+                    [],
+                    $doctorId
+                );
+
+                return redirect()->back()
+                    ->with('error', trans('messages.vacation_not_found'))
+                    ->withInput();
+            }
+
+            // Store old values for logging
+            $oldValues = [
                 'start_date' => $vacation->start_date,
                 'end_date' => $vacation->end_date,
                 'reason' => $vacation->reason,
-            ],
-            [],
-            $doctorId
-        );
+            ];
 
-        return redirect()->back()->with('success', 'Vacances supprimées avec succès!');
-    } catch (\Exception $e) {
-        Log::error('Error deleting vacation:', ['error' => $e->getMessage()]);
+            // Update the vacation
+            $updated = DB::table('vacance')
+                ->where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->update([
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                    'reason' => $validated['reason']
+                ]);
 
-        // Log the error in the audit log
-        $this->auditLogService->log(
-            'error',
-            'vacation_delete',
-            0, // Entity ID (not applicable here since it's a bulk operation)
-            "Error occurred while deleting vacation: {$e->getMessage()}",
-            [],
-            [],
-            $doctorId
-        );
+            DB::commit();
 
-        return redirect()->back()->withErrors(['error' => $e->getMessage()]);
-    }
-}
-public function updateVacation($id, Request $request)
-{
-    \Log::info('Update vacation request received:', ['request' => $request->all()]);
-    $doctorId = auth()->user()->getDoctorId();
-
-    try {
-        DB::beginTransaction();
-
-        // Validate the request data
-        $validated = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'nullable|string|max:255'
-        ]);
-
-        // Check if vacation exists and belongs to doctor
-        $vacation = DB::table('vacance')
-            ->where('id', $id)
-            ->where('doctor_id', $doctorId)
-            ->first();
-
-        if (!$vacation) {
-            DB::rollBack();
-            \Log::warning('Vacation not found:', ['id' => $id]);
-
-            // Log the attempt to update a non-existent vacation
+            // Log the update of the vacation entry
             $this->auditLogService->log(
-                'vacation_update_failed',
+                'vacation_update',
                 'vacation',
                 $id,
-                "Attempted to update non-existent vacation",
+                "Vacation updated: from {$oldValues['start_date']} to {$oldValues['end_date']} (Old), New: from {$validated['start_date']} to {$validated['end_date']}",
+                $oldValues,
+                [
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                    'reason' => $validated['reason'],
+                ],
+                $doctorId
+            );
+
+            \Log::info('Vacation updated successfully:', [
+                'id' => $id,
+                'data' => $validated
+            ]);
+
+            return redirect()->back()
+                ->with('success', trans('messages.vacation_updated_successfully'));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating vacation:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Log the error in the audit log
+            $this->auditLogService->log(
+                'error',
+                'vacation_update',
+                $id,
+                "Error occurred while updating vacation: {$e->getMessage()}",
                 [],
                 [],
                 $doctorId
             );
 
             return redirect()->back()
-                ->with('error', trans('messages.vacation_not_found'))
+                ->with('error', trans('messages.vacation_update_failed'))
                 ->withInput();
         }
-
-        // Store old values for logging
-        $oldValues = [
-            'start_date' => $vacation->start_date,
-            'end_date' => $vacation->end_date,
-            'reason' => $vacation->reason,
-        ];
-
-        // Update the vacation
-        $updated = DB::table('vacance')
-            ->where('id', $id)
-            ->where('doctor_id', $doctorId)
-            ->update([
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
-                'reason' => $validated['reason']
-            ]);
-
-        DB::commit();
-
-        // Log the update of the vacation entry
-        $this->auditLogService->log(
-            'vacation_update',
-            'vacation',
-            $id,
-            "Vacation updated: from {$oldValues['start_date']} to {$oldValues['end_date']} (Old), New: from {$validated['start_date']} to {$validated['end_date']}",
-            $oldValues,
-            [
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
-                'reason' => $validated['reason'],
-            ],
-            $doctorId
-        );
-
-        \Log::info('Vacation updated successfully:', [
-            'id' => $id,
-            'data' => $validated
-        ]);
-
-        return redirect()->back()
-            ->with('success', trans('messages.vacation_updated_successfully'));
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Error updating vacation:', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-
-        // Log the error in the audit log
-        $this->auditLogService->log(
-            'error',
-            'vacation_update',
-            $id,
-            "Error occurred while updating vacation: {$e->getMessage()}",
-            [],
-            [],
-            $doctorId
-        );
-
-        return redirect()->back()
-            ->with('error', trans('messages.vacation_update_failed'))
-            ->withInput();
     }
-}
-public function storeBreaks(Request $request)
-{
-    $doctorId = auth()->user()->getDoctorId();
+    public function storeBreaks(Request $request)
+    {
+        $doctorId = auth()->user()->getDoctorId();
 
-    try {
-        // Validate the request data
-        $validated = $request->validate([
-            'pause_from' => 'required|date_format:H:i',
-            'pause_to' => 'required|date_format:H:i|after:pause_from',
-        ]);
-
-        // Fetch the existing breaks before updating for logging purposes
-        $existingBreaks = AvailabilityHour::where('doctor_id', $doctorId)
-            ->where('mode', 'open')
-            ->pluck('id', 'pause_from', 'pause_to')
-            ->toArray();
-
-        // Update breaks for all availabilities of this doctor in open mode
-        AvailabilityHour::where('doctor_id', $doctorId)
-            ->where('mode', 'open')
-            ->update([
-                'pause_from' => $validated['pause_from'],
-                'pause_to' => $validated['pause_to']
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'pause_from' => 'required|date_format:H:i',
+                'pause_to' => 'required|date_format:H:i|after:pause_from',
             ]);
 
-        // Log the update of breaks for each affected availability hour
-        foreach ($existingBreaks as $availabilityId => $breaks) {
-            $this->auditLogService->logAvailabilityUpdate(
-                $availabilityId,
-                [
-                    'pause_from' => $breaks['pause_from'] ?? null,
-                    'pause_to' => $breaks['pause_to'] ?? null,
-                ],
-                [
+            // Fetch the existing breaks before updating for logging purposes
+            $existingBreaks = AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('mode', 'open')
+                ->pluck('id', 'pause_from', 'pause_to')
+                ->toArray();
+
+            // Update breaks for all availabilities of this doctor in open mode
+            AvailabilityHour::where('doctor_id', $doctorId)
+                ->where('mode', 'open')
+                ->update([
                     'pause_from' => $validated['pause_from'],
-                    'pause_to' => $validated['pause_to'],
-                ],
+                    'pause_to' => $validated['pause_to']
+                ]);
+
+            // Log the update of breaks for each affected availability hour
+            foreach ($existingBreaks as $availabilityId => $breaks) {
+                $this->auditLogService->logAvailabilityUpdate(
+                    $availabilityId,
+                    [
+                        'pause_from' => $breaks['pause_from'] ?? null,
+                        'pause_to' => $breaks['pause_to'] ?? null,
+                    ],
+                    [
+                        'pause_from' => $validated['pause_from'],
+                        'pause_to' => $validated['pause_to'],
+                    ],
+                    $doctorId
+                );
+            }
+
+            return redirect()->back()->with('success', 'Pauses sauvegardées avec succès!');
+        } catch (\Exception $e) {
+            Log::error('Error saving breaks:', ['error' => $e->getMessage()]);
+
+            // Log the error in the audit log
+            $this->auditLogService->log(
+                'error',
+                'availability_break_update',
+                0, // Entity ID (not applicable here since it's a bulk operation)
+                "Error occurred while updating breaks: {$e->getMessage()}",
+                [],
+                [],
                 $doctorId
             );
+
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
-
-        return redirect()->back()->with('success', 'Pauses sauvegardées avec succès!');
-    } catch (\Exception $e) {
-        Log::error('Error saving breaks:', ['error' => $e->getMessage()]);
-
-        // Log the error in the audit log
-        $this->auditLogService->log(
-            'error',
-            'availability_break_update',
-            0, // Entity ID (not applicable here since it's a bulk operation)
-            "Error occurred while updating breaks: {$e->getMessage()}",
-            [],
-            [],
-            $doctorId
-        );
-
-        return redirect()->back()->withErrors(['error' => $e->getMessage()]);
     }
-}
     public function getAvailableTimeSlotsForOpen(Request $request)
     {
         \Log::info('Request received-2', ['request' => $request->all()]);
@@ -1212,128 +1212,128 @@ public function storeBreaks(Request $request)
 
 
     public function storeSubstitute(Request $request)
-{
-    $doctorId = auth()->user()->getDoctorId();
+    {
+        $doctorId = auth()->user()->getDoctorId();
 
-    try {
-        // Validate the request data
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'start_date' => 'required|date_format:Y-m-d\TH:i',
-            'end_date' => 'required|date_format:Y-m-d\TH:i|after_or_equal:start_date',
-            'notes' => 'nullable|string'
-        ]);
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'start_date' => 'required|date_format:Y-m-d\TH:i',
+                'end_date' => 'required|date_format:Y-m-d\TH:i|after_or_equal:start_date',
+                'notes' => 'nullable|string'
+            ]);
 
-        // Create the substitute record
-        $substitute = DoctorSubstitute::create([
-            'doctor_id' => $doctorId,
-            'name' => $validated['name'],
-            'start_date' => Carbon::parse($validated['start_date']),
-            'end_date' => Carbon::parse($validated['end_date']),
-            'notes' => $validated['notes']
-        ]);
-
-        // Log the creation of the substitute entry
-        $this->auditLogService->log(
-            'substitute_create',
-            'substitute',
-            $substitute->id,
-            "Substitute created: {$validated['name']} from {$validated['start_date']} to {$validated['end_date']}",
-            [],
-            [
+            // Create the substitute record
+            $substitute = DoctorSubstitute::create([
+                'doctor_id' => $doctorId,
                 'name' => $validated['name'],
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
-                'notes' => $validated['notes'],
-            ],
-            $doctorId
-        );
+                'start_date' => Carbon::parse($validated['start_date']),
+                'end_date' => Carbon::parse($validated['end_date']),
+                'notes' => $validated['notes']
+            ]);
 
-        return redirect()->back()->with('success', trans('lang.substitute_saved_successfully'));
-    } catch (\Exception $e) {
-        Log::error('Error saving substitute:', ['error' => $e->getMessage()]);
-
-        // Log the error in the audit log
-        $this->auditLogService->log(
-            'error',
-            'substitute_create',
-            0, // Entity ID (not applicable here since it's a bulk operation)
-            "Error occurred while creating substitute: {$e->getMessage()}",
-            [],
-            [],
-            $doctorId
-        );
-
-        return redirect()->back()->withErrors(['error' => $e->getMessage()]);
-    }
-}
-
-public function deleteSubstitute($id)
-{
-    $doctorId = auth()->user()->getDoctorId();
-
-    try {
-        // Fetch the substitute details before deletion for logging purposes
-        $substitute = DoctorSubstitute::where('id', $id)
-            ->where('doctor_id', $doctorId)
-            ->first();
-
-        if (!$substitute) {
-            Log::warning('Substitute not found for deletion:', ['id' => $id]);
-
-            // Log the attempt to delete a non-existent substitute
+            // Log the creation of the substitute entry
             $this->auditLogService->log(
-                'substitute_delete_failed',
+                'substitute_create',
                 'substitute',
-                $id,
-                "Attempted to delete non-existent substitute",
+                $substitute->id,
+                "Substitute created: {$validated['name']} from {$validated['start_date']} to {$validated['end_date']}",
+                [],
+                [
+                    'name' => $validated['name'],
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'],
+                    'notes' => $validated['notes'],
+                ],
+                $doctorId
+            );
+
+            return redirect()->back()->with('success', trans('lang.substitute_saved_successfully'));
+        } catch (\Exception $e) {
+            Log::error('Error saving substitute:', ['error' => $e->getMessage()]);
+
+            // Log the error in the audit log
+            $this->auditLogService->log(
+                'error',
+                'substitute_create',
+                0, // Entity ID (not applicable here since it's a bulk operation)
+                "Error occurred while creating substitute: {$e->getMessage()}",
                 [],
                 [],
                 $doctorId
             );
 
-            return redirect()->back()->withErrors(['error' => 'Substitute not found']);
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
-
-        // Delete the substitute entry
-        DoctorSubstitute::where('id', $id)
-            ->where('doctor_id', $doctorId)
-            ->delete();
-
-        // Log the deletion of the substitute entry
-        $this->auditLogService->log(
-            'substitute_delete',
-            'substitute',
-            $substitute->id,
-            "Substitute deleted: {$substitute->name} from {$substitute->start_date} to {$substitute->end_date}",
-            [
-                'name' => $substitute->name,
-                'start_date' => $substitute->start_date,
-                'end_date' => $substitute->end_date,
-                'notes' => $substitute->notes,
-            ],
-            [],
-            $doctorId
-        );
-
-        return redirect()->back()->with('success', 'Remplaçant supprimé avec succès!');
-    } catch (\Exception $e) {
-        Log::error('Error deleting substitute:', ['error' => $e->getMessage()]);
-
-        // Log the error in the audit log
-        $this->auditLogService->log(
-            'error',
-            'substitute_delete',
-            $id,
-            "Error occurred while deleting substitute: {$e->getMessage()}",
-            [],
-            [],
-            $doctorId
-        );
-
-        return redirect()->back()->withErrors(['error' => $e->getMessage()]);
     }
-}
+
+    public function deleteSubstitute($id)
+    {
+        $doctorId = auth()->user()->getDoctorId();
+
+        try {
+            // Fetch the substitute details before deletion for logging purposes
+            $substitute = DoctorSubstitute::where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->first();
+
+            if (!$substitute) {
+                Log::warning('Substitute not found for deletion:', ['id' => $id]);
+
+                // Log the attempt to delete a non-existent substitute
+                $this->auditLogService->log(
+                    'substitute_delete_failed',
+                    'substitute',
+                    $id,
+                    "Attempted to delete non-existent substitute",
+                    [],
+                    [],
+                    $doctorId
+                );
+
+                return redirect()->back()->withErrors(['error' => 'Substitute not found']);
+            }
+
+            // Delete the substitute entry
+            DoctorSubstitute::where('id', $id)
+                ->where('doctor_id', $doctorId)
+                ->delete();
+
+            // Log the deletion of the substitute entry
+            $this->auditLogService->log(
+                'substitute_delete',
+                'substitute',
+                $substitute->id,
+                "Substitute deleted: {$substitute->name} from {$substitute->start_date} to {$substitute->end_date}",
+                [
+                    'name' => $substitute->name,
+                    'start_date' => $substitute->start_date,
+                    'end_date' => $substitute->end_date,
+                    'notes' => $substitute->notes,
+                ],
+                [],
+                $doctorId
+            );
+
+            return redirect()->back()->with('success', 'Remplaçant supprimé avec succès!');
+        } catch (\Exception $e) {
+            Log::error('Error deleting substitute:', ['error' => $e->getMessage()]);
+
+            // Log the error in the audit log
+            $this->auditLogService->log(
+                'error',
+                'substitute_delete',
+                $id,
+                "Error occurred while deleting substitute: {$e->getMessage()}",
+                [],
+                [],
+                $doctorId
+            );
+
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
     public function getSubstitutesForRange(Request $request)
     {
         $doctorId = auth()->user()->getDoctorId();
@@ -1388,64 +1388,64 @@ public function deleteSubstitute($id)
     }
 
     public function storeClosures(Request $request)
-{
-    // Validate the request data
-    $validated = $request->validate([
-        'jour' => 'required|date|after_or_equal:today',
-        'heurDebut' => 'required|date_format:H:i',
-        'heurFin' => 'required|date_format:H:i|after:heurDebut',
-        'reason' => 'required|string'
-    ]);
-
-    try {
-        DB::beginTransaction();
-
-        $doctorId = auth()->user()->getDoctorId();
-
-        // Create the closure record
-        $closure = DoctorUrgency::create([
-            'doctor_id' => $doctorId,
-            'jour' => $validated['jour'],
-            'heurDebut' => $validated['heurDebut'],
-            'heurFin' => $validated['heurFin'],
-            'reason' => $validated['reason']
+    {
+        // Validate the request data
+        $validated = $request->validate([
+            'jour' => 'required|date|after_or_equal:today',
+            'heurDebut' => 'required|date_format:H:i',
+            'heurFin' => 'required|date_format:H:i|after:heurDebut',
+            'reason' => 'required|string'
         ]);
 
-        // Log the creation of the closure entry
-        $this->auditLogService->log(
-            'closure_create',
-            'closure',
-            $closure->id,
-            "Closure created for date {$validated['jour']} from {$validated['heurDebut']} to {$validated['heurFin']}",
-            [],
-            [
+        try {
+            DB::beginTransaction();
+
+            $doctorId = auth()->user()->getDoctorId();
+
+            // Create the closure record
+            $closure = DoctorUrgency::create([
+                'doctor_id' => $doctorId,
                 'jour' => $validated['jour'],
                 'heurDebut' => $validated['heurDebut'],
                 'heurFin' => $validated['heurFin'],
-                'reason' => $validated['reason'],
-            ],
-            $doctorId
-        );
+                'reason' => $validated['reason']
+            ]);
 
-        DB::commit();
-        return redirect()->back()->with('success', trans('messages.closure_created_successfully'));
-    } catch (\Exception $e) {
-        DB::rollBack();
+            // Log the creation of the closure entry
+            $this->auditLogService->log(
+                'closure_create',
+                'closure',
+                $closure->id,
+                "Closure created for date {$validated['jour']} from {$validated['heurDebut']} to {$validated['heurFin']}",
+                [],
+                [
+                    'jour' => $validated['jour'],
+                    'heurDebut' => $validated['heurDebut'],
+                    'heurFin' => $validated['heurFin'],
+                    'reason' => $validated['reason'],
+                ],
+                $doctorId
+            );
 
-        // Log the error in the audit log
-        $this->auditLogService->log(
-            'error',
-            'closure_create',
-            0, // Entity ID (not applicable here since it's a bulk operation)
-            "Error occurred while creating closure: {$e->getMessage()}",
-            [],
-            [],
-            auth()->user()->getDoctorId()
-        );
+            DB::commit();
+            return redirect()->back()->with('success', trans('messages.closure_created_successfully'));
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-        return redirect()->back()->with('error', trans('messages.closure_creation_failed'));
+            // Log the error in the audit log
+            $this->auditLogService->log(
+                'error',
+                'closure_create',
+                0, // Entity ID (not applicable here since it's a bulk operation)
+                "Error occurred while creating closure: {$e->getMessage()}",
+                [],
+                [],
+                auth()->user()->getDoctorId()
+            );
+
+            return redirect()->back()->with('error', trans('messages.closure_creation_failed'));
+        }
     }
-}
 
     public function getClosures()
     {
@@ -1461,146 +1461,146 @@ public function deleteSubstitute($id)
         return view('availability.index', compact('dailyClosures'));
     }
     public function destroyClosures($id, Request $request)
-{
-    \Log::info('Attempting to delete closure:', ['closure_id' => $id]);
+    {
+        \Log::info('Attempting to delete closure:', ['closure_id' => $id]);
 
-    try {
-        $doctorId = auth()->user()->getDoctorId();
+        try {
+            $doctorId = auth()->user()->getDoctorId();
 
-        // Fetch the closure details before deletion for logging purposes
-        $closure = DoctorUrgency::where('doctor_id', $doctorId)
-            ->where('id', $id)
-            ->first();
+            // Fetch the closure details before deletion for logging purposes
+            $closure = DoctorUrgency::where('doctor_id', $doctorId)
+                ->where('id', $id)
+                ->first();
 
-        if (!$closure) {
-            \Log::warning('Closure not found for deletion:', ['id' => $id]);
+            if (!$closure) {
+                \Log::warning('Closure not found for deletion:', ['id' => $id]);
 
-            // Log the attempt to delete a non-existent closure
+                // Log the attempt to delete a non-existent closure
+                $this->auditLogService->log(
+                    'closure_delete_failed',
+                    'closure',
+                    $id,
+                    "Attempted to delete non-existent closure",
+                    [],
+                    [],
+                    $doctorId
+                );
+
+                return redirect()->back()->with('error', trans('messages.closure_not_found'));
+            }
+
+            // Delete the closure entry
+            $deleted = DoctorUrgency::where('doctor_id', $doctorId)
+                ->where('id', $id)
+                ->delete();
+
+            \Log::info('Deletion result:', ['deleted' => $deleted]);
+
+            // Log the deletion of the closure entry
             $this->auditLogService->log(
-                'closure_delete_failed',
+                'closure_delete',
                 'closure',
-                $id,
-                "Attempted to delete non-existent closure",
-                [],
+                $closure->id,
+                "Closure deleted: {$closure->jour} from {$closure->heurDebut} to {$closure->heurFin}",
+                [
+                    'jour' => $closure->jour,
+                    'heurDebut' => $closure->heurDebut,
+                    'heurFin' => $closure->heurFin,
+                    'reason' => $closure->reason,
+                ],
                 [],
                 $doctorId
             );
 
+            if ($deleted) {
+                return redirect()->back()->with('success', trans('messages.closure_deleted_successfully'));
+            }
+
             return redirect()->back()->with('error', trans('messages.closure_not_found'));
+
+        } catch (\Exception $e) {
+            \Log::error('Deletion failed:', ['error' => $e->getMessage()]);
+
+            // Log the error in the audit log
+            $this->auditLogService->log(
+                'error',
+                'closure_delete',
+                $id,
+                "Error occurred while deleting closure: {$e->getMessage()}",
+                [],
+                [],
+                auth()->user()->getDoctorId()
+            );
+
+            return redirect()->back()->with('error', trans('messages.closure_deletion_failed'));
         }
+    }
+    public function updateClosures($id, Request $request)
+    {
+        $validated = $request->validate([
+            'jour' => 'required|date',
+            'heurDebut' => 'required',
+            'heurFin' => 'required|after:heurDebut',
+            'reason' => 'required|string'
+        ]);
 
-        // Delete the closure entry
-        $deleted = DoctorUrgency::where('doctor_id', $doctorId)
-            ->where('id', $id)
-            ->delete();
+        try {
+            $doctorId = auth()->user()->getDoctorId();
 
-        \Log::info('Deletion result:', ['deleted' => $deleted]);
+            // Fetch the existing closure details for logging purposes
+            $closure = DoctorUrgency::where('doctor_id', $doctorId)
+                ->where('id', $id)
+                ->firstOrFail();
 
-        // Log the deletion of the closure entry
-        $this->auditLogService->log(
-            'closure_delete',
-            'closure',
-            $closure->id,
-            "Closure deleted: {$closure->jour} from {$closure->heurDebut} to {$closure->heurFin}",
-            [
+            // Store old values for logging
+            $oldValues = [
                 'jour' => $closure->jour,
                 'heurDebut' => $closure->heurDebut,
                 'heurFin' => $closure->heurFin,
                 'reason' => $closure->reason,
-            ],
-            [],
-            $doctorId
-        );
+            ];
 
-        if ($deleted) {
-            return redirect()->back()->with('success', trans('messages.closure_deleted_successfully'));
-        }
-
-        return redirect()->back()->with('error', trans('messages.closure_not_found'));
-
-    } catch (\Exception $e) {
-        \Log::error('Deletion failed:', ['error' => $e->getMessage()]);
-
-        // Log the error in the audit log
-        $this->auditLogService->log(
-            'error',
-            'closure_delete',
-            $id,
-            "Error occurred while deleting closure: {$e->getMessage()}",
-            [],
-            [],
-            auth()->user()->getDoctorId()
-        );
-
-        return redirect()->back()->with('error', trans('messages.closure_deletion_failed'));
-    }
-}
-public function updateClosures($id, Request $request)
-{
-    $validated = $request->validate([
-        'jour' => 'required|date',
-        'heurDebut' => 'required',
-        'heurFin' => 'required|after:heurDebut',
-        'reason' => 'required|string'
-    ]);
-
-    try {
-        $doctorId = auth()->user()->getDoctorId();
-
-        // Fetch the existing closure details for logging purposes
-        $closure = DoctorUrgency::where('doctor_id', $doctorId)
-            ->where('id', $id)
-            ->firstOrFail();
-
-        // Store old values for logging
-        $oldValues = [
-            'jour' => $closure->jour,
-            'heurDebut' => $closure->heurDebut,
-            'heurFin' => $closure->heurFin,
-            'reason' => $closure->reason,
-        ];
-
-        // Update the closure
-        $closure->update([
-            'jour' => $validated['jour'],
-            'heurDebut' => $validated['heurDebut'],
-            'heurFin' => $validated['heurFin'],
-            'reason' => $validated['reason']
-        ]);
-
-        // Log the update of the closure entry
-        $this->auditLogService->log(
-            'closure_update',
-            'closure',
-            $closure->id,
-            "Closure updated: {$oldValues['jour']} from {$oldValues['heurDebut']} to {$oldValues['heurFin']}",
-            $oldValues,
-            [
+            // Update the closure
+            $closure->update([
                 'jour' => $validated['jour'],
                 'heurDebut' => $validated['heurDebut'],
                 'heurFin' => $validated['heurFin'],
-                'reason' => $validated['reason'],
-            ],
-            $doctorId
-        );
+                'reason' => $validated['reason']
+            ]);
 
-        return redirect()->back()->with('success', trans('messages.closure_updated_successfully'));
+            // Log the update of the closure entry
+            $this->auditLogService->log(
+                'closure_update',
+                'closure',
+                $closure->id,
+                "Closure updated: {$oldValues['jour']} from {$oldValues['heurDebut']} to {$oldValues['heurFin']}",
+                $oldValues,
+                [
+                    'jour' => $validated['jour'],
+                    'heurDebut' => $validated['heurDebut'],
+                    'heurFin' => $validated['heurFin'],
+                    'reason' => $validated['reason'],
+                ],
+                $doctorId
+            );
 
-    } catch (\Exception $e) {
-        \Log::error('Update failed:', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('success', trans('messages.closure_updated_successfully'));
 
-        // Log the error in the audit log
-        $this->auditLogService->log(
-            'error',
-            'closure_update',
-            $id,
-            "Error occurred while updating closure: {$e->getMessage()}",
-            [],
-            [],
-            auth()->user()->getDoctorId()
-        );
+        } catch (\Exception $e) {
+            \Log::error('Update failed:', ['error' => $e->getMessage()]);
 
-        return redirect()->back()->with('error', trans('messages.closure_update_failed'));
+            // Log the error in the audit log
+            $this->auditLogService->log(
+                'error',
+                'closure_update',
+                $id,
+                "Error occurred while updating closure: {$e->getMessage()}",
+                [],
+                [],
+                auth()->user()->getDoctorId()
+            );
+
+            return redirect()->back()->with('error', trans('messages.closure_update_failed'));
+        }
     }
-}
 }

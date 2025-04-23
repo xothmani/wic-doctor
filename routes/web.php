@@ -713,7 +713,9 @@ Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDocto
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
 Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
 
-Route::post('/appointments/update', 'AppointmentEventController@update');
-Route::delete('/appointments/delete/{id}', 'AppointmentEventController@delete');
-Route::get('/motifs', 'AppointmentEventController@getMotifs');
-Route::get('/appointment-statuses', 'AppointmentEventController@getStatuses');
+// Update appointment (PUT request)
+Route::put('/update-appointments/{id}', [AppointmentEventController::class, 'update'])->name('appointments.update');
+
+// Delete appointment (DELETE request)
+Route::delete('/update-appointments/{id}', [AppointmentEventController::class, 'destroy'])->name('appointments.destroy');
+

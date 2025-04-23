@@ -710,3 +710,296 @@
         box-shadow: 0 0 10px #ffcc00;
     }
 }
+
+/* Sidebar styles */
+.appointment-sidebar {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100%;
+    background: #fff;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+    z-index: 1050;
+    transition: right 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+.sidebar-header {
+    padding: 1rem;
+    background: #f7f7f7;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.sidebar-body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.3);
+    z-index: 1040;
+    display: none;
+}
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+}
+
+/* Sidebar background and structure */
+#appointmentSidebar {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100%;
+    background-color: #ffffff;
+    box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #e0e0e0;
+    border-radius: 0;
+    overflow-y: auto;
+}
+
+/* Overlay */
+#sidebarOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.35);
+    z-index: 1040;
+    display: none;
+}
+
+/* Header */
+.sidebar-header {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+/* Close button */
+.close-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #999;
+    transition: color 0.2s;
+}
+.close-btn:hover {
+    color: #333;
+}
+
+/* Body styling */
+.sidebar-body {
+    padding: 1rem;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+/* Footer buttons */
+
+/* Form fields */
+#appointmentForm .form-group {
+    margin-bottom: 1rem;
+}
+#appointmentForm label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    display: block;
+    color: #333;
+}
+#appointmentForm input,
+#appointmentForm select {
+    height: 40px;
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+#appointmentForm input:focus,
+#appointmentForm select:focus,
+#appointmentForm textarea:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #fff;
+}
+.btn-primary:hover {
+    background-color: #0069d9;
+}
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+}
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+.btn-success:hover {
+    background-color: #218838;
+}
+.btn-outline-danger {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    background-color: transparent;
+}
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #fff;
+}
+/* Make dropdowns larger */
+#updateAppointmentType,
+#updatestartTime {
+    height: 40px;
+    font-size: 1rem;
+    padding: 10px 12px;
+    border-radius: 0.5rem;
+    line-height: 1.5;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5'%3E%3Cpath fill='%23666' d='M2 0L0 2h4L2 0zM0 3l2 2 2-2H0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 8px 10px;
+}
+#editAppointmentBtn {
+    background-color: #295F98;
+    color: #fff;
+    border: none;
+}
+
+/* Delete button in the top-left corner */
+#deleteAppointmentBtn {
+    background-color: #C84361;
+    color: white;
+    border: none;
+}
+#saveAppointmentBtn {
+    background-color: #295F98;
+    color: white;
+    border: none;
+}
+#editAppointmentBtn,
+#deleteAppointmentBtn {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    height: 36px;
+}
+
+.sidebar-footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px 15px;
+    gap: 8px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+.sidebar-footer .btn {
+    flex: 1;
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 0;
+    max-width: 100%;
+}
+
+
+
+#appointmentForm label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+#appointmentForm input,
+#appointmentForm select,
+#appointmentForm textarea {
+    font-size: 1rem;
+    color: #212529;
+    border: 1px solid #ccc;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background-color: #fff;
+    transition: border-color 0.2s ease;
+}
+
+#appointmentForm input:focus,
+#appointmentForm select:focus,
+#appointmentForm textarea:focus {
+    border-color: #9FB3DF;
+    box-shadow: 0 0 0 0.1rem rgba(159, 179, 223, 0.25);
+    outline: none;
+}
+
+#sidebarMotif {
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    width: 100%;
+    background-color: #fff;
+    height: 38px;
+}
+#sidebarMotif option {
+    font-size: 14px;
+    padding: 8px 12px;
+}
+
+/* Style the dropdown when open */
+#sidebarMotif:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+input[readonly], select[disabled] {
+    background-color: #f8f9fa;
+    cursor: default;
+    opacity: 1; /* Make text fully visible even when disabled */
+}
+

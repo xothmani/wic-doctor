@@ -55,114 +55,7 @@
                 </div>
             </div>
         </div>
-        <!-- Appointment Details Modal -->
-        <!-- Appointment Details Modal -->
-        <div class="modal fade" id="appointmentDetailsModal" tabindex="-1" role="dialog"
-            aria-labelledby="appointmentDetailsModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="appointmentDetailsModalLabel">{{ trans('lang.appointment_details') }}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <ul class="nav nav-tabs" id="appointmentTabs" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab"
-                                    aria-controls="details" aria-selected="true">{{ trans('lang.details') }}</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="edit-tab" data-toggle="tab" href="#edit" role="tab" aria-controls="edit"
-                                    aria-selected="false">{{ trans('lang.edit_appointment') }}</a>
-                            </li>
-                        </ul>
-                        <div class="tab-content" id="appointmentTabContent">
-                            <!-- Details and Status Tab -->
-                            <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
-                                <div class="appointment-info">
-                                    <p><strong>{{ trans('lang.patient_nom') }}:</strong> <span id="patientName"></span></p>
-                                    <p><strong>{{ trans('lang.appointment_status') }}:</strong> <span
-                                            id="appointmentStatus"></span></p>
-                                    <p><strong>{{ trans('lang.motif_name') }}:</strong> <span id="motifName"></span></p>
-                                    <p><strong>{{ trans('lang.note') }}:</strong> <span id="note"></span></p>
-                                </div>
-                            </div>
-                            <!-- Edit Appointment Tab -->
-                            <div class="tab-pane fade" id="edit" role="tabpanel" aria-labelledby="edit-tab">
-                                <form id="appointmentForm">
-                                    <input type="hidden" id="appointmentId">
-                                    <div class="form-group">
-                                        <label><strong>{{ trans('lang.patient_nom') }}:</strong></label>
-                                        <input type="text" class="form-control" id="patientNameEdit" readonly>
-                                    </div>
-                                    <div class="form-group">
-                                        <label><strong>{{ trans('lang.appointment_date') }}:</strong></label>
-                                        <input type="datetime-local" class="form-control" id="appointmentDate">
-                                    </div>
-                                    <div class="form-group pattern-select-group">
-                                        <label><strong>{{ trans('lang.availability_hour_pattern') }}:</strong></label>
-                                        <select name="patern_id" id="patern_id_cabinet" class="form-control">
-                                            <option value="">{{ trans('lang.select_pattern') }}</option>
-                                            <!-- Populated dynamically -->
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label><strong>{{ trans('lang.note') }}:</strong></label>
-                                        <textarea class="form-control" id="notes" rows="4"></textarea>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <div class="delete-button-container">
-                            <button type="button" class="btn btn-danger btn-modern"
-                                id="deleteAppointment">{{ trans('lang.delete') }}</button>
-                        </div>
-                        <div class="status-buttons">
-                            <button type="button" class="btn btn-primary btn-modern d-none" id="createTeleconsultation"
-                                style="background-color: #AEC6CF; color: #000;">{{ trans('lang.create_teleconsultation') }}</button>
-                            <button type="button" class="btn btn-danger btn-modern" id="markAsFailed"
-                                style="background-color: #F4C2C2; color: #000;">{{ trans('lang.mark_failed') }}</button>
-                            <button type="button" class="btn btn-success btn-modern" id="markAsDone"
-                                style="background-color: #B1E5D6; color: #000;">{{ trans('lang.mark_ready') }}</button>
-                            <button type="button" class="btn btn-primary btn-modern" id="updateAppointment"
-                                style="display: none;">{{ trans('lang.update') }}</button>
-                            <button type="button" class="btn btn-secondary btn-modern"
-                                id="closeModal">{{ trans('lang.close') }}</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Cancel Reason Modal -->
-        <div class="modal fade" id="cancelReasonModal" tabindex="-1" role="dialog" aria-labelledby="cancelReasonModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="cancelReasonModalLabel">{{ trans('lang.cancel_appointment') }}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="cancelReason">{{ trans('lang.cancel_reason') }}:</label>
-                            <textarea class="form-control" id="cancelReason" rows="4"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary btn-modern"
-                            id="confirmCancel">{{ trans('lang.confirm') }}</button>
-                        <button type="button" class="btn btn-secondary btn-modern"
-                            data-dismiss="modal">{{ trans('lang.close') }}</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Modal for Viewing and Updating Status -->
         <!-- Modal for Creating Appointment -->
         <div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel"
             aria-hidden="true">
@@ -301,31 +194,142 @@
                 </div>
             </div>
         </div>
+        <!-- Modal for Cancel Reason -->
 
-        <!-- Add this after your existing modals -->
-        <div class="modal fade" id="cancelReasonModal" tabindex="-1" role="dialog" aria-labelledby="cancelReasonModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
+        <!-- Confirmation Modal for No Available Slots -->
+        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="cancelReasonModalLabel">{{ trans('lang.cancel_reason') }}</h5>
+                        <h5 class="modal-title">No Available Slots</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>No available time slots for the selected date. Would you like to create availability?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmCreateAvailability">Create
+                            Availability</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar for Appointment Details -->
+        <div id="appointmentSidebar" class="appointment-sidebar">
+            <div class="sidebar-header d-flex justify-content-between align-items-center">
+                <button id="deleteAppointmentBtn" class="btn delete-btn" title="Delete Appointment">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 448 512" fill="white">
+                        <path
+                            d="M135.2 17.7C141.4 7.1 152.7 0 165.1 0H282.9c12.4 0 23.7 7.1 29.9 17.7L328 32H432c8.8 0 16 7.2 16 16s-7.2 16-16 16H416l-20.6 372.2c-1.8 32.1-28.3 57.8-60.5 57.8H113.1c-32.2 0-58.7-25.7-60.5-57.8L32 64H16C7.2 64 0 56.8 0 48s7.2-16 16-16H120l15.2-14.3zM144 96v336c0 8.8 7.2 16 16 16s16-7.2 16-16V96c0-8.8-7.2-16-16-16s-16 7.2-16 16zm80 0v336c0 8.8 7.2 16 16 16s16-7.2 16-16V96c0-8.8-7.2-16-16-16s-16 7.2-16 16zm96 0v336c0 8.8 7.2 16 16 16s16-7.2 16-16V96c0-8.8-7.2-16-16-16s-16 7.2-16 16z" />
+                    </svg>
+                </button>
+
+                <h5 class="m-0 flex-grow-1 text-center">{{ trans('lang.appointment_details') }}</h5>
+                <button id="editAppointmentBtn" class="btn update-btn" title="Edit Appointment">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 512 512" fill="white">
+                        <path
+                            d="M362.7 19.3c25.8-25.8 67.6-25.8 93.4 0l36.6 36.6c25.8 25.8 25.8 67.6 0 93.4L177.3 464.7c-9.1 9.1-20.6 15.3-33.1 18L25.3 508.6c-16.3 3.6-31.3-11.5-27.7-27.7l25.9-118.9c2.7-12.5 9-24 18-33.1L362.7 19.3zM388.1 70.6L112.6 346.1c-4.1 4.1-7 9.2-8.4 14.8l-18.4 84.4 84.4-18.4c5.6-1.2 10.7-4.2 14.8-8.4L441.4 123.9 388.1 70.6z" />
+                    </svg>
+                </button>
+
+            </div>
+            <div class="sidebar-body">
+                <form id="appointmentForm">
+                    <input type="hidden" id="sidebarAppointmentId" name="appointment_id">
+
+                    <div class="form-group">
+                        <label>{{ trans('lang.patient_name') }}</label>
+                        <input type="text" id="sidebarPatientName" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ trans('lang.status') }}</label>
+                        <input type="text" id="sidebarStatus" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ trans('lang.email') }}</label>
+                        <input type="text" id="sidebarEmail" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ trans('lang.phone') }}</label>
+                        <input type="text" id="sidebarPhone" class="form-control" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ trans('lang.appointment_type') }}</label>
+                        <select id="updateAppointmentType" class="form-control" disabled>
+                            <option value="cabinet">🏥 Cabinet</option>
+                            <option value="teleconsultation">📹 Teleconsultation</option>
+                            <option value="home_visit">🏠 Home Visit</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ trans('lang.motif') }}</label>
+                        <select id="sidebarMotif" class="form-control">
+                            <!-- Options will be populated dynamically based on selected type -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ trans('lang.date') }}</label>
+                        <input type="date" id="updateappointmentDate" class="form-control" disabled>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ trans('lang.start_time') }}</label>
+                        <select id="updatestartTime" class="form-control" disabled>
+                            <option value="">{{ trans('lang.select_time') }}</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>{{ trans('lang.notes') }}</label>
+                        <textarea id="sidebarNote" class="form-control" rows="3" readonly></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="sidebar-footer">
+                <button id="markAsFailed" class="btn btn-danger">
+                    <i class="fas fa-times-circle"></i> {{ trans('lang.mark_failed') }}
+                </button>
+                <button id="markAsDone" class="btn btn-success">
+                    <i class="fas fa-check-circle"></i> {{ trans('lang.mark_ready') }}
+                </button>
+                <button id="createTeleconsultation" class="btn btn-primary">
+                    <i class="fas fa-video"></i> {{ trans('lang.create_teleconsultation') }}
+                </button>
+                <button id="saveAppointmentBtn" class="btn btn-primary d-none">
+                    <i class="fas fa-save"></i> {{ trans('lang.save') }}
+                </button>
+            </div>
+
+        </div>
+        <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+        <!-- Cancellation Reason Modal -->
+        <div class="modal fade" id="cancelAppointmentModal" tabindex="-1" role="dialog"
+            aria-labelledby="cancelAppointmentModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="cancelAppointmentModalLabel"><i class="fas fa-times-circle"></i> Annuler le
+                            rendez-vous</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form id="cancelReasonForm">
-                            <div class="form-group">
-                                <label for="cancelReason">{{ trans('lang.reason') }}</label>
-                                <textarea class="form-control" id="cancelReason" rows="3"
-                                    placeholder="{{ trans('lang.enter_cancel_reason') }}"></textarea>
-                            </div>
-                        </form>
+                        <label for="cancelReason">Veuillez préciser la raison de l'annulation (facultatif) :</label>
+                        <textarea class="form-control" id="cancelReason"
+                            placeholder="Exemple : Le patient ne s'est pas présenté"></textarea>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.close') }}</button>
-                        <button type="button" class="btn btn-danger"
-                            id="confirmCancel">{{ trans('lang.confirm_cancel') }}</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-danger" id="confirmCancelAppointment">Confirmer
+                            l'annulation</button>
                     </div>
                 </div>
             </div>
@@ -408,6 +412,9 @@
     <link rel="stylesheet" href="{{ asset('css/eventcustom.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+
 @endpush
 
 @push('scripts')
@@ -423,7 +430,46 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
     <script>
+        function closeSidebar() {
+            // Close the sidebar
+            $('#appointmentSidebar').css('right', '-400px');
+            $('#sidebarOverlay').hide();
+
+            // Reset all form fields
+            $('#appointmentForm')[0].reset();
+
+            // Clear all selects
+            $('#sidebarMotif, #updatestartTime').empty();
+
+            // Hide any validation errors
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').remove();
+
+            // Reset all fields to disabled/readonly state
+            $('#appointmentForm input, #appointmentForm textarea').prop('readonly', true);
+            $('#appointmentForm select').prop('disabled', true);
+
+            // Hide save button, show default buttons based on permissions
+            $('#saveAppointmentBtn').addClass('d-none');
+
+            // Remove any alerts or warning messages
+            $('#appointmentForm .alert').remove();
+
+            // Clear any stored data attributes
+            $('#updateAppointmentType').removeData('previous-type');
+
+            // Reset button state
+            $('#editAppointmentBtn').show();
+
+            // Reset any custom styling that might have been applied
+            $('#appointmentForm input, #appointmentForm select, #appointmentForm textarea')
+                .css('background-color', '');
+        }
+
 
         $.ajaxSetup({
             headers: {
@@ -434,8 +480,13 @@
         let availabilityDays = @json($availabilityDays);
         let vacations = @json($vacations);
         let urgencies = @json($urgencies);
+        let sidebarappointmentId = $('#sidebarAppointmentId').val();
+        let updateSessionDuration = 0;
+        const patternsByType = @json($patternsByType);
+
         //console.log("🩺 Urgencies loaded:", urgencies);
         window.activeDoctorId = {{ $doctorId ?? 'null' }};
+
         $(document).ready(function () {
             //
             fetchAvailableDaysAndInitializeCalendar();
@@ -650,6 +701,99 @@
                     }
                 });
             }
+            function populateTimeOptions() {
+                const timeSelect = $('#updatestartTime');
+                timeSelect.empty(); // Clear existing options
+
+                // Add placeholder
+                timeSelect.append('<option value="">Select a time</option>');
+
+                // Add time options in 30-minute increments (adjust as needed)
+                for (let hour = 8; hour < 18; hour++) {
+                    for (let min = 0; min < 60; min += 30) {
+                        const timeValue = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+                        timeSelect.append(`<option value="${timeValue}">${timeValue}</option>`);
+                    }
+                }
+            }
+            function fetchTimeSlotsForTypeForUpdateAppoitment(date, type) {
+                console.log("Fetching time slots for update appointment:", date, type);
+
+                $.ajax({
+                    url: "/get-available-time-slots-open",
+                    type: "GET",
+                    data: { date: date, type: type },
+                    success: function (response) {
+                        console.log("Fetched Time Slots Response:", response);
+                        updateSessionDuration = response.session_duration;
+
+                        const $timeSelect = $('#updatestartTime');
+
+                        if (response.vacation) {
+                            Swal.fire({
+                                title: "Le docteur est en vacances",
+                                text: "Aucune disponibilité n'est possible ce jour.",
+                                icon: "warning",
+                                confirmButtonText: "OK"
+                            });
+                            $timeSelect.append(`<option value="">No slots (vacation)</option>`);
+                            return;
+                        }
+
+                        if (!response.all_slots || response.all_slots.length === 0) {
+                            $timeSelect.append(`<option value="">No available time slots</option>`);
+                            return;
+                        }
+
+                        // Re-enable the time select
+                        $timeSelect.prop('disabled', false);
+                        $timeSelect.append(`<option value="">Select a time</option>`);
+
+                        const taken = new Set(response.taken_slots);
+
+                        // Append available slots (excluding taken ones)
+                        response.all_slots.forEach(slot => {
+                            if (!taken.has(slot)) {
+                                $timeSelect.append(`<option value="${slot}">${slot}</option>`);
+                            }
+                        });
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            title: "Erreur",
+                            text: "Une erreur s'est produite lors de la récupération des créneaux horaires. Veuillez réessayer.",
+                            icon: "error",
+                            confirmButtonText: "OK"
+                        });
+                    }
+                });
+            }
+            // Define time slots (adjust based on your requirements)
+            function updateAppointment() {
+                const appointmentId = currentAppointmentId; // set this when opening the sidebar
+                const data = {
+                    appointment_type: $('#updateAppointmentType').val(),
+                    appointment_date: $('#updateappointmentDate').val(),
+                    appointment_time: $('#updatestartTime').val(),
+                    appointment_notes: $('#sidebarNote').val(),
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                };
+
+                $.ajax({
+                    url: `/update-appointments/${appointmentId}`,
+                    type: 'PUT',
+                    data: data,
+                    success: function (response) {
+                        toastr.success(trans('lang.updated_successfully'));
+                        closeSidebar(); // function to hide the sidebar
+                        // Optionally refresh calendar
+                    },
+                    error: function (xhr) {
+                        toastr.error(trans('lang.error_updating'));
+                    }
+                });
+            }
+
 
             // Function to clear the time slots container
             function clearTimeSlots() {
@@ -703,6 +847,236 @@
                     cache: true
                 }
             });
+            ////////////////////////////////////////////////#
+            // "Update" button logic
+            $(document).on('click', '#editAppointmentBtn', async function () {
+                console.log('Update clicked');
+                const selectedDate = $('#updateappointmentDate').val();
+                const selectedType = $('#updateAppointmentType').val();
+                const currentMotifId = $('#sidebarMotif').val();
+                const currentMotifName = $('#sidebarMotif option:selected').text();
+                const motifSelect = $('#sidebarMotif');
+                // Keep patient info fields gray/disabled
+                $('#sidebarPatientName, #sidebarEmail, #sidebarPhone, #sidebarStatus').prop('readonly', true)
+                    .css('background-color', '#f8f9fa');
+
+                // Make other fields editable
+                $('#updateAppointmentType, #updateappointmentDate, #updatestartTime, #sidebarMotif').prop('disabled', false);
+                $('#sidebarNote').prop('readonly', false);
+
+                // Hide status buttons
+                $('#markAsFailed, #markAsDone, #createTeleconsultation, #editAppointmentBtn').hide();
+
+                // Show save button
+                $('#saveAppointmentBtn').removeClass('d-none');
+
+                motifSelect.empty();
+                // Fetch time slots
+                fetchTimeSlotsForTypeForUpdateAppoitment(selectedDate, selectedType);
+
+                // Populate motif dropdown
+                populateMotifDropdown(selectedType, currentMotifId, currentMotifName);
+
+                // Add change handler for type
+                $('#updateAppointmentType').off('change').on('change', function () {
+                    console.log('Appointment type changed');
+                    const selectedType = $(this).val();
+
+                    const timeSelect = $('#updatestartTime');
+                    const dateInput = $('#updateappointmentDate');
+
+                    // Clear date and time when type changes
+                    dateInput.val('');
+                    timeSelect.empty();
+                    timeSelect.prop('disabled', true);
+                    const motifSelect = $('#sidebarMotif');
+                    motifSelect.empty();
+                    // Repopulate motif dropdown
+                    populateMotifDropdown(selectedType);
+                });
+
+                // Date change handler
+                $('#updateappointmentDate').off('change').on('change', function () {
+                    const timeSelect = $('#updatestartTime');
+                    const selectedType = $('#updateAppointmentType').val();
+                    const selectedDate = $(this).val();
+
+                    timeSelect.empty();
+
+                    if (selectedDate && selectedType) {
+                        fetchTimeSlotsForTypeForUpdateAppoitment(selectedDate, selectedType);
+                    }
+                });
+            });
+            // Helper function to populate motif dropdown
+            function populateMotifDropdown(selectedType, currentMotifId = null, currentMotifName = null) {
+                //console.log('selectedType:', selectedType);
+                const motifSelect = $('#sidebarMotif');
+
+
+                // Add default option
+                motifSelect.append('<option value="">{{ trans('lang.select_motif') }}</option>');
+
+                // Determine type ID
+                let typeId;
+                switch (selectedType) {
+                    case 'cabinet':
+                        typeId = 1;
+                        break;
+                    case 'teleconsultation':
+                        typeId = 4;
+                        break;
+                    case 'home_visit':
+                        typeId = 3;
+                        break;
+                    default:
+                        typeId = 1;
+                }
+
+                // If we have a current motif and we need to preserve it
+                if (currentMotifId && currentMotifName) {
+                    motifSelect.append(`<option value="${currentMotifId}">${currentMotifName}</option>`);
+                }
+
+                // Add options from patternsByType
+                if (patternsByType[typeId]) {
+                    Object.entries(patternsByType[typeId]).forEach(([id, name]) => {
+                        // Skip if we already added this motif
+                        if (!currentMotifId || id !== currentMotifId) {
+                            motifSelect.append(`<option value="${id}">${name}</option>`);
+                        }
+                    });
+
+                    // Set current value if available
+                    if (currentMotifId) {
+                        motifSelect.val(currentMotifId);
+                    }
+                } else {
+                    console.log(`No patterns found for type ID ${typeId}`);
+                }
+            }
+            $('#saveAppointmentBtn').on('click', function () {
+                // Validate required fields
+                const type = $('#updateAppointmentType').val();
+                const date = $('#updateappointmentDate').val();
+                const time = $('#updatestartTime').val();
+                const motif = $('#sidebarMotif').val();
+
+                let isValid = true;
+                let errorMessage = '';
+
+                // Reset previous error styling
+                $('#updateAppointmentType, #updateappointmentDate, #updatestartTime, #sidebarMotif')
+                    .removeClass('is-invalid')
+                    .parent()
+                    .find('.invalid-feedback')
+                    .remove();
+
+                if (!type) {
+                    $('#updateAppointmentType').addClass('is-invalid');
+                    $('#updateAppointmentType').parent().append('<div class="invalid-feedback">{{ trans("lang.type_required") }}</div>');
+                    isValid = false;
+                    errorMessage = '{{ trans("lang.type_required") }}';
+                }
+
+                if (!motif) {
+                    $('#sidebarMotif').addClass('is-invalid');
+                    $('#sidebarMotif').parent().append('<div class="invalid-feedback">{{ trans("lang.motif_required") }}</div>');
+                    isValid = false;
+                    errorMessage = errorMessage || '{{ trans("lang.motif_required") }}';
+                }
+
+                if (!date) {
+                    $('#updateappointmentDate').addClass('is-invalid');
+                    $('#updateappointmentDate').parent().append('<div class="invalid-feedback">{{ trans("lang.date_required") }}</div>');
+                    isValid = false;
+                    errorMessage = errorMessage || '{{ trans("lang.date_required") }}';
+                }
+
+                if (!time) {
+                    $('#updatestartTime').addClass('is-invalid');
+                    $('#updatestartTime').parent().append('<div class="invalid-feedback">{{ trans("lang.time_required") }}</div>');
+                    isValid = false;
+                    errorMessage = errorMessage || '{{ trans("lang.time_required") }}';
+                }
+
+                if (!isValid) {
+                    toastr.error(errorMessage);
+                    return;
+                }
+
+                // All validation passed, proceed with update
+                const id = $('#sidebarAppointmentId').val();
+
+                $.ajax({
+                    url: `/update-appointments/${id}`,
+                    type: 'PUT',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        appointment_type: type,
+                        motif_id: motif,
+                        date: date,
+                        start_time: time,
+                        note: $('#sidebarNote').val(),
+                        session_duration: updateSessionDuration
+                    },
+                    success: function () {
+                        toastr.success('{{ __("lang.updated_successfully") }}');
+
+                        // Return to view mode
+                        $('#saveAppointmentBtn').addClass('d-none');
+                        $('#updateAppointmentType, #updateappointmentDate, #updatestartTime, #sidebarMotif').prop('disabled', true);
+                        $('#sidebarNote').prop('readonly', true);
+
+                        // Refresh calendar and close sidebar
+                        closeSidebar();
+                        $('#calendar').fullCalendar('refetchEvents');
+                    },
+                    error: function (xhr) {
+                        const errorMsg = xhr.responseJSON && xhr.responseJSON.message
+                            ? xhr.responseJSON.message
+                            : '{{ __("lang.error_updating") }}';
+
+                        toastr.error(errorMsg);
+                    }
+                });
+            });
+
+            $('#deleteAppointmentBtn').on('click', function () {
+                const id = $('#sidebarAppointmentId').val();
+
+                Swal.fire({
+                    title: '{{ __("lang.are_you_sure") }}',
+                    text: '{{ __("lang.confirm_delete") }}',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e3342f',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '{{ __("lang.yes_delete") }}',
+                    cancelButtonText: '{{ __("lang.cancel") }}'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/update-appointments/${id}`,
+                            type: 'DELETE',
+                            data: {
+                                _token: $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function () {
+                                toastr.success('{{ __("lang.deleted_successfully") }}');
+                                closeSidebar();
+                                $('#calendar').fullCalendar('refetchEvents');
+                            },
+                            error: function () {
+                                toastr.error('{{ __("lang.error_deleting") }}');
+                            }
+                        });
+                    }
+                });
+            });
+
+
+
             let existingEventIds = []; // Array to store existing event IDs
 
             //console.log("Availability Days at Load:", availabilityDays);
@@ -1034,6 +1408,7 @@
                     selectHelper: true,
                     select: function (start, end) {
                         const selectedDate = start.format("YYYY-MM-DD");
+                        console.log("Selected Date:", selectedDate);
                         //const selectedDayName = start.format('dddd').toLowerCase(); // Get day name in lowercase
                         const selectedDayName = moment(selectedDate).locale('en').format("dddd").toLowerCase(); // Ensure English name
                         const today = moment().format("YYYY-MM-DD");
@@ -1087,7 +1462,7 @@
 
                                 // If day is available, proceed to check time slots for each type
                                 $('#appointmentDate').val(selectedDate);
-
+                                console.log("Selected Date:", selectedDate);
                                 // Check availability for all types
                                 const types = ['cabinet', 'teleconsultation', 'home_visit'];
                                 let foundSlots = false;
@@ -1176,6 +1551,7 @@
                         });
                     },
                     eventClick: function (event) {
+                        const hasUpdateStatusPermission = {{ auth()->user()->hasPermissionInContext('updateStatus', $doctorId) ? 'true' : 'false' }};
                         const appointment = {
                             appointment_id: event.id,
                             patient_name: event.patient_name,
@@ -1183,138 +1559,145 @@
                             patient_last_name: event.patient_last_name,
                             email: event.email,
                             patient_id: event.patient_id,
-                            status_id: event.status_id,
                             status: event.status,
-                            motif_id: event.motif_id,
                             motif_name: event.motif_name,
-                            online: event.online,
+                            note: event.note,
                             start: event.start.format(),
-                            end: event.end ? event.end.format() : null,
-                            notes: event.notes,
-                            phone: event.patient_phone_number
+                            phone: event.patient_phone_number,
+                            type: event.online
                         };
 
-                        // Populate modal fields
-                        $('#appointmentId').val(appointment.appointment_id);
-                        $('#patientName').val(appointment.patient_name);
-                        $('#appointmentDate').val(moment(appointment.start).format('YYYY-MM-DDTHH:mm'));
-                        $('#notes').val(appointment.notes || '');
+                        const startDateTime = new Date(event.start.format());
+                        const startDate = startDateTime.toISOString().split('T')[0];
+                        const startTime = startDateTime.toTimeString().slice(0, 5);
 
-                        // Populate motif dropdown
-                        $.get('/motifs', function (motifs) {
-                            $('#motifId').empty();
-                            $('#motifId').append('<option value="">Select Motif</option>');
-                            motifs.forEach(motif => {
-                                $('#motifId').append(`<option value="${motif.id}" ${motif.id == appointment.motif_id ? 'selected' : ''}>${motif.name}</option>`);
-                            });
-                        });
+                        // Populate fields
+                        $('#sidebarPatientName').val(appointment.patient_name).prop('readonly', true);
+                        $('#sidebarEmail').val(appointment.email).prop('readonly', true);
+                        $('#sidebarPhone').val(appointment.phone).prop('readonly', true);
+                        $('#sidebarStatus').val(appointment.status).prop('readonly', true);
+                        $('#sidebarNote').val(appointment.note || '').prop('readonly', true);
+                        $('#sidebarAppointmentId').val(event.id);
 
-                        // Populate status dropdown
-                        $.get('/appointment-statuses', function (statuses) {
-                            $('#appointmentStatus').empty();
-                            $('#appointmentStatus').append('<option value="">Select Status</option>');
-                            statuses.forEach(status => {
-                                $('#appointmentStatus').append(`<option value="${status.id}" ${status.id == appointment.status_id ? 'selected' : ''}>${status.status}</option>`);
-                            });
-                        });
+                        // Get references to the buttons
+                        const doneButton = document.getElementById('markAsDone');
+                        const failedButton = document.getElementById('markAsFailed');
 
-                        // Show modal
-                        $('#appointmentDetailsModal').modal('show');
+                        // Always hide save button initially
+                        $('#saveAppointmentBtn').addClass('d-none');
 
-                        // Event handler for "Mark as Failed"
+                        if (hasUpdateStatusPermission) {
+                            // Check appointment type and status
+                            const appointmentType = appointment.type;
+                            const status = appointment.status;
+                            $('#createTeleconsultation').hide();
+
+                            // Reset visibility
+                            $(doneButton).show();
+                            $(failedButton).show();
+                            $('#editAppointmentBtn').show();
+
+                            // Handle status-specific visibility
+                            if (status === "Annulé" || status === 7) {
+                                // Hide action buttons for canceled appointments
+                                $(doneButton).hide();
+                                $(failedButton).hide();
+                                $('#editAppointmentBtn').hide();
+                            }
+                            else if (status === "Terminé" || status === 5) {
+                                // Hide action buttons for completed appointments
+                                $(doneButton).hide();
+                                $(failedButton).hide();
+                            }
+                            else if (status === "Prêt" || status === 3) {
+                                // Hide ready button for ready appointments
+                                $(doneButton).hide();
+                            }
+
+                            // Special handling for teleconsultation
+                            if (appointmentType && appointmentType.toLowerCase() === "teleconsultation") {
+                                console.log("Teleconsultation appointment detected.");
+
+                                // Only show teleconsultation button if the appointment is not completed or canceled
+                                if (status !== "Terminé" && status !== "Annulé" && status !== 5 && status !== 7) {
+                                    $(doneButton).hide();
+                                    $('#createTeleconsultation').show();
+                                    $('#createTeleconsultation').off('click').on('click', function () {
+                                        const url = `{{ route('show.meeting.info.form') }}?patient_name=${encodeURIComponent(appointment.patient_first_name)}&appointment_id=${encodeURIComponent(appointment.appointment_id)}&phone=${encodeURIComponent(appointment.phone)}&motif_name=${encodeURIComponent(appointment.motif_name)}&patient_id=${encodeURIComponent(appointment.patient_id)}&start_at=${encodeURIComponent(appointment.start)}&patient_first_name=${encodeURIComponent(appointment.patient_first_name)}&patient_last_name=${encodeURIComponent(appointment.patient_last_name)}&patient_Email=${encodeURIComponent(appointment.email)}`;
+                                        window.location.href = url;
+                                    });
+                                } else {
+                                    // Status is completed or canceled, don't show teleconsultation button
+                                    $('#createTeleconsultation').hide();
+                                }
+                            }
+                        } else {
+                            // No permission - hide all action buttons
+                            $(doneButton).hide();
+                            $(failedButton).hide();
+                            $('#createTeleconsultation').hide();
+                            $('#editAppointmentBtn').hide();
+                        }
+
+                        // Set appointment type, date, and time
+                        $('#updateAppointmentType').val(appointment.type);
+                        $('#updateappointmentDate').val(startDate);
+
+                        // Set motif
+                        const motifSelect = $('#sidebarMotif');
+                        motifSelect.empty();
+                        motifSelect.append(`<option value="${event.motif_id || 'current'}">${appointment.motif_name}</option>`);
+                        motifSelect.val(event.motif_id || 'current');
+                        motifSelect.prop('disabled', true);
+
+                        // Set time
+                        const $timeSelect = $('#updatestartTime');
+                        $timeSelect.empty();
+                        $timeSelect.append(`<option value="${startTime}">${startTime}</option>`);
+                        $timeSelect.val(startTime);
+                        $timeSelect.prop('disabled', true);
+
+                        // Open sidebar
+                        $('#appointmentSidebar').css('right', '0');
+                        $('#sidebarOverlay').show();
+
+                        // Event handlers for status buttons
                         $('#markAsFailed').off('click').on('click', function () {
-                            $('#appointmentDetailsModal').modal('hide');
-                            $('#cancelReasonModal').modal('show');
+                            selectedAppointmentId = event.id;
+                            $('#cancelReason').val('');
+                            $('#cancelAppointmentModal').modal('show');
+                            closeSidebar(); // Close the sidebar after confirming
 
-                            $('#confirmCancel').off('click').on('click', function () {
-                                const reason = $('#cancelReason').val() || "Aucune raison fournie";
-                                updateAppointmentStatus(appointment.appointment_id, 7, reason);
-                            });
                         });
 
-                        // Event handler for "Mark as Done"
                         $('#markAsDone').off('click').on('click', function () {
-                            updateAppointmentStatus(appointment.appointment_id, 5);
-                        });
+                            updateAppointmentStatus(event.id, 5, "Done");
+                            closeSidebar(); // Close the sidebar after confirming
 
-                        // Event handler for "Save Changes"
-                        $('#saveAppointment').off('click').on('click', function () {
-                            const data = {
-                                id: $('#appointmentId').val(),
-                                appointment_at: $('#appointmentDate').val(),
-                                motif_id: $('#motifId').val(),
-                                appointment_status_id: $('#appointmentStatus').val(),
-                                notes: $('#notes').val(),
-                                _token: $('meta[name="csrf-token"]').attr('content')
-                            };
-
-                            $.ajax({
-                                url: '/appointments/update',
-                                method: 'POST',
-                                data: data,
-                                success: function (response) {
-                                    Swal.fire({
-                                        title: 'Succès',
-                                        text: 'Appointment updated successfully',
-                                        icon: 'success',
-                                        confirmButtonText: 'OK'
-                                    }).then(() => {
-                                        $('#appointmentDetailsModal').modal('hide');
-                                        $('#calendar').fullCalendar('refetchEvents');
-                                    });
-                                },
-                                error: function (xhr) {
-                                    Swal.fire({
-                                        title: 'Erreur',
-                                        text: xhr.responseJSON.error || 'Failed to update appointment',
-                                        icon: 'error',
-                                        confirmButtonText: 'OK'
-                                    });
-                                }
-                            });
-                        });
-
-                        // Event handler for "Delete Appointment"
-                        $('#deleteAppointment').off('click').on('click', function () {
-                            Swal.fire({
-                                title: 'Are you sure?',
-                                text: 'This action cannot be undone!',
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonText: 'Yes, delete it!',
-                                cancelButtonText: 'No, keep it'
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    $.ajax({
-                                        url: `/appointments/delete/${$('#appointmentId').val()}`,
-                                        method: 'DELETE',
-                                        data: { _token: $('meta[name="csrf-token"]').attr('content') },
-                                        success: function () {
-                                            Swal.fire({
-                                                title: 'Succès',
-                                                text: 'Appointment deleted successfully',
-                                                icon: 'success',
-                                                confirmButtonText: 'OK'
-                                            }).then(() => {
-                                                $('#appointmentDetailsModal').modal('hide');
-                                                $('#calendar').fullCalendar('refetchEvents');
-                                            });
-                                        },
-                                        error: function (xhr) {
-                                            Swal.fire({
-                                                title: 'Erreur',
-                                                text: xhr.responseJSON.error || 'Failed to delete appointment',
-                                                icon: 'error',
-                                                confirmButtonText: 'OK'
-                                            });
-                                        }
-                                    });
-                                }
-                            });
                         });
                     }
                 });
             }
+
+
+            $('#confirmCancelAppointment').off('click').on('click', function () {
+                let cancelReason = $('#cancelReason').val().trim();
+                if (cancelReason === "") {
+                    cancelReason = "Aucune raison fournie"; // Default reason if empty
+                }
+
+                // Send the cancellation request
+                updateAppointmentStatus(selectedAppointmentId, 7, cancelReason);
+
+                // Close the modal
+                $('#cancelAppointmentModal').modal('hide');
+            });
+            // Sidebar close function
+            function closeSidebar() {
+                $('#appointmentSidebar').css('right', '-400px');
+                $('#sidebarOverlay').hide();
+            }
+
             $('#saveAppointment').on('click', function (e) {
                 e.preventDefault();
                 //console.log('Save button clicked'); // Debug log
@@ -1408,6 +1791,7 @@
                     appointment_status_id: statusId,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 };
+                console.log("Update Status Data:", data);
                 //console.log("Update Status Data:", data);
                 if (reason) {
                     data.cancel_reason = reason;
@@ -1494,10 +1878,6 @@
                 document.getElementById("patientName").innerText = patient_name || "{{ trans('lang.unknown_patient') }}";
                 document.getElementById("appointmentStatus").innerText = status || "{{ trans('lang.unknown_status') }}";
                 document.getElementById("motifName").innerText = motif_name || "{{ trans('lang.no_motif_name') }}";
-
-                // Pass phone number to teleconsultation button
-                const teleconsultationButton = document.getElementById("createTeleconsultation");
-                // Hide "Mark as Ready" button if status is "Canceled"
                 const doneButton = document.getElementById("markAsDone");
                 const failedButton = document.getElementById("markAsFailed");
                 teleconsultationButton.setAttribute("data-phone", phone);

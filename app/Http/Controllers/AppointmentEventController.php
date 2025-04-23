@@ -534,37 +534,22 @@ class AppointmentEventController extends Controller
 
     public function updateStatus(Request $request)
     {
+        \Log::info('Update Status Request:', $request->all());
         Log::info('Checking if user exists by email or phone number.', request()->all());
         $auditLogService = app(\App\Services\AuditLogService::class);
         try {
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
-            $appointment->appointment_at = $request->appointment_at;
-            $appointment->start_at = $request->appointment_at;
-            $appointment->ends_at = Carbon::parse($request->appointment_at)->addMinutes(30); // Adjust duration as needed
-            $appointment->motif_id = $request->motif_id;
             $appointment->appointment_status_id = $request->appointment_status_id;
-            $appointment->hint = $request->notes;
             $appointment->save();
+
             /**** */
 
             // Check if the status is "Canceled" (use the correct status ID for "Canceled")
-            if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
+            if ($request->appointment_status_id == 7) {
                 $appointment->cancel_reason = $request->cancel_Reason ?? "Aucune raison fournie";
-                // Retrieve the start and end times of the appointment
-                $startAt = $appointment->start_at; // Assuming you have these columns
-                $endAt = $appointment->ends_at; // Assuming you have these columns
-                $doctorId = $appointment->doctor_id;
-                $motifId = $appointment->motif_id;  // Adjust based on your schema
-                Log::info('ends_at', ['end' => $endAt]);
-                //Log::info('DoctorCast - Doctor value:', ['doctor' => $availabilityHours]);
-                // Insert or update availability in the `availability_hours` table
-                DB::table('availability_hours')->insertOrIgnore([
-                    'doctor_id' => $doctorId,
-                    'start_at' => $startAt,
-                    'end_at' => $endAt,
-                    'patern_id' => $motifId,
-                ]);
+                $appointment->save();
+
             }
 
             $patientUserId = $appointment->user_id;
@@ -876,7 +861,7 @@ class AppointmentEventController extends Controller
                 'vacation' => false,
                 'all_slots' => [],
                 'taken_slots' => [],
-                'type' => $selectedType
+                'type' => $selectedType,
             ]);
         }
 
@@ -949,6 +934,7 @@ class AppointmentEventController extends Controller
                 'vacation' => true, // Doctor is on vacation
                 'all_slots' => [],
                 'taken_slots' => [],
+                'session_duration' => $sessionDuration,
             ]);
         }
 
@@ -956,7 +942,8 @@ class AppointmentEventController extends Controller
             'vacation' => false, // Doctor is not on vacation
             'all_slots' => array_values($allSlots),
             'taken_slots' => $takenSlots,
-            'type' => $selectedType
+            'type' => $selectedType,
+            'session_duration' => $sessionDuration,
         ];
 
         \Log::info('Final response', ['response' => $response]);
@@ -1551,6 +1538,7 @@ class AppointmentEventController extends Controller
         if (!$doctorId) {
             return back()->withErrors(['error' => 'Médecin non trouvé.']);
         }
+        $doctor = Doctor::find($doctorId);
 
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
@@ -1861,4 +1849,43 @@ class AppointmentEventController extends Controller
 
         return $result;
     }
+
+
+
+    public function update(Request $request, $id)
+    {
+        \Log::info('Updating appointment . Request data:', $request->all());
+
+        $appointment = Appointment::findOrFail($id);
+
+        $startAt = Carbon::parse($request->date . ' ' . $request->start_time);
+        $sessionDuration = intval($request->session_duration);
+
+        $appointment->online = $request->appointment_type;
+        $appointment->start_at = $startAt;
+        $appointment->appointment_at = $startAt;
+        $appointment->ends_at = $startAt->copy()->addMinutes($sessionDuration);
+        $appointment->hint = $request->note;
+
+        $appointment->save();
+
+        \Log::info('Appointment updated:', [
+            'id' => $appointment->id,
+            'start_at' => $appointment->start_at,
+            'ends_at' => $appointment->ends_at,
+            'hint' => $appointment->hint
+        ]);
+
+        return response()->json(['message' => 'Appointment updated successfully']);
+    }
+
+
+    public function destroy($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->delete();
+
+        return response()->json(['message' => 'Appointment deleted successfully']);
+    }
+
 }

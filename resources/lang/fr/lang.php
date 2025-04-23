@@ -20,7 +20,32 @@ return [
     ///////////translation from rayen
     ///
 
+    'type_required' => 'Le type de rendez-vous est requis',
+    'motif_required' => 'Le motif est requis',
+    'date_required' => 'La date est requise',
+    'time_required' => "L'heure est requise",
+    'updated_successfully' => 'Rendez-vous mis à jour avec succès',
+    'error_updating' => 'Erreur lors de la mise à jour du rendez-vous',
+    'phone' => 'Téléphone',
 
+    'type_change_confirmation' => 'La modification du type de rendez-vous nécessitera de sélectionner un nouveau motif, une nouvelle date et une nouvelle heure. Voulez-vous continuer?',
+
+    'deleted_successfully' => 'Supprimé avec succès',
+    'error_deleting' => 'Erreur lors de la suppression',
+    'confirm_delete' => 'Êtes-vous sûr de vouloir supprimer ce rendez-vous ?',
+    'save_changes' => 'Enregistrer les modifications',
+
+    'create_modal_name' => 'Créer un rendez-vous',
+    'cabinet' => 'Cabinet',
+    'teleconsultation' => 'Téléconsultation',
+    'home_visit' => 'Visite à domicile',
+    'Select_Patient' => 'Sélectionner un patient',
+    'date' => 'Date',
+    'select_time' => 'Sélectionner l\'heure',
+    'availability_hour_pattern' => 'Modèle d\'heures disponibles',
+    'notes' => 'Notes',
+    'enter_appointment_notes' => 'Entrez des notes pour le rendez-vous',
+    'save' => 'Enregistrer',
     'view_changes' => 'Voir les modifications',
     'mark_as_read' => 'Marquer comme lu',
     'read' => 'Lu',
