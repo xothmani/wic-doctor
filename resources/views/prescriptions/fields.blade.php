@@ -760,10 +760,13 @@
 
                     let analysisResult;
                     try {
+                        console.log(result);
                         analysisResult = typeof result.response === 'string'
                             ? JSON.parse(result.response)
                             : result.response;
                     } catch (e) {
+                        console.log(e);
+                        logError('Error parsing API response', result.response);
                         analysisResult = {
                             rating: result.rating || 5,
                             reason: result.reason || "Analysis completed",
@@ -787,9 +790,9 @@
                     console.log('Using mock response due to API failure');
 
                     const mockResult = {
-                        rating: 7,
-                        reason: "Ce médicament présente une bonne compatibilité avec le patient, mais pourrait interagir avec certains de ses autres traitements.",
-                        visual_indication: "yellow"
+                        rating: 0,
+                        reason: "Une erreur est survenue, veuillez essayer plus tard.",
+                        visual_indication: "grey"
                     };
 
                     if (selectElement.id) {
