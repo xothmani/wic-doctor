@@ -524,13 +524,30 @@
 
                 if (selectElement && selectElement.id && selectElement.value) {
                     if (aiAnalyzerActive && aiAnalysisResults.has(selectElement.id)) {
+                        // Always keep display flex, use opacity for animation
                         container.style.display = 'flex';
-                        displayAnalysisResult(container, aiAnalysisResults.get(selectElement.id));
+
+                        // Use setTimeout to ensure the display:flex has been applied
+                        setTimeout(() => {
+                            container.classList.add('visible');
+                            displayAnalysisResult(container, aiAnalysisResults.get(selectElement.id));
+                        }, 200);
                     } else {
-                        container.style.display = 'none';
+                        // First remove the visible class to trigger fade out
+                        container.classList.remove('visible');
+
+                        // Then hide after animation completes
+                        setTimeout(() => {
+                            if (!aiAnalyzerActive || !aiAnalysisResults.has(selectElement.id)) {
+                                container.style.display = 'none';
+                            }
+                        }, 300); // Match this with your transition duration
                     }
                 } else {
-                    container.style.display = 'none';
+                    container.classList.remove('visible');
+                    setTimeout(() => {
+                        container.style.display = 'none';
+                    }, 300);
                 }
             });
         }
@@ -667,6 +684,9 @@
 
             indicatorContainer.style.display = 'flex';
             indicatorContainer.innerHTML = `<div class="ai-loading-spinner"></div>`;
+            setTimeout(() => {
+                indicatorContainer.classList.add('visible');
+            }, 200);
 
             if (medicamentSelect.dataset.pendingAnalysis) {
                 pendingAnalyses.delete(medicamentSelect.dataset.pendingAnalysis);
@@ -814,10 +834,10 @@
 
                 if (aiAnalyzerActive) {
                     resultContainer.innerHTML = `
-                                        <div class="ai-result-icon" style="color: #dc3545;" data-toggle="tooltip" title="Error analyzing medication">
-                                            <i class="fas fa-exclamation-circle"></i>
-                                        </div>
-                                    `;
+                                                                                    <div class="ai-result-icon" style="color: #dc3545;" data-toggle="tooltip" title="Error analyzing medication">
+                                                                                        <i class="fas fa-exclamation-circle"></i>
+                                                                                    </div>
+                                                                                `;
                 } else {
                     resultContainer.style.display = 'none';
                 }
@@ -851,10 +871,10 @@
             }
 
             container.innerHTML = `
-                                <div class="ai-result-icon" style="color: ${indicatorColor};" data-rating="${result.rating}" data-reason="${result.reason}">
-                                    <i class="fas ${indicatorIcon}"></i>
-                                </div>
-                            `;
+                    <div class="ai-result-icon" style="color: ${indicatorColor};" data-rating="${result.rating}" data-reason="${result.reason}">
+                        <i class="fas ${indicatorIcon}"></i>
+                    </div>
+                `;
 
             const iconElement = container.querySelector('.ai-result-icon');
 
@@ -868,13 +888,13 @@
                 const tooltip = document.createElement('div');
                 tooltip.className = 'ai-tooltip';
                 tooltip.innerHTML = `
-                                    <div class="ai-tooltip-header">
-                                        Compatibilité: ${result.rating}/10
-                                    </div>
-                                    <div class="ai-tooltip-body">
-                                        ${result.reason}
-                                    </div>
-                                `;
+                        <div class="ai-tooltip-header">
+                            Compatibilité: ${result.rating}/10
+                        </div>
+                        <div class="ai-tooltip-body">
+                            ${result.reason}
+                        </div>
+                    `;
 
                 document.body.appendChild(tooltip);
 
@@ -901,81 +921,89 @@
                 const styleElement = document.createElement('style');
                 styleElement.id = 'ai-analysis-styles';
                 styleElement.textContent = `
-                                    /* Container for select with indicator */
-                                    .select-with-indicator {
-                                        display: flex;
-                                        align-items: center;
-                                        width: 100%;
-                                    }
+                        /* Container for select with indicator */
+                        .select-with-indicator {
+                            display: flex;
+                            align-items: center;
+                            width: 100%;
+                        }
 
-                                    /* Indicator container */
-                                    .ai-indicator-container {
-                                        width: 24px;
-                                        height: 24px;
-                                        margin-right: 8px;
-                                        display: none;
-                                        align-items: center;
-                                        justify-content: center;
-                                        flex-shrink: 0;
-                                    }
+                        /* Indicator container */
+                        .ai-indicator-container {
+                            width: 24px;
+                            height: 24px;
+                            margin-right: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            flex-shrink: 0;
+                            opacity: 1;
+                            transform: scale(0.6);
+                            transition: opacity 0.3s ease, transform 0.3s ease;
+                        }
 
-                                    /* Select container - takes remaining width */
-                                    .select-container {
-                                        flex-grow: 1;
-                                        width: calc(100% - 32px);
-                                    }
+                        .ai-indicator-container.visible {
+                            opacity: 1;
+                            transform: scale(1);
+                        }
 
-                                    /* Modern Loading Spinner */
-                                    .ai-loading-spinner {
-                                        width: 16px;
-                                        height: 16px;
-                                        border: 2px solid #f3f3f3;
-                                        border-radius: 50%;
-                                        border-top: 2px solid #5c6bc0;
-                                        animation: ai-spin 1s linear infinite;
-                                    }
+                        /* Select container - takes remaining width */
+                        .select-container {
+                            flex-grow: 1;
+                            width: calc(100% - 32px);
+                        }
 
-                                    @keyframes ai-spin {
-                                        0% { transform: rotate(0deg); }
-                                        100% { transform: rotate(360deg); }
-                                    }
+                        /* Modern Loading Spinner */
+                        .ai-loading-spinner {
+                            width: 16px;
+                            height: 16px;
+                            border: 2px solid #f3f3f3;
+                            border-radius: 50%;
+                            border-top: 2px solid #5c6bc0;
+                            animation: ai-spin 1s linear infinite;
+                        }
 
-                                    /* Result indicators */
-                                    .ai-result-icon {
-                                        font-size: 16px;
-                                        cursor: help;
-                                    }
+                        @keyframes ai-spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
 
-                                    /* Tooltip styles */
-                                    .ai-tooltip {
-                                        position: absolute;
-                                        z-index: 1070;
-                                        display: block;
-                                        max-width: 276px;
-                                        font-family: var(--bs-font-sans-serif);
-                                        font-size: 0.875rem;
-                                        background-color: #fff;
-                                        background-clip: padding-box;
-                                        border: 1px solid rgba(0, 0, 0, 0.2);
-                                        border-radius: 0.3rem;
-                                        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
-                                        padding: 0.5rem 0.75rem;
-                                        opacity: 0;
-                                        transition: opacity 0.2s ease;
-                                        pointer-events: none;
-                                    }
+                        /* Result indicators */
+                        .ai-result-icon {
+                            font-size: 16px;
+                            cursor: help;
+                        }
 
-                                    .ai-tooltip.show {
-                                        opacity: 1;
-                                    }
+                        /* Tooltip styles */
+                        .ai-tooltip {
+                            position: absolute;
+                            z-index: 1070;
+                            display: block;
+                            max-width: 276px;
+                            font-family: var(--bs-font-sans-serif);
+                            font-size: 0.875rem;
+                            background-color: #fff;
+                            background-clip: padding-box;
+                            border: 1px solid rgba(0, 0, 0, 0.2);
+                            border-radius: 0.3rem;
+                            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+                            padding: 0.5rem 0.75rem;
+                            opacity: 0;
+                            transition: opacity 0.2s ease;
+                            pointer-events: none;
+                        }
 
-                                    .ai-tooltip-header {
-                                        padding-bottom: 0.5rem;
-                                        margin-bottom: 0.5rem;
-                                        border-bottom: 1px solid #dee2e6;
-                                        font-weight: bold;
-                                    }
-                                `;
+                        .ai-tooltip.show {
+                            opacity: 1;
+                        }
+
+                        .ai-tooltip-header {
+                            padding-bottom: 0.5rem;
+                            margin-bottom: 0.5rem;
+                            border-bottom: 1px solid #dee2e6;
+                            font-weight: bold;
+                        }
+                    `;
                 document.head.appendChild(styleElement);
             }
         }
