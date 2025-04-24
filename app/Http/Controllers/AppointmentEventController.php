@@ -509,14 +509,6 @@ class AppointmentEventController extends Controller
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
 
-            /** solve problem cast */
-            $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
-            $appointment->doctor = $doctor;
-            $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
-            $appointment->clinic = $clinic;
-            $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
-            $appointment->patient = $patient;
-            /**** */
 
             // Check if the status is "Canceled" (use the correct status ID for "Canceled")
             if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
@@ -835,7 +827,7 @@ class AppointmentEventController extends Controller
                 'vacation' => false,
                 'all_slots' => [],
                 'taken_slots' => [],
-                'type' => $selectedType
+                'type' => $selectedType,
             ]);
         }
 
@@ -908,6 +900,7 @@ class AppointmentEventController extends Controller
                 'vacation' => true, // Doctor is on vacation
                 'all_slots' => [],
                 'taken_slots' => [],
+                'session_duration' => $sessionDuration,
             ]);
         }
 
@@ -915,7 +908,8 @@ class AppointmentEventController extends Controller
             'vacation' => false, // Doctor is not on vacation
             'all_slots' => array_values($allSlots),
             'taken_slots' => $takenSlots,
-            'type' => $selectedType
+            'type' => $selectedType,
+            'session_duration' => $sessionDuration,
         ];
 
         \Log::info('Final response', ['response' => $response]);
@@ -932,7 +926,6 @@ class AppointmentEventController extends Controller
             ->where('id', $patternId)
             ->value('color') ?? '#C6E7FF'; // Default if color not found
     }
-
 
     public function getTeleconsultationTimeSlots(Request $request)
     {
@@ -1814,5 +1807,49 @@ private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doc
 
         return $result;
     }
+
+    public function update(Request $request, $id)
+    {
+        \Log::info('Updating appointment . Request data:', $request->all());
+
+        $appointment = Appointment::findOrFail($id);
+
+        $startAt = Carbon::parse($request->date . ' ' . $request->start_time);
+        $sessionDuration = intval($request->session_duration);
+
+        $appointment->online = $request->appointment_type;
+        $appointment->start_at = $startAt;
+        $appointment->appointment_at = $startAt;
+        $appointment->ends_at = $startAt->copy()->addMinutes($sessionDuration);
+        $appointment->hint = $request->note;
+
+        // Add this line to update the motif_id
+        if ($request->has('motif_id')) {
+            $appointment->motif_id = $request->motif_id;
+        }
+
+        $appointment->save();
+
+        \Log::info('Appointment updated:', [
+            'id' => $appointment->id,
+            'start_at' => $appointment->start_at,
+            'ends_at' => $appointment->ends_at,
+            'hint' => $appointment->hint,
+            'motif_id' => $appointment->motif_id, // Add this to log the updated motif_id
+            'online' => $appointment->online // Add this to log the updated type
+        ]);
+
+        return response()->json(['message' => 'Appointment updated successfully']);
+    }
+
+
+    public function destroy($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->delete();
+
+        return response()->json(['message' => 'Appointment deleted successfully']);
+    }
+
 
 }

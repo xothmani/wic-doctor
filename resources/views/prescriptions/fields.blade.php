@@ -1,4 +1,3 @@
-
 <form action="{{ route('prescriptions.store') }}" method="POST" class="d-flex flex-column align-items-center col-12 col-md-6 mx-auto">
     @csrf
     {!! Form::hidden('consultation_id', $consultation_id) !!}
@@ -93,17 +92,77 @@
     {!! Form::label('medicaments[0][CODE_PCT]', trans("lang.prescription_medicament_code")) !!}
     <span class="text-danger">*</span>
 
-    <select name="medicaments[0][CODE_PCT]" required class="form-control">
-    <option value="" disabled selected>{{ trans('lang.prescription_select_medicament') }}</option>
-    @foreach($medicaments as $medicament)
-        <option value="{{ $isFrance ? $medicament->name : $medicament->CODE_PCT }}">
-            {{ $isFrance ? $medicament->name : "{$medicament->NOM_COMMERCIAL} - 
-            {$medicament->category} - {$medicament->format} - {$medicament->form}" }}
-        </option>
-    @endforeach
-</select>
+    <!-- Input gris qui ouvre la modal -->
+    <input type="text" 
+           class="form-control bg-light" 
+           id="medicamentInput_0"
+           placeholder="{{ trans('lang.prescription_select_medicament') }}"
+           readonly
+           onclick="openMedicamentModal(0)"
+           required>
+    
+    <!-- Champ caché pour stocker la valeur réelle -->
+    <input type="hidden" name="medicaments[0][CODE_PCT]" id="medicamentValue_0">
 
+    <!-- Modal pour la sélection des médicaments -->
+    <div class="modal fade" id="medicamentModal_0" tabindex="-1" role="dialog" aria-labelledby="medicamentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="medicamentModalLabel">{{ trans('lang.prescription_select_medicament') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Barre de recherche -->
+                    <div class="form-group">
+                    <input type="text" class="form-control" id="medicamentSearch_0" placeholder="{{ trans('lang.search') }}...">                
+                </div>
+                    
+                    <!-- Liste des médicaments -->
+                    <div class="list-group" id="medicamentList_0" style="max-height: 400px; overflow-y: auto;">
+                        @foreach($medicaments as $medicament)
+                        <a href="javascript:void(0)" 
+   class="list-group-item list-group-item-action"
+   data-value="{{ $isFrance ? $medicament->name : $medicament->CODE_PCT }}"
+   data-display="{{ $isFrance ? $medicament->name : "{$medicament->NOM_COMMERCIAL} - {$medicament->category} - {$medicament->format} - {$medicament->form}" }}"
+   onclick="selectMedicament(0, this)">
+
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            {!! 
+                $isFrance 
+                    ? "<strong>{$medicament->name}</strong>" 
+: "<span style='color: black; font-size: 0.85em;'>" . ($medicament->drugClass?->dci_code ?? '') . ":</span>
+                       <span style='color:#2E86C1; font-weight: bold;'> {$medicament->NOM_COMMERCIAL}</span> 
+                       <span style='color: black;'> - {$medicament->category} - {$medicament->format} - {$medicament->form}</span>"
+            !!}
+        </div>
+
+        <span class="badge rounded-pill text-white ms-2" style="background-color: #2E86C1;" aria-hidden="true">
+    <i class="fas fa-coins me-1"></i>
+    {{ $medicament->ttc_price == 0 ? 'Indisponible' : number_format($medicament->ttc_price, 2, ',', ' ') . ' DT' }}
+</span>
+
+    </div>
+
+</a>
+
+
+             
+                        @endforeach
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.close') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+
 
 
         <div class="col-md">
@@ -342,32 +401,7 @@ function addTraitement() {
 
     document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-
-    function addMedicament() {
-        let newMedicament = document.querySelector('.medicament-row').cloneNode(true);
-        newMedicament.querySelectorAll('input, select').forEach((input) => {
-            input.name = input.name.replace(/\[\d+\]/, `[${medicamentCount}]`);
-            input.value = '';
-        });
-        document.getElementById('medicament-fields').appendChild(newMedicament);
-        medicamentCount++;
-    }
-
-    function removeMedicament(element) {
-    // Sélectionne toutes les lignes de médicaments dans le conteneur parent
-    var medicamentRows = document.querySelectorAll('#medicament-fields .form-row');
-    
-    // Si il y a plus d'une ligne, on peut supprimer
-    if (medicamentRows.length > 1) {
-        element.closest('.form-row').remove();
-    } else {
-        alert('Vous devez conserver au moins un médicament.');
-    }
-}
-
-
-
-function removeTraitement(element) {
+    function removeTraitement(element) {
     // Vérifie s'il reste plus d'un champ de traitement
     if (document.querySelectorAll('.form-row-traitement').length > 1) {
         element.closest('.form-row-traitement').remove();
@@ -376,6 +410,19 @@ function removeTraitement(element) {
     }
 }
 
+
+
+
+
+
+function removeMedicament(button) {
+    // Only remove if there's more than one row
+    if (document.querySelectorAll('.medicament-row').length > 1) {
+        button.closest('.medicament-row').remove();
+    } else {
+        alert("Il doit y avoir au moins un médicament.");
+    }
+}
 
 function toggleMedicamentFields() {
     const typeSelect = document.getElementById('type');
@@ -454,5 +501,242 @@ function toggleMedicamentFields() {
     function submitForm() {
         document.querySelector('form').submit();
     }
+
+
+
+
+
+
+ 
+// Variable globale pour suivre les médicaments
+if (typeof medicamentCount === 'undefined') {
+    window.medicamentCount = 1; // Commencer à 1 car 0 est le premier
+}
+
+// Fonction principale pour configurer la recherche de médicaments
+function setupMedicamentSearch() {
+    // Supprimer les écouteurs d'événements existants pour éviter les doublons
+    document.querySelectorAll('[id^=medicamentSearch_]').forEach(searchField => {
+        // Copier les anciens écouteurs avant de les supprimer
+        const oldSearchField = searchField.cloneNode(true);
+        searchField.parentNode.replaceChild(oldSearchField, searchField);
+        
+        // Ajouter un nouvel écouteur d'événements
+        oldSearchField.addEventListener('input', function() {
+            filterMedicamentList(this);
+        });
+    });
+}
+
+// Fonction dédiée au filtrage pour une meilleure réutilisation
+function filterMedicamentList(searchField) {
+    const index = searchField.id.split('_')[1];
+    const searchText = searchField.value.toLowerCase().trim();
+    console.log(`Filtering modal ${index} with text: "${searchText}"`);
     
+    // Réinitialiser d'abord l'affichage de tous les éléments
+    document.querySelectorAll(`#medicamentList_${index} a`).forEach(item => {
+        item.style.display = '';
+    });
+    
+    // Appliquer le filtre seulement si du texte est entré
+    if (searchText.length > 0) {
+        document.querySelectorAll(`#medicamentList_${index} a`).forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (!text.includes(searchText)) {
+                item.style.display = 'none';
+            }
+        });
+    }
+    
+    console.log(`Items visible after filtering: ${document.querySelectorAll(`#medicamentList_${index} a[style=""]`).length}`);
+}
+
+// Fonction pour réinitialiser le filtrage lors de l'ouverture d'une modale
+function resetMedicamentFilter(index) {
+    const searchField = document.getElementById(`medicamentSearch_${index}`);
+    if (searchField) {
+        searchField.value = '';
+        filterMedicamentList(searchField);
+    }
+}
+
+// Fonction pour ouvrir le modal avec gestion améliorée des événements
+function openMedicamentModal(index) {
+    console.log(`Opening modal for index ${index}`);
+    let modal = document.getElementById(`medicamentModal_${index}`);
+    
+    if (!modal) {
+        console.log(`Creating new modal for index ${index}`);
+        let originalModal = document.getElementById('medicamentModal_0');
+        if (originalModal) {
+            // Cloner profondément le modal original
+            modal = originalModal.cloneNode(true);
+            modal.id = `medicamentModal_${index}`;
+            
+            // Mise à jour des IDs dans le modal cloné
+            modal.querySelectorAll('[id]').forEach(el => {
+                if (el.id.includes('_0')) {
+                    el.id = el.id.replace('_0', `_${index}`);
+                }
+            });
+            
+            // Mise à jour des attributs onclick des éléments de la liste
+            modal.querySelectorAll('.list-group-item').forEach(item => {
+                item.setAttribute('onclick', `selectMedicament(${index}, this)`);
+            });
+            
+            // Ajouter le nouveau modal au document
+            document.body.appendChild(modal);
+            
+            // S'assurer que tous les éléments de la liste sont visibles
+            modal.querySelectorAll('.list-group-item').forEach(item => {
+                item.style.display = '';
+            });
+        }
+    }
+    
+    // Afficher le modal
+    $(`#medicamentModal_${index}`).modal('show');
+    
+    // Réinitialiser la recherche et attacher les événements après un court délai
+    setTimeout(() => {
+        // Configurer l'événement de recherche pour ce modal spécifique
+        const searchField = document.getElementById(`medicamentSearch_${index}`);
+        if (searchField) {
+            // Supprimer les anciens écouteurs et en ajouter un nouveau
+            const newSearchField = searchField.cloneNode(true);
+            searchField.parentNode.replaceChild(newSearchField, searchField);
+            
+            newSearchField.value = '';
+            newSearchField.addEventListener('input', function() {
+                filterMedicamentList(this);
+            });
+            
+            // Focus sur le champ de recherche
+            newSearchField.focus();
+            
+            // Réinitialiser l'affichage de tous les éléments de la liste
+            document.querySelectorAll(`#medicamentList_${index} a`).forEach(item => {
+                item.style.display = '';
+            });
+        }
+    }, 100);
+}
+
+// Fonction révisée pour ajouter un médicament
+function addMedicament() {
+    console.log(`Adding new medicament row with index ${medicamentCount}`);
+    
+    // Cloner la première ligne de médicament
+    let newMedicament = document.querySelector('.medicament-row').cloneNode(true);
+    
+    // Mettre à jour tous les champs avec le nouvel index
+    newMedicament.querySelectorAll('input, select').forEach(element => {
+        // Mettre à jour l'attribut name
+        if (element.name) {
+            element.name = element.name.replace(/\[\d+\]/, `[${medicamentCount}]`);
+        }
+        
+        // Mettre à jour l'attribut id
+        if (element.id) {
+            element.id = element.id.replace(/\_\d+/, `_${medicamentCount}`);
+        }
+        
+        // Réinitialiser les valeurs
+        if (element.tagName === 'SELECT') {
+            element.selectedIndex = 0;
+        } else if (!element.classList.contains('no-reset')) {
+            element.value = '';
+        }
+    });
+    
+    // Mettre à jour spécifiquement l'input du médicament
+    const medicamentInput = newMedicament.querySelector('[id^="medicamentInput_"]');
+    if (medicamentInput) {
+        medicamentInput.id = `medicamentInput_${medicamentCount}`;
+        medicamentInput.value = '';
+        medicamentInput.setAttribute('onclick', `openMedicamentModal(${medicamentCount})`);
+    }
+    
+    // Mettre à jour l'input caché
+    const hiddenInput = newMedicament.querySelector('[name^="medicaments"][name$="[CODE_PCT]"]');
+    if (hiddenInput) {
+        hiddenInput.id = `medicamentValue_${medicamentCount}`;
+        hiddenInput.name = `medicaments[${medicamentCount}][CODE_PCT]`;
+        hiddenInput.value = '';
+    }
+    
+    // Supprimer l'ancien modal s'il existe dans la ligne clonée
+    const oldModal = newMedicament.querySelector('.modal');
+    if (oldModal) {
+        oldModal.remove();
+    }
+    
+    // Mettre à jour les attributs onclick des boutons
+    newMedicament.querySelectorAll('[onclick]').forEach(element => {
+        let onclickAttr = element.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes('openMedicamentModal')) {
+            element.setAttribute('onclick', `openMedicamentModal(${medicamentCount})`);
+        }
+    });
+    
+    // Ajouter la nouvelle ligne au conteneur
+    document.getElementById('medicament-fields').appendChild(newMedicament);
+    
+    // Incrémenter le compteur pour la prochaine addition
+    medicamentCount++;
+}
+
+// Fonction révisée pour sélectionner un médicament
+function selectMedicament(index, element) {
+    // Obtenir les données de l'élément cliqué
+    const value = element.getAttribute('data-value');
+    const displayText = element.getAttribute('data-display');
+    
+    // Trouver et mettre à jour les champs d'entrée
+    const inputField = document.getElementById(`medicamentInput_${index}`);
+    const valueField = document.getElementById(`medicamentValue_${index}`);
+    
+    if (inputField) inputField.value = displayText;
+    if (valueField) valueField.value = value;
+    
+    // Fermer le modal
+    $(`#medicamentModal_${index}`).modal('hide');
+}
+
+// Initialisation du document
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Document loaded, setting up medicament search");
+    
+    // Configuration initiale des recherches
+    setupMedicamentSearch();
+    
+    // Écouteur pour les modales qui s'ouvrent
+    $(document).on('shown.bs.modal', function(e) {
+        const modalId = e.target.id;
+        if (modalId && modalId.startsWith('medicamentModal_')) {
+            const index = modalId.split('_')[1];
+            console.log(`Modal ${modalId} shown, resetting filter for index ${index}`);
+            resetMedicamentFilter(index);
+        }
+    });
+    
+    // Assurer que la recherche fonctionne pour les modales dynamiques
+    $(document).on('hidden.bs.modal', function(e) {
+        const modalId = e.target.id;
+        if (modalId && modalId.startsWith('medicamentModal_')) {
+            const index = modalId.split('_')[1];
+            console.log(`Modal ${modalId} hidden for index ${index}`);
+        }
+    });
+});
 </script>
+
+
+<style>
+.bg-light {
+    background-color: #f8f9fa !important;
+    cursor: pointer;
+}
+</style>
