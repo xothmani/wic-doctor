@@ -36,4 +36,10 @@ class Medicament extends Model
                     ->withPivot('dosage', 'nb_de_jours', 'horaire', 'nb_de_fois')
                     ->withTimestamps();
     }
+    public function drugClass()
+    {
+        return $this->belongsTo(DrugClass::class, 'atc_code', 'atc_code');
+    }
+    
+
 }

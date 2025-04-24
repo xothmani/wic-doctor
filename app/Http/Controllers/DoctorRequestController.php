@@ -431,7 +431,9 @@ class DoctorRequestController extends Controller
             // Modifier les permissions avant d'exécuter le script Node.js
             shell_exec('sudo chown -R www-data:www-data /var/www/wic-doctor.com/WicDoctor/medecin/');
             shell_exec('sudo chmod -R 775 /var/www/wic-doctor.com/WicDoctor/medecin/');
-
+            shell_exec('sudo chown -R www-data:www-data /var/www/doctor.way-interactive-convergence.com/public/script-detail-med');
+            shell_exec('sudo chmod -R 775 /var/www/doctor.way-interactive-convergence.com/public/script-detail-med');
+        
             // Exécuter le script Node.js
             $this->executeNodeScript($doctor);
         } elseif ($doctorRequest->pays === 'france') {
@@ -444,6 +446,7 @@ class DoctorRequestController extends Controller
 
             // Exécuter le script Node.js
             $this->executeNodeScriptFrance($doctor);
+            
         }
 
 
