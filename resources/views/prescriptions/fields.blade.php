@@ -1,5 +1,4 @@
-<form action="{{ route('prescriptions.store') }}" method="POST"
-    class="d-flex flex-column align-items-center col-12 col-md-6 mx-auto">
+<form action="{{ route('prescriptions.store') }}" method="POST" class="d-flex flex-column align-items-center col-12 col-md-6 mx-auto">
     @csrf
     {!! Form::hidden('consultation_id', $consultation_id) !!}
 
@@ -11,7 +10,7 @@
 
             <input type="date" name="date" id="date" required class="form-control w-100">
         </div>
-
+        
         <div class="col-md-6">
             {!! Form::label('type', trans("lang.prescription_type"), ['class' => 'text-md-right']) !!}
             <span class="text-danger">*</span>
@@ -29,120 +28,69 @@
 
     <!-- Analyse Fields -->
     <div id="analyse-fields" class="form-group" style="display: none;">
-        <div class="form-row align-items-center analyse-row">
-            <div class="col-md d-flex justify-content-between align-items-center">
-                <div>
-                    {!! Form::label('analyses[0][Code_Analyse]', trans("lang.prescription_analyse_code")) !!}
-                    <span class="text-danger">*</span>
+    <div class="form-row align-items-center analyse-row">
+        <div class="col-md d-flex justify-content-between align-items-center">
+            <div>
+                {!! Form::label('analyses[0][Code_Analyse]', trans("lang.prescription_analyse_code")) !!}
+                <span class="text-danger">*</span>
 
-                    <select name="analyses[0][Code_Analyse]" required class="form-control" style="width: 280px;">
-                        <option value="" disabled selected>{{ trans('lang.prescription_select_analyse') }}</option>
-                        @foreach($analyses as $analyse)
-                            <option value="{{ $analyse->Code_Analyse }}">{{ $analyse->Code_Analyse }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="ml-2 mt-4">
-                    <!-- Delete Icon -->
-                    <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.delete_analyse') }}" href="#"
-                        onclick="deleteAnalyse(this)" class="btn btn-link p-1">
-                        <i class="fas fa-trash-alt"></i>
-                    </a>
-                    <!-- Add Icon -->
-                    <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.add_analyse') }}" href="#"
-                        onclick="addAnalyse()" class="btn btn-link p-1">
-                        <i class="fas fa-plus"></i>
-                    </a>
-                </div>
+                <select name="analyses[0][Code_Analyse]" required class="form-control" style="width: 280px;">
+                    <option value="" disabled selected>{{ trans('lang.prescription_select_analyse') }}</option>
+                    @foreach($analyses as $analyse)
+                        <option value="{{ $analyse->Code_Analyse }}">{{ $analyse->Code_Analyse }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="ml-2 mt-4">
+                <!-- Delete Icon -->
+                <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.delete_analyse') }}" href="#" onclick="deleteAnalyse(this)" class="btn btn-link p-1">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+                <!-- Add Icon -->
+                <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.add_analyse') }}" href="#" onclick="addAnalyse()" class="btn btn-link p-1">
+                    <i class="fas fa-plus"></i>
+                </a>
             </div>
         </div>
     </div>
+</div>
 
 
-    <!-- Radio Fields -->
-    <div id="radio-fields" class="form-group" style="display: none;">
-        <div class="form-row align-items-center radio-row">
-            <div class="col-md d-flex justify-content-between align-items-center">
-                <div>
-                    {!! Form::label('radios[0][Nom]', trans("lang.prescription_radio_nom")) !!}
-                    <span class="text-danger">*</span>
+<!-- Radio Fields -->
+<div id="radio-fields" class="form-group" style="display: none;">
+    <div class="form-row align-items-center radio-row">
+        <div class="col-md d-flex justify-content-between align-items-center">
+            <div>
+                {!! Form::label('radios[0][Nom]', trans("lang.prescription_radio_nom")) !!}
+                <span class="text-danger">*</span>
 
-                    <select name="radios[0][Nom]" required class="form-control" style="width: 280px;">
-                        <option value="" disabled selected>{{ trans('lang.prescription_select_radio') }}</option>
-                        @foreach($radios as $radio)
-                            <option value="{{ $radio->Nom }}">{{ $radio->Nom }}</option> <!-- Correction ici -->
-                        @endforeach
-                    </select>
-                </div>
-                <div class="ml-2 mt-4">
-                    <!-- Delete Icon -->
-                    <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.delete_radio') }}" href="#"
-                        onclick="deleteRadio(this)" class="btn btn-link p-1">
-                        <i class="fas fa-trash-alt"></i>
-                    </a>
-                    <!-- Add Icon -->
-                    <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.add_radio') }}" href="#"
-                        onclick="addRadio()" class="btn btn-link p-1">
-                        <i class="fas fa-plus"></i>
-                    </a>
-                </div>
+                <select name="radios[0][Nom]" required class="form-control" style="width: 280px;">
+                    <option value="" disabled selected>{{ trans('lang.prescription_select_radio') }}</option>
+                    @foreach($radios as $radio)
+                        <option value="{{ $radio->Nom }}">{{ $radio->Nom }}</option> <!-- Correction ici -->
+                    @endforeach
+                </select>
+            </div>
+            <div class="ml-2 mt-4">
+                <!-- Delete Icon -->
+                <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.delete_radio') }}" href="#" onclick="deleteRadio(this)" class="btn btn-link p-1">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+                <!-- Add Icon -->
+                <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.add_radio') }}" href="#" onclick="addRadio()" class="btn btn-link p-1">
+                    <i class="fas fa-plus"></i>
+                </a>
             </div>
         </div>
     </div>
+</div>
 
 
-    <!-- Medicament Fields -->
-    <div id="medicament-fields" class="form-group" style="display: none;">
-
-
-        <!-- Aide prescription Ai -->
-        <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-            <!-- Label avec cadre simple -->
-            <div class="col-md-12">
-                <div class="border p-3">
-                    <!-- Titre du champ -->
-                    <div class="mb-3">
-                        <span class="badge bg-danger ms-2">Innover Ensemble</span> <!-- Badge New -->
-                        <p>Ces medicaments sont analysés par notre intelligence artificielle offrant une restitution
-                            précise
-                            et détaillée de la compatibilité des medicaments avec le patient. <b> Pour activer ou
-                                desactiver l'aide
-                                à la prescription, cliquer sur le bouton ci-dessous </b></p>
-                    </div>
-
-                    <!-- Enregistrement Audio -->
-                    <div class="d-flex flex-column">
-                        <div class="form-row ">
-                            <div class="col-md-9 d-flex flex-column align-items-start">
-                                <div class="d-flex align-items-center">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="aiHelpToggle">
-                                        <span class="slider"></span>
-                                    </label>
-                                    <span class="switch-label">Activer l'aide à la prescription</span>
-                                </div>
-                            </div>
-                            <!-- Hints Field -->
-                            <div class="flex flex-row" style="display:flex">
-                                <div class="d-flex align-items-center" style="margin-inline: 15px;">
-                                    <span class="legend-box" style="background-color: #28a745;"></span>
-                                    <span class="ms-1">Ok&nbsp;</span>
-                                </div>
-                                <div class="d-flex align-items-center me-4" style="margin-inline: 15px;">
-                                    <span class="legend-box" style="background-color: #F5DF4D;"></span>
-                                    <span class="ms-1">Warning&nbsp;</span>
-                                </div>
-                                <div class="d-flex align-items-center me-4" style="margin-inline: 15px;">
-                                    <span class="legend-box" style="background-color: #F38071;"></span>
-                                    <span class="ms-1">Danger&nbsp;</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+<div id="medicament-fields" class="form-group" style="display: none;">
+    <div class="form-row align-items-center medicament-row">
+    <div class="col-md">
+    {!! Form::label('medicaments[0][CODE_PCT]', trans("lang.prescription_medicament_code")) !!}
+    <span class="text-danger">*</span>
 
     <!-- Input gris qui ouvre la modal -->
     <input type="text" 
@@ -220,94 +168,86 @@
         <div class="col-md">
             {!! Form::label('medicaments[0][dosage]', trans("lang.prescription_medicament_dosage")) !!}
             <span class="text-danger">*</span>
-                <input type="text" name="medicaments[0][dosage]" required class="form-control">
-            </div>
 
-            <div class="col-md">
-                {!! Form::label('medicaments[0][nb_de_fois]', trans("lang.prescription_medicament_frequency")) !!}
-                <span class="text-danger">*</span>
+            <input type="text" name="medicaments[0][dosage]" required class="form-control">
+        </div>
 
-                <div class="input-group">
-                    <input type="number" name="medicaments[0][nb_de_fois]" class="form-control" min="1" max="10"
-                        required placeholder="{{ trans('lang.prescription_medicament_frequency') }}" />
-                    <select name="medicaments[0][frequency_unit]" required class="form-control">
-                        <option value="fois par jour">{{ trans('lang.prescription_medicament_per_day') }}</option>
-                        <option value="fois par semaine">{{ trans('lang.prescription_medicament_per_week') }}</option>
-                        <option value="fois par mois">{{ trans('lang.prescription_medicament_per_month') }}</option>
-                        <option value="fois par an">{{ trans('lang.prescription_medicament_per_year') }}</option>
-                    </select>
-                </div>
-            </div>
+        <div class="col-md">
+    {!! Form::label('medicaments[0][nb_de_fois]', trans("lang.prescription_medicament_frequency")) !!}
+    <span class="text-danger">*</span>
+    
+    <div class="input-group">
+        <input type="number" name="medicaments[0][nb_de_fois]" class="form-control" min="1" max="10" required placeholder="{{ trans('lang.prescription_medicament_frequency') }}" />
+        <select name="medicaments[0][frequency_unit]" required class="form-control">
+            <option value="fois par jour">{{ trans('lang.prescription_medicament_per_day') }}</option>
+            <option value="fois par semaine">{{ trans('lang.prescription_medicament_per_week') }}</option>
+            <option value="fois par mois">{{ trans('lang.prescription_medicament_per_month') }}</option>
+            <option value="fois par an">{{ trans('lang.prescription_medicament_per_year') }}</option>
+        </select>
+    </div>
+</div>
+        
+        <div class="col-md">
+            {!! Form::label('medicaments[0][nb_de_jours]', trans("lang.prescription_medicament_duration")) !!}
+            <span class="text-danger">*</span>
 
-            <div class="col-md">
-                {!! Form::label('medicaments[0][nb_de_jours]', trans("lang.prescription_medicament_duration")) !!}
-                <span class="text-danger">*</span>
-
-                <div class="input-group">
-                    <input type="number" min="1" name="medicaments[0][nb_de_jours]" required class="form-control"
-                        placeholder="{{ trans('lang.prescription_medicament_number') }}">
-                    <select name="medicaments[0][duration_unit]" required class="form-control">
-                        <option value="jours">{{ trans('lang.prescription_medicament_days') }}</option>
-                        <option value="semaines">{{ trans('lang.prescription_medicament_weeks') }}</option>
-                        <option value="mois">{{ trans('lang.prescription_medicament_months') }}</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="col-md">
-                {!! Form::label('medicaments[0][horaire]', trans("lang.prescription_medicament_schedule")) !!}
-
-                <select name="medicaments[0][horaire]" required class="form-control">
-                    <option value="" disabled selected>-- Choisir un horaire --</option>
-                    <option value="avant repas">Avant repas</option>
-                    <option value="après repas">Après repas</option>
+            <div class="input-group">
+                <input type="number" min="1" name="medicaments[0][nb_de_jours]" required class="form-control" placeholder="{{ trans('lang.prescription_medicament_number') }}">
+                <select name="medicaments[0][duration_unit]" required class="form-control">
+                    <option value="jours">{{ trans('lang.prescription_medicament_days') }}</option>
+                    <option value="semaines">{{ trans('lang.prescription_medicament_weeks') }}</option>
+                    <option value="mois">{{ trans('lang.prescription_medicament_months') }}</option>
                 </select>
             </div>
-
-
-
-
-            <!-- Delete Icon -->
-            <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.delete_medicament') }}" href="#"
-                onclick="removeMedicament(this)" class="btn btn-link p-1 mt-4">
-                <i class="fas fa-trash-alt"></i>
-            </a>
-
-            <!-- Add Icon -->
-            <a id="add-medicament-button" data-toggle="tooltip" data-placement="left"
-                title="{{ trans('lang.add_medicament') }}" href="#" onclick="addMedicament()"
-                class="btn btn-link p-1 mt-4">
-                <i class="fas fa-plus"></i>
-            </a>
         </div>
+
+        <div class="col-md">
+    {!! Form::label('medicaments[0][horaire]', trans("lang.prescription_medicament_schedule")) !!}
+
+    <select name="medicaments[0][horaire]" required class="form-control">
+        <option value="" disabled selected>-- Choisir un horaire --</option>
+        <option value="avant repas">Avant repas</option>
+        <option value="après repas">Après repas</option>
+    </select>
+</div>
+
+        
+       
+
+        <!-- Delete Icon -->
+        <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.delete_medicament') }}" href="#" onclick="removeMedicament(this)" class="btn btn-link p-1 mt-4">
+            <i class="fas fa-trash-alt"></i>
+        </a>
+        
+        <!-- Add Icon -->
+        <a id="add-medicament-button" data-toggle="tooltip" data-placement="left" title="{{ trans('lang.add_medicament') }}" href="#" onclick="addMedicament()" class="btn btn-link p-1 mt-4">
+            <i class="fas fa-plus"></i>
+        </a>
     </div>
+</div>
 
-    <!-- Nom Traitement Field (to appear when prescription type is not medicament) -->
-    <div id="nom-traitement-fields" class="form-group" style="display: none;">
-        {!! Form::label('nom_traitement', trans("lang.prescription_nom_traitement"), ['class' => 'text-md-right']) !!}
-        <span class="text-danger">*</span>
+<!-- Nom Traitement Field (to appear when prescription type is not medicament) -->
+<div id="nom-traitement-fields" class="form-group" style="display: none;">
+    {!! Form::label('nom_traitement', trans("lang.prescription_nom_traitement"), ['class' => 'text-md-right']) !!}
+    <span class="text-danger">*</span>
 
-        <div class="input-group" id="nom-traitement-container">
-            <div class="form-row-traitement d-flex align-items-center">
-                <input type="text" name="nom_traitement[]" class="form-control"
-                    placeholder="{{ trans('lang.prescription_nom_traitement_placeholder') }}">
-                <div class="input-group-append">
-                    <!-- Delete Icon -->
-                    <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.delete_autre') }}" href="#"
-                        onclick="removeTraitement(this)" class="btn btn-link p-1 ml-2">
-                        <i class="fas fa-trash-alt"></i>
-                    </a>
-                    <!-- Add Icon -->
-                    <a id="add-traitement-button" data-toggle="tooltip" data-placement="left"
-                        title="{{ trans('lang.add_autre') }}" href="#" onclick="addTraitement()"
-                        class="btn btn-link p-1">
-                        <i class="fas fa-plus"></i>
-                    </a>
+    <div class="input-group" id="nom-traitement-container">
+        <div class="form-row-traitement d-flex align-items-center">
+            <input type="text" name="nom_traitement[]" class="form-control" placeholder="{{ trans('lang.prescription_nom_traitement_placeholder') }}">
+            <div class="input-group-append">
+                                <!-- Delete Icon -->
+                                <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.delete_autre') }}" href="#" onclick="removeTraitement(this)" class="btn btn-link p-1 ml-2">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+                <!-- Add Icon -->
+                <a id="add-traitement-button" data-toggle="tooltip" data-placement="left" title="{{ trans('lang.add_autre') }}" href="#" onclick="addTraitement()" class="btn btn-link p-1">
+                    <i class="fas fa-plus"></i>
+                </a>
 
-                </div>
             </div>
         </div>
     </div>
+</div>
 
 
 
@@ -319,30 +259,25 @@
     </div>
 
     <!-- Submit Field -->
-    <div
-        class="form-group col-12 d-flex flex-column flex-md-row justify-content-md-end justify-content-sm-center border-top pt-4">
-        <button type="button" id="add-medicament-button" class="btn btn-primary mt-2" style="display: none;"
-            onclick="addMedicament()">
+    <div class="form-group col-12 d-flex flex-column flex-md-row justify-content-md-end justify-content-sm-center border-top pt-4">
+        <button type="button" id="add-medicament-button" class="btn btn-primary mt-2" style="display: none;" onclick="addMedicament()">
             {{ trans('lang.prescription_add_medicament') }}
         </button>
 
-        <!-- Submit Field -->
-        <button type="button" id="submit-btn"
-            class="btn bg-{{setting('theme_color')}} mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2">
-            <i class="fa fa-save"></i> {{ trans('lang.save') }} {{ trans('lang.prescription') }}
-        </button>
-        <a href="{!! route('dashboard') !!}" class="btn btn-default"><i class="fa fa-undo"></i>
-            {{ trans('lang.cancel') }}</a>
+     <!-- Submit Field -->
+    <button type="button" id="submit-btn" class="btn bg-{{setting('theme_color')}} mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2">
+        <i class="fa fa-save"></i> {{ trans('lang.save') }} {{ trans('lang.prescription') }}
+    </button>
+    <a href="{!! route('dashboard') !!}" class="btn btn-default"><i class="fa fa-undo"></i> {{ trans('lang.cancel') }}</a>
 
     </div>
 
-
+    
 </form>
 
 
 <!-- Confirmation Modal -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel"
-    aria-hidden="true">
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -363,100 +298,27 @@
 </div>
 
 
+
+
 @push('scripts_lib')
-    <script typessssssss="text/javascript">
-        document.getElementById('submit-btn').addEventListener('click', function () {
-            $('#confirmationModal').modal('show'); // Show the modal
-        });
+<script typessssssss="text/javascript">
+    document.getElementById('submit-btn').addEventListener('click', function() {
+        $('#confirmationModal').modal('show'); // Show the modal
+    });
 
-        document.getElementById('confirmSave').addEventListener('click', function () {
-            this.closest('form').submit(); // Submit the form if confirmed
-        });
+    document.getElementById('confirmSave').addEventListener('click', function() {
+        this.closest('form').submit(); // Submit the form if confirmed
+    });
 
-        // Automatically hide the modal after 5 seconds
-        $('#confirmationModal').on('shown.bs.modal', function () {
-            setTimeout(function () {
-                $('#confirmationModal').modal('hide');
-            }, 5000);
-        });
-    </script>
+    // Automatically hide the modal after 5 seconds
+    $('#confirmationModal').on('shown.bs.modal', function () {
+        setTimeout(function() {
+            $('#confirmationModal').modal('hide');
+        }, 5000);
+    });
+</script>
 @endpush
 
-<!-- AI Prescription Help -->
-@push('scripts')
-    <script>
-        let medicamentCount = 1;
-        let traitementCount = 1;
-        let analyseCount = 1;
-        let radioCount = 1;
-        let aiAnalysisResults = new Map();
-        let debounceTimers = {};
-
-        function addAnalyse() {
-            let analyseRow = document.querySelector('.analyse-row').cloneNode(true);
-            analyseRow.querySelectorAll('input, select').forEach((input) => {
-                input.name = input.name.replace(/\[\d+\]/, `[${analyseCount}]`);
-                input.value = '';
-            });
-            document.getElementById('analyse-fields').appendChild(analyseRow);
-            analyseCount++;
-        }
-
-        function deleteAnalyse(button) {
-            if (document.querySelectorAll('.analyse-row').length > 1) {
-                button.closest('.analyse-row').remove();
-            } else {
-                alert("Il doit y avoir au moins une analyse.");
-            }
-        }
-
-        function addRadio() {
-            let radioRow = document.querySelector('.radio-row').cloneNode(true);
-            radioRow.querySelectorAll('input, select').forEach((input) => {
-                input.name = input.name.replace(/\[\d+\]/, `[${radioCount}]`);
-                input.value = '';
-            });
-            document.getElementById('radio-fields').appendChild(radioRow);
-            radioCount++;
-        }
-
-        function deleteRadio(button) {
-            if (document.querySelectorAll('.radio-row').length > 1) {
-                button.closest('.radio-row').remove();
-            } else {
-                alert("Il doit y avoir au moins un radio.");
-            }
-        }
-
-        function addTraitement() {
-            let newTraitement = document.querySelector('.form-row-traitement').cloneNode(true);
-            newTraitement.querySelector('input').value = '';
-            newTraitement.querySelector('input').name = `nom_traitement[${traitementCount}]`;
-            document.getElementById('nom-traitement-container').appendChild(newTraitement);
-            traitementCount++;
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            if (document.getElementById('date')) {
-                document.getElementById('date').value = new Date().toISOString().split('T')[0];
-            }
-
-            updateMedicamentRows();
-
-            const aiToggle = document.getElementById('aiHelpToggle');
-            if (aiToggle) {
-                aiToggle.addEventListener('change', handleAIToggleChange);
-                handleAIToggleChange.call(aiToggle);
-            }
-
-            const typeSelect = document.getElementById('type');
-            if (typeSelect) {
-                typeSelect.addEventListener('change', toggleMedicamentFields);
-                toggleMedicamentFields();
-            }
-
-            observeDOM();
-        });
 
 
 <script>
