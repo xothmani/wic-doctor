@@ -625,13 +625,13 @@ class AppointmentAPIController extends Controller
         $appointment = Appointment::find($id);
         $new_status_id = $request->input('appointment_status_id');
         $appointment->cancel_reason = $request->input('cancel_reason');
-        $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
-        $appointment->doctor = $doctor;
+        //$doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
+        //$appointment->doctor = $doctor;
         $appointment->appointment_status_id = $new_status_id;
         $user = $this->userRepository->findWithoutFail($appointment->user_id);
         $deviceToken = $user->device_token;
-        $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
-        $appointment->patient = $patient;
+        //$patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
+        //$appointment->patient = $patient;
         $appointment->save();
 
         Log::info("Update Appointment Request Lunch Event");

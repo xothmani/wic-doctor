@@ -104,10 +104,12 @@ class PatientAPIController extends Controller
      * @param CreatePatientRequest $request
      * @return JsonResponse|mixed
      */
-    function store(CreatePatientRequest $request)
+    function store(Request $request)
     {
+        //return $request->all();
         try {
             $input = $request->all();
+            $input['phone_number'] = $input['mobile_number'];
             $patient = $this->patientRepository->create($input);
             if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
                 foreach ($input['image'] as $fileUuid) {
