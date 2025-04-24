@@ -57,7 +57,7 @@ class UploadRepository extends BaseRepository
      * @param $uuids
      * @throws Exception
      */
-    /*public function clearWhereIn($uuids): ?bool
+    public function clearWhereIn($uuids): ?bool
     {
         $data = Upload::query()->whereIn('uuid', $uuids)->get();
         Log::info("Found uploads to delete: " . $data->toJson());
@@ -69,9 +69,9 @@ class UploadRepository extends BaseRepository
             Log::info("Error delete images by uuids: " . $e->getMessage());
         }
         
-    }*/
+    }
 
-    public function clearWhereIn($uuids): ?bool
+    /*public function clearWhereIn($uuids): ?bool
     {
         $data = Media::query()->whereIn('uuid', $uuids)->get();
         Log::info("Found media to delete: " . $data->toJson());
@@ -82,7 +82,7 @@ class UploadRepository extends BaseRepository
             Log::info("Error deleting media by uuids: " . $e->getMessage());
             return false;
         }
-    }
+    }*/
 
     /** public function getByUuid($uuid = '')
      {
