@@ -182,12 +182,12 @@
                                                                         <div class="d-flex justify-content-between align-items-center">
                                                                             <div>
                                                                                 {!! 
-                                                                                                                                                                                                                                                $isFrance
+                                                                                                                                                                                                                                                                                                                                                $isFrance
                                         ? "<strong>{$medicament->name}</strong>"
                                         : "<span style='color: black; font-size: 0.85em;'>" . ($medicament->drugClass?->dci_code ?? '') . ":</span>
-                                                                                                                                                                                                                                                       <span style='color:#2E86C1; font-weight: bold;'> {$medicament->NOM_COMMERCIAL}</span> 
-                                                                                                                                                                                                                                                       <span style='color: black;'> - {$medicament->category} - {$medicament->format} - {$medicament->form}</span>"
-                                                                                                                                                                                                                                            !!}
+                                                                                                                                                                                                                                                                                                                                                       <span style='color:#2E86C1; font-weight: bold;'> {$medicament->NOM_COMMERCIAL}</span> 
+                                                                                                                                                                                                                                                                                                                                                       <span style='color: black;'> - {$medicament->category} - {$medicament->format} - {$medicament->form}</span>"
+                                                                                                                                                                                                                                                                                                                                            !!}
                                                                             </div>
 
                                                                             <span class="badge rounded-pill text-white ms-2"
@@ -255,7 +255,7 @@
             <div class="col-md">
                 {!! Form::label('medicaments[0][horaire]', trans("lang.prescription_medicament_schedule")) !!}
 
-                <select name="medicaments[0][horaire]" required class="form-control">
+                <select name="medicaments[0][horaire]" class="form-control">
                     <option value="" disabled selected>-- Choisir un horaire --</option>
                     <option value="avant repas">Avant repas</option>
                     <option value="après repas">Après repas</option>
@@ -356,8 +356,6 @@
         </div>
     </div>
 </div>
-
-
 
 
 @push('scripts_lib')
@@ -1101,10 +1099,10 @@
 
                 if (aiAnalyzerActive) {
                     resultContainer.innerHTML = `
-                                    <div class="ai-result-icon" style="color: #dc3545;" data-toggle="tooltip" title="Error analyzing medication">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                    </div>
-                                `;
+                                                <div class="ai-result-icon" style="color: #dc3545;" data-toggle="tooltip" title="Error analyzing medication">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                </div>
+                                            `;
                 } else {
                     resultContainer.style.display = 'none';
                 }
@@ -1140,10 +1138,10 @@
             }
 
             container.innerHTML = `
-                                <div class="ai-result-icon" style="color: ${indicatorColor};" data-rating="${result.rating}" data-reason="${result.reason}">
-                                    <i class="fas ${indicatorIcon}"></i>
-                                </div>
-                            `;
+                                            <div class="ai-result-icon" style="color: ${indicatorColor};" data-rating="${result.rating}" data-reason="${result.reason}">
+                                                <i class="fas ${indicatorIcon}"></i>
+                                            </div>
+                                        `;
 
             const iconElement = container.querySelector('.ai-result-icon');
 
@@ -1159,13 +1157,13 @@
                 const tooltip = document.createElement('div');
                 tooltip.className = 'ai-tooltip';
                 tooltip.innerHTML = `
-                                <div class="ai-tooltip-header">
-                                    Compatibilité: ${result.rating}/10
-                                </div>
-                                <div class="ai-tooltip-body">
-                                    ${result.reason}
-                                </div>
-                            `;
+                                            <div class="ai-tooltip-header">
+                                                Compatibilité: ${result.rating}/10
+                                            </div>
+                                            <div class="ai-tooltip-body">
+                                                ${result.reason}
+                                            </div>
+                                        `;
 
                 document.body.appendChild(tooltip);
 
@@ -1192,89 +1190,89 @@
                 const styleElement = document.createElement('style');
                 styleElement.id = 'ai-analysis-styles';
                 styleElement.textContent = `
-                                            /* Container for select with indicator */
-                                            .select-with-indicator {
-                                                display: flex;
-                                                align-items: center;
-                                                width: 100%;
-                                            }
+                                                        /* Container for select with indicator */
+                                                        .select-with-indicator {
+                                                            display: flex;
+                                                            align-items: center;
+                                                            width: 100%;
+                                                        }
 
-                                            /* Indicator container */
-                                            .ai-indicator-container {
-                                                width: 24px;
-                                                height: 24px;
-                                                margin-right: 8px;
-                                                display: flex;
-                                                align-items: center;
-                                                justify-content: center;
-                                                flex-shrink: 0;
-                                                opacity: 1;
-                                                transform: scale(0.6);
-                                                transition: opacity 0.3s ease, transform 0.3s ease;
-                                            }
+                                                        /* Indicator container */
+                                                        .ai-indicator-container {
+                                                            width: 24px;
+                                                            height: 24px;
+                                                            margin-right: 8px;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            flex-shrink: 0;
+                                                            opacity: 1;
+                                                            transform: scale(0.6);
+                                                            transition: opacity 0.3s ease, transform 0.3s ease;
+                                                        }
 
-                                            .ai-indicator-container.visible {
-                                                opacity: 1;
-                                                transform: scale(1);
-                                            }
+                                                        .ai-indicator-container.visible {
+                                                            opacity: 1;
+                                                            transform: scale(1);
+                                                        }
 
-                                            /* Select container - takes remaining width */
-                                            .select-container {
-                                                flex-grow: 1;
-                                                width: calc(100% - 32px);
-                                            }
+                                                        /* Select container - takes remaining width */
+                                                        .select-container {
+                                                            flex-grow: 1;
+                                                            width: calc(100% - 32px);
+                                                        }
 
-                                            /* Modern Loading Spinner */
-                                            .ai-loading-spinner {
-                                                width: 16px;
-                                                height: 16px;
-                                                border: 2px solid #f3f3f3;
-                                                border-radius: 50%;
-                                                border-top: 2px solid #5c6bc0;
-                                                animation: ai-spin 1s linear infinite;
-                                            }
+                                                        /* Modern Loading Spinner */
+                                                        .ai-loading-spinner {
+                                                            width: 16px;
+                                                            height: 16px;
+                                                            border: 2px solid #f3f3f3;
+                                                            border-radius: 50%;
+                                                            border-top: 2px solid #5c6bc0;
+                                                            animation: ai-spin 1s linear infinite;
+                                                        }
 
-                                            @keyframes ai-spin {
-                                                0% { transform: rotate(0deg); }
-                                                100% { transform: rotate(360deg); }
-                                            }
+                                                        @keyframes ai-spin {
+                                                            0% { transform: rotate(0deg); }
+                                                            100% { transform: rotate(360deg); }
+                                                        }
 
-                                            /* Result indicators */
-                                            .ai-result-icon {
-                                                font-size: 16px;
-                                                cursor: help;
-                                            }
+                                                        /* Result indicators */
+                                                        .ai-result-icon {
+                                                            font-size: 16px;
+                                                            cursor: help;
+                                                        }
 
-                                            /* Tooltip styles */
-                                            .ai-tooltip {
-                                                position: absolute;
-                                                z-index: 1070;
-                                                display: block;
-                                                max-width: 276px;
-                                                font-family: var(--bs-font-sans-serif);
-                                                font-size: 0.875rem;
-                                                background-color: #fff;
-                                                background-clip: padding-box;
-                                                border: 1px solid rgba(0, 0, 0, 0.2);
-                                                border-radius: 0.3rem;
-                                                box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
-                                                padding: 0.5rem 0.75rem;
-                                                opacity: 0;
-                                                transition: opacity 0.2s ease;
-                                                pointer-events: none;
-                                            }
+                                                        /* Tooltip styles */
+                                                        .ai-tooltip {
+                                                            position: absolute;
+                                                            z-index: 1070;
+                                                            display: block;
+                                                            max-width: 276px;
+                                                            font-family: var(--bs-font-sans-serif);
+                                                            font-size: 0.875rem;
+                                                            background-color: #fff;
+                                                            background-clip: padding-box;
+                                                            border: 1px solid rgba(0, 0, 0, 0.2);
+                                                            border-radius: 0.3rem;
+                                                            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+                                                            padding: 0.5rem 0.75rem;
+                                                            opacity: 0;
+                                                            transition: opacity 0.2s ease;
+                                                            pointer-events: none;
+                                                        }
 
-                                            .ai-tooltip.show {
-                                                opacity: 1;
-                                            }
+                                                        .ai-tooltip.show {
+                                                            opacity: 1;
+                                                        }
 
-                                            .ai-tooltip-header {
-                                                padding-bottom: 0.5rem;
-                                                margin-bottom: 0.5rem;
-                                                border-bottom: 1px solid #dee2e6;
-                                                font-weight: bold;
-                                            }
-                                        `;
+                                                        .ai-tooltip-header {
+                                                            padding-bottom: 0.5rem;
+                                                            margin-bottom: 0.5rem;
+                                                            border-bottom: 1px solid #dee2e6;
+                                                            font-weight: bold;
+                                                        }
+                                                    `;
                 document.head.appendChild(styleElement);
             }
         }
