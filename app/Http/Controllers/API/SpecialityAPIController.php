@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use InfyOm\Generator\Criteria\LimitOffsetCriteria;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Prettus\Repository\Exceptions\RepositoryException;
+use App\Criteria\Specialities\CountryCriteria;
 
 /**
  * Class SpecialityController
@@ -49,6 +50,7 @@ class SpecialityAPIController extends Controller
             $this->specialityRepository->pushCriteria(new ParentCriteria($request));
             $this->specialityRepository->pushCriteria(new NearCriteria($request));
             $this->specialityRepository->pushCriteria(new LimitOffsetCriteria($request));
+            $this->specialityRepository->pushCriteria(new CountryCriteria('Tunisie'));
         } catch (RepositoryException $e) {
             return $this->sendError($e->getMessage());
         }
