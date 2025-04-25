@@ -44,10 +44,11 @@ class Patient extends Model implements HasMedia, Castable
         'assurance',
         'groupe_sanguin',
         'allergie',
-	'antecedent',
+	    'antecedent',
         'date_naissance', 
         'antecedent',
-	'email',
+	    'email',
+        'type_carnet'
    ];
 
 

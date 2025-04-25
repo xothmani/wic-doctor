@@ -339,58 +339,109 @@
         <div class="content">
             <div class="clearfix"></div>
             @include('flash::message')
-            <div class="card shadow-sm">
 
-                <div class="card-body">
-                    <!-- Calendar Container -->
-                    <div id="calendar-container">
-                        <div id="calendar"></div>
+            <div class="row">
+
+                <!-- Left Sidebar Column (20% width) -->
+                <div class="col-lg-2 col-md-12">
+                    <!-- Calendar Toggle Button (hidden by default) -->
+                    <button id="calendar-toggle" class="btn btn-sm btn-outline-secondary d-none mb-2">
+                        <span>
+                            <i class="fas fa-calendar-alt"></i> Calendrier
+                        </span>
+                        <i class="fas fa-chevron-down toggle-arrow"></i>
+                    </button>
+
+
+                    <!-- Mini Calendar Card -->
+                    <div class="card shadow-sm mb-2" id="mini-calendar-card">
+                        <div class="card-body p-1">
+                            <div id="inline-datepicker" class="compact-datepicker"></div>
+                            <input type="hidden" id="selected-date">
+                        </div>
                     </div>
-                    <div class="clearfix"></div>
+
+                    <!-- Color Filters Card - More Compact -->
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Filtrer par statut</h5>
+                            <div class="color-filters">
+                                <div class="filter-item" data-status="Accepté">
+                                    <div class="color-box" style="background-color: #78C2AD;"></div>
+                                    <div class="filter-label">Accepté</div>
+                                </div>
+                                <div class="filter-item" data-status="Terminé">
+                                    <div class="color-box" style="background-color: #56B4D3;"></div>
+                                    <div class="filter-label">Terminé</div>
+                                </div>
+                                <div class="filter-item" data-status="Prêt">
+                                    <div class="color-box" style="background-color: #90D26D;"></div>
+                                    <div class="filter-label">Prêt</div>
+                                </div>
+                                <div class="filter-item" data-status="En cours">
+                                    <div class="color-box" style="background-color: #F3D55B;"></div>
+                                    <div class="filter-label">En cours</div>
+                                </div>
+                                <div class="filter-item" data-status="Annulé">
+                                    <div class="color-box" style="background-color: #FF7851;"></div>
+                                    <div class="filter-label">Annulé</div>
+                                </div>
+                                <div class="filter-item" data-status="Reçu">
+                                    <div class="color-box" style="background-color: #BC8CDF;"></div>
+                                    <div class="filter-label">Reçu</div>
+                                </div>
+                                <div class="filter-item active" data-status="all">
+                                    <div class="color-box" style="background-color: #E9ECEF;"></div>
+                                    <div class="filter-label">Tous</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Légende disponibilité</h5>
+                            <div class="legend-container">
+                                <div class="legend-row">
+                                    <span class="legend-dot" style="background-color: #28a745;"></span>
+                                    <span class="legend-text">Disponible</span>
+                                </div>
+                                <div class="legend-row">
+                                    <span class="legend-dot" style="background-color: #dc3545;"></span>
+                                    <span class="legend-text">Non disponible</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Main Column (80% width) - Expanded -->
+                <div class="col-lg-10 col-md-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-3">
+                            <div id="calendar-container" class="expanded-calendar">
+                                <!-- Slot Duration Dropdown -->
+                                <div class="d-flex justify-content-end mb-2">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                            id="slotDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="slotDropdownBtn">
+                                            <li><a class="dropdown-item slot-option" data-slot="00:15:00" href="#">15
+                                                    minutes</a></li>
+                                            <li><a class="dropdown-item slot-option" data-slot="00:30:00" href="#">30
+                                                    minutes</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <!-- Left Section (Legend Boxes) -->
-                <div class="d-flex align-items-center">
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #9FCDA8;"></span>
-                        <span class="ms-1">Accepté&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #7DC2A5;"></span>
-                        <span class="ms-1">Terminé&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #9EDF9C;"></span>
-                        <span class="ms-1">Prêt&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #F5DF4D;"></span>
-                        <span class="ms-1">En cours&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #F38071;"></span>
-                        <span class="ms-1">Annulé&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <span class="legend-box" style="background-color: #A594F9;"></span>
-                        <span class="ms-1">Reçu</span>
-                    </div>
-                </div>
-
-                <!-- Right Section (Circles) -->
-                <div class="d-flex align-items-center">
-                    <div class="d-flex align-items-center me-4">
-                        <span class="circle-indicator" style="background-color: #28a745;"></span>
-                        <span class="ms-2">Disponible&nbsp;&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <span class="circle-indicator" style="background-color: #dc3545;"></span>
-                        <span class="ms-2">Non Disponible</span>
-                    </div>
-                </div>
-            </div>
-
         </div>
     @else
         <div class="content-header">
@@ -404,6 +455,12 @@
 @endsection
 
 @push('styles')
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome (for the ellipsis icon) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -437,6 +494,11 @@
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <!-- Popper.js (required for dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
 
     <!-- French Locale for Datepicker -->
     <script
@@ -492,6 +554,14 @@
         let sidebarappointmentId = $('#sidebarAppointmentId').val();
         let updateSessionDuration = 0;
         const patternsByType = @json($patternsByType);
+        let calendar;
+        let existingEventIds = []; // Array to store existing event IDs
+        let slotDuration = '00:15:00';
+        let labelInterval = '00:30:00'; // default
+        let selectedStatuses = ['all'];
+        let allCalendarEvents = [];
+
+
 
         //console.log("🩺 Urgencies loaded:", urgencies);
         window.activeDoctorId = {{ $doctorId ?? 'null' }};
@@ -499,8 +569,20 @@
         $(document).ready(function () {
             //
 
+            setTimeout(function () {
+                allCalendarEvents = $('#calendar').fullCalendar('clientEvents').slice();
+                console.log(`Stored ${allCalendarEvents.length} total events for filtering`);
+            }, 1000);
 
             fetchAvailableDaysAndInitializeCalendar();
+
+            $('.slot-option').on('click', function (e) {
+                e.preventDefault();
+                slotDuration = $(this).data('slot');
+                labelInterval = (slotDuration === '00:30:00') ? '01:00:00' : '00:30:00';
+                $('#calendar').fullCalendar('destroy');
+                initializeCalendar();
+            });
 
             $('#inline-datepicker').datepicker({
                 format: 'yyyy-mm-dd',
@@ -1186,9 +1268,107 @@
                 });
             });
 
+            function makePastel(hex, alpha = 0.3) {
+                //console.log("Making pastel color:", hex);
+                const rgb = hexToRgb(hex);
+                return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+            }
+
+            // Converts #rrggbb to {r, g, b}
+            function hexToRgb(hex) {
+                hex = hex.replace(/^#/, '');
+                if (hex.length === 3) {
+                    hex = hex.split('').map(x => x + x).join('');
+                }
+                const bigint = parseInt(hex, 16);
+                return {
+                    r: (bigint >> 16) & 255,
+                    g: (bigint >> 8) & 255,
+                    b: bigint & 255
+                };
+            }
+            function applyStatusFilter() {
+                console.log('Filtering events based on statuses:', selectedStatuses);
+
+                // Start fresh - get all events from our stored copy
+                $('#calendar').fullCalendar('removeEvents');
+
+                if (selectedStatuses.includes('all')) {
+                    // Show all events
+                    allCalendarEvents.forEach(event => {
+                        $('#calendar').fullCalendar('renderEvent', Object.assign({}, event), true);
+                    });
+                    console.log('Showing all events');
+                    return;
+                }
+
+                // Filter by selected statuses
+                let visibleCount = 0;
+                allCalendarEvents.forEach(event => {
+                    if (selectedStatuses.includes(event.status)) {
+                        $('#calendar').fullCalendar('renderEvent', Object.assign({}, event), true);
+                        visibleCount++;
+                    }
+                });
+
+                console.log(`Showing ${visibleCount} out of ${allCalendarEvents.length} events`);
+            }
+
+            // Update the click handler for filter items
+            $('.filter-item').on('click', function () {
+                const status = $(this).data('status');
+                console.log('Clicked on status:', status);
+
+                if (status === 'all') {
+                    // Handle 'all' selection
+                    if ($(this).hasClass('active')) {
+                        // Deselect all
+                        $('.filter-item').removeClass('active');
+                        selectedStatuses = [];
+                        console.log('Deselected all statuses');
+                    } else {
+                        // Select all
+                        $('.filter-item').addClass('active');
+                        selectedStatuses = ['all'];
+                        console.log('Selected all statuses');
+                    }
+                } else {
+                    // Handle individual status selection
+                    if ($(this).hasClass('active')) {
+                        // Deselect this status
+                        $(this).removeClass('active');
+                        selectedStatuses = selectedStatuses.filter(s => s !== status);
+                        console.log('Deselected status:', status);
+                    } else {
+                        // Select this status
+                        $(this).addClass('active');
+
+                        // If 'all' was selected, deselect it
+                        if (selectedStatuses.includes('all')) {
+                            $('.filter-item[data-status="all"]').removeClass('active');
+                            selectedStatuses = [status]; // Start fresh with just this status
+                        } else {
+                            // Add to existing selections
+                            selectedStatuses.push(status);
+                        }
+                        console.log('Selected status:', status);
+                    }
+
+                    // If nothing is selected, default to 'all'
+                    if (selectedStatuses.length === 0) {
+                        $('.filter-item[data-status="all"]').addClass('active');
+                        selectedStatuses = ['all'];
+                        console.log('Defaulting to "all" since nothing was selected');
+                    }
+                }
+
+                console.log('Currently selected:', selectedStatuses);
+
+                // Refresh the calendar to apply the filter
+                $('#calendar').fullCalendar('refetchEvents');
+            });
 
 
-            let existingEventIds = []; // Array to store existing event IDs
 
             //console.log("Availability Days at Load:", availabilityDays);
             function initializeCalendar() {
@@ -1207,8 +1387,11 @@
                     allDayText: '',
                     events: '/appointment-event',
                     eventLimit: true,
+                    slotDuration: slotDuration,
+                    slotLabelInterval: labelInterval,
+                    slotLabelFormat: 'HH:mm',
                     viewRender: function (view) {
-                        console.log('Calendar view changed:', view);
+                        //console.log('Calendar view changed:', view);
 
                         // console.log('[DEBUG] viewRender triggered:', view.name);
 
@@ -1401,47 +1584,47 @@
 
                                     switch (translatedStatus) {
                                         case 'Accepté':
-                                            color = '#9FCDA8';
+                                            color = '#78C2AD';
                                             break;
                                         case 'Terminé':
-                                            color = '#7DC2A5';
+                                            color = '#56B4D3';
                                             break;
                                         case 'En cours':
-                                            color = '#F5DF4D';
+                                            color = '#F3D55B';
                                             break;
                                         case 'Annulé':
-                                            color = '#F38071';
+                                            color = '#FF7851';
                                             break;
                                         case 'Reçu':
-                                            color = '#A594F9';
+                                            color = '#BC8CDF';
                                             break;
                                         case 'Prêt':
-                                            color = '#9EDF9C';
+                                            color = '#90D26D';
                                             break;
                                         default:
-                                            color = '#B4BAFF';
+                                            color = '#B4BAFF    ';
                                     }
 
                                     return {
                                         id: event.id,
                                         online: event.online,
                                         title: `${event.patient_name} - ${event.motif_name}`,
-                                        start: moment(event.start_at).format(), // Adjust for timezone here
+                                        start: moment(event.start_at).format(),
                                         end: moment(event.ends_at).format(),
                                         patient_phone_number: event.patient_phone_number,
                                         email: event.patient_email,
                                         patient_first_name: event.patient_first_name,
                                         patient_last_name: event.patient_last_name,
                                         patient_id: event.patient_id,
-                                        backgroundColor: color,
-                                        borderColor: color,
+                                        // Remove backgroundColor and borderColor properties
                                         description: `Patient: ${event.patient_name}\nStatus: ${translatedStatus}\nDetails: ${event.motif_name || 'N/A'}`,
                                         patient_name: event.patient_name,
-                                        status: translatedStatus,              // Add status here
+                                        status: translatedStatus,
                                         details: event.motif_name || 'N/A',
                                         motif_name: event.motif_name,
                                         appointment_type: event.type,
                                         note: event.note,
+                                        motif_color: event.backgroundColor,
                                     };
                                 });
                                 callback(events);
@@ -1463,52 +1646,111 @@
                         }
                     },
                     eventRender: function (event, element) {
+                        if (!selectedStatuses.includes('all') && !selectedStatuses.includes(event.status)) {
+                            return false; // Skip rendering this event
+                        }
                         // Add a custom data-id attribute to the event element
                         element.attr('data-id', event.id);
 
-                        //console.log('Rendering event:', event);
-
-                        // Highlight the event if it's marked as new
-                        if (event.isNew) {
-                            console.log('Highlighting new event:', event);
-                            element.addClass('highlight-event'); // Add the highlight class
-
-                            setTimeout(() => {
-                                element.removeClass('highlight-event'); // Remove the class after 2 seconds
-                                event.isNew = false; // Reset the isNew flag
-                            }, 2000);
-                        } else {
-                            //console.log('Event is not new:', event);
+                        // Get the status color
+                        let color = '';
+                        switch (event.status) {
+                            case 'Accepté':
+                                color = '#78C2AD'; // Use your new colors here
+                                break;
+                            case 'Terminé':
+                                color = '#56B4D3';
+                                break;
+                            case 'En cours':
+                                color = '#F3D55B';
+                                break;
+                            case 'Annulé':
+                                color = '#FF7851';
+                                break;
+                            case 'Reçu':
+                                color = '#BC8CDF';
+                                break;
+                            case 'Prêt':
+                                color = '#90D26D';
+                                break;
+                            default:
+                                color = '#B4BAFF';
                         }
-                        // Adding title attribute for simple tooltip
-                        let icon;
 
+                        // Update the element style to match the image
+                        // Generate a light translucent version of the status color
+                        //console.log("color:", color);
+                        //console.log("event.motif_color:", event.motif_color);
+                        const statusColor = color;
+                        const motifPastel = makePastel(event.motif_color || '#ffffff', 0.3);
+                        //console.log("motifPastel:", motifPastel);
+                        //console.log("statusColor:", statusColor);
+                        element.css({
+                            'background-color': motifPastel,
+                            'border': '1px solid #e0e0e0',
+                            'border-left': `6px solid ${statusColor}`,
+                            'box-shadow': '0 1px 3px rgba(0,0,0,0.05)',
+                            'border-radius': '2px',
+                            'margin-bottom': '2px',
+                        });
                         // Determine the icon based on the `online` field
+                        let icon;
                         switch (event.online) {
                             case 'cabinet':
                                 icon = '<i class="fas fa-briefcase-medical" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             case 'teleconsultation':
-                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Video icon
+                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             case 'home_visit':
-                                icon = '<i class="fas fa-home" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Home visit icon
+                                icon = '<i class="fas fa-home" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             case 'web':
-                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Web icon
+                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             case 'mobile':
-                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Mobile icon
+                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             default:
-                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default icon
+                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>';
                                 break;
                         }
-                        element.find('.fc-title').prepend(icon);
-                        element.attr('title', event.description);
-                        element.find('.fc-title').css('white-space', 'nowrap');
-                        element.find('.fc-time').css('font-size', '1em');
 
+                        // Add checkmark icon for completed events
+                        if (event.status === 'Terminé') {
+                            icon = '<i class="fas fa-check-circle" style="margin-right: 5px; color: #56B4D3;"></i>' + icon;
+                        }
+
+                        // Add icon to the title
+                        element.find('.fc-title').prepend(icon);
+
+                        // Set tooltip
+                        element.attr('title', event.description);
+
+                        // Set text styles
+                        element.find('.fc-title').css({
+                            'white-space': 'nowrap',
+                            'overflow': 'hidden',
+                            'text-overflow': 'ellipsis',
+                            'font-size': '0.9em',
+                            'font-weight': '500',
+                            'color': '#333333'
+                        });
+
+                        element.find('.fc-time').css({
+                            'font-size': '0.85em',
+                            'font-weight': 'bold',
+                            'color': '#555555'
+                        });
+
+                        // Highlight new events if needed
+                        if (event.isNew) {
+                            element.addClass('highlight-event');
+                            setTimeout(() => {
+                                element.removeClass('highlight-event');
+                                event.isNew = false;
+                            }, 2000);
+                        }
                     },
                     selectable: true,
                     selectAllow: function (selectInfo) {
@@ -1870,7 +2112,7 @@
                     success: function (response) {
                         toastr.success('{{ __("lang.saved_successfully") }}');
                         $('#appointmentModal').modal('hide');
-                        //$('#calendar').fullCalendar('refetchEvents');
+                        $('#calendar').fullCalendar('refetchEvents');
                     },
                     error: function (xhr) {
                         //console.log('Error:', xhr); // Debug log

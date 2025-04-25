@@ -198,7 +198,6 @@ class PatientController extends Controller
             }
 
             // Créez le patient et associez-le à l'utilisateur
-            // Créez le patient et associez-le à l'utilisateur
             $patient = $this->patientRepository->create(array_merge($input, [
                 'user_id' => $user->id,
                 'email' => $user->email,
@@ -326,7 +325,7 @@ class PatientController extends Controller
      * @param Patient $patient
      * @return bool True si l'association a été effectuée, False sinon.
      */
-    private function associatePatientToDoctor(\App\Models\Patient $patient): bool
+    private function associatePatientToDoctor(Patient $patient): bool
     {
 
         $doctorId = auth()->user()->getDoctorId();
