@@ -123,7 +123,8 @@ class AppointmentEventController extends Controller
                         'patient.email as patient_email',
                         'patient.phone_number as patient_phone_number',
                         'patient.mobile_number as patient_mobile_number',
-                        'pattern.nom as motif_name'
+                        'pattern.nom as motif_name',
+                        'pattern.color as motif_color'
                     )
                     ->join('users as user', 'appointments.user_id', '=', 'user.id')
                     ->join('appointment_statuses as appointment_status', 'appointments.appointment_status_id', '=', 'appointment_status.id')
@@ -137,6 +138,7 @@ class AppointmentEventController extends Controller
                     $decodedFirstName = json_decode($appointment->patient_first_name, true);
                     $decodedLastName = json_decode($appointment->patient_last_name, true);
                     $decodedMotifName = json_decode($appointment->motif_name, true);
+                    $color = $appointment->motif_color;
 
                     return [
                         'id' => $appointment->id,
@@ -154,6 +156,12 @@ class AppointmentEventController extends Controller
                         'online' => $appointment->online,
                         'type' => $appointment->type,
                         'note' => $appointment->hint,
+                        'backgroundColor' => $color,
+
+
+
+
+        
                     ];
                 }));
             }
