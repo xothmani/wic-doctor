@@ -437,5 +437,10 @@
     "No address found. Please add a new one.": "Aucune adresse trouvée. Veuillez ajouter une nouvelle.",
     "On-site": "Sur place",
     "Governorates": "Gouvernorats",
-    "Create": "Créer"
+    "Create": "Créer",
+    "Password Reset": "Reinitialisation du mot de passe",
+    "Enter your new password": "Entrez votre nouveau mot de passe",
+    "New password": "Nouveau mot de passe",
+    "Retype new password": "Retapez votre nouveau mot de passe",
+    "Date of birth is required.": "Date de naissance est obligatoire."
 }

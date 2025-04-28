@@ -402,5 +402,10 @@
     "On-site": "On-site",
     "Delete": "Delete",
     "Governorates": "Governorates",
-    "Create": "Create"
+    "Create": "Create",
+    "Password Reset": "Password Reset",
+    "Enter your new password": "Enter your new password",
+    "New password": "New password",
+    "Retype new password": "Retype new password",
+    "Date of birth is required.":"Date of birth is required."
 }

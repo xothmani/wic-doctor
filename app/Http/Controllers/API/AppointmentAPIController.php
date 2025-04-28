@@ -444,9 +444,6 @@ class AppointmentAPIController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            // Log the incoming request data
-            Log::info('Store Appointment Request:', $request->all());
-            Log::info('Store Appointment Request:', ['clinic' => $request->input('type')]);
             $motifObject = $request->input('motif_id');
             // Extract the necessary data from the nested objects
 
@@ -514,11 +511,6 @@ class AppointmentAPIController extends Controller
                 'type' => $request->input('type', 'aucun'),
             ];
 
-
-            // Log each item in the data array to verify its contents
-            foreach ($data as $key => $value) {
-                Log::info("Field {$key}: ", [$value]);
-            }
 
             // Validate that critical fields are not null
             if (is_null($data['doctor_id']) || is_null($data['user_id']) || is_null($data['clinic_id'])) {
