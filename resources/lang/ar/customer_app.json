@@ -437,5 +437,10 @@
     "No address found. Please add a new one.": "لا توجد عنوان. يرجى اضافة عنوان جديد.",
     "On-site":"على الموقع",
     "Governorates": "المحافظات",
-    "Create": "انشاء"
+    "Create": "انشاء",
+    "Password Reset": "استعادة كلمة المرور",
+    "Enter your new password": "ادخل كلمة المرور الجديدة",
+    "New password": "كلمة المرور الجديدة",
+    "Retype new password": "اعد كلمة المرور الجديدة",
+    "Date of birth is required.": "تاريخ الميلاد إجباري."
 }

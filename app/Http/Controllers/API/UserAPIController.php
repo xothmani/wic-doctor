@@ -138,7 +138,7 @@ class UserAPIController extends Controller
 
         // Validate the new password
         $validator = Validator::make($request->all(), [
-            'new_password' => 'required|string|min:8|confirmed', // Ensure password confirmation
+            'new_password' => 'required|string|min:6|confirmed', // Ensure password confirmation
         ]);
 
         if ($validator->fails()) {
