@@ -711,3 +711,8 @@ Route::get('/helpdesk', [HelpDeskController::class, 'index'])->name('helpdesk.in
 Route::post('/helpdesk', [HelpDeskController::class, 'store'])->name('helpdesk.store');
 
 Route::get('/dashboard-medecin', [DashboardMedecinController::class, 'index'])->name('dashboard.medecin');
+// Update appointment (PUT request)
+Route::put('/update-appointments/{id}', [AppointmentEventController::class, 'update'])->name('appointments.update');
+
+// Delete appointment (DELETE request)/
+Route::delete('/update-appointments/{id}', [AppointmentEventController::class, 'destroy'])->name('appointments.destroy');

@@ -9,7 +9,7 @@ use App\Models\Consultation;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\DB;
 use App\Models\Patient;
-
+use Illuminate\Support\Facades\Log;
 class DashboardMedecinController extends Controller
 {
 
@@ -17,7 +17,7 @@ class DashboardMedecinController extends Controller
     {
         $user = Auth::user(); 
         $doctor = $user->doctor; 
-    
+
         $user->last_login_at = Carbon::parse($user->last_login_at);
     
         $currentMonth = Carbon::now()->month;
@@ -122,6 +122,118 @@ class DashboardMedecinController extends Controller
             $agePercentages[$group] = $totalPatients > 0 ? round(($count / $totalPatients) * 100) : 0;
         }
 
+        $patientsGender = DB::table('doctor_patients')
+    ->join('patients', 'doctor_patients.patient_id', '=', 'patients.id')
+    ->where('doctor_patients.doctor_id', $doctor->id)
+    ->select('patients.gender')
+    ->get();
+
+        $genderCounts = [
+            'Homme' => 0,
+            'Femme' => 0,
+        ];
+
+        foreach ($patientsGender as $patient) {
+            $sexe = strtolower(trim($patient->gender));
+            if ($sexe === 'homme') {
+                $genderCounts['Homme']++;
+            } elseif ($sexe === 'femme') {
+                $genderCounts['Femme']++;
+            }
+        }
+
+        $totalGender = $genderCounts['Homme'] + $genderCounts['Femme'];
+
+        $genderPercentages = [
+            'Homme' => $totalGender > 0 ? round(($genderCounts['Homme'] / $totalGender) * 100) : 0,
+            'Femme' => $totalGender > 0 ? round(($genderCounts['Femme'] / $totalGender) * 100) : 0,
+        ];
+
+// Date d'aujourd'hui
+$today = Carbon::today();
+
+// Récupérer tous les statuts
+$statuses = DB::table('appointment_statuses')->get()->keyBy('id');
+
+// Récupérer les RDV du jour groupés par statut
+$statusCountsToday = Appointment::where('doctor_id', $doctor->id)
+    ->whereDate('start_at', $today)
+    ->select('appointment_status_id', DB::raw('count(*) as total'))
+    ->groupBy('appointment_status_id')
+    ->get();
+
+// Total des RDV du jour
+$totalAppointmentsToday = $statusCountsToday->sum('total');
+// Initialisation
+$statusDataToday = [
+    'Reçu' => ['count' => 0, 'percent' => 0],
+    'Prêt' => ['count' => 0, 'percent' => 0],
+    'Annulé' => ['count' => 0, 'percent' => 0],
+    'Terminé' => ['count' => 0, 'percent' => 0],
+];
+
+// Calculs
+foreach ($statusCountsToday as $item) {
+    $statusName = strtolower($statuses[$item->appointment_status_id]->status);
+
+    switch ($statusName) {
+        case 'received':
+            $statusDataToday['Reçu']['count'] = $item->total;
+            break;
+        case 'ready':
+            $statusDataToday['Prêt']['count'] = $item->total;
+            break;
+        case 'failed':
+            $statusDataToday['Annulé']['count'] = $item->total;
+            break;
+        case 'done':
+            $statusDataToday['Terminé']['count'] = $item->total;
+            break;
+    }
+}
+
+// Calculer les pourcentages
+foreach ($statusDataToday as &$data) {
+    $data['percent'] = $totalAppointmentsToday > 0 ? round(($data['count'] / $totalAppointmentsToday) * 100) : 0;
+}
+$topMotifs = DB::table('appointments as a')
+    ->join('pattern as p', 'a.motif_id', '=', 'p.id')
+    ->select('p.id as motif_id', 'p.nom as motif_nom', DB::raw('COUNT(a.id) as total_rendezvous'))
+    ->where('a.doctor_id', $doctor->id)
+    ->groupBy('p.id', 'p.nom')
+    ->orderByDesc('total_rendezvous')
+    ->limit(5)
+    ->get()
+    ->map(function ($item) {
+        $decoded = json_decode($item->motif_nom, true);
+        $item->motif_nom = $decoded['fr'] ?? $item->motif_nom;
+        return (array)$item; // Convertir en tableau
+    })
+    ->toArray(); // Convertir la collection en tableau
+// Log dans le fichier laravel.log
+//Log::info('Top 5 motifs pour le docteur ' . $doctor->id, ['motifs' => $topMotifs]);
+
+
+$appointmentsPerMonth = Appointment::where('doctor_id', $doctor->id)
+    ->whereYear('start_at', now()->year)
+    ->selectRaw('MONTH(start_at) as month, COUNT(*) as total')
+    ->groupBy('month')
+    ->orderBy('month')
+    ->get();
+
+// Convertir en tableau associatif avec les 12 mois
+$monthlyAppointments = array_fill(1, 12, 0); // initialise de 1 à 12 à 0
+foreach ($appointmentsPerMonth as $item) {
+    $monthlyAppointments[(int)$item->month] = $item->total;
+}
+
+// Pour l'envoyer à la vue, on encode les données en JSON
+$monthlyAppointmentsLabels = json_encode([
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+]);
+$monthlyAppointmentsData = json_encode(array_values($monthlyAppointments));
+
     
         return view('dashboardmedecin.index', compact(
             'user',
@@ -131,8 +243,17 @@ class DashboardMedecinController extends Controller
             'appointmentsThisWeek',
             'totalPatients',
             'agePercentages',
-            'ageCounts' 
+            'ageCounts',
+            'genderPercentages',
+            'genderCounts',
+            'statusDataToday',
+            'topMotifs',
+            'monthlyAppointmentsLabels',
+            'monthlyAppointmentsData'
+
+
+
+
         ));
     }
-    
 }
