@@ -63,9 +63,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="appointmentModalLabel">{{ trans('lang.create_modal_name') }}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         @if(auth()->user()->hasPermissionInContext('appointments.store', $doctorId))
@@ -96,14 +94,13 @@
                                 <div class="tab-content" id="appointmentTypeContent">
                                     <!-- Common form fields for all types -->
                                     <div class="form-group">
-                                        <label for="patientDropdown"
-                                            class="font-weight-bold">{{ trans('lang.Select_Patient') }}</label>
+                                        <label for="patientDropdown" class="form-label">{{ trans('lang.Select_Patient') }}</label>
                                         <div class="d-flex align-items-center">
-                                            <select id="patientDropdown" class="form-control select2-ajax" required
-                                                style="flex-grow: 1;">
-                                                <option value="" disabled selected>{{ trans('lang.Select_Patient') }}</option>
+                                            <select id="patientDropdown" placeholder="{{ trans('lang.Select_Patient') }}" required
+                                                class="form-select" style="flex-grow: 1;">
+                                                <option value="">{{ trans('lang.Select_Patient') }}</option>
                                             </select>
-                                            <a href="{{ route('patients.create') }}" class="btn btn-success d-flex"
+                                            <a href="{{ route('patients.create') }}" class="btn btn-success d-flex ms-2"
                                                 id="addNewPatient">
                                                 <i class="fa fa-user-plus"></i>
                                             </a>
@@ -196,27 +193,7 @@
         </div>
         <!-- Modal for Cancel Reason -->
 
-        <!-- Confirmation Modal for No Available Slots -->
-        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">No Available Slots</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p>No available time slots for the selected date. Would you like to create availability?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="confirmCreateAvailability">Create
-                            Availability</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Sidebar for Appointment Details -->
         <div id="appointmentSidebar" class="appointment-sidebar">
@@ -262,8 +239,8 @@
                         <label>{{ trans('lang.appointment_type') }}</label>
                         <select id="updateAppointmentType" class="form-control" disabled>
                             <option value="cabinet">🏥 Cabinet</option>
-                            <option value="teleconsultation">📹 Teleconsultation</option>
-                            <option value="home_visit">🏠 Home Visit</option>
+                            <option value="teleconsultation">📹 Téléconsultation</option>
+                            <option value="home_visit">🏠 Visite à domicile</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -317,9 +294,8 @@
                     <div class="modal-header bg-danger text-white">
                         <h5 class="modal-title" id="cancelAppointmentModalLabel"><i class="fas fa-times-circle"></i> Annuler le
                             rendez-vous</h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
                     </div>
                     <div class="modal-body">
                         <label for="cancelReason">Veuillez préciser la raison de l'annulation (facultatif) :</label>
@@ -327,7 +303,7 @@
                             placeholder="Exemple : Le patient ne s'est pas présenté"></textarea>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                         <button type="button" class="btn btn-danger" id="confirmCancelAppointment">Confirmer
                             l'annulation</button>
                     </div>
@@ -455,52 +431,68 @@
 @endsection
 
 @push('styles')
-    <!-- Bootstrap 5 CSS -->
+    <!-- Bootstrap 5 CSS (single version only) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Font Awesome (for the ellipsis icon) -->
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- FullCalendar CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+    <!-- Tempus Dominus CSS -->
     <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css" />
+        href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css">
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/eventcustom.css') }}">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+    <!-- SweetAlert CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     <!-- Toastr CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
     <!-- Bootstrap Datepicker CSS -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-
-
 @endpush
 
 @push('scripts')
+    <!-- jQuery first! -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Toastr JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
     <!-- Popper.js (required for dropdowns) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
 
-    <!-- Bootstrap 5 JS -->
+    <!-- Only ONE Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
 
-    <!-- French Locale for Datepicker -->
+    <!-- Moment.js (load once) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+    <!-- Tempus Dominus JS -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
+
+    <!-- SweetAlert JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <!-- Datepicker JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.fr.min.js"></script>
 
@@ -532,6 +524,9 @@
 
             // Clear any stored data attributes
             $('#updateAppointmentType').removeData('previous-type');
+            $('#updateAppointmentType').prop('disabled', true);
+            $('#updateappointmentDate').prop('disabled', true);
+            $('#updatestartTime').prop('disabled', true);
 
             // Reset button state
             $('#editAppointmentBtn').show();
@@ -863,12 +858,12 @@
                                 icon: "warning",
                                 confirmButtonText: "OK"
                             });
-                            $timeSelect.append(`<option value="">No slots (vacation)</option>`);
+                            $timeSelect.append(`<option value="">Aucun créneau (vacances)</option>`);
                             return;
                         }
 
                         if (!response.all_slots || response.all_slots.length === 0) {
-                            $timeSelect.append(`<option value="">No available time slots</option>`);
+                            $timeSelect.append(`<option value="">Aucun créneau disponible</option>`);
                             return;
                         }
 
@@ -959,19 +954,56 @@
                 });
             }
             //    ////////////////////////////////////////////////////////////////////////////
-            $('#patientDropdown').select2({
-                allowClear: false,
-                ajax: {
-                    url: "{{ route('patients.search') }}",
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return { q: params.term || '' };
-                    },
-                    processResults: function (data) {
-                        return { results: data };
-                    },
-                    cache: true
+
+            $(document).ready(function () {
+                console.log("jQuery document.ready fired");
+                try {
+                    const ts = new TomSelect('#patientDropdown', {
+                        valueField: 'id',
+                        labelField: 'text',
+                        searchField: 'text',
+                        placeholder: "{{ trans('lang.Select_Patient') }}",
+                        create: false,
+                        preload: true,  // Load options right away
+                        openOnFocus: true,  // Open dropdown when field gets focus
+
+                        load: function (query, callback) {
+                            $.ajax({
+                                url: "{{ route('patients.search') }}",
+                                type: 'GET',
+                                data: { q: query },
+                                dataType: 'json',
+                                error: function () {
+                                    callback();
+                                },
+                                success: function (res) {
+                                    callback(res);
+                                }
+                            });
+                        },
+
+                        render: {
+                            option: function (item, escape) {
+                                return `<div>
+                                                            <div class="font-weight-bold">${escape(item.text)}</div>
+                                                            ${item.phone ? `<div class="text-muted small">${escape(item.phone)}</div>` : ''}
+                                                        </div>`;
+                            },
+                            item: function (item, escape) {
+                                return `<div>${escape(item.text)}</div>`;
+                            },
+                            no_results: function () {
+                                return `<div class="no-results">{{ trans('lang.No_patients_found') }}</div>`;
+                            }
+                        }
+                    });
+
+                    // Force placeholder to show
+                    $('.ts-control').attr('placeholder', "{{ trans('lang.Select_Patient') }}");
+
+                    console.log("Tom Select initialized successfully");
+                } catch (error) {
+                    console.error("Error initializing Tom Select:", error);
                 }
             });
             ////////////////////////////////////////////////#
@@ -1382,6 +1414,7 @@
                         right: 'month,agendaWeek,agendaDay'
                     },
                     defaultView: 'agendaWeek',
+                    firstDay: moment().day(),
                     minTime: "08:00:00",
                     allDaySlot: true,
                     allDayText: '',
@@ -1835,8 +1868,8 @@
                                                 // If this is the first type with available slots, select its tab
                                                 if (!$('#appointmentModal').is(':visible')) {
                                                     $('#appointmentModal').modal('show');
-                                                    $(`#appointmentTypeTabs a[data-type="${type}"]`).tab('show');
-                                                    fetchTimeSlotsForType(selectedDate, type);
+                                                    $(`#appointmentTypeTabs a[data-type="cabinet"]`).tab('show');
+                                                    fetchTimeSlotsForType(selectedDate, 'cabinet');
                                                 }
                                             }
 
