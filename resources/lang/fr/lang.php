@@ -347,6 +347,7 @@ return [
     'address_ville_help' => 'Insérer la ville correspondante.',
     'create_teleconsultation' => 'Créer une téléconsultation',
     'select_appointment_type' => 'Sélectionner le type de rendez-vous',
+    'appointment_type' => "Type de rendez-vous: ",
     'in_cabinet' => 'En cabinet',
     'save_appointment' => 'Sauver le rendez-vous',
     ////////////////////////////////////////////////////////////////
