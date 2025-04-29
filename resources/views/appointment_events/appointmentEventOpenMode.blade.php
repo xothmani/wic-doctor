@@ -63,9 +63,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="appointmentModalLabel">{{ trans('lang.create_modal_name') }}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         @if(auth()->user()->hasPermissionInContext('appointments.store', $doctorId))
@@ -96,14 +94,13 @@
                                 <div class="tab-content" id="appointmentTypeContent">
                                     <!-- Common form fields for all types -->
                                     <div class="form-group">
-                                        <label for="patientDropdown"
-                                            class="font-weight-bold">{{ trans('lang.Select_Patient') }}</label>
+                                        <label for="patientDropdown" class="form-label">{{ trans('lang.Select_Patient') }}</label>
                                         <div class="d-flex align-items-center">
-                                            <select id="patientDropdown" class="form-control select2-ajax" required
-                                                style="flex-grow: 1;">
-                                                <option value="" disabled selected>{{ trans('lang.Select_Patient') }}</option>
+                                            <select id="patientDropdown" placeholder="{{ trans('lang.Select_Patient') }}" required
+                                                class="form-select" style="flex-grow: 1;">
+                                                <option value="">{{ trans('lang.Select_Patient') }}</option>
                                             </select>
-                                            <a href="{{ route('patients.create') }}" class="btn btn-success d-flex"
+                                            <a href="{{ route('patients.create') }}" class="btn btn-success d-flex ms-2"
                                                 id="addNewPatient">
                                                 <i class="fa fa-user-plus"></i>
                                             </a>
@@ -196,27 +193,7 @@
         </div>
         <!-- Modal for Cancel Reason -->
 
-        <!-- Confirmation Modal for No Available Slots -->
-        <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">No Available Slots</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">×</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p>No available time slots for the selected date. Would you like to create availability?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="confirmCreateAvailability">Create
-                            Availability</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Sidebar for Appointment Details -->
         <div id="appointmentSidebar" class="appointment-sidebar">
@@ -262,8 +239,8 @@
                         <label>{{ trans('lang.appointment_type') }}</label>
                         <select id="updateAppointmentType" class="form-control" disabled>
                             <option value="cabinet">🏥 Cabinet</option>
-                            <option value="teleconsultation">📹 Teleconsultation</option>
-                            <option value="home_visit">🏠 Home Visit</option>
+                            <option value="teleconsultation">📹 Téléconsultation</option>
+                            <option value="home_visit">🏠 Visite à domicile</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -317,9 +294,8 @@
                     <div class="modal-header bg-danger text-white">
                         <h5 class="modal-title" id="cancelAppointmentModalLabel"><i class="fas fa-times-circle"></i> Annuler le
                             rendez-vous</h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
                     </div>
                     <div class="modal-body">
                         <label for="cancelReason">Veuillez préciser la raison de l'annulation (facultatif) :</label>
@@ -327,7 +303,7 @@
                             placeholder="Exemple : Le patient ne s'est pas présenté"></textarea>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                         <button type="button" class="btn btn-danger" id="confirmCancelAppointment">Confirmer
                             l'annulation</button>
                     </div>
@@ -339,58 +315,109 @@
         <div class="content">
             <div class="clearfix"></div>
             @include('flash::message')
-            <div class="card shadow-sm">
 
-                <div class="card-body">
-                    <!-- Calendar Container -->
-                    <div id="calendar-container">
-                        <div id="calendar"></div>
+            <div class="row">
+
+                <!-- Left Sidebar Column (20% width) -->
+                <div class="col-lg-2 col-md-12">
+                    <!-- Calendar Toggle Button (hidden by default) -->
+                    <button id="calendar-toggle" class="btn btn-sm btn-outline-secondary d-none mb-2">
+                        <span>
+                            <i class="fas fa-calendar-alt"></i> Calendrier
+                        </span>
+                        <i class="fas fa-chevron-down toggle-arrow"></i>
+                    </button>
+
+
+                    <!-- Mini Calendar Card -->
+                    <div class="card shadow-sm mb-2" id="mini-calendar-card">
+                        <div class="card-body p-1">
+                            <div id="inline-datepicker" class="compact-datepicker"></div>
+                            <input type="hidden" id="selected-date">
+                        </div>
                     </div>
-                    <div class="clearfix"></div>
+
+                    <!-- Color Filters Card - More Compact -->
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Filtrer par statut</h5>
+                            <div class="color-filters">
+                                <div class="filter-item" data-status="Accepté">
+                                    <div class="color-box" style="background-color: #78C2AD;"></div>
+                                    <div class="filter-label">Accepté</div>
+                                </div>
+                                <div class="filter-item" data-status="Terminé">
+                                    <div class="color-box" style="background-color: #56B4D3;"></div>
+                                    <div class="filter-label">Terminé</div>
+                                </div>
+                                <div class="filter-item" data-status="Prêt">
+                                    <div class="color-box" style="background-color: #90D26D;"></div>
+                                    <div class="filter-label">Prêt</div>
+                                </div>
+                                <div class="filter-item" data-status="En cours">
+                                    <div class="color-box" style="background-color: #F3D55B;"></div>
+                                    <div class="filter-label">En cours</div>
+                                </div>
+                                <div class="filter-item" data-status="Annulé">
+                                    <div class="color-box" style="background-color: #FF7851;"></div>
+                                    <div class="filter-label">Annulé</div>
+                                </div>
+                                <div class="filter-item" data-status="Reçu">
+                                    <div class="color-box" style="background-color: #BC8CDF;"></div>
+                                    <div class="filter-label">Reçu</div>
+                                </div>
+                                <div class="filter-item active" data-status="all">
+                                    <div class="color-box" style="background-color: #E9ECEF;"></div>
+                                    <div class="filter-label">Tous</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Légende disponibilité</h5>
+                            <div class="legend-container">
+                                <div class="legend-row">
+                                    <span class="legend-dot" style="background-color: #28a745;"></span>
+                                    <span class="legend-text">Disponible</span>
+                                </div>
+                                <div class="legend-row">
+                                    <span class="legend-dot" style="background-color: #dc3545;"></span>
+                                    <span class="legend-text">Non disponible</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Main Column (80% width) - Expanded -->
+                <div class="col-lg-10 col-md-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-3">
+                            <div id="calendar-container" class="expanded-calendar">
+                                <!-- Slot Duration Dropdown -->
+                                <div class="d-flex justify-content-end mb-2">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                            id="slotDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="slotDropdownBtn">
+                                            <li><a class="dropdown-item slot-option" data-slot="00:15:00" href="#">15
+                                                    minutes</a></li>
+                                            <li><a class="dropdown-item slot-option" data-slot="00:30:00" href="#">30
+                                                    minutes</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <!-- Left Section (Legend Boxes) -->
-                <div class="d-flex align-items-center">
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #9FCDA8;"></span>
-                        <span class="ms-1">Accepté&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #7DC2A5;"></span>
-                        <span class="ms-1">Terminé&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #9EDF9C;"></span>
-                        <span class="ms-1">Prêt&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #F5DF4D;"></span>
-                        <span class="ms-1">En cours&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center me-4">
-                        <span class="legend-box" style="background-color: #F38071;"></span>
-                        <span class="ms-1">Annulé&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <span class="legend-box" style="background-color: #A594F9;"></span>
-                        <span class="ms-1">Reçu</span>
-                    </div>
-                </div>
-
-                <!-- Right Section (Circles) -->
-                <div class="d-flex align-items-center">
-                    <div class="d-flex align-items-center me-4">
-                        <span class="circle-indicator" style="background-color: #28a745;"></span>
-                        <span class="ms-2">Disponible&nbsp;&nbsp;</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <span class="circle-indicator" style="background-color: #dc3545;"></span>
-                        <span class="ms-2">Non Disponible</span>
-                    </div>
-                </div>
-            </div>
-
         </div>
     @else
         <div class="content-header">
@@ -404,34 +431,70 @@
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css" />
-    <link rel="stylesheet" href="{{ asset('css/eventcustom.css') }}">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <!-- Toastr CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+    <!-- Bootstrap 5 CSS (single version only) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <!-- FullCalendar CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.css">
+
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+    <!-- Tempus Dominus CSS -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/css/tempusdominus-bootstrap-4.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ asset('css/eventcustom.css') }}">
+
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Datepicker CSS -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
 @endpush
 
 @push('scripts')
+    <!-- jQuery first! -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+    <!-- Popper.js (required for dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+
+    <!-- Only ONE Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+
+    <!-- Moment.js (load once) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
+
+    <!-- FullCalendar JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+    <!-- Tempus Dominus JS -->
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/fr.js"></script>
+
+    <!-- SweetAlert JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Toastr JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <!-- Datepicker JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.fr.min.js"></script>
 
     <script>
         function closeSidebar() {
@@ -450,8 +513,8 @@
             $('.invalid-feedback').remove();
 
             // Reset all fields to disabled/readonly state
-            $('#appointmentForm input, #appointmentForm textarea').prop('readonly', true);
-            $('#appointmentForm select').prop('disabled', true);
+            //$('#appointmentForm input, #appointmentForm textarea').prop('readonly', true);
+            //$('#appointmentForm select').prop('disabled', true);
 
             // Hide save button, show default buttons based on permissions
             $('#saveAppointmentBtn').addClass('d-none');
@@ -461,6 +524,9 @@
 
             // Clear any stored data attributes
             $('#updateAppointmentType').removeData('previous-type');
+            $('#updateAppointmentType').prop('disabled', true);
+            $('#updateappointmentDate').prop('disabled', true);
+            $('#updatestartTime').prop('disabled', true);
 
             // Reset button state
             $('#editAppointmentBtn').show();
@@ -483,13 +549,69 @@
         let sidebarappointmentId = $('#sidebarAppointmentId').val();
         let updateSessionDuration = 0;
         const patternsByType = @json($patternsByType);
+        let calendar;
+        let existingEventIds = []; // Array to store existing event IDs
+        let slotDuration = '00:15:00';
+        let labelInterval = '00:30:00'; // default
+        let selectedStatuses = ['all'];
+        let allCalendarEvents = [];
+
+
 
         //console.log("🩺 Urgencies loaded:", urgencies);
         window.activeDoctorId = {{ $doctorId ?? 'null' }};
 
         $(document).ready(function () {
             //
+
+            setTimeout(function () {
+                allCalendarEvents = $('#calendar').fullCalendar('clientEvents').slice();
+                console.log(`Stored ${allCalendarEvents.length} total events for filtering`);
+            }, 1000);
+
             fetchAvailableDaysAndInitializeCalendar();
+
+            $('.slot-option').on('click', function (e) {
+                e.preventDefault();
+                slotDuration = $(this).data('slot');
+                labelInterval = (slotDuration === '00:30:00') ? '01:00:00' : '00:30:00';
+                $('#calendar').fullCalendar('destroy');
+                initializeCalendar();
+            });
+
+            $('#inline-datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                todayHighlight: true,
+                autoclose: true,
+                inline: true,
+                language: 'fr',
+                weekStart: 1
+            }).on('changeDate', function (e) {
+                var selectedDate = e.format(0, "yyyy-mm-dd");
+                $('#selected-date').val(selectedDate);
+                $('#calendar').fullCalendar('changeView', 'agendaDay');
+                $('#calendar').fullCalendar('gotoDate', selectedDate);
+            });
+
+            // Toggle calendar visibility
+            $('#calendar-toggle').click(function () {
+                $('#mini-calendar-card').toggleClass('d-none');
+            });
+
+            // Check screen size and toggle elements
+            function checkScreenSize() {
+                if (window.matchMedia("(max-width: 1372px) and (max-height: 845px)").matches) {
+                    $('#calendar-toggle').removeClass('d-none');
+                    $('#mini-calendar-card').addClass('d-none');
+                } else {
+                    $('#calendar-toggle').addClass('d-none');
+                    $('#mini-calendar-card').removeClass('d-none');
+                }
+            }
+
+            // Run on load and resize
+            checkScreenSize();
+            $(window).resize(checkScreenSize);
             // Initialize field visibility based on patient type selection
             function toggleFields() {
                 $('#referencedFields').show();
@@ -706,7 +828,7 @@
                 timeSelect.empty(); // Clear existing options
 
                 // Add placeholder
-                timeSelect.append('<option value="">Select a time</option>');
+                timeSelect.append('<option value="">{{ trans(key: 'lang.select_time') }}</option>');
 
                 // Add time options in 30-minute increments (adjust as needed)
                 for (let hour = 8; hour < 18; hour++) {
@@ -736,18 +858,18 @@
                                 icon: "warning",
                                 confirmButtonText: "OK"
                             });
-                            $timeSelect.append(`<option value="">No slots (vacation)</option>`);
+                            $timeSelect.append(`<option value="">Aucun créneau (vacances)</option>`);
                             return;
                         }
 
                         if (!response.all_slots || response.all_slots.length === 0) {
-                            $timeSelect.append(`<option value="">No available time slots</option>`);
+                            $timeSelect.append(`<option value="">Aucun créneau disponible</option>`);
                             return;
                         }
 
                         // Re-enable the time select
                         $timeSelect.prop('disabled', false);
-                        $timeSelect.append(`<option value="">Select a time</option>`);
+                        $timeSelect.append(`<option value="">{{ trans(key: 'lang.select_time') }}</option>`);
 
                         const taken = new Set(response.taken_slots);
 
@@ -832,19 +954,69 @@
                 });
             }
             //    ////////////////////////////////////////////////////////////////////////////
-            $('#patientDropdown').select2({
-                allowClear: false,
-                ajax: {
-                    url: "{{ route('patients.search') }}",
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return { q: params.term || '' };
-                    },
-                    processResults: function (data) {
-                        return { results: data };
-                    },
-                    cache: true
+            function resetPatientSelection() {
+                // Get reference to the TomSelect instance
+                const tomSelectInstance = document.querySelector('#patientDropdown').tomselect;
+
+                // If TomSelect instance exists, clear it
+                if (tomSelectInstance) {
+                    tomSelectInstance.clear();
+                } else {
+                    // Fallback to standard select reset
+                    $('#patientDropdown').val('');
+                }
+            }
+            /////////////////////////////////////////////////////////////
+
+            $(document).ready(function () {
+                console.log("jQuery document.ready fired");
+                try {
+                    const ts = new TomSelect('#patientDropdown', {
+                        valueField: 'id',
+                        labelField: 'text',
+                        searchField: 'text',
+                        placeholder: "{{ trans('lang.Select_Patient') }}",
+                        create: false,
+                        preload: true,  // Load options right away
+                        openOnFocus: true,  // Open dropdown when field gets focus
+
+                        load: function (query, callback) {
+                            $.ajax({
+                                url: "{{ route('patients.search') }}",
+                                type: 'GET',
+                                data: { q: query },
+                                dataType: 'json',
+                                error: function () {
+                                    callback();
+                                },
+                                success: function (res) {
+                                    callback(res);
+                                }
+                            });
+                        },
+
+                        render: {
+                            option: function (item, escape) {
+                                return `<div>
+                                                                                                                <div class="font-weight-bold">${escape(item.text)}</div>
+                                                                                                                ${item.phone ? `<div class="text-muted small">${escape(item.phone)}</div>` : ''}
+                                                                                                            </div>`;
+                            },
+                            item: function (item, escape) {
+                                return `<div>${escape(item.text)}</div>`;
+                            },
+                            no_results: function () {
+                                return `<div class="no-results">{{ trans('lang.No_patients_found') }}</div>`;
+                            }
+                        }
+                    });
+
+                    // Force placeholder to show
+                    $('.ts-control').attr('placeholder', "{{ trans('lang.Select_Patient') }}");
+
+                    console.log("Tom Select initialized successfully");
+                } catch (error) {
+                    console.error("Error initializing Tom Select:", error);
                 }
             });
             ////////////////////////////////////////////////#
@@ -856,6 +1028,10 @@
                 const currentMotifId = $('#sidebarMotif').val();
                 const currentMotifName = $('#sidebarMotif option:selected').text();
                 const motifSelect = $('#sidebarMotif');
+                const today = new Date().toISOString().split('T')[0];
+                $('#updateappointmentDate').attr('min', today);
+
+
                 // Keep patient info fields gray/disabled
                 $('#sidebarPatientName, #sidebarEmail, #sidebarPhone, #sidebarStatus').prop('readonly', true)
                     .css('background-color', '#f8f9fa');
@@ -874,6 +1050,19 @@
                 // Fetch time slots
                 fetchTimeSlotsForTypeForUpdateAppoitment(selectedDate, selectedType);
 
+                let actualMotifId = currentMotifId;
+                if (currentMotifId === 'placeholder') {
+                    // Find the actual ID by searching patternsByType
+                    const typeId = getTypeIdFromType(selectedType);
+                    if (patternsByType[typeId]) {
+                        for (const [id, name] of Object.entries(patternsByType[typeId])) {
+                            if (name.toLowerCase().trim() === currentMotifName.toLowerCase().trim()) {
+                                actualMotifId = id;
+                                break;
+                            }
+                        }
+                    }
+                }
                 // Populate motif dropdown
                 populateMotifDropdown(selectedType, currentMotifId, currentMotifName);
 
@@ -907,15 +1096,26 @@
                         fetchTimeSlotsForTypeForUpdateAppoitment(selectedDate, selectedType);
                     }
                 });
+
             });
+            function getTypeIdFromType(type) {
+                switch (type) {
+                    case 'cabinet': return 1;
+                    case 'teleconsultation': return 4;
+                    case 'home_visit': return 3;
+                    default: return 1;
+                }
+            }
             // Helper function to populate motif dropdown
             function populateMotifDropdown(selectedType, currentMotifId = null, currentMotifName = null) {
-                //console.log('selectedType:', selectedType);
                 const motifSelect = $('#sidebarMotif');
-
+                motifSelect.empty();
 
                 // Add default option
-                motifSelect.append('<option value="">{{ trans('lang.select_motif') }}</option>');
+                motifSelect.append('<option value="">{{ trans(key: 'lang.select_motif') }}</option>');
+
+                // Track added motif names to avoid duplicates
+                const addedMotifNames = new Set();
 
                 // Determine type ID
                 let typeId;
@@ -933,17 +1133,20 @@
                         typeId = 1;
                 }
 
-                // If we have a current motif and we need to preserve it
+                // If we have a current motif and need to preserve it
                 if (currentMotifId && currentMotifName) {
                     motifSelect.append(`<option value="${currentMotifId}">${currentMotifName}</option>`);
+                    addedMotifNames.add(currentMotifName.toLowerCase().trim());
                 }
 
                 // Add options from patternsByType
                 if (patternsByType[typeId]) {
                     Object.entries(patternsByType[typeId]).forEach(([id, name]) => {
-                        // Skip if we already added this motif
-                        if (!currentMotifId || id !== currentMotifId) {
+                        // Skip if we already added a motif with this name
+                        const normalizedName = name.toLowerCase().trim();
+                        if (!addedMotifNames.has(normalizedName)) {
                             motifSelect.append(`<option value="${id}">${name}</option>`);
+                            addedMotifNames.add(normalizedName);
                         }
                     });
 
@@ -960,8 +1163,43 @@
                 const type = $('#updateAppointmentType').val();
                 const date = $('#updateappointmentDate').val();
                 const time = $('#updatestartTime').val();
-                const motif = $('#sidebarMotif').val();
+                let motif = $('#sidebarMotif').val();
+                if (motif === 'placeholder' || motif === 'current') {
+                    // Try to find the actual motif ID from the available options
+                    const motifName = $('#sidebarMotif option:selected').text().trim();
+                    console.log("Looking for motif name:", motifName);
 
+                    // Determine type ID based on selected type
+                    let typeId;
+                    switch (type) {
+                        case 'cabinet': typeId = 1; break;
+                        case 'teleconsultation': typeId = 4; break;
+                        case 'home_visit': typeId = 3; break;
+                        default: typeId = 1;
+                    }
+
+                    // Look for matching motif in patternsByType
+                    if (patternsByType && patternsByType[typeId]) {
+                        let foundId = null;
+                        Object.entries(patternsByType[typeId]).forEach(([id, name]) => {
+                            if (name.toLowerCase().trim() === motifName.toLowerCase().trim()) {
+                                foundId = id;
+                                console.log("Found matching motif ID:", id);
+                            }
+                        });
+
+                        if (foundId) {
+                            motif = foundId; // Use the found ID
+                        } else {
+                            // Still couldn't find a valid ID
+                            toastr.error('{{ trans("lang.please_select_valid_motif") }}');
+                            return;
+                        }
+                    } else {
+                        toastr.error('{{ trans("lang.motif_data_missing") }}');
+                        return;
+                    }
+                }
                 let isValid = true;
                 let errorMessage = '';
 
@@ -1007,7 +1245,7 @@
 
                 // All validation passed, proceed with update
                 const id = $('#sidebarAppointmentId').val();
-
+                console.log('motif:', motif);
                 $.ajax({
                     url: `/update-appointments/${id}`,
                     type: 'PUT',
@@ -1025,7 +1263,7 @@
 
                         // Return to view mode
                         $('#saveAppointmentBtn').addClass('d-none');
-                        $('#updateAppointmentType, #updateappointmentDate, #updatestartTime, #sidebarMotif').prop('disabled', true);
+                        $('#updateAppointmentType, #updatestartTime, #sidebarMotif').prop('disabled', true);
                         $('#sidebarNote').prop('readonly', true);
 
                         // Refresh calendar and close sidebar
@@ -1075,9 +1313,107 @@
                 });
             });
 
+            function makePastel(hex, alpha = 0.3) {
+                //console.log("Making pastel color:", hex);
+                const rgb = hexToRgb(hex);
+                return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+            }
+
+            // Converts #rrggbb to {r, g, b}
+            function hexToRgb(hex) {
+                hex = hex.replace(/^#/, '');
+                if (hex.length === 3) {
+                    hex = hex.split('').map(x => x + x).join('');
+                }
+                const bigint = parseInt(hex, 16);
+                return {
+                    r: (bigint >> 16) & 255,
+                    g: (bigint >> 8) & 255,
+                    b: bigint & 255
+                };
+            }
+            function applyStatusFilter() {
+                console.log('Filtering events based on statuses:', selectedStatuses);
+
+                // Start fresh - get all events from our stored copy
+                $('#calendar').fullCalendar('removeEvents');
+
+                if (selectedStatuses.includes('all')) {
+                    // Show all events
+                    allCalendarEvents.forEach(event => {
+                        $('#calendar').fullCalendar('renderEvent', Object.assign({}, event), true);
+                    });
+                    console.log('Showing all events');
+                    return;
+                }
+
+                // Filter by selected statuses
+                let visibleCount = 0;
+                allCalendarEvents.forEach(event => {
+                    if (selectedStatuses.includes(event.status)) {
+                        $('#calendar').fullCalendar('renderEvent', Object.assign({}, event), true);
+                        visibleCount++;
+                    }
+                });
+
+                console.log(`Showing ${visibleCount} out of ${allCalendarEvents.length} events`);
+            }
+
+            // Update the click handler for filter items
+            $('.filter-item').on('click', function () {
+                const status = $(this).data('status');
+                console.log('Clicked on status:', status);
+
+                if (status === 'all') {
+                    // Handle 'all' selection
+                    if ($(this).hasClass('active')) {
+                        // Deselect all
+                        $('.filter-item').removeClass('active');
+                        selectedStatuses = [];
+                        console.log('Deselected all statuses');
+                    } else {
+                        // Select all
+                        $('.filter-item').addClass('active');
+                        selectedStatuses = ['all'];
+                        console.log('Selected all statuses');
+                    }
+                } else {
+                    // Handle individual status selection
+                    if ($(this).hasClass('active')) {
+                        // Deselect this status
+                        $(this).removeClass('active');
+                        selectedStatuses = selectedStatuses.filter(s => s !== status);
+                        console.log('Deselected status:', status);
+                    } else {
+                        // Select this status
+                        $(this).addClass('active');
+
+                        // If 'all' was selected, deselect it
+                        if (selectedStatuses.includes('all')) {
+                            $('.filter-item[data-status="all"]').removeClass('active');
+                            selectedStatuses = [status]; // Start fresh with just this status
+                        } else {
+                            // Add to existing selections
+                            selectedStatuses.push(status);
+                        }
+                        console.log('Selected status:', status);
+                    }
+
+                    // If nothing is selected, default to 'all'
+                    if (selectedStatuses.length === 0) {
+                        $('.filter-item[data-status="all"]').addClass('active');
+                        selectedStatuses = ['all'];
+                        console.log('Defaulting to "all" since nothing was selected');
+                    }
+                }
+
+                console.log('Currently selected:', selectedStatuses);
+
+                // Refresh the calendar to apply the filter
+                $('#calendar').fullCalendar('refetchEvents');
+            });
 
 
-            let existingEventIds = []; // Array to store existing event IDs
 
             //console.log("Availability Days at Load:", availabilityDays);
             function initializeCalendar() {
@@ -1091,13 +1427,17 @@
                         right: 'month,agendaWeek,agendaDay'
                     },
                     defaultView: 'agendaWeek',
+                    firstDay: moment().day(),
                     minTime: "08:00:00",
                     allDaySlot: true,
                     allDayText: '',
                     events: '/appointment-event',
                     eventLimit: true,
+                    slotDuration: slotDuration,
+                    slotLabelInterval: labelInterval,
+                    slotLabelFormat: 'HH:mm',
                     viewRender: function (view) {
-                        console.log('Calendar view changed:', view);
+                        //console.log('Calendar view changed:', view);
 
                         // console.log('[DEBUG] viewRender triggered:', view.name);
 
@@ -1290,47 +1630,47 @@
 
                                     switch (translatedStatus) {
                                         case 'Accepté':
-                                            color = '#9FCDA8';
+                                            color = '#78C2AD';
                                             break;
                                         case 'Terminé':
-                                            color = '#7DC2A5';
+                                            color = '#56B4D3';
                                             break;
                                         case 'En cours':
-                                            color = '#F5DF4D';
+                                            color = '#F3D55B';
                                             break;
                                         case 'Annulé':
-                                            color = '#F38071';
+                                            color = '#FF7851';
                                             break;
                                         case 'Reçu':
-                                            color = '#A594F9';
+                                            color = '#BC8CDF';
                                             break;
                                         case 'Prêt':
-                                            color = '#9EDF9C';
+                                            color = '#90D26D';
                                             break;
                                         default:
-                                            color = '#B4BAFF';
+                                            color = '#B4BAFF    ';
                                     }
 
                                     return {
                                         id: event.id,
                                         online: event.online,
                                         title: `${event.patient_name} - ${event.motif_name}`,
-                                        start: moment(event.start_at).format(), // Adjust for timezone here
+                                        start: moment(event.start_at).format(),
                                         end: moment(event.ends_at).format(),
                                         patient_phone_number: event.patient_phone_number,
                                         email: event.patient_email,
                                         patient_first_name: event.patient_first_name,
                                         patient_last_name: event.patient_last_name,
                                         patient_id: event.patient_id,
-                                        backgroundColor: color,
-                                        borderColor: color,
+                                        // Remove backgroundColor and borderColor properties
                                         description: `Patient: ${event.patient_name}\nStatus: ${translatedStatus}\nDetails: ${event.motif_name || 'N/A'}`,
                                         patient_name: event.patient_name,
-                                        status: translatedStatus,              // Add status here
+                                        status: translatedStatus,
                                         details: event.motif_name || 'N/A',
                                         motif_name: event.motif_name,
                                         appointment_type: event.type,
                                         note: event.note,
+                                        motif_color: event.backgroundColor,
                                     };
                                 });
                                 callback(events);
@@ -1352,52 +1692,111 @@
                         }
                     },
                     eventRender: function (event, element) {
+                        if (!selectedStatuses.includes('all') && !selectedStatuses.includes(event.status)) {
+                            return false; // Skip rendering this event
+                        }
                         // Add a custom data-id attribute to the event element
                         element.attr('data-id', event.id);
 
-                        //console.log('Rendering event:', event);
-
-                        // Highlight the event if it's marked as new
-                        if (event.isNew) {
-                            console.log('Highlighting new event:', event);
-                            element.addClass('highlight-event'); // Add the highlight class
-
-                            setTimeout(() => {
-                                element.removeClass('highlight-event'); // Remove the class after 2 seconds
-                                event.isNew = false; // Reset the isNew flag
-                            }, 2000);
-                        } else {
-                            //console.log('Event is not new:', event);
+                        // Get the status color
+                        let color = '';
+                        switch (event.status) {
+                            case 'Accepté':
+                                color = '#78C2AD'; // Use your new colors here
+                                break;
+                            case 'Terminé':
+                                color = '#56B4D3';
+                                break;
+                            case 'En cours':
+                                color = '#F3D55B';
+                                break;
+                            case 'Annulé':
+                                color = '#FF7851';
+                                break;
+                            case 'Reçu':
+                                color = '#BC8CDF';
+                                break;
+                            case 'Prêt':
+                                color = '#90D26D';
+                                break;
+                            default:
+                                color = '#B4BAFF';
                         }
-                        // Adding title attribute for simple tooltip
-                        let icon;
 
+                        // Update the element style to match the image
+                        // Generate a light translucent version of the status color
+                        //console.log("color:", color);
+                        //console.log("event.motif_color:", event.motif_color);
+                        const statusColor = color;
+                        const motifPastel = makePastel(event.motif_color || '#ffffff', 0.3);
+                        //console.log("motifPastel:", motifPastel);
+                        //console.log("statusColor:", statusColor);
+                        element.css({
+                            'background-color': motifPastel,
+                            'border': '1px solid #e0e0e0',
+                            'border-left': `6px solid ${statusColor}`,
+                            'box-shadow': '0 1px 3px rgba(0,0,0,0.05)',
+                            'border-radius': '2px',
+                            'margin-bottom': '2px',
+                        });
                         // Determine the icon based on the `online` field
+                        let icon;
                         switch (event.online) {
                             case 'cabinet':
                                 icon = '<i class="fas fa-briefcase-medical" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             case 'teleconsultation':
-                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Video icon
+                                icon = '<i class="fas fa-video" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             case 'home_visit':
-                                icon = '<i class="fas fa-home" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Home visit icon
+                                icon = '<i class="fas fa-home" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             case 'web':
-                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Web icon
+                                icon = '<i class="fas fa-globe" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             case 'mobile':
-                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>'; // Mobile icon
+                                icon = '<i class="fas fa-mobile-alt" style="margin-right: 5px; color: #1A1A1D;"></i>';
                                 break;
                             default:
-                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>'; // Default icon
+                                icon = '<i class="fas fa-question-circle" style="margin-right: 5px; color: #ccc;"></i>';
                                 break;
                         }
-                        element.find('.fc-title').prepend(icon);
-                        element.attr('title', event.description);
-                        element.find('.fc-title').css('white-space', 'nowrap');
-                        element.find('.fc-time').css('font-size', '1em');
 
+                        // Add checkmark icon for completed events
+                        if (event.status === 'Terminé') {
+                            icon = '<i class="fas fa-check-circle" style="margin-right: 5px; color: #56B4D3;"></i>' + icon;
+                        }
+
+                        // Add icon to the title
+                        element.find('.fc-title').prepend(icon);
+
+                        // Set tooltip
+                        element.attr('title', event.description);
+
+                        // Set text styles
+                        element.find('.fc-title').css({
+                            'white-space': 'nowrap',
+                            'overflow': 'hidden',
+                            'text-overflow': 'ellipsis',
+                            'font-size': '0.9em',
+                            'font-weight': '500',
+                            'color': '#333333'
+                        });
+
+                        element.find('.fc-time').css({
+                            'font-size': '0.85em',
+                            'font-weight': 'bold',
+                            'color': '#555555'
+                        });
+
+                        // Highlight new events if needed
+                        if (event.isNew) {
+                            element.addClass('highlight-event');
+                            setTimeout(() => {
+                                element.removeClass('highlight-event');
+                                event.isNew = false;
+                            }, 2000);
+                        }
                     },
                     selectable: true,
                     selectAllow: function (selectInfo) {
@@ -1481,9 +1880,10 @@
 
                                                 // If this is the first type with available slots, select its tab
                                                 if (!$('#appointmentModal').is(':visible')) {
+                                                    resetPatientSelection();
                                                     $('#appointmentModal').modal('show');
-                                                    $(`#appointmentTypeTabs a[data-type="${type}"]`).tab('show');
-                                                    fetchTimeSlotsForType(selectedDate, type);
+                                                    $(`#appointmentTypeTabs a[data-type="cabinet"]`).tab('show');
+                                                    fetchTimeSlotsForType(selectedDate, 'cabinet');
                                                 }
                                             }
 
@@ -1646,8 +2046,17 @@
                         // Set motif
                         const motifSelect = $('#sidebarMotif');
                         motifSelect.empty();
-                        motifSelect.append(`<option value="${event.motif_id || 'current'}">${appointment.motif_name}</option>`);
-                        motifSelect.val(event.motif_id || 'current');
+                        if (event.motif_id) {
+                            motifSelect.append(`<option value="${event.motif_id}">${appointment.motif_name}</option>`);
+                            motifSelect.val(event.motif_id);
+                        } else {
+                            // Temporarily add with placeholder value
+                            motifSelect.append(`<option value="placeholder">${appointment.motif_name}</option>`);
+                            motifSelect.val("placeholder");
+
+                            // Store the motif name for later use
+                            motifSelect.data('motif-name', appointment.motif_name);
+                        }
                         motifSelect.prop('disabled', true);
 
                         // Set time
@@ -1692,11 +2101,7 @@
                 // Close the modal
                 $('#cancelAppointmentModal').modal('hide');
             });
-            // Sidebar close function
-            function closeSidebar() {
-                $('#appointmentSidebar').css('right', '-400px');
-                $('#sidebarOverlay').hide();
-            }
+
 
             $('#saveAppointment').on('click', function (e) {
                 e.preventDefault();
@@ -1705,6 +2110,8 @@
                 const appointmentType = activeTab.data('type');
                 //console.log('Active tab type:', appointmentType); // Debug log
                 const patternSelectId = '#patern_id_' + appointmentType;
+                // After successfully adding a new appointment
+
                 // Get form data
                 const appointmentData = {
                     patient_id: $('#patientDropdown').val(),
@@ -1752,16 +2159,12 @@
                     method: "POST",
                     data: appointmentData,
                     success: function (response) {
-                        //console.log('Success:', response); // Debug log
+                        toastr.success('{{ __("lang.saved_successfully") }}');
+                        $('#appointmentModal').modal('hide');
 
-                        Swal.fire({
-                            title: "Succès",
-                            text: "Rendez-vous créé avec succès",
-                            icon: "success"
-                        }).then((result) => {
-                            $('#appointmentModal').modal('hide');
-                            // $('#calendar').fullCalendar('refetchEvents');
-                        });
+                        //$('#calendar').fullCalendar('refetchEvents');
+
+
                     },
                     error: function (xhr) {
                         //console.log('Error:', xhr); // Debug log
@@ -1802,19 +2205,11 @@
                     method: "POST",
                     data: data,
                     success: function (response) {
-                        Swal.fire({
-                            title: "Succès",
-                            text: response.message,
-                            icon: "success",
-                            confirmButtonText: "OK"
-                        }).then(() => {
-                            $('#cancelReasonModal').modal('hide');
-                            $('#appointmentDetailsModal').modal('hide');
-                            $('#calendar').fullCalendar('refetchEvents');
-                            //console.log("Appointment status updated successfully.");
-
-                        });
+                        $('#cancelReasonModal').modal('hide');
+                        $('#appointmentDetailsModal').modal('hide');
                         $('#calendar').fullCalendar('refetchEvents');
+                        toastr.success('{{ __("lang.updated_successfully") }}');
+
                     },
                     error: function (xhr) {
                         Swal.fire({

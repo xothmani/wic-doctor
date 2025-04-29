@@ -169,9 +169,7 @@
     border-color: #532188; /* Darker border on hover */
 }
 
-#patientDropdown {
-    height: 2rem; /* Match the smaller button height */
-}
+
 #calendar-legend {
     border-top: 1px solid #ddd;
     padding-top: 15px;
@@ -831,7 +829,6 @@
 }
 #appointmentForm input,
 #appointmentForm select {
-    height: 40px;
     padding: 8px 12px;
     font-size: 14px;
     line-height: 1.5;
@@ -1001,5 +998,128 @@ input[readonly], select[disabled] {
     background-color: #f8f9fa;
     cursor: default;
     opacity: 1; /* Make text fully visible even when disabled */
+}
+
+
+
+/* Style for circle indicators */
+.circle-indicator {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+/* Style for mini calendar */
+#mini-calendar {
+    font-size: 0.8em;
+}
+
+#mini-calendar .fc {
+    max-height: 300px;
+}
+
+#mini-calendar .fc-toolbar {
+    font-size: 0.9em;
+}
+
+#mini-calendar .fc-daygrid-day {
+    padding: 2px;
+}
+
+
+#calendar-toggle {
+    width: 100%;
+    text-align: left;
+    padding: 0.25rem 0.5rem;
+}
+
+#calendar-toggle i {
+    margin-right: 5px;
+}
+.toggle-arrow {
+    transition: transform 0.3s ease;
+    font-size: 0.8rem;
+    margin-left: 8px;
+}
+
+.arrow-rotated {
+    transform: rotate(180deg);
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    justify-content: flex-start; /* Force alignment to the left */
+    width: 100%; /* Make sure it takes full width */
+}
+
+.color-box {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.filter-label {
+    font-size: 14px;
+    text-align: left; /* Explicitly align text to the left */
+}
+
+.fc-event {
+    border-radius: 3px !important; /* or any value you like */
+  }
+  
+  .filter-item {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.filter-item.active {
+    background-color: rgba(0, 0, 0, 0.08);
+    font-weight: 600;
+}
+
+.filter-item.active::after {
+    content: '✓';
+    position: absolute;
+    right: 10px;
+    color: #333;
+}   
+.legend-container {
+    display: flex;      
+    flex-direction: column;
+    padding-left: 11px; /* or 16px, 20px, etc. */
+    align-items: flex-start; /* ⬅️ Make sure content aligns to the left */
+    gap: 8px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.legend-row {
+    display: flex;
+    align-items: center;
+}
+
+.legend-dot {
+    width: 20px;  
+    height: 20px; 
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+    background-color: currentColor; /* fallback if inline color fails */
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+
+}
+
+.legend-text {
+    font-size: 14px;
+    color: #333;
 }
 

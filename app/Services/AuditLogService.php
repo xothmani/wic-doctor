@@ -348,24 +348,38 @@ class AuditLogService
         );
     }
 
-    public function createAuditLog($action, $entityType, $description, $oldValues = [], $newValues = [], $fieldTypes = [], $doctorId = null)
+    public function createAuditLog($action, $entityType, $description, $oldValues = [], $newValues = [], $doctorId = null)
     {
         \Log::info('[AUDIT SERVICE] Creating audit log', ['action' => $action, 'entity_type' => $entityType]);
+        $description = $this->generateDescription($action, $newValues);
+        /* 
+                // Preprocess old_values and new_values
+                $processedOldValues = $this->preprocessValues($oldValues, $fieldTypes);
+                $processedNewValues = $this->preprocessValues($newValues, $fieldTypes);
 
-        // Preprocess old_values and new_values
-        $processedOldValues = $this->preprocessValues($oldValues, $fieldTypes);
-        $processedNewValues = $this->preprocessValues($newValues, $fieldTypes);
+                // Create the audit log
+                $auditLog = new AuditLog();
+                $auditLog->action = $action;
+                $auditLog->entity_type = $entityType;
+                $auditLog->description = $description;
+                $auditLog->old_values = $processedOldValues;
+                $auditLog->new_values = $processedNewValues;
+                $auditLog->user_id = Auth::id();
+                $auditLog->doctor_id = $doctorId ?? (Auth::user()->hasRole('doctor') ? Auth::user()->doctor_id : null);
+                $auditLog->save();
 
-        // Create the audit log
-        $auditLog = new AuditLog();
-        $auditLog->action = $action;
-        $auditLog->entity_type = $entityType;
-        $auditLog->description = $description;
-        $auditLog->old_values = $processedOldValues;
-        $auditLog->new_values = $processedNewValues;
-        $auditLog->user_id = Auth::id();
-        $auditLog->doctor_id = $doctorId ?? (Auth::user()->hasRole('doctor') ? Auth::user()->doctor_id : null);
-        $auditLog->save();
+                \Log::info('[AUDIT SERVICE] Audit log created', ['id' => $auditLog->id]);
+                return $auditLog; */
+        $auditLog = AuditLog::create([
+            'user_id' => Auth::id(),
+            'doctor_id' => $doctorId ?? (Auth::user()->hasRole('doctor') ? Auth::user()->doctor_id : null),
+            'action' => $action,
+            'entity_type' => $entityType,
+            'entity_id' => $newValues['id'] ?? null,
+            'description' => $description,
+            'old_values' => $oldValues,  // If necessary, you can keep old_values as an array (optional)
+            'new_values' => $newValues,  // Or just store the raw new values
+        ]);
 
         \Log::info('[AUDIT SERVICE] Audit log created', ['id' => $auditLog->id]);
         return $auditLog;
@@ -459,4 +473,32 @@ class AuditLogService
                 return $value;
         }
     }
+
+
+
+
+    public function generateDescription(string $action, array $newValues): string
+    {
+        \Log::info('Generating description for action', ['action' => $action, 'newValues' => $newValues]);
+        switch ($action) {
+            case 'create_appointment':
+                // Translate and format the fields dynamically
+                $creatorName = User::find($newValues['creator_id'])->name ?? 'Unknown';
+                $doctorName = Doctor::find($newValues['doctor_id'])->name ?? 'Dr. Unknown';
+                $patient = Patient::find($newValues['patient_id']);
+                $patientName = $patient->first_name . " " . $patient->last_name;
+                $appointmentDate = Carbon::parse($newValues['start_at'])->locale('fr')->isoFormat('Do MMMM YYYY');
+                $appointmentTime = Carbon::parse($newValues['start_at'])->locale('fr')->isoFormat('HH:mm');
+                $appointmentType = $newValues['appointment_type'] == 'online' ? 'en ligne' : 'en personne';
+
+                // Create the description
+                return "{$creatorName} created a {$appointmentType} appointment with {$patientName} on {$appointmentDate} at {$appointmentTime}.";
+
+
+
+            default:
+                return ucfirst(str_replace('_', ' ', $action));
+        }
+    }
+
 }

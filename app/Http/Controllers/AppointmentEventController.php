@@ -127,7 +127,8 @@ class AppointmentEventController extends Controller
                         'patient.email as patient_email',
                         'patient.phone_number as patient_phone_number',
                         'patient.mobile_number as patient_mobile_number',
-                        'pattern.nom as motif_name'
+                        'pattern.nom as motif_name',
+                        'pattern.color as motif_color'
                     )
                     ->join('users as user', 'appointments.user_id', '=', 'user.id')
                     ->join('appointment_statuses as appointment_status', 'appointments.appointment_status_id', '=', 'appointment_status.id')
@@ -141,6 +142,8 @@ class AppointmentEventController extends Controller
                     $decodedFirstName = json_decode($appointment->patient_first_name, true);
                     $decodedLastName = json_decode($appointment->patient_last_name, true);
                     $decodedMotifName = json_decode($appointment->motif_name, true);
+                    $color = $appointment->motif_color;
+
 
                     return [
                         'id' => $appointment->id,
@@ -158,6 +161,9 @@ class AppointmentEventController extends Controller
                         'online' => $appointment->online,
                         'type' => $appointment->type,
                         'note' => $appointment->hint,
+                        'backgroundColor' => $color,
+
+
                     ];
                 }));
             }
@@ -400,32 +406,24 @@ class AppointmentEventController extends Controller
                 ],
                 $doctorId
             ); */
-            $fieldTypes = [
-                'creator_id' => 'user',
-                'doctor_id' => 'doctor',
-                'patient_id' => 'patient',
-                'start_at' => 'datetime', // Changed to 'datetime' to format timestamps
-                'ends_at' => 'datetime',
-                'appointment_type' => 'appointment_type',
-                'notes' => 'text',
-            ];
+
             $newValues = [
+                'id' => $appointment->id,
                 'creator_id' => auth()->id(),
-                'doctor_id' => $appointment->doctor_id,
-                'patient_id' => $appointment->patient_id,
-                'start_at' => $appointment->start_at,
-                'ends_at' => $appointment->ends_at,
-                'appointment_type' => $appointment->online,
-                'notes' => $appointment->hint,
+                'doctor_id' => $doctorId,
+                'patient_id' => $patient->id,
+                'start_at' => $startAt->toDateTimeString(),
+                'ends_at' => $endsAt->toDateTimeString(),
+                'appointment_type' => trans('audit.appointment_type.' . $validated['appointment_type']),
+                'notes' => $validated['notes'] ?? null
             ];
 
             $this->auditLogService->createAuditLog(
                 'create_appointment',
                 'appointment',
-                'create_appointment',
+                null, // 🔁 no need to pass description manually
                 [], // old_values
                 $newValues,
-                $fieldTypes,
                 $appointment->doctor_id
             );
             $now = Carbon::now('Africa/Tunis');
@@ -1858,7 +1856,7 @@ class AppointmentEventController extends Controller
 
         $appointment = Appointment::findOrFail($id);
 
-        $startAt = Carbon::parse($request->date . ' ' . $request->start_time);
+        $startAt = Carbon::parse($request->date . ' ' . $request->start_time, 'Africa/Tunis');
         $sessionDuration = intval($request->session_duration);
 
         $appointment->online = $request->appointment_type;
@@ -1867,13 +1865,20 @@ class AppointmentEventController extends Controller
         $appointment->ends_at = $startAt->copy()->addMinutes($sessionDuration);
         $appointment->hint = $request->note;
 
+        // Add this line to update the motif_id
+        if ($request->has('motif_id')) {
+            $appointment->motif_id = $request->motif_id;
+        }
+
         $appointment->save();
 
         \Log::info('Appointment updated:', [
             'id' => $appointment->id,
             'start_at' => $appointment->start_at,
             'ends_at' => $appointment->ends_at,
-            'hint' => $appointment->hint
+            'hint' => $appointment->hint,
+            'motif_id' => $appointment->motif_id, // Add this to log the updated motif_id
+            'online' => $appointment->online // Add this to log the updated type
         ]);
 
         return response()->json(['message' => 'Appointment updated successfully']);

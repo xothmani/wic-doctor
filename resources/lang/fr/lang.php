@@ -56,12 +56,12 @@ return [
     'create_appointment' => 'Création de rendez-vous',
     'update_appointment_status' => 'Mise à jour du statut du rendez-vous',
     'appointment' => 'Rendez-vous',
-
+    'No_patients_found' => 'Aucun patient trouvé',
     'details' => 'Détails',
     'close' => 'Fermer',
     'old_values' => 'Anciennes valeurs',
     'new_values' => 'Nouvelles valeurs',
-    'status' => 'Statut',
+    'status' => 'Status',
     'not_available' => 'N/D',
     'all_types' => 'Tous',
     'doctor_user_edit' => 'Modifier l’utilisateur',
@@ -257,7 +257,6 @@ return [
     'start_time' => "Heure de début: ",
     'end_time' => "Heure de fin: ",
     'appointment_type' => "Type de rendez-vous: ",
-    'notes' => "Notes: ",
     'no_notes' => "Aucune",
     'listVacance' => 'Voir liste des vacances',
 
