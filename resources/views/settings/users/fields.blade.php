@@ -2,49 +2,65 @@
     <h5 class="col-12 pb-4">{!! trans('lang.main_fields') !!}</h5>
 @endif
 <div class="d-flex flex-column col-sm-12 col-md-6 mt-2">
-    <!-- Name Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-        {!! Form::label('name', trans("lang.user_name"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-        <div class="col-md-9">
-            {!! Form::text('name', null,  ['class' => 'form-control','placeholder'=>  trans("lang.user_name_placeholder")]) !!}
-            <div class="form-text text-muted">
-                {{ trans("lang.user_name_help") }}
-            </div>
-        </div>
+  <!-- Lastname Field -->
+<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+    {!! Form::label('lastname', trans("lang.user_name"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+    <div class="col-md-9">
+        {!! Form::text('lastname', null,  [
+            'class' => 'form-control',
+            'placeholder' => trans("lang.user_name_placeholder"),
+            'readonly' => 'readonly'
+        ]) !!}
     </div>
+</div>
 
-    <!-- Email Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-        {!! Form::label('email', trans("lang.user_email"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-        <div class="col-md-9">
-            {!! Form::text('email', null,  ['class' => 'form-control','placeholder'=>  trans("lang.user_email_placeholder")]) !!}
-            <div class="form-text text-muted">
-                {{ trans("lang.user_email_help") }}
-            </div>
-        </div>
+<!-- Name Field -->
+<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+    {!! Form::label('name', trans("lang.user_lastname"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+    <div class="col-md-9">
+        {!! Form::text('name', null,  [
+            'class' => 'form-control',
+            'placeholder' => trans("lang.user_lastname_placeholder"),
+            'readonly' => 'readonly'
+        ]) !!}
     </div>
+</div>
+
+
+ 
 
     <!-- Phone Number Field -->
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('phone_number', trans("lang.user_phone_number"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             {!! Form::text('phone_number', null,  ['class' => 'form-control','placeholder'=>  trans("lang.user_phone_number_placeholder")]) !!}
-            <div class="form-text text-muted">
+        <!--     <div class="form-text text-muted">
                 {{ trans("lang.user_phone_number_help") }}
-            </div>
+            </div> -->
+        </div>
+    </div>
+       <!-- Email Field -->
+       <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+        {!! Form::label('email', trans("lang.user_email"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        <div class="col-md-9">
+            {!! Form::text('email', null,  ['class' => 'form-control','placeholder'=>  trans("lang.user_email_placeholder")]) !!}
+          <!--   <div class="form-text text-muted">
+                {{ trans("lang.user_email_help") }}
+            </div> -->
         </div>
     </div>
 
-    <!-- Password Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+        <!-- Password Field -->
+        <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('password', trans("lang.user_password"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             {!! Form::password('password', ['class' => 'form-control','placeholder'=>  trans("lang.user_password_placeholder")]) !!}
-            <div class="form-text text-muted">
+           <!--  <div class="form-text text-muted">
                 {{ trans("lang.user_password_help") }}
-            </div>
+            </div> -->
         </div>
     </div>
+   
 </div>
 <div class="d-flex flex-column col-sm-12 col-md-6 ">
     <!-- $FIELD_NAME_TITLE$ Field -->
@@ -59,6 +75,7 @@
             </div>
         </div>
     </div>
+ 
     @prepend('scripts')
     <script type="text/javascript">
         var user_avatar = '';

@@ -422,8 +422,8 @@ class DoctorController extends Controller
         }
     
         $user->update([
-            'name' => $request->input('lastname'),
-            'lastname' => $request->input('name'),
+            'name' => ucfirst(strtolower($request->input('lastname'))),
+            'lastname' => strtoupper($request->input('name')),
             'email' => $request->input('email'),
             'phone_number' => $request->input('phone_number'),
         ]);
@@ -432,7 +432,7 @@ class DoctorController extends Controller
         $payment_methods = implode(',', $request->input('payment_methods', []));
 
             $doctor->update([
-                'name' => $request->input('name') . ' ' . $request->input('lastname'),
+                'name' => strtoupper($request->input('name')) . ' ' . ucfirst(strtolower($request->input('lastname'))),
                 'bio' => $request->input('bio'),
                 'type_consultation' => $consultationMethods,
                 'fixe' => $request->input('cabinet_number'),
