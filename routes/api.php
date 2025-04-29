@@ -154,6 +154,8 @@ Route::get('patterns', 'API\PatternAPIController@index');
 Route::get('patterns/{id}', 'API\PatternAPIController@show');
 
 Route::get('patterns-by-doctor/{id}', 'API\PatternAPIController@getPatternsByDoctor');
+Route::get('patterns-by-doctor-and-type', 'API\PatternAPIController@getPatternsByDoctorAndType');
+
 
 Route::middleware('auth:api')->group(function () {
     Route::group(['middleware' => ['role:clinic_owner']], function () {
