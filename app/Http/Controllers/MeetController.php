@@ -213,9 +213,10 @@ class MeetController extends Controller
                 'start_at' => 'required|date',
                 'patient_id' => 'required|integer',
                 'appointment_id' => 'required|integer',
-                'payment_mode' => 'required|in:TND,EUR,SPLIT',
+                'payment_mode' => 'required|in:TND,EUR,USD,SPLIT',
                 'tele_price_tnd' => 'required_if:payment_mode,TND|numeric|nullable',
                 'tele_price_eur' => 'required_if:payment_mode,EUR|numeric|nullable',
+                'tele_price_usd' => 'required_if:payment_mode,USD,SPLIT|numeric|nullable',
             ]);
             \Log::info("preparing data", $validated);
             // Step 2: Generate room name and meet link
@@ -232,6 +233,7 @@ class MeetController extends Controller
             $meet_link = "https://meet.jit.si/{$room_name}";
             $tele_price_eur = $validated['tele_price_eur'];
             $tele_price_tnd = $validated['tele_price_tnd'];
+            $tele_price_usd = $validated['tele_price_usd'];
             \Log::info("Meet Link: {$meet_link}");
             // Step 3: Create room record
             $room = Room::create([
@@ -266,6 +268,7 @@ class MeetController extends Controller
                 'doctor_id' => $doctor->id,
                 'tele_price_tnd' => $validated['tele_price_tnd'],
                 'tele_price_eur' => $validated['tele_price_eur'],
+                'tele_price_usd' => $validated['tele_price_usd'],
                 'description' => $meet_link,
                 'user_id' => $validated['patient_id'],
                 'payment_method_id' => 2,
@@ -374,10 +377,49 @@ class MeetController extends Controller
                     \Log::error("Error occurred while generating PayPal link: " . $e->getMessage());
                 }
             }
+            \Log::info("PayPal LinkUSd");
+            $paypalLinkUsd = null;
+            if (!empty($tele_price_usd) && $tele_price_usd > 0) {
+                try {
+                    $paypalPayloadUsd = [
+                        "intent" => "CAPTURE",
+                        "application_context" => [
+                            "return_url" => route('paypal.payment.success'),
+                            "cancel_url" => route('paypal.payment.cancel'),
+                        ],
+                        "purchase_units" => [
+                            [
+                                "reference_id" => $paymentToken,
+                                "description" => "Payment for Appointment (USD)",
+                                "amount" => [
+                                    "currency_code" => "USD",
+                                    "value" => $tele_price_usd,
+                                ],
+                            ]
+                        ]
+                    ];
+
+                    $paypalProviderUsd = new \Srmklive\PayPal\Services\PayPal;
+                    $paypalProviderUsd->setApiCredentials(config('paypal'));
+                    $paypalTokenUsd = $paypalProviderUsd->getAccessToken();
+
+                    $paypalResponseUsd = $paypalProviderUsd->createOrder($paypalPayloadUsd);
+
+                    if (isset($paypalResponseUsd['links'])) {
+                        foreach ($paypalResponseUsd['links'] as $link) {
+                            if ($link['rel'] === 'approve') {
+                                $paypalLinkUsd = $link['href'];
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Error occurred while generating PayPal USD link: " . $e->getMessage());
+                }
+            }
 
             // Step 9: Send email with meeting and payment information
             $emailSuccess = false;
-            if ($apiPaymentLink || $paypalLink) {
+            if ($apiPaymentLink || $paypalLink || $paypalLinkUsd) {
                 try {
                     $date = Carbon::parse($start_at)->format('Y-m-d');
                     $time = Carbon::parse($start_at)->format('H:i');
@@ -386,13 +428,14 @@ class MeetController extends Controller
                         $patient_Email,
                         $apiPaymentLink,
                         $paypalLink,
+                        $paypalLinkUsd,
                         $patient_first_name,
                         $date,
                         $time,
                         $doctorName,
                         $tele_price_tnd,
                         $tele_price_eur,
-                        $meet_link
+                        $tele_price_usd // <-- new argument passed here
                     );
                 } catch (\Exception $e) {
                     \Log::error("Error sending email: " . $e->getMessage());
@@ -404,6 +447,7 @@ class MeetController extends Controller
             } else {
                 return redirect()->route('meet.index')->with('error', 'Failed to send email. Please try again.');
             }
+
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error("Validation failed: ", $e->errors());
@@ -592,7 +636,7 @@ class MeetController extends Controller
 
         Log::info("Payment links sent to {$email} via email.");
     }*/
-    public function sendByEmail($email, $apiPaymentLink, $paypalLink, $patientName, $date, $time, $doctorName, $telePriceTnd, $telePriceEur)
+    public function sendByEmail($email, $apiPaymentLink, $paypalLink, $paypalLinkUsd, $patientName, $date, $time, $doctorName, $telePriceTnd, $telePriceEur, $telePriceUsd)
     {
         try {
             // Log the initiation of the email sending process
@@ -608,8 +652,11 @@ class MeetController extends Controller
                 'doctor_name' => $doctorName,
                 'apiPaymentLink' => $apiPaymentLink,
                 'paypalLink' => $paypalLink,
+                'paypalLinkUsd' => $paypalLinkUsd,
                 'tele_price_tnd' => $telePriceTnd > 0 ? $telePriceTnd : null,
                 'tele_price_eur' => $telePriceEur > 0 ? $telePriceEur : null,
+                'tele_price_usd' => $telePriceUsd > 0 ? $telePriceUsd : null, // <-- ADD THIS
+
             ];
 
 
