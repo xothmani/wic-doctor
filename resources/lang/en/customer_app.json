@@ -407,5 +407,8 @@
     "Enter your new password": "Enter your new password",
     "New password": "New password",
     "Retype new password": "Retype new password",
-    "Date of birth is required.":"Date of birth is required."
+    "Date of birth is required.":"Date of birth is required.",
+    "Your address":"Your address",
+    "Read more":"Read more",
+    "Show less" :"Show less"
 }

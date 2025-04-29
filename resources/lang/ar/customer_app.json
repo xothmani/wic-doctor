@@ -442,5 +442,8 @@
     "Enter your new password": "ادخل كلمة المرور الجديدة",
     "New password": "كلمة المرور الجديدة",
     "Retype new password": "اعد كلمة المرور الجديدة",
-    "Date of birth is required.": "تاريخ الميلاد إجباري."
+    "Date of birth is required.": "تاريخ الميلاد إجباري.",
+    "Your address":"عنوانك",
+    "Read more":"قراءة المزيد",
+    "Show less" :"عرض أقل"
 }

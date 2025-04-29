@@ -126,13 +126,13 @@
     "My Wallet": "Mon portefeuille",
     "New Address": "Nouvelle adresse",
     "New Message From": "Nouveau message de",
-    "New Password": "nouveau mot de passe",
+    "New Password": "Nouveau mot de passe",
     "Notification": "Notification",
     "Notification List is Empty": "La liste des notifications est vide",
     "Notifications": "Notifications",
     "OTP Code": "Code OTP",
     "Offline": "Hors ligne",
-    "Old Password": "ancien mot de passe",
+    "Old Password": "Ancien mot de passe",
     "Ongoing": "En cours",
     "Only Available": "Seulement disponible",
     "Options": "Choix",
@@ -442,5 +442,8 @@
     "Enter your new password": "Entrez votre nouveau mot de passe",
     "New password": "Nouveau mot de passe",
     "Retype new password": "Retapez votre nouveau mot de passe",
-    "Date of birth is required.": "Date de naissance est obligatoire."
+    "Date of birth is required.": "Date de naissance est obligatoire.",
+    "Your address" : "Votre adresse",
+    "Read more": "Lire la suite",
+    "Show less" : "Réduire"
 }

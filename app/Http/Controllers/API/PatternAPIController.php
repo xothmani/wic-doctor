@@ -73,7 +73,6 @@ class PatternAPIController extends Controller
 public function getPatternsByDoctor($doctorId): JsonResponse
 {
     try {
-        Log::info('Doctor ID received:', ['doctor_id' => $doctorId]);
 
         // Validate doctor ID
         if (empty($doctorId)) {
@@ -85,8 +84,64 @@ public function getPatternsByDoctor($doctorId): JsonResponse
 
         // Fetch patterns by doctor ID
         $patterns = DB::table('pattern')
-	->select('id', 'nom', 'specialite_id', 'price', 'doctor_id', 'clinic_id') // Exclude 'color'
+	->select('id', 'nom', 'type','specialite_id', 'price', 'doctor_id', 'clinic_id') // Exclude 'color'
             ->where('doctor_id', $doctorId)
+            ->get();
+
+        if ($patterns->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No patterns found for the given doctor.',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Patterns retrieved successfully.',
+            'data' => $patterns,
+        ], 200);
+    } catch (\Exception $e) {
+        Log::error('Error retrieving patterns:', ['message' => $e->getMessage()]);
+        return response()->json([
+            'status' => 500,
+            'message' => 'Failed to retrieve patterns: ' . $e->getMessage(),
+        ], 500);
+    }
+}
+
+
+
+public function getPatternsByDoctorAndType(Request $request): JsonResponse
+{
+
+    try {
+        
+        $doctorId = $request->input('doctor_id');
+        $type = $request->input('type');
+
+
+        // Validate type ID
+        if ($type === null) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'The type field is required.',
+            ], 400);
+        }
+
+
+        // Validate doctor ID
+        if (empty($doctorId)) {
+            return response()->json([
+                'status' => 400,
+                'message' => 'The doctor ID field is required.',
+            ], 400);
+        }
+
+        // Fetch patterns by doctor ID
+        $patterns = DB::table('pattern')
+	->select('id', 'nom', 'type','specialite_id', 'price', 'doctor_id', 'clinic_id') // Exclude 'color'
+            ->where('doctor_id', $doctorId)
+            ->where('type', $type)
             ->get();
 
         if ($patterns->isEmpty()) {

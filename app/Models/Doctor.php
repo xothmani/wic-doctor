@@ -213,7 +213,35 @@ class Doctor extends Model implements HasMedia, Castable
         } else {
             return asset(config('media-library.icons_folder') . '/' . $extension . '.png');
         }
-    } public function getCodeParrainAttribute()
+    }  
+    
+    /* public function getFirstMediaUrl(string $collectionName = 'default', string $conversion = ''): string
+    {
+        // Get media from both Doctor and User models
+        $doctorMedia = $this->getMedia($collectionName)->first();
+        $userMedia = $this->user->getMedia($collectionName)->first();
+        
+        // Determine which media to use (prioritize Doctor's media if available)
+        $media = $doctorMedia ?? $userMedia;
+        
+        // If no media found in either model, return default
+        if (!$media) {
+            return asset(config('media-library.icons_folder') . '/default.png');
+        }
+        
+        // Get the URL of the selected media
+        $url = $media->getUrl($conversion);
+        $array = explode('.', $url);
+        $extension = strtolower(end($array));
+        
+        if (in_array($extension, config('media-library.extensions_has_thumb'))) {
+            return asset($url);
+        } else {
+            return asset(config('media-library.icons_folder') . '/' . $extension . '.png');
+        }
+    } */
+
+    public function getCodeParrainAttribute()
     {
         return $this->attributes['code_parent'];
     }
