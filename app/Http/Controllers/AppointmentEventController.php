@@ -1822,7 +1822,7 @@ private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doc
 
         $appointment = Appointment::findOrFail($id);
 
-        $startAt = Carbon::parse($request->date . ' ' . $request->start_time);
+        $startAt = Carbon::parse($request->date . ' ' . $request->start_time, 'Africa/Tunis');
         $sessionDuration = intval($request->session_duration);
 
         $appointment->online = $request->appointment_type;
