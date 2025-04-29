@@ -128,9 +128,9 @@
                         <div class="card-body box-profile">
                             <div class="text-center">
                                 <img src="{{auth()->user()->getFirstMediaUrl('avatar', 'icon')}}"
-                                    class="profile-user-img img-fluid img-circle" alt="{{auth()->user()->name}}">
+                                    class="profile-user-img img-fluid img-circle" alt="{{auth()->user()->lastname}} {{auth()->user()->name}}">
                             </div>
-                            <h3 class="profile-username text-center">{{auth()->user()->name}}</h3>
+                            <h3 class="profile-username text-center">{{auth()->user()->lastname}} {{auth()->user()->name}}</h3>
 
                             <p class="text-muted text-center">{{implode(', ',$rolesSelected)}}</p>
                             <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="mailto:{{auth()->user()->email}}"><i class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}</a>
