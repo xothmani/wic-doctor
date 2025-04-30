@@ -410,5 +410,8 @@
     "Date of birth is required.":"Date of birth is required.",
     "Your address":"Your address",
     "Read more":"Read more",
-    "Show less" :"Show less"
+    "Show less" :"Show less",
+    "In-office consultation":"In-office consultation",
+    "Any other information to add?": "Any other information to add?",
+    "Please fill in all required fields: patient, pattern, and appointment time.": "Please fill in all required fields: patient, pattern, and appointment time."
 }
