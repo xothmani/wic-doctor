@@ -442,5 +442,11 @@
     "Enter your new password": "ادخل كلمة المرور الجديدة",
     "New password": "كلمة المرور الجديدة",
     "Retype new password": "اعد كلمة المرور الجديدة",
-    "Date of birth is required.": "تاريخ الميلاد إجباري."
+    "Date of birth is required.": "تاريخ الميلاد إجباري.",
+    "Your address":"عنوانك",
+    "Read more":"قراءة المزيد",
+    "Show less" :"عرض أقل",
+    "In-office consultation":"استشارة في العيادة",
+    "Any other information to add?": "اي معلومات اخرى لاضافتها؟",
+    "Please fill in all required fields: patient, pattern, and appointment time.": "يرجى تعبئة جميع الحقول المطلوبة: المريض، السبب، ووقت الموعد."
 }

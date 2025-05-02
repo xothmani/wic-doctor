@@ -444,12 +444,10 @@ class AppointmentAPIController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            $motifObject = $request->input('motif_id');
-            // Extract the necessary data from the nested objects
+            $utc = new \DateTimeZone('UTC');
+            $tunis = new \DateTimeZone('Africa/Tunis');
 
-
-
-            $data = [
+            /*$data = [
                 //'clinic' => json_encode($request->input('clinic')),
                 //'doctor' => json_encode($request->input('doctor')),
                 'doctor_id' => is_array($request->input('doctor.id')) ? $request->input('doctor.id')[0] : $request->input('doctor.id'),
@@ -462,18 +460,18 @@ class AppointmentAPIController extends Controller
                 'payment_id' => $request->input('payment_id'),
                 'taxes' => json_encode($request->input('taxes')), // Encodé en JSON pour éviter les erreurs
                 'appointment_at' => $request->input('appointment_at'),
-                'start_at' => Carbon::parse($request->input('start_at'))->setTimezone(config('app.timezone')),
-                'ends_at' => Carbon::parse($request->input('ends_at'))->setTimezone(config('app.timezone')),
+                'start_at' => Carbon::parse($request->input('start_at')),//->setTimezone(config('app.timezone')),
+                'ends_at' => Carbon::parse($request->input('ends_at')),//->setTimezone(config('app.timezone')),
                 'hint' => $request->input('hint'),
                 'online' => 'mobile',
                 'cancel' => $request->input('cancel', false),
                 'motif_id' => is_array($request->input('motif_id.id')) ? $request->input('motif_id.id')[0] : $request->input('motif_id.id'),
                 'type' => $request->input('type', 'aucun'),
-            ];
+            ];*/
 
 
 
-            $coupon = $request->input('coupon');
+            /*$coupon = $request->input('coupon');
             $address = $request->input('address');
             if (!empty($coupon)) { // Vérifie si la valeur n'est pas vide
                 $data['coupon'] = json_encode($coupon); // Ajoute au tableau si elle est définie
@@ -482,12 +480,8 @@ class AppointmentAPIController extends Controller
             if (!empty($address) || $address != null) {
                 Log::info("AddressIF", ["address" => $address]);
                 $data['address'] = json_encode($address); // Ajoute au tableau si elle est définie
-            }
+            }*/
 
-
-
-            $motifObject = $request->input('motif_id');
-            Log::info('Motif Object:', ['motif_id' => $motifObject]);
 
             // Extract the necessary data from the nested objects
             $data = [
@@ -501,13 +495,13 @@ class AppointmentAPIController extends Controller
                 'payment_id' => $request->input('payment_id'),
                 'coupon' => $request->input('coupon'),
                 'taxes' => json_encode($request->input('taxes', [])), // Ensure taxes is an array and encode as JSON
-                'appointment_at' => $request->input('appointment_at'),
-                'start_at' => Carbon::parse($request->input('start_at'))->setTimezone(config('app.timezone')),
-                'ends_at' => Carbon::parse($request->input('ends_at'))->setTimezone(config('app.timezone')),
+                'appointment_at' => Carbon::parse($request->input('appointment_at'), $utc)->setTimezone($tunis),
+                'start_at' => Carbon::parse($request->input('start_at'), $utc)->setTimezone($tunis),
+                'ends_at' => Carbon::parse($request->input('ends_at'), $utc)->setTimezone($tunis),
                 'hint' => $request->input('hint'),
                 'online' => 'mobile',
                 'cancel' => $request->input('cancel', false),
-                'motif_id' => $request->input('motif_id.id'),
+                'motif_id' => $request->input('motif_id'),
                 'type' => $request->input('type', 'aucun'),
             ];
 
@@ -528,11 +522,11 @@ class AppointmentAPIController extends Controller
 
 
             //If the appointment is remote, create a room for it
-            if ($data['online'] == true) {
+            if ($data['type'] == 'teleconsultation') {
                 Log::info("Create new room for online appointment", ["online" => $data['online']]);
 
                 try {
-                    $startAt = Carbon::parse($request->input('start_at'))->setTimezone(config('app.timezone'));
+                    $startAt = Carbon::parse($request->input('start_at'), $utc)->setTimezone($tunis);
                     // Heure donnée (10:11:00)
                     $date = $startAt->toDateString();
                     $time = $startAt->format('H-i-s');
@@ -613,24 +607,32 @@ class AppointmentAPIController extends Controller
      */
     public function update(int $id, Request $request): JsonResponse
     {
-        Log::info("Update Appointment Request:", [$request->all()]);
+        Log::info('Update Appointment 1');
         $appointment = Appointment::find($id);
+        Log::info('Update Appointment 2');
         $new_status_id = $request->input('appointment_status_id');
+        Log::info('Update Appointment 3');
         $appointment->cancel_reason = $request->input('cancel_reason');
+        Log::info('Update Appointment 4');
         //$doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
         //$appointment->doctor = $doctor;
         $appointment->appointment_status_id = $new_status_id;
+        Log::info('Update Appointment 5');
         $user = $this->userRepository->findWithoutFail($appointment->user_id);
+        Log::info('Update Appointment 6');
         $deviceToken = $user->device_token;
+        Log::info('Update Appointment 7');
         //$patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
         //$appointment->patient = $patient;
         $appointment->save();
 
-        Log::info("Update Appointment Request Lunch Event");
+        Log::info('Update Appointment 8');
 
         //Send notification to phone
-        Log::info("Update Appointment Listen event");
+        Log::info("Update Appointment Lunch event", ["appointment" => $appointment, "status_id" => $new_status_id, "deviceToken" => $deviceToken]);
+        Log::info('Update Appointment 9');
         event(new AppointmentStatusChangedEvent($appointment,$new_status_id,$deviceToken));
+        Log::info('Update Appointment 10');
         return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
     }
 
