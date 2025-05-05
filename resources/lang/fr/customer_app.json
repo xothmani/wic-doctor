@@ -448,5 +448,6 @@
     "Show less" : "Réduire",
     "In-office consultation": "Consultation en cabinet",
     "Any other information to add?": "Autre information à ajouter ?",
-    "Please fill in all required fields: patient, pattern, and appointment time.": "Veuillez remplir tous les champs obligatoires : patient, motif et heure de rendez-vous."
+    "Please fill in all required fields: patient, pattern, and appointment time.": "Veuillez remplir tous les champs obligatoires : patient, motif et heure de rendez-vous.",
+    "Search speciality": "Rechercher une spécialité"
 }
