@@ -955,6 +955,22 @@
             }
             //    ////////////////////////////////////////////////////////////////////////////
 
+            function resetPatientSelection() {
+                // Get reference to the TomSelect instance
+                const tomSelectInstance = document.querySelector('#patientDropdown').tomselect;
+
+                // If TomSelect instance exists, clear it
+                if (tomSelectInstance) {
+                    tomSelectInstance.clear();
+                } else {
+                    // Fallback to standard select reset
+                    $('#patientDropdown').val('');
+                }
+            }
+
+
+
+
             $(document).ready(function () {
                 console.log("jQuery document.ready fired");
                 try {
@@ -1867,6 +1883,7 @@
 
                                                 // If this is the first type with available slots, select its tab
                                                 if (!$('#appointmentModal').is(':visible')) {
+                                                    resetPatientSelection();
                                                     $('#appointmentModal').modal('show');
                                                     $(`#appointmentTypeTabs a[data-type="cabinet"]`).tab('show');
                                                     fetchTimeSlotsForType(selectedDate, 'cabinet');
