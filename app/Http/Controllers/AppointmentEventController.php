@@ -26,6 +26,8 @@ use App\Repositories\DoctorRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\ClinicRepository;
 use function PHPUnit\Framework\isNull;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 
 class AppointmentEventController extends Controller
 {
@@ -420,25 +422,39 @@ class AppointmentEventController extends Controller
 
             $to = $patient->phone_number;
             $doctor = Doctor::find($doctorId);
-	            \Log::info('diffInMinutes', ['diff' => $diffInMinutes]);
-
-             if ($diffInMinutes > 30) {
-                // Optional: build a link (or remove this line if you don’t use shortUrl)
-                $shortUrl = url('/'); // Change this to your appointment detail route if needed
+            
+            if ($diffInMinutes > 30) {
                 $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
-                "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
-     
-
-                $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
-
-                if ($smsResult) {
-                    Log::info("SMS envoyé avec succès à $to : $message");
+                    "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+            
+                if (Str::startsWith($to, '+33')) {
+                    // Envoi via le service SMS France
+                    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+            
+                    if ($smsResult) {
+                        Log::info("SMS FR envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS FR à $to.");
+                    }
+                } elseif (Str::startsWith($to, '+216')) {
+                    // Envoi via le service Tunisie
+                    $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
+                        'gsm' => str_replace('+', '', $to),
+                        'message' => $message
+                    ]);
+            
+                    if ($response->successful() && $response->json('success') === true) {
+                        Log::info("SMS TN envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS TN à $to : " . $response->body());
+                    }
                 } else {
-                    Log::error("Échec de l'envoi du SMS à $to.");
+                    Log::warning("Code pays non pris en charge pour le numéro : $to");
                 }
             } else {
                 Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
-            } 
+            }
+            
             return response()->json([
                 'appointment_id' => $appointment->id,
                 'status' => 'success',
@@ -1461,24 +1477,40 @@ class AppointmentEventController extends Controller
         $alphasender = 'Wic doctor';
 
         $to = $patient->phone_number;
-        $doctor = Doctor::find($doctorId);
-        if ($diffInMinutes > 30) {
-            // Optional: build a link (or remove this line if you don’t use shortUrl)
-            $shortUrl = url('/'); // Change this to your appointment detail route if needed
-            $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
-            "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
- 
-
-            $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
-
-            if ($smsResult) {
-                Log::info("SMS envoyé avec succès à $to : $message");
+            $doctor = Doctor::find($doctorId);
+            
+            if ($diffInMinutes > 30) {
+                $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
+                    "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+            
+                if (Str::startsWith($to, '+33')) {
+                    // Envoi via le service SMS France
+                    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+            
+                    if ($smsResult) {
+                        Log::info("SMS FR envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS FR à $to.");
+                    }
+                } elseif (Str::startsWith($to, '+216')) {
+                    // Envoi via le service Tunisie
+                    $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
+                        'gsm' => str_replace('+', '', $to),
+                        'message' => $message
+                    ]);
+            
+                    if ($response->successful() && $response->json('success') === true) {
+                        Log::info("SMS TN envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS TN à $to : " . $response->body());
+                    }
+                } else {
+                    Log::warning("Code pays non pris en charge pour le numéro : $to");
+                }
             } else {
-                Log::error("Échec de l'envoi du SMS à $to.");
+                Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
             }
-        } else {
-            Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
-        }
+            
         // Log appointment creation in audit system
         /* app(\App\Services\AuditLogService::class)->logAppointment(
             $appointment->id,
@@ -1571,24 +1603,39 @@ class AppointmentEventController extends Controller
 
             $to = $patient->phone_number;
             $doctor = Doctor::find($doctorId);
+            
             if ($diffInMinutes > 30) {
-                // Optional: build a link (or remove this line if you don’t use shortUrl)
-                $shortUrl = url('/'); // Change this to your appointment detail route if needed
-
                 $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
-                "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
-     
-
-                $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
-
-                if ($smsResult) {
-                    Log::info("SMS envoyé avec succès à $to : $message");
+                    "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+            
+                if (Str::startsWith($to, '+33')) {
+                    // Envoi via le service SMS France
+                    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+            
+                    if ($smsResult) {
+                        Log::info("SMS FR envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS FR à $to.");
+                    }
+                } elseif (Str::startsWith($to, '+216')) {
+                    // Envoi via le service Tunisie
+                    $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
+                        'gsm' => str_replace('+', '', $to),
+                        'message' => $message
+                    ]);
+            
+                    if ($response->successful() && $response->json('success') === true) {
+                        Log::info("SMS TN envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS TN à $to : " . $response->body());
+                    }
                 } else {
-                    Log::error("Échec de l'envoi du SMS à $to.");
+                    Log::warning("Code pays non pris en charge pour le numéro : $to");
                 }
             } else {
                 Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
             }
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Rendez-vous forcé créé avec succès.',
