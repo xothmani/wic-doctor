@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Session;
 use App\Mail\AddPatientMail;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\Http;
 
 
 class PatientController extends Controller
@@ -269,32 +270,43 @@ class PatientController extends Controller
                 $responseData = json_decode($shortUrlResponse->getContent(), true); // Decode the response content into an array
                 Log::info("Short URL decoded data: " . print_r($responseData, true));
 
-                // Check if the 'short_link' exists in the response data
                 if (isset($responseData['short_link'])) {
                     $shortUrl = $responseData['short_link'];
-
-                    // Continue with the rest of your code
-                    $api_key = $api;
-                    $from = $numFrance; // Replace with your sender ID or authorized number
+                
+                    $from = $numFrance;
                     $to = $request->phone_number;
                     $alphasender = 'Wic doctor';
-
-                    // SMS message with short link
                     $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name . " chez Wic-Dr avec Dr." . $doctor->name . ".\n".
                         "Utilisateur: " . $request->phone_number . "\n" .
                         "MDP:  $generatedPassword\n" .
                         "RDV: $shortUrl\n";
-
-
-                    // Send SMS
-                    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
-
-                    if ($smsResult) {
-                        Log::info("SMS envoyé avec succès à $to : $message");
+                
+                    if (Str::startsWith($to, '+33')) {
+                        // Envoi via le service SMS France existant
+                        $smsResult = $this->sendsms($api, $from, $to, $message, $alphasender);
+                
+                        if ($smsResult) {
+                            Log::info("SMS envoyé avec succès à $to : $message");
+                        } else {
+                            Log::error("Échec de l'envoi du SMS à $to.");
+                        }
+                    } elseif (Str::startsWith($to, '+216')) {
+                        // Envoi via le service Tunisie
+                        $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
+                            'gsm' => str_replace('+', '', $to), // enlever le '+' pour respecter l'exemple
+                            'message' => $message
+                        ]);
+                
+                        if ($response->successful() && $response->json('success') === true) {
+                            Log::info("SMS Tunisie envoyé avec succès à $to : $message");
+                        } else {
+                            Log::error("Échec de l'envoi du SMS Tunisie à $to : " . $response->body());
+                        }
                     } else {
-                        Log::error("Échec de l'envoi du SMS à $to.");
+                        Log::warning("Code pays non pris en charge pour le numéro : $to");
                     }
-                } else {
+                }
+                else {
                     Log::error("Le lien court n'a pas pu être généré.");
                 }
             } else {
