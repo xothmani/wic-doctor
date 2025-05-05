@@ -592,6 +592,7 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
     // Log the parameters and day name for debugging
     Log::info("Checking pause collision for doctor: {$this->id}, Day: $dayName, Start Time: {$startTime->toTimeString()}, End Time: {$endTime->toTimeString()}, Online: $typeConsultation");
 
+
     // Check for collision directly in SQL
     $collisionExists = DB::table('availability_hours')
         ->where('doctor_id', $this->id)
