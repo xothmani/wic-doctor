@@ -281,12 +281,7 @@ class NotificationAPIController extends Controller
     {
         try {
             // Met à jour toutes les notifications de l'utilisateur en mettant 'read' à true
-            $updated = Notification::where('notifiable_id', $id_user)->update(['read' => true]);
-
-            if ($updated == 0) {
-                return $this->sendError('Aucune notification trouvée pour cet utilisateur', 404);
-            }
-
+            Notification::where('notifiable_id', $id_user)->update(['read' => true]);
         } catch (\Exception $e) {
             return $this->sendError($e->getMessage(), 500);
         }

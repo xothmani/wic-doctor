@@ -309,17 +309,6 @@ public function openingHours(): OpeningHours
     $openingHoursArray = [];
 
     foreach ($this->availabilityHours as $element) {
-        /** Code trouvé -> error ttranslate day (hamza) 
-        // Vérifier si le jour est valide
-        if (!isset($joursMapping[$element['day']])) {
-            throw new \Exception("Jour invalide : {$element['day']}");
-        }
-
-        // Convertir le jour en anglais
-        $dayInEnglish = $joursMapping[$element['day']];*/
-
-
-        /***** Correction par hamza ( à vérifier ) */
         $dayInEnglish = '';
         // Vérifier si le jour est valide
         if (!isset($joursMapping[$element['day']])) {
@@ -419,14 +408,6 @@ public function openingHours(): OpeningHours
      */
 public function weekCalendarRange(Carbon $date, string $typeConsultation, $mode="open", $pattern_id=0): array
 {
-    Log::info("Checking type consultation (show availibility_hours) **", [
-        'typeConsultation' => $typeConsultation,
-        'pattern_id' => $pattern_id,
-        'availabilityHours' => $this->availabilityHours,
-        'date weekCalendarRange' => $this->date
-    ]);
-
-    log::info("SESSION DURATION-------------WeekCalendarRange----------------1");
     if (isset($this->availabilityHours[0])) {
         $doctorDurationMinutes = $this->parseTime($this->availabilityHours[0]->session_duration);
     } else {
@@ -440,11 +421,6 @@ public function weekCalendarRange(Carbon $date, string $typeConsultation, $mode=
         $doctorDurationMinutes = $this->parseTime($this->availabilityHours[0]->session_duration);
     }
 
-    Log::info("Checking CarbonPeriod", [
-        'date' => $date,
-        'doctor minutes' => $doctorDurationMinutes
-    ]);
-
 
 
     $period = CarbonPeriod::since($date->subDay()->ceilDay())
@@ -453,11 +429,6 @@ public function weekCalendarRange(Carbon $date, string $typeConsultation, $mode=
 
     $dates = [];
     $now = Carbon::now($date->timezone);
-    log::info("SESSION DURATION-------------WeekCalendarRange----------------2");
-    Log::info('----------Period', [
-        'date' => $date,
-        'period'=>$period
-    ]);
 
     foreach ($period as $d) {
         $isOpen = $this->openingHours()->isOpenAt($d);
@@ -495,23 +466,10 @@ public function weekCalendarRange(Carbon $date, string $typeConsultation, $mode=
             //Need true ( Check if there are time slot available at this time and have same type of consultation)
             $iSameType = false;
             if($mode == "precise" && $pattern_id != 0){
-                log::info("SESSION DURATION-------------WeekCalendarRange----------------9");
-                Log::info('isOnlineAvailable -> IsSameType Function', [
-                    'Precise pattern' => $iSameType
-                ]);
                 $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation, $mode, $pattern_id);
             }else{
-                log::info("SESSION DURATION-------------WeekCalendarRange----------------10");
-                Log::info('isOnlineAvailable -> IsSameType Function Else', [
-                    'Precise pattern' => $iSameType
-                ]);
                 $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation);
             }
-            
-            log::info("SESSION DURATION-------------WeekCalendarRange----------------11");
-            Log::info('isOnlineAvailable', [
-                'iSameTypeXC' => $iSameType
-            ]);
 
             $timeSlot[1] = !$appointmentsExist && $iSameType && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation);
         }else{
@@ -646,8 +604,8 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
         ->where(function ($query) use ($startTime, $endTime) {
             $query->where(function ($q) use ($startTime, $endTime) {
                 // Check if the session time overlaps with the pause period
-                $q->where('pause_from', '<=', $endTime)
-                  ->where('pause_to', '>=', $startTime);
+                $q->where('pause_from', '<', $endTime)
+                  ->where('pause_to', '>', $startTime);
             });
         })
         ->exists();

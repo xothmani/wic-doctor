@@ -495,9 +495,9 @@ class AppointmentAPIController extends Controller
                 'payment_id' => $request->input('payment_id'),
                 'coupon' => $request->input('coupon'),
                 'taxes' => json_encode($request->input('taxes', [])), // Ensure taxes is an array and encode as JSON
-                'appointment_at' => Carbon::parse($request->input('appointment_at'), $utc)->setTimezone($tunis),
-                'start_at' => Carbon::parse($request->input('start_at'), $utc)->setTimezone($tunis),
-                'ends_at' => Carbon::parse($request->input('ends_at'), $utc)->setTimezone($tunis),
+                'appointment_at' => Carbon::parse($request->input('appointment_at',$tunis)),
+                'start_at' => Carbon::parse($request->input('start_at'), $tunis),
+                'ends_at' => Carbon::parse($request->input('ends_at'), $tunis),
                 'hint' => $request->input('hint'),
                 'online' => 'mobile',
                 'cancel' => $request->input('cancel', false),
@@ -607,32 +607,14 @@ class AppointmentAPIController extends Controller
      */
     public function update(int $id, Request $request): JsonResponse
     {
-        Log::info('Update Appointment 1');
         $appointment = Appointment::find($id);
-        Log::info('Update Appointment 2');
         $new_status_id = $request->input('appointment_status_id');
-        Log::info('Update Appointment 3');
         $appointment->cancel_reason = $request->input('cancel_reason');
-        Log::info('Update Appointment 4');
-        //$doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
-        //$appointment->doctor = $doctor;
         $appointment->appointment_status_id = $new_status_id;
-        Log::info('Update Appointment 5');
         $user = $this->userRepository->findWithoutFail($appointment->user_id);
-        Log::info('Update Appointment 6');
         $deviceToken = $user->device_token;
-        Log::info('Update Appointment 7');
-        //$patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
-        //$appointment->patient = $patient;
         $appointment->save();
-
-        Log::info('Update Appointment 8');
-
-        //Send notification to phone
-        Log::info("Update Appointment Lunch event", ["appointment" => $appointment, "status_id" => $new_status_id, "deviceToken" => $deviceToken]);
-        Log::info('Update Appointment 9');
         event(new AppointmentStatusChangedEvent($appointment,$new_status_id,$deviceToken));
-        Log::info('Update Appointment 10');
         return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
     }
 
