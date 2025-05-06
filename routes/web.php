@@ -716,3 +716,7 @@ Route::put('/update-appointments/{id}', [AppointmentEventController::class, 'upd
 
 // Delete appointment (DELETE request)/
 Route::delete('/update-appointments/{id}', [AppointmentEventController::class, 'destroy'])->name('appointments.destroy');
+
+// web.php
+Route::post('patients/store-secondary-profile', [PatientController::class, 'storeSecondaryProfile'])->name('patients.associate');
+Route::get('/patients/related/{mainPatientId}/{relation}', [PatientController::class, 'getRelatedPatients']);

@@ -48,7 +48,10 @@ class Patient extends Model implements HasMedia, Castable
         'date_naissance', 
         'antecedent',
 	    'email',
-        'type_carnet'
+        'type_carnet',
+        'is_main_profil',
+        'type_of_relationship'
+
    ];
 
 
@@ -71,15 +74,12 @@ class Patient extends Model implements HasMedia, Castable
     ];
 
     public static array $rules = [
-       // 'user_id' => 'required|exists:users,id',
         'first_name' => 'required|max:127',
         'last_name' => 'required|max:127',
         'phone_number' => 'required|max:50',
         'mobile_number' => 'max:50',
         'gender' => 'required|max:127',
-       // 'weight' => 'required|max:127',
-       // 'height' => 'required|max:127',
-        'date_naissance' => 'nullable|date', 
+     
     ];
 
     public array $translatable = [

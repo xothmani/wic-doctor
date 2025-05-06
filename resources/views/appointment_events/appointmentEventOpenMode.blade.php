@@ -268,12 +268,17 @@
                     </div>
                 </form>
             </div>
+
+
+
+
+
             <div class="sidebar-footer">
                 <button id="markAsFailed" class="btn btn-danger">
                     <i class="fas fa-times-circle"></i> {{ trans('lang.mark_failed') }}
                 </button>
                 <button id="markAsDone" class="btn btn-success">
-                    <i class="fas fa-check-circle"></i> {{ trans('lang.mark_ready') }}
+                    <i class="fas fa-check-circle"></i> {{ trans('lang.creatCons') }}
                 </button>
                 <button id="createTeleconsultation" class="btn btn-primary">
                     <i class="fas fa-video"></i> {{ trans('lang.create_teleconsultation') }}
@@ -350,10 +355,10 @@
                                     <div class="color-box" style="background-color: #56B4D3;"></div>
                                     <div class="filter-label">Terminé</div>
                                 </div>
-                                <div class="filter-item" data-status="Prêt">
-                                    <div class="color-box" style="background-color: #90D26D;"></div>
-                                    <div class="filter-label">Prêt</div>
-                                </div>
+                                <!--  <div class="filter-item" data-status="Prêt">
+                                            <div class="color-box" style="background-color: #90D26D;"></div>
+                                            <div class="filter-label">Prêt</div>
+                                        </div> -->
                                 <div class="filter-item" data-status="En cours">
                                     <div class="color-box" style="background-color: #F3D55B;"></div>
                                     <div class="filter-label">En cours</div>
@@ -428,6 +433,27 @@
             </div>
         </div>
     @endif
+
+    <div class="modal fade" id="confirmDoneModal" tabindex="-1" role="dialog" aria-labelledby="confirmDoneModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDoneModalLabel">{{ trans('lang.confirmation') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                </div>
+                <div class="modal-body">
+                    {{ trans('lang.do_you_want_to_end_appointment_and_start_consultation') }}
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success"
+                        id="confirmDoneButton">{{ trans('lang.confirm') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('styles')
@@ -1001,9 +1027,9 @@
                         render: {
                             option: function (item, escape) {
                                 return `<div>
-                                                            <div class="font-weight-bold">${escape(item.text)}</div>
-                                                            ${item.phone ? `<div class="text-muted small">${escape(item.phone)}</div>` : ''}
-                                                        </div>`;
+                                                                <div class="font-weight-bold">${escape(item.text)}</div>
+                                                                ${item.phone ? `<div class="text-muted small">${escape(item.phone)}</div>` : ''}
+                                                            </div>`;
                             },
                             item: function (item, escape) {
                                 return `<div>${escape(item.text)}</div>`;
@@ -1162,6 +1188,14 @@
                 }
             }
             $('#saveAppointmentBtn').on('click', function () {
+                const $btn = $(this);
+
+    // Save original button content to restore later
+    const originalContent = $btn.html();
+
+    // Show loading indicator and disable button
+    $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ trans("lang.loading") }}');
+    $btn.prop('disabled', true);
                 // Validate required fields
                 const type = $('#updateAppointmentType').val();
                 const date = $('#updateappointmentDate').val();
@@ -1279,7 +1313,10 @@
                             : '{{ __("lang.error_updating") }}';
 
                         toastr.error(errorMsg);
-                    }
+                    },complete: function () {
+            // Always restore the button
+            $btn.html(originalContent).prop('disabled', false);
+        }
                 });
             });
 
@@ -2082,11 +2119,39 @@
 
                         });
 
+                        let currentAppointment = null;
                         $('#markAsDone').off('click').on('click', function () {
-                            updateAppointmentStatus(event.id, 5, "Done");
-                            closeSidebar(); // Close the sidebar after confirming
+                            currentAppointment = appointment;
 
+                            // Fermer les autres modals actifs
+                            $('.modal').modal('hide'); // ça ferme tous les modals ouverts
+
+                            // Attendre un peu avant d’ouvrir celui-ci (laisser le temps de fermer l’autre)
+                            setTimeout(() => {
+                                $('#confirmDoneModal').modal('show');
+                            }, 300);
+
+                            closeSidebar(); // si nécessaire
                         });
+
+
+                        $('#confirmDoneButton').off('click').on('click', function () {
+                            if (currentAppointment) {
+                                // 1. Mise à jour du statut à 6 (Done)
+                                updateAppointmentStatus(currentAppointment.appointment_id, 6, "Done");
+
+                                // 2. Redirection vers la création de consultation
+                                setTimeout(() => {
+                                    const url = `{{ route('consultations.create', ['patient_id' => '__PATIENT_ID__']) }}`.replace('__PATIENT_ID__', encodeURIComponent(currentAppointment.patient_id));
+                                    window.location.href = url;
+                                }, 500);
+                            }
+
+                            $('#confirmDoneModal').modal('hide'); // fermer le modal
+                        });
+
+
+
                     }
                 });
             }
@@ -2108,6 +2173,13 @@
 
             $('#saveAppointment').on('click', function (e) {
                 e.preventDefault();
+
+                const $btn = $(this);
+                const originalContent = $btn.html();
+
+                // Show loading spinner and disable the button
+                $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ __("lang.loading") }}');
+                $btn.prop('disabled', true);
                 //console.log('Save button clicked'); // Debug log
                 const activeTab = $('#appointmentTypeTabs .nav-link.active');
                 const appointmentType = activeTab.data('type');
@@ -2177,6 +2249,10 @@
                             text: errorMessage,
                             icon: "error"
                         });
+                    },
+                    complete: function () {
+                        // Restore original button content and enable it
+                        $btn.html(originalContent).prop('disabled', false);
                     }
                 });
             });
