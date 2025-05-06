@@ -38,6 +38,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
+use App\Http\Middleware\TrackUserStatus;
 
 class Kernel extends HttpKernel
 {
@@ -49,7 +50,7 @@ class Kernel extends HttpKernel
      * @var array
      */
     protected $middleware = [
-        // \App\Http\Middleware\TrustHosts::class,
+            // \App\Http\Middleware\TrustHosts::class,
         TrustProxies::class,
         CheckForMaintenanceMode::class,
         ValidatePostSize::class,
@@ -77,6 +78,7 @@ class Kernel extends HttpKernel
             Locale::class,
             Permissions::class,
             RestrictIp::class,
+            TrackUserStatus::class,
         ],
 
         'api' => [
@@ -107,6 +109,6 @@ class Kernel extends HttpKernel
         'verified' => EnsureEmailIsVerified::class,
         'role' => RoleMiddleware::class,
         'permission' => PermissionMiddleware::class,
-	'check.membership' => \App\Http\Middleware\CheckMembership::class,
+        'check.membership' => \App\Http\Middleware\CheckMembership::class,
     ];
 }

@@ -25,9 +25,11 @@ use App\Repositories\DoctorRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\ClinicRepository;
 use function PHPUnit\Framework\isNull;
+use App\Services\AuditLogService;
 
 class AppointmentEventController extends Controller
 {
+    protected $auditLogService;
 
     /**
      * @var DoctorRepository
@@ -49,12 +51,15 @@ class AppointmentEventController extends Controller
         DoctorRepository $doctorRepository,
         ClinicRepository $clinicRepository,
         PatientRepository $patientRepository,
+        AuditLogService $auditLogService,
     ) {
 
         parent::__construct();
         $this->doctorRepository = $doctorRepository;
         $this->clinicRepository = $clinicRepository;
         $this->patientRepository = $patientRepository;
+        $this->auditLogService = $auditLogService;
+
     }
 
 
@@ -122,7 +127,8 @@ class AppointmentEventController extends Controller
                         'patient.email as patient_email',
                         'patient.phone_number as patient_phone_number',
                         'patient.mobile_number as patient_mobile_number',
-                        'pattern.nom as motif_name'
+                        'pattern.nom as motif_name',
+                        'pattern.color as motif_color'
                     )
                     ->join('users as user', 'appointments.user_id', '=', 'user.id')
                     ->join('appointment_statuses as appointment_status', 'appointments.appointment_status_id', '=', 'appointment_status.id')
@@ -136,6 +142,8 @@ class AppointmentEventController extends Controller
                     $decodedFirstName = json_decode($appointment->patient_first_name, true);
                     $decodedLastName = json_decode($appointment->patient_last_name, true);
                     $decodedMotifName = json_decode($appointment->motif_name, true);
+                    $color = $appointment->motif_color;
+
 
                     return [
                         'id' => $appointment->id,
@@ -153,6 +161,9 @@ class AppointmentEventController extends Controller
                         'online' => $appointment->online,
                         'type' => $appointment->type,
                         'note' => $appointment->hint,
+                        'backgroundColor' => $color,
+
+
                     ];
                 }));
             }
@@ -379,7 +390,7 @@ class AppointmentEventController extends Controller
 
             Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
             // Log appointment creation in audit system
-            app(\App\Services\AuditLogService::class)->logAppointment(
+            /* app(\App\Services\AuditLogService::class)->logAppointment(
                 $appointment->id,
                 'create_appointment',
                 trans('audit.create_appointment'),
@@ -394,8 +405,30 @@ class AppointmentEventController extends Controller
                     'notes' => $validated['notes'] ?? null
                 ],
                 $doctorId
-            );
+            ); */
 
+            $newValues = [
+                'id' => $appointment->id,
+                'doctor_id' => $doctorId,
+                'patient_id' => $validated['patient_id'],
+                'user_id' => auth()->id(),
+                'motif_id' => $validated['motif_id'] ?? null,
+                'start_at' => $startAt->toDateTimeString(),
+                'ends_at' => $endsAt->toDateTimeString(),
+                'appointment_type' => trans('audit.appointment_type.' . $validated['appointment_type']),
+                'notes' => $validated['notes'] ?? null,
+                'status' => trans('audit.appointment_status.scheduled')
+            ];
+
+            // Log the appointment creation
+            $this->auditLogService->createAuditLog(
+                'create_appointment',
+                'appointment',
+                null, // Let the service generate a description
+                [], // old_values
+                $newValues,
+                $doctorId
+            );
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
             \Log::info('sending sms');
@@ -408,6 +441,7 @@ class AppointmentEventController extends Controller
 
             $to = $patient->phone_number;
             $doctor = Doctor::find($doctorId);
+            \Log::info('diffInMinutes', ['diff' => $diffInMinutes]);
             if ($diffInMinutes > 30) {
                 // Optional: build a link (or remove this line if you don’t use shortUrl)
                 $shortUrl = url('/'); // Change this to your appointment detail route if needed
@@ -501,38 +535,22 @@ class AppointmentEventController extends Controller
 
     public function updateStatus(Request $request)
     {
+        \Log::info('Update Status Request:', $request->all());
         Log::info('Checking if user exists by email or phone number.', request()->all());
         $auditLogService = app(\App\Services\AuditLogService::class);
         try {
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
+            $appointment->appointment_status_id = $request->appointment_status_id;
+            $appointment->save();
 
-            /** solve problem cast */
-            $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
-            $appointment->doctor = $doctor;
-            $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
-            $appointment->clinic = $clinic;
-            $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
-            $appointment->patient = $patient;
             /**** */
 
             // Check if the status is "Canceled" (use the correct status ID for "Canceled")
-            if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
+            if ($request->appointment_status_id == 7) {
                 $appointment->cancel_reason = $request->cancel_Reason ?? "Aucune raison fournie";
-                // Retrieve the start and end times of the appointment
-                $startAt = $appointment->start_at; // Assuming you have these columns
-                $endAt = $appointment->ends_at; // Assuming you have these columns
-                $doctorId = $appointment->doctor_id;
-                $motifId = $appointment->motif_id;  // Adjust based on your schema
-                Log::info('ends_at', ['end' => $endAt]);
-                //Log::info('DoctorCast - Doctor value:', ['doctor' => $availabilityHours]);
-                // Insert or update availability in the `availability_hours` table
-                DB::table('availability_hours')->insertOrIgnore([
-                    'doctor_id' => $doctorId,
-                    'start_at' => $startAt,
-                    'end_at' => $endAt,
-                    'patern_id' => $motifId,
-                ]);
+                $appointment->save();
+
             }
 
             $patientUserId = $appointment->user_id;
@@ -618,10 +636,40 @@ class AppointmentEventController extends Controller
         return 'https://fcm.googleapis.com/v1/projects/' . $projectId . '/messages:send';
     }
 
+
+    ///////////////
+    public function delete($id)
+    {
+        try {
+            $appointment = Appointment::findOrFail($id);
+            $appointment->delete();
+
+            // Log audit event
+            $auditLogService = app(\App\Services\AuditLogService::class);
+            $auditLogService->logAppointment(
+                $id,
+                'delete_appointment',
+                'appointment_deleted',
+                ['appointment_id' => $id],
+                [],
+                $appointment->doctor_id
+            );
+
+            return response()->json(['message' => 'Appointment deleted successfully']);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to delete appointment: ' . $e->getMessage()], 500);
+        }
+    }
+    /////////////////
     //////////////////////
 // les getters
 /////////////////////
 
+
+    public function getStatuses()
+    {
+        return DB::table('appointment_statuses')->select('id', 'status')->get();
+    }
     public function getAvailableTimeSlots(Request $request)
     {
         \Log::info('Request received-1', ['request' => $request->all()]);
@@ -814,7 +862,7 @@ class AppointmentEventController extends Controller
                 'vacation' => false,
                 'all_slots' => [],
                 'taken_slots' => [],
-                'type' => $selectedType
+                'type' => $selectedType,
             ]);
         }
 
@@ -887,6 +935,7 @@ class AppointmentEventController extends Controller
                 'vacation' => true, // Doctor is on vacation
                 'all_slots' => [],
                 'taken_slots' => [],
+                'session_duration' => $sessionDuration,
             ]);
         }
 
@@ -894,7 +943,8 @@ class AppointmentEventController extends Controller
             'vacation' => false, // Doctor is not on vacation
             'all_slots' => array_values($allSlots),
             'taken_slots' => $takenSlots,
-            'type' => $selectedType
+            'type' => $selectedType,
+            'session_duration' => $sessionDuration,
         ];
 
         \Log::info('Final response', ['response' => $response]);
@@ -1489,6 +1539,7 @@ class AppointmentEventController extends Controller
         if (!$doctorId) {
             return back()->withErrors(['error' => 'Médecin non trouvé.']);
         }
+        $doctor = Doctor::find($doctorId);
 
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
@@ -1799,4 +1850,50 @@ class AppointmentEventController extends Controller
 
         return $result;
     }
+
+
+
+    public function update(Request $request, $id)
+    {
+        \Log::info('Updating appointment . Request data:', $request->all());
+
+        $appointment = Appointment::findOrFail($id);
+
+        $startAt = Carbon::parse($request->date . ' ' . $request->start_time, 'Africa/Tunis');
+        $sessionDuration = intval($request->session_duration);
+
+        $appointment->online = $request->appointment_type;
+        $appointment->start_at = $startAt;
+        $appointment->appointment_at = $startAt;
+        $appointment->ends_at = $startAt->copy()->addMinutes($sessionDuration);
+        $appointment->hint = $request->note;
+
+        // Add this line to update the motif_id
+        if ($request->has('motif_id')) {
+            $appointment->motif_id = $request->motif_id;
+        }
+
+        $appointment->save();
+
+        \Log::info('Appointment updated:', [
+            'id' => $appointment->id,
+            'start_at' => $appointment->start_at,
+            'ends_at' => $appointment->ends_at,
+            'hint' => $appointment->hint,
+            'motif_id' => $appointment->motif_id, // Add this to log the updated motif_id
+            'online' => $appointment->online // Add this to log the updated type
+        ]);
+
+        return response()->json(['message' => 'Appointment updated successfully']);
+    }
+
+
+    public function destroy($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->delete();
+
+        return response()->json(['message' => 'Appointment deleted successfully']);
+    }
+
 }

@@ -14,10 +14,41 @@
     <link rel="stylesheet" href="{{asset('dist/css/adminlte.min.css')}}">
     <link rel="stylesheet" href="{{asset('css/styles.min.css')}}">
     <link rel="stylesheet" href="{{asset('css/'.setting("theme_color","primary").'.min.css')}}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 	<meta name="csrf-token" content="{{ csrf_token() }}">
     @yield('css_custom')
     @stack('styles')
 	@yield('styles')
+    <script>
+    window.activeDoctorId = {{ auth()->check() ? auth()->user()->getDoctorId() : 'null' }};
+</script>
+<style>
+        /* Add the CSS here */
+        #audit-log-dropdown-menu {
+    /* Existing styles */
+    max-height: 70vh;
+    overflow-y: auto;
+    min-width: 400px;
+    padding: 0.5rem;
+    
+    /* Add these positioning fixes */
+    right: 0;
+    left: auto;
+    transform: translateX(-10px); /* Fine-tune horizontal position */
+    margin-top: 8px !important; /* Add space below trigger */
+}
+
+/* For better mobile behavior */
+@media (max-width: 768px) {
+    #audit-log-dropdown-menu {
+        min-width: 300px;
+        right: 10px;
+        left: auto !important;
+        transform: none;
+    }
+}
+        /* ... rest of the CSS ... */
+    </style>
 </head>
 
 <body class="@if(in_array(app()->getLocale(), ['ar','ku','fa','ur','he','ha','ks'])) rtl @else ltr @endif layout-fixed {{setting('fixed_header',false) ? "layout-navbar-fixed" : ""}} {{setting('fixed_footer',false) ? "layout-footer-fixed" : ""}} sidebar-mini {{setting('theme_color')}} {{setting('theme_contrast','')}}-mode" data-scrollbar-auto-hide="r" data-scrollbar-theme="os-theme-dark">
@@ -49,6 +80,18 @@
             @can('notifications.index')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('notifications*') ? 'active' : '' }}" href="{!! route('notifications.index') !!}"><i class="fas fa-bell"></i></a>
+                </li>
+            @endcan
+            <!-- New Audit Log Notification Icon -->
+            @can('audit-logs.index')
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="#" id="audit-log-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span class="badge bg-danger" id="audit-log-badge" style="display: none;">0</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" id="audit-log-dropdown-menu">
+                        <!-- Recent Audit Logs Will Be Dynamically Added Here -->
+                    </ul>
                 </li>
             @endcan
             <li class="nav-item dropdown">
@@ -203,6 +246,9 @@
 
 <!-- Include Agenda Handler -->
 <script src="{{ asset('js/agenda-handler.js') }}"></script>
+
+<script src="{{ asset('js/audit-log-handler.js') }}"></script>
+
 
 @stack('scripts')
 </body>

@@ -40,19 +40,18 @@
     $doctorMenuOpen = Request::is('doctors*') || Request::is('doctorReviews*') || Request::is('availabilityHours*') || Request::is('experiences*') || Request::is('patterns*');
 @endphp
 @can('doctors.index')
-<li class="nav-item has-treeview {{ $doctorMenuOpen ? 'menu-open' : '' }}">
-    <a href="#" class="nav-link {{ $doctorMenuOpen ? 'active' : '' }}">
-        @if($icons)
-            <i class="nav-icon fas fa-user-md"></i>
-        @endif
-        <p>{{ trans('lang.doctor_plural') }} <i class="right fas fa-angle-left"></i></p>
-    </a>
+    <li class="nav-item has-treeview {{ $doctorMenuOpen ? 'menu-open' : '' }}">
+        <a href="#" class="nav-link {{ $doctorMenuOpen ? 'active' : '' }}">
+            @if($icons)
+                <i class="nav-icon fas fa-user-md"></i>
+            @endif
+            <p>{{ trans('lang.doctor_plural') }} <i class="right fas fa-angle-left"></i></p>
+        </a>
 
         <ul class="nav nav-treeview">
             @can('doctor.index')
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('doctors*') ? 'active' : '' }}"
-                        href="{!! route('doctors.index') !!}">
+                    <a class="nav-link {{ Request::is('doctors*') ? 'active' : '' }}" href="{!! route('doctors.index') !!}">
                         @if($icons)
                             <i class="nav-icon fas fa-user-md"></i>
                         @endif
@@ -121,8 +120,7 @@
 
             @can('patterns.index')
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('patterns*') ? 'active' : '' }}"
-                        href="{!! route('patterns.index') !!}">
+                    <a class="nav-link {{ Request::is('patterns*') ? 'active' : '' }}" href="{!! route('patterns.index') !!}">
                         @if($icons)
                             <i class="nav-icon fas fa-stethoscope"></i>
                         @endif
@@ -389,8 +387,10 @@
 
 
 @can('chat.index')
-    <li class="nav-item has-treeview {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'menu-open' : '' }}">
-        <a href="#" class="nav-link {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'active' : '' }}">
+    <li
+        class="nav-item has-treeview {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'menu-open' : '' }}">
+        <a href="#"
+            class="nav-link {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'active' : '' }}">
             @if($icons)
                 <i class="nav-icon fas fa-comments"></i>
             @endif
@@ -399,25 +399,25 @@
         <ul class="nav nav-treeview">
             @can('chat.index')
                 <li class="nav-item">
-<a class="nav-link {{ Request::is('chat') ? 'active' : '' }}" href="{{ url('/chat') }}">
+                    <a class="nav-link {{ Request::is('chat') ? 'active' : '' }}" href="{{ url('/chat') }}">
                         @if($icons)
-                        <i class="nav-icon fas fa-user-md"></i>
+                            <i class="nav-icon fas fa-user-md"></i>
                         @endif
                         <p>Docteur & Docteur</p>
                     </a>
                 </li>
             @endcan
             @can('chatDP.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('chatDP*') ? 'active' : '' }}" href="{{ url('/chatDP') }}">
-            @if($icons)
-            <i class="nav-icon fas fa-hospital-user"></i>
-            @endif
-            <p>Docteur & Patient</p>
-        </a>
-    </li>
-@endcan
- @can('chatTE.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('chatDP*') ? 'active' : '' }}" href="{{ url('/chatDP') }}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-hospital-user"></i>
+                        @endif
+                        <p>Docteur & Patient</p>
+                    </a>
+                </li>
+            @endcan
+            @can('chatTE.index')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('chatTE*') ? 'active' : '' }}" href="{{ url('/chatTE') }}">
                         @if($icons)
@@ -430,11 +430,13 @@
         </ul>
     </li>
 @endcan
-    <style>.nav-icon {
-    width: 1.25rem; /* Assurez-vous que toutes les icônes ont la même largeur */
-    text-align: center;
-}
-</style> 
+<style>
+    .nav-icon {
+        width: 1.25rem;
+        /* Assurez-vous que toutes les icônes ont la même largeur */
+        text-align: center;
+    }
+</style>
 <!-- @can('addresses.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"
@@ -488,7 +490,7 @@
 
 @can('doctor.logs')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor/logs*') ? 'active' : '' }}" href="{!! route('audit-logs.index') !!}">
+        <a class="nav-link {{ Request::is('doctor/logs*') ? 'active' : '' }}" href="{!! route('audit.timeline') !!}">
             @if($icons)
                 <i class="nav-icon fas fa-history"></i>
             @endif
@@ -497,7 +499,16 @@
     </li>
 @endcan
 
-
+@can('doctor.messages')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor/messages*') ? 'active' : '' }}" href="{!! route('doctor.messages') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-comments"></i>
+            @endif
+            <p>{{ trans('lang.doctor_messages') }}</p>
+        </a>
+    </li>
+@endcan
 
 @can('coupons.index')
     <li class="nav-item">

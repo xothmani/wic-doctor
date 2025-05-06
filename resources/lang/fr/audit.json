@@ -1,41 +1,46 @@
 {
+    "columns": {
+        "user": "Utilisateur",
+        "doctor": "Docteur",
+        "user_role": "Rôle",
+        "action": "Action",
+        "entity_type": "Type d'entité",
+        "description": "Description",
+        "changes": "Modifications",
+        "created_at": "Date",
+        "mark_as_read": "Statut"
+    },
     "actions": {
-        "create_appointment": "Créer un rendez-vous",
-        "update_appointment_status": "Modifier le statut du rendez-vous",
-        "update_appointment": "Modifier le rendez-vous",
-        "delete_appointment": "Supprimer le rendez-vous",
-        "create_patient": "Créer un patient",
-        "update_patient": "Modifier le patient",
-        "delete_patient": "Supprimer le patient",
+        "create_appointment": "Création de rendez-vous",
+        "update_appointment": "Mise à jour de rendez-vous",
+        "delete_appointment": "Suppression de rendez-vous",
+        "Création de patient": "Création de patient",
+        "Mise à jour de patient": "Mise à jour de patient",
+        "Suppression de patient": "Suppression de patient",
         "login": "Connexion",
-        "logout": "Déconnexion"
+        "logout": "Déconnexion",
+        "availability_create": "Création de disponibilité",
+        "availability_update": "Mise à jour de disponibilité",
+        "availability_delete": "Suppression de disponibilité",
+        "document_upload": "Téléchargement de document",
+        "profile_update": "Mise à jour du profil"
     },
     "entities": {
         "appointment": "Rendez-vous",
         "patient": "Patient",
-        "user": "Utilisateur"
-    },
-    "fields": {
-        "status": "Statut",
-        "date": "Date",
-        "time": "Heure",
-        "doctor_id": "Médecin",
-        "patient_id": "Patient",
-        "creator_id": "Créé par",
-        "first_name": "Prénom",
-        "last_name": "Nom",
-        "email": "Email",
-        "phone": "Téléphone"
-    },
-    "columns": {
         "user": "Utilisateur",
-        "doctor": "Médecin",
-        "user_role": "Rôle",
-        "action": "Action",
-        "entity_type": "Type",
-        "entity_id": "ID",
-        "description": "Description",
-        "old_values": "Anciennes valeurs",
-        "new_values": "Nouvelles valeurs"
-    }
-}
+        "availability_hour": "Heure de disponibilité",
+        "document": "Document",
+        "profile": "Profil"
+    },
+    "no_old_values": "Aucune ancienne valeur",
+    "no_new_values": "Aucune nouvelle valeur",
+    "changes_details": "Détails des modifications",
+    "failed_to_load_changes": "Échec du chargement des modifications. Veuillez réessayer",
+    "failed_to_mark_read": "Échec du marquage comme lu. Veuillez réessayer",
+    "server_error": "Erreur serveur lors du chargement des détails",
+    "invalid_timestamp": "Erreur de format de date dans les données du journal",
+    "na": "N/A",
+    "system": "Système",
+    "read": "Lu"
+}   
