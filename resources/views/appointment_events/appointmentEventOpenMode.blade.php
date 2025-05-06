@@ -2172,90 +2172,91 @@
 
 
             $('#saveAppointment').on('click', function (e) {
-                e.preventDefault();
+    e.preventDefault();
 
-                const $btn = $(this);
-                const originalContent = $btn.html();
+    const $btn = $(this);
+    const originalContent = $btn.html();
 
-                // Show loading spinner and disable the button
-                $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ __("lang.loading") }}');
-                $btn.prop('disabled', true);
-                //console.log('Save button clicked'); // Debug log
-                const activeTab = $('#appointmentTypeTabs .nav-link.active');
-                const appointmentType = activeTab.data('type');
-                //console.log('Active tab type:', appointmentType); // Debug log
-                const patternSelectId = '#patern_id_' + appointmentType;
-                // Get form data
-                const appointmentData = {
-                    patient_id: $('#patientDropdown').val(),
-                    appointment_date: $('#appointmentDate').val(),
-                    appointment_time: $('#appointment_time').val(),
-                    patern_id: $(patternSelectId).val(),
-                    appointment_type: appointmentType, // Use the active tab's type
-                    notes: $('#appointment_notes').val(), // Add notes field
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                };
+    // Affiche le spinner et désactive le bouton
+    $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ __("lang.loading") }}');
+    $btn.prop('disabled', true);
 
-                //console.log('Appointment Data:', appointmentData); // Debug log
+    const activeTab = $('#appointmentTypeTabs .nav-link.active');
+    const appointmentType = activeTab.data('type');
+    const patternSelectId = '#patern_id_' + appointmentType;
 
-                // Validate form data
-                if (!appointmentData.patient_id) {
-                    Swal.fire({
-                        title: "Erreur",
-                        text: "Veuillez sélectionner un patient",
-                        icon: "error"
-                    });
-                    return;
-                }
+    const appointmentData = {
+        patient_id: $('#patientDropdown').val(),
+        appointment_date: $('#appointmentDate').val(),
+        appointment_time: $('#appointment_time').val(),
+        patern_id: $(patternSelectId).val(),
+        appointment_type: appointmentType,
+        notes: $('#appointment_notes').val(),
+        _token: $('meta[name="csrf-token"]').attr('content')
+    };
 
-                if (!appointmentData.appointment_time) {
-                    Swal.fire({
-                        title: "Erreur",
-                        text: "Veuillez sélectionner une heure de rendez-vous",
-                        icon: "error"
-                    });
-                    return;
-                }
+    // --- Validation : Patient
+    if (!appointmentData.patient_id) {
+        Swal.fire({
+            title: "Erreur",
+            text: "Veuillez sélectionner un patient",
+            icon: "error"
+        });
+        $btn.html(originalContent).prop('disabled', false); // RESTAURE LE BOUTON
+        return;
+    }
 
-                if (!appointmentData.patern_id) {
-                    Swal.fire({
-                        title: "Erreur",
-                        text: "Veuillez sélectionner un motif",
-                        icon: "error"
-                    });
-                    return;
-                }
+    // --- Validation : Heure
+    if (!appointmentData.appointment_time) {
+        Swal.fire({
+            title: "Erreur",
+            text: "Veuillez sélectionner une heure de rendez-vous",
+            icon: "error"
+        });
+        $btn.html(originalContent).prop('disabled', false);
+        return;
+    }
 
-                // Send AJAX request
-                $.ajax({
-                    url: "{{ route('appointments.store') }}",
-                    method: "POST",
-                    data: appointmentData,
-                    success: function (response) {
-                        toastr.success('{{ __("lang.saved_successfully") }}');
-                        $('#appointmentModal').modal('hide');
-                        $('#calendar').fullCalendar('refetchEvents');
-                    },
-                    error: function (xhr) {
-                        //console.log('Error:', xhr); // Debug log
+    // --- Validation : Motif
+    if (!appointmentData.patern_id) {
+        Swal.fire({
+            title: "Erreur",
+            text: "Veuillez sélectionner un motif",
+            icon: "error"
+        });
+        $btn.html(originalContent).prop('disabled', false);
+        return;
+    }
 
-                        let errorMessage = "Une erreur s'est produite";
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        }
+    // --- Envoi AJAX
+    $.ajax({
+        url: "{{ route('appointments.store') }}",
+        method: "POST",
+        data: appointmentData,
+        success: function (response) {
+            toastr.success('{{ __("lang.saved_successfully") }}');
+            $('#appointmentModal').modal('hide');
+            $('#calendar').fullCalendar('refetchEvents');
+        },
+        error: function (xhr) {
+            let errorMessage = "Une erreur s'est produite";
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
 
-                        Swal.fire({
-                            title: "Erreur",
-                            text: errorMessage,
-                            icon: "error"
-                        });
-                    },
-                    complete: function () {
-                        // Restore original button content and enable it
-                        $btn.html(originalContent).prop('disabled', false);
-                    }
-                });
+            Swal.fire({
+                title: "Erreur",
+                text: errorMessage,
+                icon: "error"
             });
+        },
+        complete: function () {
+            // Toujours restaurer le bouton après succès ou erreur
+            $btn.html(originalContent).prop('disabled', false);
+        }
+    });
+});
+
 
             // Add form submit prevention
             $('#appointmentForm').on('submit', function (e) {
