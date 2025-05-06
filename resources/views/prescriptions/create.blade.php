@@ -30,6 +30,7 @@
         <div class="clearfix"></div>
         @include('flash::message')
         @include('adminlte-templates::common.errors')
+        <div id="compatibility-result"></div>
         <div class="clearfix"></div>
         <div class="card shadow-sm">
             <div class="card-header">
