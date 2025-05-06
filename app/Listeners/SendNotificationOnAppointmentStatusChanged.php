@@ -7,11 +7,13 @@ use App\Notifications\FCMServices;
 use Log;
 use App\Models\Notification;
 use App\Models\Doctor;
+use Illuminate\Support\Str;
+
 
 class SendNotificationOnAppointmentStatusChanged
 {
     /**
-     * Create the event listener.
+     * Create the event listener Hamzaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.
      */
     public function __construct(FCMServices $fcmServices)
     {
@@ -25,7 +27,6 @@ class SendNotificationOnAppointmentStatusChanged
     {
         $appointment = $event->appointment;
         $deviceToken = $event->deviceToken;
-        Log::info("AppointmentStatusChangedEventListener", ["appointment" => $appointment,"deviceToken" => $deviceToken]);
 
         // Assurez-vous d'avoir un moyen d'obtenir le device_token du utilisateur
         $deviceToken = $appointment->user->device_token;
@@ -33,6 +34,8 @@ class SendNotificationOnAppointmentStatusChanged
         $title = 'Statut du rendez-vous modifié';
         $doctor = Doctor::find($appointment->doctor_id);
         $message = "Le statut de votre rendez-vous avec Dr.{$doctor->name} a été {$this->getStatusFromId($event->status_id)}.";
+
+
 
         // Envoi de la notification FCM
         $this->fcmService->sendNotification(
