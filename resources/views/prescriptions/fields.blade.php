@@ -181,12 +181,12 @@
                                                                         <div class="d-flex justify-content-between align-items-center">
                                                                             <div>
                                                                                 {!! 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                $isFrance
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                $isFrance
                                         ? "<strong>{$medicament->name}</strong>"
                                         : "<span style='color: black; font-size: 0.85em;'>" . ($medicament->drugClass?->dci_code ?? '') . ":</span>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <span style='color:#2E86C1; font-weight: bold;'> {$medicament->NOM_COMMERCIAL}</span> 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <span style='color: black;'> - {$medicament->category} - {$medicament->format} - {$medicament->form}</span>"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            !!}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <span style='color:#2E86C1; font-weight: bold;'> {$medicament->NOM_COMMERCIAL}</span> 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <span style='color: black;'> - {$medicament->category} - {$medicament->format} - {$medicament->form}</span>"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            !!}
                                                                             </div>
 
                                                                             <span class="badge rounded-pill text-white ms-2"
@@ -463,6 +463,11 @@
                 // Initialize compatibility analysis if it's a medication
                 setTimeout(triggerCompatibilityAnalysis, 500);
                 showCompatibilityWidget();
+                const row0 = document.querySelectorAll('.medicament-row')[0];
+                if (row0) {
+                    attachEventListenersToMedicamentRow(row0, 0);
+                    console.log("Attached event listeners to initial row (row 0)");
+                }
                 break;
 
             case 'Analyse':
@@ -873,6 +878,8 @@
         // Display result if AI is active
         if (aiAnalyzerActive) {
             resultContainer.style.display = 'block';
+            // Trigger analysis immediately when toggle is activated
+            setTimeout(triggerCompatibilityAnalysis, 100);
         } else {
             resultContainer.style.display = 'none';
         }
@@ -953,29 +960,36 @@
     function attachEventListenersToMedicamentRow(row, rowIndex) {
         console.log(`Attaching event listeners to medicament row ${rowIndex}`);
 
-        // Attach listeners to inputs and selects
-        row.querySelectorAll('input, select').forEach(input => {
-            // Skip hidden inputs
-            if (input.type === 'hidden' && !input.id?.includes('medicamentValue_')) return;
+        // Get the required fields we want to monitor
+        const medicamentInput = row.querySelector(`#medicamentInput_${rowIndex}`);
+        const dosageInput = row.querySelector(`input[name^="medicaments[${rowIndex}][dosage]"]`);
+        const frequencyInput = row.querySelector(`input[name^="medicaments[${rowIndex}][nb_de_fois]"]`);
+        const durationInput = row.querySelector(`input[name^="medicaments[${rowIndex}][nb_de_jours]"]`);
+        const frequencyUnitSelect = row.querySelector(`select[name^="medicaments[${rowIndex}][frequency_unit]"]`);
+        const durationUnitSelect = row.querySelector(`select[name^="medicaments[${rowIndex}][duration_unit]"]`);
 
-            // Add change event
-            input.addEventListener('change', function () {
-                console.log(`Input changed in row ${rowIndex}:`, this.name);
-                debounceAnalysisRequest();
-            });
+        // Add change listeners to these specific fields
+        const fieldsToWatch = [dosageInput, frequencyInput, durationInput, frequencyUnitSelect, durationUnitSelect];
 
-            // For text inputs, add input event too
-            if (input.type === 'text' || input.type === 'number') {
-                input.addEventListener('input', function () {
+        fieldsToWatch.forEach(field => {
+            if (field) {
+                field.addEventListener('change', function () {
+                    console.log(`Field changed in row ${rowIndex}:`, this.name);
                     debounceAnalysisRequest();
                 });
+
+                // For text inputs, also monitor input events for real-time feedback
+                if (field.type === 'text' || field.type === 'number') {
+                    field.addEventListener('input', function () {
+                        debounceAnalysisRequest();
+                    });
+                }
             }
         });
 
         // Special handling for medicament selection field
-        const medicamentInput = row.querySelector(`#medicamentInput_${rowIndex}`);
         if (medicamentInput) {
-            // Create a MutationObserver for value changes
+            // Track when medicament is selected
             const observer = new MutationObserver(function () {
                 debounceAnalysisRequest();
             });
@@ -1000,12 +1014,9 @@
         const medicamentRows = document.querySelectorAll('.medicament-row');
 
         medicamentRows.forEach((row, index) => {
-            const medicamentValueField = row.querySelector('input[name^="medicaments"][name$="[CODE_PCT]"]');
-            if (medicamentValueField && medicamentValueField.value) {
-                const medicamentData = extractMedicamentData(row);
-                if (medicamentData) {
-                    medicaments.push(medicamentData);
-                }
+            const medicamentData = extractMedicamentData(row);
+            if (medicamentData && medicamentData.medicationId) {
+                medicaments.push(medicamentData);
             }
         });
 
@@ -1017,7 +1028,7 @@
         if (!medicamentValueField || !medicamentValueField.value) return null;
 
         const medicamentDisplayField = row.querySelector('input[id^="medicamentInput_"]');
-        const medicamentName = medicamentDisplayField ? medicamentDisplayField.value : 'Unknown Medication';
+        const medicamentName = medicamentDisplayField ? medicamentDisplayField.value : '';
 
         const dosageField = row.querySelector('input[name^="medicaments"][name$="[dosage]"]');
         const dosage = dosageField ? dosageField.value : '';
@@ -1037,13 +1048,21 @@
         const scheduleField = row.querySelector('select[name^="medicaments"][name$="[horaire]"]');
         const schedule = scheduleField ? scheduleField.value : '';
 
+        // Check if mandatory fields are filled
+        const isComplete =
+            medicamentName &&
+            dosage &&
+            frequencyValue &&
+            durationValue;
+
         return {
             medicationId: medicamentValueField.value,
             medicationName: medicamentName,
             dosage: dosage,
-            frequency: `${frequencyValue} ${frequencyUnit}`,
-            duration: `${durationValue} ${durationUnit}`,
-            schedule: schedule
+            frequency: frequencyValue ? `${frequencyValue} ${frequencyUnit}` : '',
+            duration: durationValue ? `${durationValue} ${durationUnit}` : '',
+            schedule: schedule,
+            isComplete: isComplete
         };
     }
 
@@ -1077,18 +1096,36 @@
         const medicaments = collectAllMedicaments();
         console.log("Collected medicaments:", medicaments);
 
-        // Only analyze if we have medicaments
-        if (medicaments.length >= 1) {
-            showCompatibilityWidget();
-            analyzeCompatibility(medicaments);
-        } else {
+        // Check if we have any medicaments
+        if (medicaments.length === 0) {
             updateCompatibilityWidget({
                 status: "waiting",
                 message: "Veuillez ajouter des médicaments pour l'analyse",
                 details: "Une fois que vous aurez ajouté au moins un médicament avec un code valide, nous pourrons analyser la compatibilité."
             });
+            showCompatibilityWidget();
             hideCompatibilityResult();
+            return;
         }
+
+        // Check if all required fields are filled for all medicaments
+        const allComplete = medicaments.every(med => med.isComplete);
+
+        if (!allComplete) {
+            updateCompatibilityWidget({
+                status: "waiting",
+                message: "Veuillez remplir tous les champs obligatoires",
+                details: "L'analyse nécessite les champs suivants pour chaque médicament: Nom Commercial, Posologie, Nb de fois, et Durée traitement."
+            });
+            showCompatibilityWidget();
+            hideCompatibilityResult();
+            return;
+        }
+
+        // All conditions met, proceed with analysis
+        showCompatibilityWidget();
+        showCompatibilityLoading();
+        analyzeCompatibility(medicaments);
     }
 
     async function analyzeCompatibility(medicaments) {
@@ -1100,6 +1137,7 @@
 
         isAnalysisInProgress = true;
         updateCompatibilityWidget({ status: 'loading' });
+        showCompatibilityLoading();
 
         try {
             const requestId = Date.now().toString();
@@ -1248,6 +1286,33 @@
 
     // SECTION: COMPATIBILITY UI MANAGEMENT
 
+    function showCompatibilityLoading() {
+        const resultEl = document.getElementById('compatibility-result');
+        if (!resultEl) {
+            console.error("Compatibility result element not found!");
+            return;
+        }
+
+        console.log("Showing compatibility loading placeholders");
+
+        // Create the loading placeholder content
+        resultEl.innerHTML = `
+            <div class="result-content" style="background-color: #ffffff; border: 1px solid #e9ecef; padding: 15px; border-radius: 15px; margin: 10px;">
+                <div class="result-text" style="width: 100%;">
+                    <div class="placeholder-title-container">
+                        <div class="placeholder-icon animated-placeholder"></div>
+                        <div class="placeholder-title animated-placeholder"></div>
+                    </div>
+                    <div class="placeholder-message animated-placeholder" style="width: 85%;"></div>
+                    <div class="placeholder-details-line animated-placeholder"></div>
+                    <div class="placeholder-details-line animated-placeholder" style="width: 75%;"></div>
+                </div>
+            </div>
+        `;
+
+        // Show the result element
+        resultEl.style.display = 'block';
+    }
 
     // Function to update the compatibility widget
     function updateCompatibilityWidget(result) {
@@ -1277,16 +1342,16 @@
 
         if (result.status === 'loading') {
             widgetEl.innerHTML = `
-            <div class="compatibility-widget-inner">
-                <div class="compatibility-icon loading">
-                    <i class="fas fa-spinner fa-pulse"></i>
+                <div class="compatibility-widget-inner">
+                    <div class="compatibility-icon loading">
+                        <i class="fas fa-spinner fa-pulse"></i>
+                    </div>
+                    <div class="compatibility-content">
+                        <div class="compatibility-title">Analyse en cours</div>
+                        <div class="compatibility-message">Vérification de la compatibilité des médicaments...</div>
+                    </div>
                 </div>
-                <div class="compatibility-content">
-                    <div class="compatibility-title">Analyse en cours</div>
-                    <div class="compatibility-message">Vérification de la compatibilité des médicaments...</div>
-                </div>
-            </div>
-        `;
+            `;
             return;
         }
 
@@ -1539,8 +1604,8 @@
 
         // Define the CSS
         styleEl.innerHTML = `
-    
-    `;
+            
+        `;
 
         // Add the style to the document head
         document.head.appendChild(styleEl);
@@ -1751,6 +1816,71 @@
         .switch-label {
             margin-left: 10px;
             font-weight: 500;
+        }
+
+        /* Loading animation */
+        /* Placeholder loading animation */
+        @keyframes placeHolderShimmer {
+            0% {
+                background-position: -468px 0
+            }
+
+            100% {
+                background-position: 468px 0
+            }
+        }
+
+        .animated-placeholder {
+            animation-duration: 1.25s;
+            animation-fill-mode: forwards;
+            animation-iteration-count: infinite;
+            animation-name: placeHolderShimmer;
+            animation-timing-function: linear;
+            background: #f6f7f8;
+            background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+            background-size: 800px 104px;
+            position: relative;
+            border-radius: 4px;
+        }
+
+        .placeholder-title {
+            height: 22px;
+            width: 180px;
+            margin-bottom: 10px;
+        }
+
+        .placeholder-message {
+            height: 16px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 8px;
+        }
+
+        .placeholder-details {
+            height: 14px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .placeholder-details-line {
+            height: 14px;
+            margin-top: 6px;
+            width: 92%;
+        }
+
+        .placeholder-icon {
+            height: 28px;
+            width: 28px;
+            border-radius: 50%;
+            margin-right: 10px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .placeholder-title-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
         }
     </style>
 @endsection
