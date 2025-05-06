@@ -10,6 +10,8 @@ use App\Models\Doctor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Log;
+
 
 class AuditLogController extends Controller
 {
@@ -175,27 +177,63 @@ class AuditLogController extends Controller
 
     public function getDetails($id)
     {
-        \Log::info('[AUDIT CONTROLLER] Fetching audit log details', ['id' => $id]);
         try {
-            $auditLog = AuditLog::with(['user', 'doctor'])->findOrFail($id);
+            Log::info('[AUDIT API] Getting details', ['id' => $id]);
 
+            $auditLog = AuditLog::findOrFail($id);
+
+            // Check user permissions
+            $user = Auth::user();
+            $doctorId = $user->getDoctorId();
+
+            if (!$user->hasRole('admin')) {
+                if ($user->hasRole('doctor') && $doctorId != $auditLog->doctor_id) {
+                    return response()->json(['error' => 'Unauthorized'], 403);
+                }
+
+                if (
+                    $user->hasRole(['secretary', 'telesecretary']) &&
+                    $doctorId != $auditLog->doctor_id &&
+                    $user->id != $auditLog->user_id
+                ) {
+                    return response()->json(['error' => 'Unauthorized'], 403);
+                }
+            }
+
+            // Format the response
             $response = [
-                'action' => __('audit.actions.' . $auditLog->action, [], $auditLog->action),
-                'entity_type' => __('audit.entities.' . $auditLog->entity_type, [], $auditLog->entity_type),
-                'description' => __('audit.descriptions.' . $auditLog->description, [], $auditLog->description),
-                'user_name' => $auditLog->user ? $auditLog->user->name : __('audit.system'),
+                'id' => $auditLog->id,
+                'action' => $auditLog->action,
+                'entity_type' => $auditLog->entity_type,
+                'entity_id' => $auditLog->entity_id,
+                'description' => $auditLog->description,
+                'old_values' => $auditLog->old_values,
+                'new_values' => $auditLog->new_values,
+                'user_id' => $auditLog->user_id,
+                'user_name' => $auditLog->user ? $auditLog->user->name : null,
+                'doctor_id' => $auditLog->doctor_id,
+                'doctor_name' => $auditLog->doctor ? $auditLog->doctor->name : null,
+                'user_role' => $auditLog->user_role,
                 'created_at' => $auditLog->created_at->format('Y-m-d H:i:s'),
-                'old_values' => $auditLog->old_values ?? [],
-                'new_values' => $auditLog->new_values ?? [],
+                'read_at' => $auditLog->read_at ? $auditLog->read_at->format('Y-m-d H:i:s') : null,
             ];
 
-            \Log::info('[AUDIT CONTROLLER] Audit log details fetched', ['id' => $id]);
+            Log::info('[AUDIT API] Details retrieved successfully', ['id' => $id]);
+
             return response()->json($response);
-        } catch (\Exception $e) {
-            \Log::error('Error fetching audit log details: ' . $e->getMessage(), ['id' => $id]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('[AUDIT API] Audit log not found', ['id' => $id]);
             return response()->json(['error' => 'Audit log not found'], 404);
+        } catch (\Exception $e) {
+            Log::error('[AUDIT API] Error getting details', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to get audit log details'], 500);
         }
     }
+
     public function markAsRead(Request $request, $id)
     {
         \Log::info('markAsRead called for ID: ' . $id);
@@ -287,5 +325,48 @@ class AuditLogController extends Controller
             \Log::error('Error fetching recent audit logs: ' . $e->getMessage());
             return response()->json(['error' => 'Server error'], 500);
         }
+    }
+
+    public function timelineView(Request $request)
+    {
+        $query = AuditLog::query();
+        $user = Auth::user();
+        $doctorId = auth()->user()->getDoctorId();
+
+        // Apply your existing permission logic
+        if ($user->hasRole('admin')) {
+            // No restrictions
+        } elseif ($user->hasRole('doctor') && $doctorId) {
+            $query->where('doctor_id', $doctorId);
+        } elseif ($user->hasRole(['secretary', 'telesecretary']) && $doctorId) {
+            $query->where(function ($q) use ($doctorId, $user) {
+                $q->where('doctor_id', $doctorId)
+                    ->orWhere('user_id', $user->id);
+            });
+        }
+
+        // Apply filters
+        if ($action = $request->get('action')) {
+            $query->where('action', $action);
+        }
+
+        if ($start = $request->get('start_date')) {
+            $query->whereDate('created_at', '>=', $start);
+        }
+
+        if ($end = $request->get('end_date')) {
+            $query->whereDate('created_at', '<=', $end);
+        }
+
+        // Group by date
+        $logs = $query->orderBy('created_at', 'desc')->get();
+        $logsByDate = $logs->groupBy(function ($log) {
+            return $log->created_at->format('Y-m-d');
+        });
+
+        return view('audit_logs.timeline', [
+            'logsByDate' => $logsByDate,
+            'actions' => AuditLog::distinct('action')->pluck('action')
+        ]);
     }
 }

@@ -82,4 +82,9 @@ class AuditLog extends Model
     {
         return $query->whereBetween('created_at', [$startDate, $endDate]);
     }
+
+    public function entity()
+    {
+        return $this->morphTo();
+    }
 }

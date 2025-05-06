@@ -304,7 +304,7 @@ class MeetController extends Controller
                     "amount" => (int) $tele_price_tnd * 1000,
                     "type" => "immediate",
                     "description" => "description",
-                    "lifespan" => 10,
+                    "lifespan" => 100,
                     "checkoutForm" => true,
                     "addPaymentFeesToAmount" => true,
                     "firstName" => $patient_first_name,

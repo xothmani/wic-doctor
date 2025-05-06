@@ -409,22 +409,25 @@ class AppointmentEventController extends Controller
 
             $newValues = [
                 'id' => $appointment->id,
-                'creator_id' => auth()->id(),
                 'doctor_id' => $doctorId,
-                'patient_id' => $patient->id,
+                'patient_id' => $validated['patient_id'],
+                'user_id' => auth()->id(),
+                'motif_id' => $validated['motif_id'] ?? null,
                 'start_at' => $startAt->toDateTimeString(),
                 'ends_at' => $endsAt->toDateTimeString(),
                 'appointment_type' => trans('audit.appointment_type.' . $validated['appointment_type']),
-                'notes' => $validated['notes'] ?? null
+                'notes' => $validated['notes'] ?? null,
+                'status' => trans('audit.appointment_status.scheduled')
             ];
 
+            // Log the appointment creation
             $this->auditLogService->createAuditLog(
                 'create_appointment',
                 'appointment',
-                null, // 🔁 no need to pass description manually
+                null, // Let the service generate a description
                 [], // old_values
                 $newValues,
-                $appointment->doctor_id
+                $doctorId
             );
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);

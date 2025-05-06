@@ -38,6 +38,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PhotosCabinetController;
 use App\Http\Controllers\DoctorUserController;
 use App\Http\Controllers\ChatController;
+
 use App\Http\Controllers\AuditLogController;
 use Illuminate\Http\Request;
 //use App\Http\Controllers\MailController;
@@ -105,6 +106,11 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/audit-logs/details/{id}', [App\Http\Controllers\AuditLogController::class, 'getDetails'])->name('audit-logs.details');
     Route::post('/audit-logs/{id}/mark-read', [App\Http\Controllers\AuditLogController::class, 'markAsRead'])->name('audit-logs.mark-read');
     Route::get('/audit-logs/user-history', [App\Http\Controllers\AuditLogController::class, 'userHistory'])->name('audit-logs.user_history');
+    Route::get('/audit/timeline', [AuditLogController::class, 'timelineView'])->name('audit.timeline');
+    Route::post('/audit/mark-as-read', [AuditLogController::class, 'markAsRead'])->name('audit.markAsRead');
+    Route::get('/audit/get-changes', [AuditLogController::class, 'getChanges'])->name('audit.getChanges');
+
+
 });
 Route::get('payments/failed', 'PayPalController@index')->name('payments.failed');
 Route::get('payments/razorpay/checkout', 'RazorPayController@checkout');
@@ -575,20 +581,20 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     })->name('serveFile');
 
 
-    Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
-    Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
-        ->name('chatDP.show')
-        ->where(['doctorUserId' => '[0-9]+', 'patientUserId' => '[0-9]+']);
-    Route::get('/get-patients-by-letter', [ChatController::class, 'getPatientsByLetter']);
-    // routes/web.php
-    Route::post('/chatDP/send', [PatientDoctorChatController::class, 'sendMessage'])->name('chatDP.send');
-    // Afficher la page d'index du chat (pour les médecins)
-    Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
-    Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
-        ->name('chatDP.show');
-    // Envoyer un message (pour les médecins et les patients)
-    // Chemin corrigé avec 'chats'
-    Route::delete('/messages/{chatId}/chats/{messageId}', [PatientDoctorChatController::class, 'deleteMessage']);
+    /*     Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
+        Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
+            ->name('chatDP.show')
+            ->where(['doctorUserId' => '[0-9]+', 'patientUserId' => '[0-9]+']);
+        Route::get('/get-patients-by-letter', [ChatController::class, 'getPatientsByLetter']);
+        // routes/web.php
+        Route::post('/chatDP/send', [PatientDoctorChatController::class, 'sendMessage'])->name('chatDP.send');
+        // Afficher la page d'index du chat (pour les médecins)
+        Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
+        Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
+            ->name('chatDP.show');
+        // Envoyer un message (pour les médecins et les patients)
+        // Chemin corrigé avec 'chats'
+        Route::delete('/messages/{chatId}/chats/{messageId}', [PatientDoctorChatController::class, 'deleteMessage']); */
 
 
     Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
@@ -623,10 +629,10 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
 
 
-    Route::get('/messages/{doctorId}', [ChatController::class, 'getMessagesForDoctor']);
-    Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
-    Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
-    Route::get('/chat', [ChatController::class, 'showForm']);
+    /*     Route::get('/messages/{doctorId}', [ChatController::class, 'getMessagesForDoctor']);
+        Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
+        Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
+        Route::get('/chat', [ChatController::class, 'showForm']); */
     Route::get('storage/{file}', function ($file) {
         $path = storage_path('app/public/' . $file);
 
@@ -647,18 +653,18 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     })->name('download.file');
 
 
-    Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
-    Route::get('/last-message', [ChatController::class, 'getLastMessage']);
-    Route::delete('/messages/{chatId}/{messageId}', [ChatController::class, 'deleteMessage'])->name('chat.deleteMessage');
-    Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
-    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
-    Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
+    /*  Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
+     Route::get('/last-message', [ChatController::class, 'getLastMessage']);
+     Route::delete('/messages/{chatId}/{messageId}', [ChatController::class, 'deleteMessage'])->name('chat.deleteMessage');
+     Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
+     Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+     Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
 
-    Route::get('/chat/{userId}/{doctorId}', [ChatController::class, 'showChat']);
+     Route::get('/chat/{userId}/{doctorId}', [ChatController::class, 'showChat']);
 
-    Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
+     Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
 
-    Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
+     Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']); */
 
 
 
@@ -695,7 +701,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         return view('components.active-doctor', compact('activeDoctor'));
     })->middleware('auth');
 });
-Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
+/* Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
 Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
@@ -712,10 +718,38 @@ Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::c
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
 Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
-
+ */
 // Update appointment (PUT request)
 Route::put('/update-appointments/{id}', [AppointmentEventController::class, 'update'])->name('appointments.update');
 
 // Delete appointment (DELETE request)
 Route::delete('/update-appointments/{id}', [AppointmentEventController::class, 'destroy'])->name('appointments.destroy');
 
+// routes/web.php
+
+
+// Chat routes
+Route::middleware(['auth'])->group(function () {
+    // Main chat listing page
+    Route::get('doctor/messages', [ChatController::class, 'index'])
+        ->name('doctor.messages');
+
+    // Individual conversation view
+    Route::get('doctor/messages/{userId}', [ChatController::class, 'show'])
+        ->name('doctor.messages.show');
+
+    // API endpoints for chat functionality
+    Route::post('doctor/messages/send', [ChatController::class, 'sendMessage'])
+        ->name('doctor.messages.send');
+
+    Route::post('doctor/messages/read', [ChatController::class, 'markAsRead'])
+        ->name('doctor.messages.read');
+
+    // Optional: Get unread message count (for notifications)
+    Route::get('doctor/messages/unread-count', [ChatController::class, 'getUnreadCount'])
+        ->name('doctor.messages.unread-count');
+
+    // Optional: Get user online status
+    Route::get('doctor/messages/status/{userId}', [ChatController::class, 'getUserStatus'])
+        ->name('doctor.messages.status');
+});

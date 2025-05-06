@@ -9,6 +9,7 @@ use App\Models\Patient;
 use Illuminate\Support\Facades\Auth;
 use App\Events\AuditLogCreatedEvent;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class AuditLogService
@@ -348,37 +349,29 @@ class AuditLogService
         );
     }
 
-    public function createAuditLog($action, $entityType, $description, $oldValues = [], $newValues = [], $doctorId = null)
+    public function createAuditLog($action, $entityType, $description = null, $oldValues = [], $newValues = [], $doctorId = null)
     {
         \Log::info('[AUDIT SERVICE] Creating audit log', ['action' => $action, 'entity_type' => $entityType]);
-        $description = $this->generateDescription($action, $newValues);
-        /* 
-                // Preprocess old_values and new_values
-                $processedOldValues = $this->preprocessValues($oldValues, $fieldTypes);
-                $processedNewValues = $this->preprocessValues($newValues, $fieldTypes);
 
-                // Create the audit log
-                $auditLog = new AuditLog();
-                $auditLog->action = $action;
-                $auditLog->entity_type = $entityType;
-                $auditLog->description = $description;
-                $auditLog->old_values = $processedOldValues;
-                $auditLog->new_values = $processedNewValues;
-                $auditLog->user_id = Auth::id();
-                $auditLog->doctor_id = $doctorId ?? (Auth::user()->hasRole('doctor') ? Auth::user()->doctor_id : null);
-                $auditLog->save();
+        // Generate description if not provided
+        if (is_null($description)) {
+            $description = $this->generateDescription($action, $newValues);
+        }
 
-                \Log::info('[AUDIT SERVICE] Audit log created', ['id' => $auditLog->id]);
-                return $auditLog; */
+        // Get entity ID from new values or old values
+        $entityId = $newValues['id'] ?? $oldValues['id'] ?? null;
+
+        // Create the audit log
         $auditLog = AuditLog::create([
             'user_id' => Auth::id(),
-            'doctor_id' => $doctorId ?? (Auth::user()->hasRole('doctor') ? Auth::user()->doctor_id : null),
+            'doctor_id' => $doctorId ?? (Auth::user() && Auth::user()->hasRole('doctor') ? Auth::user()->getDoctorId() : null),
+            'user_role' => Auth::user() ? Auth::user()->getRoleNames()->first() : null,
             'action' => $action,
             'entity_type' => $entityType,
-            'entity_id' => $newValues['id'] ?? null,
+            'entity_id' => $entityId,
             'description' => $description,
-            'old_values' => $oldValues,  // If necessary, you can keep old_values as an array (optional)
-            'new_values' => $newValues,  // Or just store the raw new values
+            'old_values' => $oldValues,
+            'new_values' => $newValues,
         ]);
 
         \Log::info('[AUDIT SERVICE] Audit log created', ['id' => $auditLog->id]);
@@ -477,28 +470,264 @@ class AuditLogService
 
 
 
-    public function generateDescription(string $action, array $newValues): string
+
+
+
+    protected function formatValuesForDisplay($values)
     {
-        \Log::info('Generating description for action', ['action' => $action, 'newValues' => $newValues]);
-        switch ($action) {
-            case 'create_appointment':
-                // Translate and format the fields dynamically
-                $creatorName = User::find($newValues['creator_id'])->name ?? 'Unknown';
-                $doctorName = Doctor::find($newValues['doctor_id'])->name ?? 'Dr. Unknown';
-                $patient = Patient::find($newValues['patient_id']);
-                $patientName = $patient->first_name . " " . $patient->last_name;
-                $appointmentDate = Carbon::parse($newValues['start_at'])->locale('fr')->isoFormat('Do MMMM YYYY');
-                $appointmentTime = Carbon::parse($newValues['start_at'])->locale('fr')->isoFormat('HH:mm');
-                $appointmentType = $newValues['appointment_type'] == 'online' ? 'en ligne' : 'en personne';
+        if (empty($values)) {
+            return $values;
+        }
 
-                // Create the description
-                return "{$creatorName} created a {$appointmentType} appointment with {$patientName} on {$appointmentDate} at {$appointmentTime}.";
+        $formatted = [];
 
+        foreach ($values as $key => $value) {
+            // Skip null values
+            if (is_null($value)) {
+                $formatted[$this->formatFieldName($key)] = null;
+                continue;
+            }
 
+            // Format based on field name
+            switch (true) {
+                // Date and time fields
+                case Str::endsWith($key, ['_at', '_date', '_time', 'date', 'time']):
+                    if ($value && $this->isValidDate($value)) {
+                        $date = is_string($value) ? new Carbon($value) : $value;
+                        $formatted[$this->formatFieldName($key)] = $date->format('Y-m-d H:i:s');
+                    } else {
+                        $formatted[$this->formatFieldName($key)] = $value;
+                    }
+                    break;
 
-            default:
-                return ucfirst(str_replace('_', ' ', $action));
+                // Boolean fields
+                case is_bool($value):
+                    $formatted[$this->formatFieldName($key)] = $value ? 'Yes' : 'No';
+                    break;
+
+                // ID references - try to get meaningful names
+                case Str::endsWith($key, '_id') && !in_array($key, ['id']):
+                    $formatted[$this->formatFieldName($key)] = $this->getReferenceName($key, $value);
+                    break;
+
+                // Status fields might use translation keys
+                case Str::contains($key, ['status', 'type', 'state']):
+                    if (is_string($value) && Str::contains($value, '.')) {
+                        // Keep translations as they are
+                        $formatted[$this->formatFieldName($key)] = $value;
+                    } else {
+                        $formatted[$this->formatFieldName($key)] = $value;
+                    }
+                    break;
+
+                // Arrays or objects should be displayed as JSON
+                case is_array($value) || is_object($value):
+                    $formatted[$this->formatFieldName($key)] = json_encode($value, JSON_PRETTY_PRINT);
+                    break;
+
+                // Default: just keep the value as is
+                default:
+                    $formatted[$this->formatFieldName($key)] = $value;
+                    break;
+            }
+        }
+
+        return $formatted;
+    }
+
+    /**
+     * Format field names to be more readable
+     * 
+     * @param string $fieldName
+     * @return string
+     */
+    protected function formatFieldName($fieldName)
+    {
+        // Convert snake_case to Title Case
+        return ucfirst(str_replace('_', ' ', $fieldName));
+    }
+
+    /**
+     * Check if a value is a valid date string
+     * 
+     * @param mixed $value
+     * @return bool
+     */
+    protected function isValidDate($value)
+    {
+        if (!is_string($value)) {
+            return false;
+        }
+
+        try {
+            new Carbon($value);
+            return true;
+        } catch (\Exception $e) {
+            return false;
         }
     }
 
+    /**
+     * Try to get a meaningful name for an ID reference
+     * 
+     * @param string $field
+     * @param mixed $id
+     * @return string
+     */
+    protected function getReferenceName($field, $id)
+    {
+        if (empty($id)) {
+            return $id;
+        }
+
+        // Try to determine the model class based on the field name
+        $modelName = null;
+
+        switch ($field) {
+            case 'doctor_id':
+                $modelName = 'App\\Models\\Doctor';
+                break;
+            case 'patient_id':
+                $modelName = 'App\\Models\\Patient';
+                break;
+            case 'user_id':
+                $modelName = 'App\\Models\\User';
+                break;
+            case 'appointment_status_id':
+                $modelName = 'App\\Models\\AppointmentStatus';
+                break;
+            case 'motif_id':
+                $modelName = 'App\\Models\\Motif';
+                break;
+            // Add more mappings as needed
+        }
+
+        // If we have a model class, try to get the name
+        if ($modelName && class_exists($modelName)) {
+            try {
+                $model = $modelName::find($id);
+
+                if ($model) {
+                    // Try common name fields
+                    foreach (['name', 'title', 'label', 'full_name'] as $nameField) {
+                        if (isset($model->$nameField)) {
+                            return $model->$nameField . " (#{$id})";
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // Ignore errors and fall back to just the ID
+                Log::error('[AUDIT SERVICE] Error getting reference name', [
+                    'error' => $e->getMessage(),
+                    'field' => $field,
+                    'id' => $id
+                ]);
+            }
+        }
+
+        // Default: return the ID
+        return $id;
+    }
+
+    /**
+     * Generate a descriptive message for the audit log
+     * 
+     * @param string $action
+     * @param array $values
+     * @return string
+     */
+    protected function generateDescription($action, $values)
+    {
+        $entity = isset($values['entity_type']) ? strtolower(class_basename($values['entity_type'])) : '';
+
+        // If entity is empty, try to guess from action
+        if (empty($entity)) {
+            // Split action by underscore and get the last part (e.g., create_appointment -> appointment)
+            $parts = explode('_', $action);
+            if (count($parts) > 1) {
+                $entity = end($parts);
+            }
+        }
+
+        // Get entity id or name if available
+        $entityIdentifier = '';
+        if (isset($values['id'])) {
+            $entityIdentifier = "#{$values['id']}";
+        }
+
+        // Patient information if available
+        $patientInfo = '';
+        if (isset($values['patient_id'])) {
+            $patientName = $this->getReferenceName('patient_id', $values['patient_id']);
+            $patientInfo = " for patient {$patientName}";
+        }
+
+        // Doctor information if available
+        $doctorInfo = '';
+        if (isset($values['doctor_id'])) {
+            $doctorName = $this->getReferenceName('doctor_id', $values['doctor_id']);
+            $doctorInfo = " with doctor {$doctorName}";
+        }
+
+        // Date information for appointments
+        $dateInfo = '';
+        if (isset($values['start_at']) && $this->isValidDate($values['start_at'])) {
+            $date = new Carbon($values['start_at']);
+            $dateInfo = " on " . $date->format('Y-m-d') . " at " . $date->format('H:i');
+        }
+
+        // Build description based on action
+        switch ($action) {
+            case 'create_appointment':
+                return "Created appointment{$entityIdentifier}{$patientInfo}{$doctorInfo}{$dateInfo}";
+
+            case 'update_appointment':
+                return "Updated appointment{$entityIdentifier}{$patientInfo}{$doctorInfo}{$dateInfo}";
+
+            case 'cancel_appointment':
+                return "Cancelled appointment{$entityIdentifier}{$patientInfo}{$doctorInfo}{$dateInfo}";
+
+            case 'create_patient':
+                return "Created patient record{$entityIdentifier}";
+
+            case 'update_patient':
+                return "Updated patient information{$entityIdentifier}";
+
+            case 'delete_patient':
+                return "Deleted patient record{$entityIdentifier}";
+
+            // Add more action types as needed
+
+            default:
+                // Generic description
+                $actionVerb = Str::startsWith($action, 'create') ? 'Created' :
+                    (Str::startsWith($action, 'update') ? 'Updated' :
+                        (Str::startsWith($action, 'delete') ? 'Deleted' : 'Modified'));
+
+                return "{$actionVerb} {$entity}{$entityIdentifier}";
+        }
+    }
+
+    /**
+     * Mark an audit log as read
+     * 
+     * @param int $id
+     * @return bool
+     */
+    public function markAsRead($id)
+    {
+        try {
+            $auditLog = AuditLog::findOrFail($id);
+            $auditLog->read_at = now();
+            return $auditLog->save();
+        } catch (\Exception $e) {
+            \Log::error('[AUDIT SERVICE] Error marking log as read', [
+                'id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
 }
+
+
