@@ -92,6 +92,7 @@ class PatientController extends Controller
     public function create(): View
     {
         $user = $this->userRepository->pluck('name', 'id');
+        
 
         $hasCustomField = in_array($this->patientRepository->model(), setting('custom_field_models', []));
         if ($hasCustomField) {
@@ -101,11 +102,12 @@ class PatientController extends Controller
 
         // Récupérer la liste des assurances
         $assurances = Assurance::pluck('nom', 'id');
-
         return view('patients.create')
-            ->with("customFields", isset($html) ? $html : false)
-            ->with("user", $user)
-            ->with("assurances", $assurances);
+        ->with("customFields", isset($html) ? $html : false)
+        ->with("user", $user)
+        ->with("assurances", $assurances)
+        ->with("fiche", null); 
+    
     }
 
 
