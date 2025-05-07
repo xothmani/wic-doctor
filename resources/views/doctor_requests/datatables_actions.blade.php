@@ -43,10 +43,10 @@
                         <label for="titre">Titre :</label>
                         <select class="form-control" name="titre" id="titre" required>
                             <option value="" disabled selected>Sélectionner un titre</option>
-                            <option value="Mme.">Mme.</option>
-                            <option value="Mr.">Mr.</option>
-                            <option value="Dr.">Dr.</option>
-                            <option value="Pr.">Pr.</option>
+                            <option value="Mme.">Mme</option>
+                            <option value="Mr.">Mr</option>
+                            <option value="Dr.">Dr</option>
+                            <option value="Pr.">Pr</option>
                             <option value="Centre">Centre</option>
                         </select>
                     </div>
