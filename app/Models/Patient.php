@@ -48,7 +48,10 @@ class Patient extends Model implements HasMedia, Castable
         'date_naissance', 
         'antecedent',
 	    'email',
-        'type_carnet'
+        'type_carnet',
+        'is_main_profil',
+        'type_of_relationship'
+
    ];
 
 
@@ -68,18 +71,20 @@ class Patient extends Model implements HasMedia, Castable
         'notes' => 'string',
         'date_naissance' => 'date', 
         'age' => 'string'
+
     ];
 
     public static array $rules = [
-       // 'user_id' => 'required|exists:users,id',
         'first_name' => 'required|max:127',
         'last_name' => 'required|max:127',
         'phone_number' => 'required|max:50',
         'mobile_number' => 'max:50',
-        'gender' => 'required|max:127',
+
+        //'gender' => 'required|max:127',
        // 'weight' => 'required|max:127',
        // 'height' => 'required|max:127',
-        'date_naissance' => 'nullable|date', 
+        //'date_naissance' => 'required|date', 
+     
     ];
 
     public array $translatable = [
@@ -93,10 +98,14 @@ class Patient extends Model implements HasMedia, Castable
         'total_appointments',
         'age', // Append the age field dynamically
     ];
-     // Méthode pour calculer l'âge basé sur la date de naissance
-     public function setAgeAttribute()
+
+
+    
+     // Méthode pour calculer l'âge basé sur la date de naissanc
+    public function setAgeAttribute()
      {
-         if ($this->attributes['date_naissance']) {
+         if (!empty($this->attributes['date_naissance'])) {
+
              $birthDate = Carbon::parse($this->attributes['date_naissance']);
              $ageInYears = $birthDate->age;
              $ageInMonths = $birthDate->diffInMonths(Carbon::now());
@@ -113,8 +122,7 @@ class Patient extends Model implements HasMedia, Castable
              $this->attributes['age'] = 'N/S';
          }
      }
-     
-     
+
          // Mutateur pour nettoyer le champ 'notes'
     public function setNotesAttribute($value)
     {

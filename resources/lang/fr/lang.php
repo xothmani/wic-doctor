@@ -2198,5 +2198,11 @@ return [
     'prescription_medicament_per_year' => 'fois/an',
     'patient_notes_placeholder' => 'Insérer des notes',
     'stat' => 'Mes statistiques',
+    'creatCons' => 'Créer consultation',
+    'confirmation' => 'Confirmation',
+    'do_you_want_to_end_appointment_and_start_consultation' => 'Voulez-vous terminer ce rendez-vous et commencer la consultation ?',
+    'cancel' => 'Annuler',
+    'confirm' => 'Oui, continuer',
+
 
 ];

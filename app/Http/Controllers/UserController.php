@@ -339,7 +339,7 @@ if ($subscription) {
         auth()->login($user, true);
 
         // 4. Mettre à jour last_login_at
-        $user->last_login_at = now();
+        $user->last_login_at = now()->setTimezone('Africa/Tunis');
         $user->save();
 
         // 5. Rediriger vers le profil
