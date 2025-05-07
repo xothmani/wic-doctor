@@ -77,15 +77,24 @@
   </div>
 </div> -->
 
-
-@if(!is_null($fiche->numFiche))
+@isset($fiche)
+    @if(!is_null($fiche->numFiche))
+        <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+            {!! Form::label('numFiche', 'Numéro de fiche', ['class' => 'col-md-3 control-label text-md-right mr-2']) !!}
+            <div class="col-md-9">
+                {!! Form::text('numFiche', $fiche->numFiche, ['class' => 'form-control', 'readonly']) !!}
+            </div>
+        </div>
+    @endif
+@else
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('numFiche', 'Numéro de fiche', ['class' => 'col-md-3 control-label text-md-right mr-2']) !!}
         <div class="col-md-9">
-            {!! Form::text('numFiche', $fiche->numFiche,  ['class' => 'form-control','readonly']) !!}
+            {!! Form::text('numFiche', null, ['class' => 'form-control']) !!}
         </div>
     </div>
-@endif
+@endisset
+
 
 
 <!-- First Name Field -->
