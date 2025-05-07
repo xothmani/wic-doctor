@@ -37,24 +37,36 @@ class ConsultationController extends Controller
     {
         $patient_id = $request->query('patient_id');
         $selectedPatient = null;
+        $customFields = '';
+        $historiqueMedical = '';
+    
         if ($patient_id) {
             $selectedPatient = Patient::find($patient_id);
             if ($selectedPatient) {
                 $selectedPatient->full_name = $selectedPatient->first_name . ' ' . $selectedPatient->last_name;
+    
+                // Récupérer les consultations du patient avec ce médecin
+                $consultations = Consultation::where('patient_id', $patient_id)
+                    ->where('user_id', auth()->id()) // médecin connecté
+                    ->orderBy('dateConsultation', 'desc')
+                    ->get();
+    
+                // Construire l’historique médical
+                foreach ($consultations as $consultation) {
+                    $historiqueMedical .= "<p><strong>📅 " . $consultation->dateConsultation . "</strong> : " . $consultation->motif . "</p>";
+                }
             }
         }
-
-        $customFields = '';
-        return view('consultations.create', compact('selectedPatient', 'customFields'));
+    
+        return view('consultations.create', compact('selectedPatient', 'customFields', 'historiqueMedical'));
     }
+    
     public function store(CreateConsultationRequest $request): RedirectResponse
     {
-        // Récupérer les données du formulaire
         $input = $request->all();
         $input['motif'] = strip_tags($request->input('motif'));
         $input['raison'] = strip_tags($request->input('raison'));
-    
-        // Récupérer l'ID du patient
+        
         $patient_id = $request->input('patient_id');
         $patient = Patient::find($patient_id);
     
@@ -62,6 +74,19 @@ class ConsultationController extends Controller
             Flash::error('Patient non trouvé');
             return redirect()->back()->withInput();
         }
+        
+        // Mettre à jour les données du patient si l'option est activée
+            $patient->update([
+                'weight' => $request->input('weight'),
+                'height' => $request->input('height'),
+                'groupe_sanguin' => $request->input('groupe_sanguin'),
+                'medical_history' => $request->input('medical_history'),
+                'allergie' => $request->input('allergie'),
+                'antecedent' => $request->input('antecedent')
+            ]);
+            
+            \Log::info('Données patient mises à jour', ['patient_id' => $patient->id]);
+    
     
         // Récupérer l'ID de l'utilisateur authentifié (le médecin)
         $user_id = auth()->id();
@@ -74,49 +99,19 @@ class ConsultationController extends Controller
             return redirect()->back()->withInput();
         }
     
-        // Vérifier si la fiche existe pour ce patient et cet utilisateur
-        $fiche = Fiche::where('patient_id', $patient_id)
-                    ->where('user_id', $user_id)
-                    ->first();
-    
-        if (!$fiche) {
-            // Si aucune fiche n'existe, en créer une
-            $fiche = new Fiche([
-                'patient_id' => $patient_id,
-                'user_id' => $user_id,  // Associer la fiche à l'utilisateur authentifié
-            ]);
-    
-            // Générer le code de la fiche avant de la sauvegarder
-            $fiche->save();
-    
-            // Vérifiez si le code a bien été généré après la sauvegarde
-            if (!$fiche->code) {
-                Flash::error('Une erreur est survenue lors de la génération du code de la fiche.');
-                return redirect()->back()->withInput();
-            }
-    
-            // Enregistrer la relation dans la table doctor_patients
-            // Vérifiez si la relation existe déjà
-            $doctorPatient = DoctorPatients::where('patient_id', $patient_id)
-                                          ->where('doctor_id', $doctor->id)  // Utilisation du doctor_id
-                                          ->first();
-    
-            if (!$doctorPatient) {
-                // Si la relation n'existe pas, l'ajouter
-                DoctorPatients::create([
-                    'patient_id' => $patient_id,
-                    'doctor_id' => $doctor->id  // Associer à l'ID du médecin (doctor_id)
-                ]);
-                \Log::info('Relation doctor_patient ajoutée avec succès.', [
-                    'patient_id' => $patient_id,
-                    'doctor_id' => $doctor->id
-                ]);
-            }
+     
+
+        $fiche = Fiche::where('patient_id', $patient->id)
+                      ->where('user_id', auth()->id())
+                      ->first();
+        
+        if (!$fiche || !$fiche->code) {
+            Flash::error("Erreur : la fiche du patient n'a pas été générée.");
+            return redirect()->back()->withInput();
         }
-    
-        // Associer le code de la fiche à la consultation
-        $input['fiche_code'] = $fiche->code; 
-        \Log::info('Fiche associée avec succès:', ['fiche_code' => $fiche->code]);
+        
+        $input['fiche_code'] = $fiche->code;
+        
     
         try {
             // Créer la consultation et l'associer à la fiche du patient

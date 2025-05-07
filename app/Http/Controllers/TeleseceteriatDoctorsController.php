@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Kreait\Firebase\Factory;
+use App\Models\DoctorAssociate
+;
+
 
 use Illuminate\Support\Facades\Auth;
 
@@ -60,7 +63,7 @@ class TeleseceteriatDoctorsController extends Controller
     
         if ($userRole === 'doctor') {
             // Get associated tele-secretariats for the logged-in doctor
-            $teleSecretariats = DoctorTelesecretariat::where('doctor_id', $userId)
+            $teleSecretariats = DoctorAssociate::where('doctor_id', $userId)
                 ->with('telesecretariat')
                 ->get()
                 ->pluck('telesecretariat');
@@ -131,18 +134,36 @@ class TeleseceteriatDoctorsController extends Controller
         ]);
     }
    // Remplacez les méthodes index() et showForm() par ceci :
-public function showChat($doctorUserId = null, $teleSecretariatUserId = null)
+   // Dans TeleseceteriatDoctorsController.php
+   public function showChat($doctorUserId = null, $teleSecretariatUserId = null)
 {
-    // Vérification si l'utilisateur est un docteur
     $user = auth()->user();
-    if (!$user->doctor) {
-        return redirect()->route('login')->with('error', 'Accès réservé aux docteurs.');
+
+    if (!$user->doctor && !$user->telesecretariat) {
+        return redirect()->route('login')->with('error', 'Accès réservé.');
     }
 
-    // Récupération des télésecrétariats associés (TOUJOURS chargés)
-    $teleSecretariats = DoctorTelesecretariat::where('doctor_id', $user->doctor->id)
-        ->with('telesecretariat')
-        ->get();
+    // Récupération des contacts selon le rôle
+    if ($user->doctor) {
+        // Pour les docteurs: récupère les télésecrétaires associés
+        $partners = DoctorAssociate::where('doctor_id', $user->doctor->id)
+            ->with(['user' => function($query) {
+                $query->whereHas('telesecretariat');
+            }])
+            ->get()
+            ->pluck('user')
+            ->filter();
+        \Log::info('Telesecretaries fetched for doctor', ['partners' => $partners]);
+    } elseif ($user->telesecretariat) {
+        // Pour les télésecrétaires: récupère seulement les médecins associés
+        $partners = DoctorAssociate::where('user_id', $user->id)
+    ->with(['doctorModel.user'])  // Utilise la nouvelle relation
+    ->get()
+    ->map(function ($assoc) {
+        return $assoc->doctorModel->user ?? null;
+    })
+    ->filter();
+    }
 
     // PARTIE 1: Derniers messages de toutes les conversations
     $lastMessages = [];
@@ -159,7 +180,7 @@ public function showChat($doctorUserId = null, $teleSecretariatUserId = null)
                 if (!isset($lastMessages[$partnerId]) || 
                     $message['timestamp'] > $lastMessages[$partnerId]['timestamp']) {
                     $lastMessages[$partnerId] = [
-                        'content' => $message['content'],
+                        'content' => $message['content'] ?? null,
                         'timestamp' => $message['timestamp']
                     ];
                 }
@@ -167,81 +188,49 @@ public function showChat($doctorUserId = null, $teleSecretariatUserId = null)
         }
     }
 
-    // PARTIE 2: Messages de la conversation actuelle (si ID présent)
+    // PARTIE 2: Messages de la conversation actuelle
     $messagesArray = [];
-    if ($teleSecretariatUserId) {
-        $chatId = $this->getChatId(auth()->id(), $teleSecretariatUserId);
+    $chatId = null;
+
+    // Determine partner user ID based on role
+    $partnerUserId = $user->doctor ? $teleSecretariatUserId : $doctorUserId;
+
+    if ($partnerUserId) {
+        $chatId = $this->getChatId(auth()->id(), $partnerUserId);
         $currentChatResponse = Http::get("https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chatTE/{$chatId}/messages.json");
         $currentChatMessages = $currentChatResponse->json() ?? [];
 
         $messagesArray = collect($currentChatMessages)->map(function ($message, $key) {
             return [
-               'id' => $key,
-            'sender_id' => $message['sender_id'],
-            'sender_name' => User::find($message['sender_id'])->name,
-            'receiver_id' => $message['receiver_id'],
-            'receiver_name' => User::find($message['receiver_id'])->name,
-            'content' => $message['content'],
-            'timestamp' => $message['timestamp'],
-            'file_url' => $message['file_url'] ?? null,
+                'id' => $key,
+                'sender_id' => $message['sender_id'],
+                'sender_name' => User::find($message['sender_id'])->name,
+                'receiver_id' => $message['receiver_id'],
+                'receiver_name' => User::find($message['receiver_id'])->name,
+                'content' => $message['content'] ?? null,
+                'timestamp' => $message['timestamp'],
+                'file_url' => $message['file_url'] ?? null,
             ];
         })->sortBy('timestamp')->values()->all();
     }
 
     return view('chatTe', [
-        'teleSecretariats' => $teleSecretariats,
+        'partners' => $partners,
         'lastMessages' => $lastMessages,
         'messages' => $messagesArray,
-        'chatId' => $chatId, // Ajoutez cette ligne pour passer le chatId à la vue
-
+        'chatId' => $chatId,
         'teleSecretariatUserId' => $teleSecretariatUserId,
-        'doctorUserId' => auth()->id(),
+        'doctorUserId' => $doctorUserId,
+        'currentUser' => $user,
     ]);
 }
-public function index()
-{
-    // Vérifiez si l'utilisateur authentifié a un profil docteur
-    if (!Auth::user()->doctor) {
-        return redirect()->route('login')->with('error', 'Vous devez être un docteur pour accéder à cette page.');
-    }
-
-    // Récupérer l'ID du docteur authentifié
-    $authenticatedDoctorId = Auth::user()->doctor->id;
-
-    // Filtrer les télésécrétariats du docteur authentifié et récupérer les informations sur les télésécrétariats
-    $telesecretariats = DoctorTelesecretariat::where('doctor_id', $authenticatedDoctorId)
-        ->with('telesecretariat')
-        ->get();
-
-    // Initialiser Firebase
-
-    // Tableau pour stocker les derniers messages
-    $lastMessages = [];
-
-    // Récupérer les derniers messages pour chaque télésécrétariat
-    foreach ($telesecretariats as $telesecretariat) {
-        $partnerId = $telesecretariat->telesecretariat->id; // ID du télésécrétariat (partenaire)
-
-        // Récupérer les messages entre le docteur et le télésécrétariat depuis Firestore
-
-        // Extraire les données du dernier message
-     
-
-        // Récupérer le dernier message
-    }
-
-    // Passer les données à la vue
-    return view('chatTe', compact('telesecretariats', 'lastMessages'));
-}
-
-
+   
 private function getChatId($senderId, $receiverId)
 {
     return $senderId < $receiverId
         ? $senderId . '-' . $receiverId
         : $receiverId . '-' . $senderId;
 }
-
 
 
 
@@ -264,8 +253,8 @@ public function sendMessage(Request $request)
     // Gestion du fichier
     if ($request->hasFile('file')) {
         $file = $request->file('file');
-        $path = $file->store('chat_files', 'public');
-        $fileUrl = asset('storage/' . $path);
+        $path = $file->store('chat_files', 'public'); // Stocker dans storage/app/public/chat_=s
+        $fileUrl = asset('storage/' . $path); // Générer une URL comme http://yourdomain.com/storage/chat_e.ext
     }
 
 
@@ -293,6 +282,7 @@ public function sendMessage(Request $request)
         return back()->with('error', 'Échec de l\'envoi du message');
     }
 }
+
 
 
 }

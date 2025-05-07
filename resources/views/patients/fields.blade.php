@@ -84,9 +84,7 @@
 <span class="text-danger">*</span>
   <div class="col-md-9">
     {!! Form::text('first_name', null,  ['class' => 'form-control','placeholder'=>  trans("lang.patient_first_name_placeholder")]) !!}
-    <div class="form-text text-muted">
-      {{ trans("lang.patient_first_name_help") }}
-    </div>
+   
   </div>
 </div>
 <!-- Last Name Field -->
@@ -95,9 +93,7 @@
   <span class="text-danger">*</span>
   <div class="col-md-9">
     {!! Form::text('last_name', null,  ['class' => 'form-control','placeholder'=>  trans("lang.patient_last_name_placeholder")]) !!}
-    <div class="form-text text-muted">
-      {{ trans("lang.patient_last_name_help") }}
-    </div>
+   
   </div>
 </div>
 
@@ -106,9 +102,7 @@
   {!! Form::label('email', trans("lang.email"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
   <div class="col-md-9">
     {!! Form::email('email', $patient->user->email ?? null, ['class' => 'form-control','placeholder'=>  trans("lang.user_email_placeholder")]) !!}
-    <div class="form-text text-muted">
-      {{ trans("lang.user_email_help") }}
-    </div>
+   
   </div>
 </div>
 
@@ -179,17 +173,15 @@
 
 <!-- Phone Number Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-    {!! Form::label('phone_number', trans("lang.patient_phone_number"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+    {!! Form::label('phone_number', trans("lang.patient_phone_number"), ['class' => 'col-md-3 control-label text-md-right']) !!}
     <span class="text-danger">*</span>
 
     <div class="col-md-9">
         <div id="phone-number-input">
-        {!! Form::text('phone_number', null, ['class' => 'form-control', 'id' => 'phone-input', 'placeholder' => trans("lang.patient_phone_number_placeholder"), 'style' => 'width: 545px;',     'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57'
+        {!! Form::text('phone_number', null, ['class' => 'form-control', 'id' => 'phone-input', 'placeholder' => trans("lang.patient_phone_number_placeholder"),     'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57'
             ]) !!}
         </div>
-        <div class="form-text text-muted">
-            {{ trans("lang.patient_phone_number_help") }}
-        </div>
+        
     </div>
 </div>
 
@@ -200,52 +192,46 @@
         {!! Form::label('mobile_number', trans("lang.patient_mobile_number"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             {!! Form::text('mobile_number', null,  ['class' => 'form-control','placeholder'=>  trans("lang.patient_mobile_number_placeholder"), 'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57']) !!}
-            <div class="form-text text-muted">
-                {{ trans("lang.patient_mobile_number_help") }}
-            </div>
+           
         </div>
     </div>
-    <!-- CNSS and Assurance Field -->
+<!-- CNSS and Assurance Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
     {!! Form::label('cnss_assurance', trans("lang.patient_cnss_assurance"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
     <div class="col-md-9 d-flex align-items-center">
         <div class="form-check mx-2 d-flex align-items-center">
-            {!! Form::checkbox('cnss', 1, null, ['class' => 'form-check-input', 'id' => 'cnss', 'onchange' => 'toggleFields()']) !!}
+            {!! Form::checkbox('cnss', 1, old('cnss', strpos($patient->type_carnet ?? '', 'cnam') !== false), ['class' => 'form-check-input', 'id' => 'cnss', 'onchange' => 'toggleFields()']) !!}
             {!! Form::label('cnss', trans("lang.patient_cnss"), ['class' => 'form-check-label mx-1']) !!}
         </div>
         <div class="form-check mx-2 d-flex align-items-center">
-            {!! Form::checkbox('assurance', 1, null, ['class' => 'form-check-input', 'id' => 'assurance', 'onchange' => 'toggleFields()']) !!}
+            {!! Form::checkbox('assurance_checkbox', 1, old('assurance_checkbox', strpos($patient->type_carnet ?? '', 'assurance') !== false), ['class' => 'form-check-input', 'id' => 'assurance', 'onchange' => 'toggleFields()']) !!}
             {!! Form::label('assurance', trans("lang.patient_assurance"), ['class' => 'form-check-label mx-1']) !!}
         </div>
     </div>
 </div>
 
+<!-- Champ caché type_carnet -->
+{!! Form::hidden('type_carnet', old('type_carnet', $patient->type_carnet ?? ''), ['id' => 'type_carnet']) !!}
 <!-- Matricule CNSS Field -->
-<div id="cnssFields" class="d-none">
+<div id="cnssFields" class="{{ strpos($patient->type_carnet ?? '', 'cnam') !== false ? '' : 'd-none' }}">
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('matriculeCNSS', trans("lang.patient_matricule_cnss"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
-            {!! Form::text('matriculeCNSS', null, ['class' => 'form-control', 'placeholder' => trans("lang.patient_matricule_cnss_placeholder"), 'id' => 'matriculeCNSS']) !!}
-            <div class="form-text text-muted">
-                {{ trans("lang.patient_matricule_cnss_help") }}
-            </div>
+            {!! Form::text('matriculeCNSS', old('matriculeCNSS', $patient->matriculeCNSS ?? null), ['class' => 'form-control', 'placeholder' => trans("lang.patient_matricule_cnss_placeholder"), 'id' => 'matriculeCNSS']) !!}
         </div>
     </div>
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('dateExpiration', trans("lang.patient_date_expiration"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
-            {!! Form::date('dateExpiration', null, ['class' => 'form-control', 'id' => 'dateExpiration']) !!}
-            <div class="form-text text-muted">
-                {{ trans("lang.patient_date_expiration_help") }}
-            </div>
+            {!! Form::date('dateExpiration', old('dateExpiration', $patient->dateExpiration ?? null), ['class' => 'form-control', 'id' => 'dateExpiration']) !!}
         </div>
     </div>
 </div>
 
 <!-- Assurance Field -->
-<div id="assuranceField" class="d-none">
+<div id="assuranceField" class="{{ strpos($patient->type_carnet ?? '', 'assurance') !== false ? '' : 'd-none' }}">
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-        {!! Form::label('assurance', trans("lang.patient_assurance"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+        {!! Form::label('assuranceFieldInput', trans("lang.patient_assurance"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             <select name="assurance" id="assuranceFieldInput" class="form-control">
                 <option value="" disabled {{ old('assurance', $patient->assurance ?? '') == '' ? 'selected' : '' }}>
@@ -257,25 +243,20 @@
                     </option>
                 @endforeach
             </select>
-            <div class="form-text text-muted">
-                {{ trans("lang.patient_assurance_help") }}
-            </div>
         </div>
     </div>
 </div>
 
 
 
-
 <!-- Notes Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row ">
+<!--     <div class="form-group align-items-baseline d-flex flex-column flex-md-row ">
         {!! Form::label('notes', trans("lang.patient_notes"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             {!! Form::textarea('notes', null, ['class' => 'form-control','placeholder'=>
              trans("lang.patient_notes_placeholder")  ]) !!}
-            <div class="form-text text-muted">{{ trans("lang.patient_notes_help") }}</div>
         </div>
-    </div>
+    </div> -->
 
 
 
@@ -289,7 +270,7 @@
 
 <!-- Gender Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-    {!! Form::label('gender', trans("lang.patient_gender"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+    {!! Form::label('gender', trans("lang.patient_gender"), ['class' => 'col-md-3 control-label text-md-right'])  !!}
     <span class="text-danger">*</span>
 
     <div class="col-md-9">
@@ -298,19 +279,15 @@
             'femme' => trans('lang.patient_female'), 
             'autre' => trans('lang.patient_other')
         ], null, ['class' => 'select2 form-control']) !!}
-        <div class="form-text text-muted">{{ trans("lang.patient_gender_help") }}</div>
     </div>
 </div>
 <!-- Date Naissance Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
     {!! Form::label('date_naissance', trans("lang.patient_date_naissance"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-    <span class="text-danger">*</span>
 
     <div class="col-md-9">
         {!! Form::date('date_naissance', old('date_naissance', $patient->date_naissance ?? null), ['class' => 'form-control']) !!}
-        <div class="form-text text-muted">
-            {{ trans("lang.patient_date_naissance_help") }}
-        </div>
+       
     </div>
 </div>
 
@@ -320,22 +297,18 @@
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
   {!! Form::label('weight', trans("lang.patient_weight"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
   <div class="col-md-9">
-    {!! Form::text('weight', null,  ['class' => 'form-control','placeholder'=>  trans("lang.patient_weight_placeholder")]) !!}
-    <div class="form-text text-muted">
-      {{ trans("lang.patient_weight_help") }}
-    </div>
+    {!! Form::number('weight', null,  ['class' => 'form-control', 'placeholder'=> trans("lang.patient_weight_placeholder"), 'inputmode' => 'numeric', 'pattern' => '[0-9]*']) !!}
   </div>
 </div>
+
 <!-- Height Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-      {!! Form::label('height', trans("lang.patient_height"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-      <div class="col-md-9">
-        {!! Form::text('height', null,  ['class' => 'form-control','placeholder'=>  trans("lang.patient_height_placeholder")]) !!}
-        <div class="form-text text-muted">
-          {{ trans("lang.patient_height_help") }}
-        </div>
-      </div>
-    </div>
+<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+  {!! Form::label('height', trans("lang.patient_height"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+  <div class="col-md-9">
+    {!! Form::number('height', null,  ['class' => 'form-control', 'placeholder'=> trans("lang.patient_height_placeholder"), 'inputmode' => 'numeric', 'pattern' => '[0-9]*']) !!}
+  </div>
+</div>
+
     <!-- Groupe Sanguin Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
     {!! Form::label('groupe_sanguin', trans("lang.patient_groupe_sanguin"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
@@ -351,9 +324,7 @@
             'O+' => 'O+',
             'O-' => 'O-'
         ], null, ['class' => 'select2 form-control']) !!}
-        <div class="form-text text-muted">
-            {{ trans("lang.patient_groupe_sanguin_help") }}
-        </div>
+     
     </div>
 </div>
 
@@ -363,9 +334,7 @@
     {!! Form::label('allergie', trans("lang.patient_allergie"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
     <div class="col-md-9">
         {!! Form::textarea('allergie', null, ['class' => 'form-control', 'rows' => 3, 'placeholder' => trans("lang.patient_allergie_placeholder")]) !!}
-        <div class="form-text text-muted">
-            {{ trans("lang.patient_allergie_help") }}
-        </div>
+  
     </div>
 </div>
 <!-- Antecedent Field -->
@@ -373,15 +342,13 @@
     {!! Form::label('antecedent', trans("lang.patient_antecedent"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
     <div class="col-md-9">
         {!! Form::textarea('antecedent', null, ['class' => 'form-control', 'rows' => 3, 'placeholder' => trans("lang.patient_antecedent_placeholder")]) !!}
-        <div class="form-text text-muted">
-            {{ trans("lang.patient_antecedent_help") }}
-        </div>
+      
     </div>
 </div>
      
 
 <!-- Medical Historic Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row ">
+<!--     <div class="form-group align-items-baseline d-flex flex-column flex-md-row ">
         {!! Form::label('medical_history', trans("lang.patient_medical_history"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
         <div class="col-md-9">
             {!! Form::textarea('medical_history', null, ['class' => 'form-control','placeholder'=>
@@ -389,7 +356,7 @@
             <div class="form-text text-muted">{{ trans("lang.patient_medical_history_help") }}</div>
         </div>
     </div>
-
+ -->
 
 
 </div>
@@ -426,73 +393,66 @@
         </div>
     </div>
 </div>
-
 <script>
-function toggleFields() {
-    const cnssCheckbox = document.getElementById('cnss');
-    const assuranceCheckbox = document.getElementById('assurance');
-    const cnssFields = document.getElementById('cnssFields');
-    const assuranceField = document.getElementById('assuranceField');
-    
-    const matriculeCNSS = document.getElementById('matriculeCNSS');
-    const dateExpiration = document.getElementById('dateExpiration');
-    const assuranceFieldInput = document.getElementById('assuranceFieldInput');
+    function toggleFields() {
+        const cnssCheckbox = document.getElementById('cnss');
+        const assuranceCheckbox = document.getElementById('assurance');
+        const cnssFields = document.getElementById('cnssFields');
+        const assuranceField = document.getElementById('assuranceField');
+        const typeCarnetInput = document.getElementById('type_carnet');
 
-    // Afficher/masquer et gérer les champs CNSS
-    if (cnssCheckbox.checked) {
-        cnssFields.classList.remove('d-none');
-        matriculeCNSS.setAttribute('required', 'required');
-        dateExpiration.setAttribute('required', 'required');
-    } else {
-        cnssFields.classList.add('d-none');
-        matriculeCNSS.removeAttribute('required');
-        dateExpiration.removeAttribute('required');
+        // Afficher/Masquer les champs CNSS et Assurance
+        cnssFields.classList.toggle('d-none', !cnssCheckbox.checked);
+        assuranceField.classList.toggle('d-none', !assuranceCheckbox.checked);
+
+        // Mettre à jour le champ type_carnet
+        let values = [];
+        if (cnssCheckbox.checked) values.push('cnam');
+        if (assuranceCheckbox.checked) values.push('assurance');
+        typeCarnetInput.value = values.join(' - ');
     }
 
-    // Afficher/masquer et gérer le champ Assurance
-    if (assuranceCheckbox.checked) {
-        assuranceField.classList.remove('d-none');
-        assuranceFieldInput.setAttribute('required', 'required');
-    } else {
-        assuranceField.classList.add('d-none');
-        assuranceFieldInput.removeAttribute('required');
-    }
-}
-
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleFields(); // Afficher selon données initiales
+    });
 </script>
+
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var input = document.querySelector("#phone-input");
     var phoneInput = window.intlTelInput(input, {
-        initialCountry: "TN", // Pays par défaut (Tunisie)
+        initialCountry: "TN",
         geoIpLookup: function(callback) {
             fetch("https://ipinfo.io")
-                .then(function(response) { return response.json(); })
-                .then(function(location) {
-                    var countryCode = location && location.country ? location.country : "TN"; // Défaut: TN
+                .then(response => response.json())
+                .then(location => {
+                    const countryCode = location && location.country ? location.country : "TN";
                     callback(countryCode);
                 });
         },
-        preferredCountries: ["us", "ca", "fr", "tn"], // Pays préférés
-        separateDialCode: true, // Code séparé
+        preferredCountries: ["us", "ca", "fr", "tn"],
+        separateDialCode: true,
         utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
     });
 
-    // Associer le code téléphonique au numéro de téléphone
-    input.addEventListener('blur', function() {
-        var countryData = phoneInput.getSelectedCountryData(); // Obtenir les infos pays
-        var dialCode = countryData.dialCode; // Récupérer le code téléphonique, ex: "216"
-        var phoneNumber = input.value; // Numéro de téléphone saisi
+    // ✅ Remplir le champ avec le numéro complet s'il existe
+    const storedNumber = @json(old('phone_number', $patient->phone_number ?? ''));
+    if (storedNumber) {
+        phoneInput.setNumber(storedNumber); // => format +21622222222
+    }
 
-        // Associer le code au numéro si ce n'est pas déjà fait
-        if (phoneNumber && !phoneNumber.startsWith("+" + dialCode)) {
-            input.value = "+" + dialCode + phoneNumber; // Ajouter le code au début
-        }
-    });
+    // ✅ À l'envoi du formulaire, forcer le bon format
+    const form = input.closest("form");
+    if (form) {
+        form.addEventListener("submit", function () {
+            input.value = phoneInput.getNumber(); // Enregistre +21622222222
+        });
+    }
 });
-
 </script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         @if(session()->has('showModal') && session('showModal') == true)
@@ -512,5 +472,4 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 </script>
-
 

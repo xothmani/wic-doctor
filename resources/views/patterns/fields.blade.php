@@ -47,10 +47,11 @@
                 <input class="form-check-input" type="radio" name="type" id="type_adomicile" value="adomicile" {{ $isAdomicileSet ? 'checked' : '' }}>
                 <label class="form-check-label" for="type_adomicile">{{ trans("lang.adomicile") }}</label>
             </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="type" id="type_clinique" value="clinique" {{ $isClinicSet ? 'checked' : '' }}>
-                <label class="form-check-label" for="type_clinique">{{ trans("lang.clinique") }}</label>
-            </div>
+            <div class="form-check form-check-inline d-none">
+    <input class="form-check-input" type="radio" name="type" id="type_clinique" value="clinique" {{ $isClinicSet ? 'checked' : '' }}>
+    <label class="form-check-label" for="type_clinique">{{ trans("lang.clinique") }}</label>
+</div>
+
         </div>
     </div>
     <!-- Speciality Id Field -->

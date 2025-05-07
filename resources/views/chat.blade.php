@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <div class="chat-header">
@@ -31,8 +33,10 @@
             $lastMessage = $lastMessages[$doctor->user_id] ?? null;
         @endphp
  
-        <div class="conversation-item {{ $loop->first ? 'active' : '' }}" data-id="{{ $doctor->id }}" data-user-id="{{ $doctor->user_id }}" onclick="loadMessages('{{ $doctor->user_id }}')">
-        <div class="doctor-avatar">
+ <div class="conversation-item {{ isset($doctorUserId) && $doctor->user_id == $doctorUserId ? 'active' : '' }}" 
+     data-id="{{ $doctor->id }}" 
+     data-user-id="{{ $doctor->user_id }}" 
+     onclick="loadMessages('{{ $doctor->user_id }}')">        <div class="doctor-avatar">
   <i class="fas fa-user-md" 
      style="width: 40px;
             height: 40px;
@@ -99,9 +103,7 @@
                 <a href="{{ $message['file_url'] }}" data-lightbox="image-{{ $message['id'] }}" data-title="Chat Image">
                     <img src="{{ $message['file_url'] }}" alt="Chat Image">
                 </a>
-                <a href="{{ route('download.file', ['filename' => basename($message['file_url'])]) }}" download="{{ basename($message['file_url']) }}" class="download-link">
-    <i class="fas fa-download"></i> 
-</a>    
+                
                 
             </div>
         @else
@@ -109,8 +111,8 @@
             <div class="message-file">
                 <i class="fas fa-file-alt"></i> <!-- Icône pour fichier -->
                 <a href="{{ $message['file_url'] }}" target="_blank">Voir le fichier</a>
-                <a href="{{ $message['file_url'] }}" download="{{ basename($message['file_url']) }}" class="download-link">
-                    <i class="fas fa-download"></i> Télécharger
+                <a href="{{ $message['file_url'] }}" download="{{ basename(path: $message['file_url']) }}" class="download-link">
+                <i class="fas fa-download"></i> Télécharger
                 </a>
             </div>
         @endif
@@ -143,7 +145,7 @@
             <div id="output"></div>
 
             <!-- Champ de message -->
-            <input type="text" name="message" id="message-input" placeholder="Écrire un message..." required>
+            <input type="text" name="message" id="message-input" placeholder="Écrire un message..." >
             <div id="output"></div>
 
             <!-- Bouton d'envoi -->
@@ -196,7 +198,7 @@
     }
     setTimeout(() => {
     location.reload(true); // Recharge la page depuis le serveur sans utiliser le cache
-}, 80000); // Rafraîchit après 
+}, 100000); // Rafraîchit après 
 
     // Fonction pour charger les nouveaux messages
     function loadMessages(userId) {
@@ -318,7 +320,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Vérification des nouveaux messages toutes les 5 secondes
     setInterval(checkForNewMessages, 5000);
 
-
     function deleteMessage(chatId, messageId, buttonElement) {
     // URL Firebase pour récupérer les messages du chat
     const messagesUrl = `https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/${chatId}/messages.json`;
@@ -340,36 +341,58 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (firebaseMessageId) {
-                // URL Firebase pour supprimer le message
-                const deleteUrl = `https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/${chatId}/messages/${firebaseMessageId}.json`;
+                // Afficher la confirmation avec SweetAlert2 avant de supprimer
+                Swal.fire({
+                    title: 'Supprimer ce message ?',
+                    text: "Cette action est irréversible.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Oui, supprimer',
+                    cancelButtonText: 'Annuler'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // URL Firebase pour supprimer le message
+                        const deleteUrl = `https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app/chats/${chatId}/messages/${firebaseMessageId}.json`;
 
-                return fetch(deleteUrl, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                        fetch(deleteUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log("Message supprimé avec succès.");
+
+                                // Supprimer le message de l'interface utilisateur
+                                const messageElement = buttonElement.closest('.message');
+                                if (messageElement) {
+                                    messageElement.remove();
+                                }
+
+                                // Afficher un message de succès
+                                Swal.fire('Supprimé !', 'Le message a été supprimé.', 'success');
+                            } else {
+                                Swal.fire('Erreur', 'Une erreur est survenue.', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Erreur :", error);
+                            Swal.fire('Erreur', 'Impossible de supprimer ce message.', 'error');
+                        });
+                    }
                 });
             } else {
                 throw new Error("Message non trouvé dans Firebase.");
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log("Message supprimé avec succès.");
-
-                // Supprimer le message de l'interface utilisateur
-                const messageElement = buttonElement.closest('.message');
-                if (messageElement) {
-                    messageElement.remove();
-                }
-            } else {
-                console.error("Erreur lors de la suppression :", response.statusText);
             }
         })
         .catch(error => {
             console.error("Erreur :", error);
         });
 }
+
 function listenForDeletedMessages(chatId) {
     const chatRef = firebase.database().ref(`chats/${chatId}/messages`);
 
@@ -887,22 +910,20 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
                                                     background-color: #f8f9fa;
                                                     border-bottom: 1px solid #ddd;
                                                 }
-
                                                 .conversation-item {
-                                                    display: flex;
-                                                    align-items: center;
-                                                    padding: 10px;
-                                                    cursor: pointer;
-                                                    transition: background-color 0.3s;
-                                                }
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+    background-color: white; /* Couleur unifiée */
+    transition: none; /* Supprime la transition */
+}
 
-                                                .conversation-item:hover {
-                                                    background-color: #f0f2f5;
-                                                }
+/* SUPPRIMER CE BLOC ENTIEREMENT */
 
-                                                .conversation-item.active {
-                                                    background-color: #e9ecef;
-                                                }
+
+
+                                  
                                                 .friendly-title {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 32px;
@@ -915,7 +936,31 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
     line-height: 1.5;
 }
 
+.conversation-item {
+    transition: background-color 0.2s ease;
+}
 
+.conversation-item.active {
+    background-color: #f0f2f5;
+    border-left: 4px solid #007bff;
+    position: relative;
+}
+
+.conversation-item.active::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 2px;
+    background-color: #007bff;
+}
+
+.conversation-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(3px);
+}
                                               
                                                 .doctor-info {
                                                     flex: 1;

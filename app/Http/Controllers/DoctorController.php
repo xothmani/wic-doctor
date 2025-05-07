@@ -422,8 +422,8 @@ class DoctorController extends Controller
         }
     
         $user->update([
-            'name' => $request->input('lastname'),
-            'lastname' => $request->input('name'),
+            'name' => ucfirst(strtolower($request->input('lastname'))),
+            'lastname' => strtoupper($request->input('name')),
             'email' => $request->input('email'),
             'phone_number' => $request->input('phone_number'),
         ]);
@@ -432,7 +432,7 @@ class DoctorController extends Controller
         $payment_methods = implode(',', $request->input('payment_methods', []));
 
             $doctor->update([
-                'name' => $request->input('name') . ' ' . $request->input('lastname'),
+                'name' => strtoupper($request->input('name')) . ' ' . ucfirst(strtolower($request->input('lastname'))),
                 'bio' => $request->input('bio'),
                 'type_consultation' => $consultationMethods,
                 'fixe' => $request->input('cabinet_number'),
@@ -569,6 +569,7 @@ private function executeNodeScript($doctor)
     'aleatoire' => $doctor->id_aleatoire,
     'adresse_exacte' => $adresse_exacte, 
     'specialities' => $specialitiesData, 
+    'availability_mode'=> $doctor->availability_mode, 
     'type' => "conventionné", 
         ];
 
@@ -696,29 +697,34 @@ public function generateDoctorUrl($doctorId)
     // Récupérer l'ID aléatoire du médecin
     $randomId = $doctor->id_aleatoire;
 
-    // Récupérer et traiter le nom du médecin
-    $doctorName = $doctor->name;
-    if (is_string($doctorName)) {
-        // Décoder le nom si nécessaire
-        $decoded = json_decode($doctorName, true);
-        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-            $doctorName = isset($decoded['fr'])
-                ? strtolower($decoded['fr'])
-                : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : strtolower($doctorName));
-        } else {
-            $doctorName = strtolower($doctorName);
-        }
-    } else {
-        $decoded = json_decode($doctorName, true);
+    /// Récupérer et traiter le nom du médecin
+$doctorName = $doctor->name;
+if (is_string($doctorName)) {
+    // Décoder le nom si nécessaire
+    $decoded = json_decode($doctorName, true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
         $doctorName = isset($decoded['fr'])
             ? strtolower($decoded['fr'])
-            : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : '');
+            : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : strtolower($doctorName));
+    } else {
+        $doctorName = strtolower($doctorName);
     }
+} else {
+    $decoded = json_decode($doctorName, true);
+    $doctorName = isset($decoded['fr'])
+        ? strtolower($decoded['fr'])
+        : (is_array($decoded) ? strtolower(reset($decoded) ?: '') : '');
+}
 
-    // Remplacer les espaces par des tirets dans le nom du médecin
-    if ($doctorName) {
-        $doctorName = str_replace(' ', '-', $doctorName);
-    }
+// Nettoyer le nom du médecin
+if ($doctorName) {
+    // Supprimer les espaces en début et fin de chaîne et réduire les espaces multiples
+    $doctorName = preg_replace('/\s+/', ' ', trim($doctorName));
+    
+    // Remplacer les espaces par des tirets
+    $doctorName = str_replace(' ', '-', $doctorName);
+}
+
 
     // Générer l'URL du médecin
     $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/dr-{$doctorName}-{$randomId}.html";

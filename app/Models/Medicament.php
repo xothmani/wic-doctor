@@ -14,11 +14,20 @@ class Medicament extends Model
     protected $fillable = [
         'CODE_PCT',
         'NOM_COMMERCIAL',
-        'PRIX_PUBLIC',
-        'TARIF_REFERENCE',
-        'CATEGORIE',
-        'DCI',
-        'AP',
+        'atc_code',
+        'category',
+        'form',
+        'strength',
+        'format',
+        'company',
+        'cnam',
+        'ap',
+        'ttc_price',
+
+    ];
+
+    protected $casts = [
+        'CODE_PCT' => 'string',
     ];
 
     public function prescriptions()
@@ -27,4 +36,10 @@ class Medicament extends Model
                     ->withPivot('dosage', 'nb_de_jours', 'horaire', 'nb_de_fois')
                     ->withTimestamps();
     }
+    public function drugClass()
+    {
+        return $this->belongsTo(DrugClass::class, 'atc_code', 'atc_code');
+    }
+    
+
 }

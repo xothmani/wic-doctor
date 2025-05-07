@@ -250,7 +250,18 @@
         </a>
     </li>
 @endcan
+@can('telesecretariats.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('telesecretariats') ? 'active' : '' }}"
+            href="{!! route('telesecretariats.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-headset"></i> {{-- Icône représentant un télésecrétariat (centre d'appel) --}}
+            @endif
 
+            <p>{{ trans('lang.telesecretariat_plural') }}</p>
+        </a>
+    </li>
+@endcan
 
 
 
@@ -388,7 +399,7 @@
 @endcan
 
 
-@can('chat.index')
+@can('chatA.index')
     <li class="nav-item has-treeview {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'menu-open' : '' }}">
         <a href="#" class="nav-link {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'active' : '' }}">
             @if($icons)
@@ -399,8 +410,9 @@
         <ul class="nav nav-treeview">
             @can('chat.index')
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('chat*') ? 'active' : '' }}" href="{{ url('/chat') }}">
-                        @if($icons)
+                <a class="nav-link {{ Request::is('chat') ? 'active' : '' }}" href="{{ url('/chat') }}">
+                @if($icons)
+
                         <i class="nav-icon fas fa-user-md"></i>
                         @endif
                         <p>Docteur & Docteur</p>
@@ -423,7 +435,7 @@
                         @if($icons)
                             <i class="nav-icon fas fa-headset"></i>
                         @endif
-                        <p>Télésecrétariat&Docteur</p>
+                        <p style="font-size: 13.5px;">Télésecrétariat & Docteur</p>
                     </a>
                 </li>
             @endcan
@@ -435,6 +447,19 @@
     text-align: center;
 }
 </style> 
+
+
+@can('assistance.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('assistance*') ? 'active' : '' }}" href="{{ route('helpdesk.index') }}">
+            @if($icons)
+                <i class="nav-icon fas fa-wrench"></i> <!-- Icône de service d'assistance -->
+            @endif
+            <p>Service d'assistance</p> <!-- Texte modifié ici -->
+        </a>
+    </li>
+@endcan
+
 <!-- @can('addresses.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('addresses*') ? 'active' : '' }}"
@@ -463,6 +488,17 @@
         </a>
     </li>
 @endcan
+@can('dashboard.medecin')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('dashboard.medecin') ? 'active' : '' }}" href="{!! route('dashboard.medecin') !!}">
+            @if($icons)
+            <i class="nav-icon fas fa-chart-line"></i> <!-- Icône de statistiques -->
+            @endif
+            <p>{{ trans('lang.stat') }}</p>
+        </a>
+    </li>
+@endcan
+
 @can('photos_cabinet.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('photos_cabinet') ? 'active' : '' }}"

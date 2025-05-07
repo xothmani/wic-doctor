@@ -230,19 +230,19 @@
 
           // Format each medicament's details in the desired way
           if(response.medicaments.length > 0) {
-            prescriptionDetails += ``;
-            response.medicaments.forEach(function(medicament) {
-              prescriptionDetails += `
-                <p>
-                  <span style="color: #0080FF;">${medicament.nom_commercial}</span> - 
-                  <span style="color: darkblue;">${medicament.dosage}</span>, 
-                  <span style="color: darkblue;">${medicament.nb_de_fois}</span>, 
-                  <span style="color: darkblue;">${medicament.horaire}</span> 
-                  <span style="color: darkblue;">{{ trans('lang.pendant') }} ${medicament.nb_de_jours}</span>.
-                </p>
-              `;
-            });
-          }
+    prescriptionDetails += ``;
+    response.medicaments.forEach(function(medicament) {
+        prescriptionDetails += `
+            <p>
+                <span style="color: #0080FF;">${medicament.nom_commercial}- ${medicament.category} - ${medicament.format} - ${medicament.form}</span>
+                <span style="color: darkblue;">${medicament.dosage}</span>, 
+                <span style="color: darkblue;">${medicament.nb_de_fois}</span>, 
+                ${medicament.horaire ? `<span style="color: darkblue;">${medicament.horaire}</span>` : ''}
+          <span style="color: darkblue;">{{ trans('lang.pendant') }} ${medicament.nb_de_jours}</span>.
+            </p>
+        `;
+    });
+}
           if(response.analyses.length > 0) {
             prescriptionDetails += ``;
             response.analyses.forEach(function(analyse) {

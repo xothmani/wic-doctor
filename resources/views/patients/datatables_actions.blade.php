@@ -17,12 +17,12 @@
         </a>
     @endif
 
-    @if(auth()->user()->hasPermissionInContext('patients.show', $doctorId))
+    <!-- @if(auth()->user()->hasPermissionInContext('patients.show', $doctorId))
         <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.view_details') }}"
             href="{{ route('patients.show', $id) }}" class='btn btn-link'>
             <i class="fas fa-eye"></i>
         </a>
-    @endif
+    @endif -->
 
     @if(auth()->user()->hasPermissionInContext('patients.edit', $doctorId))
         <a data-toggle="tooltip" data-placement="left" title="{{ trans('lang.patient_edit') }}"

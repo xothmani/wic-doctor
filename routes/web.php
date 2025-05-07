@@ -7,6 +7,7 @@ use App\Http\Controllers\MessagerieController;
 use App\Http\Controllers\PatientDoctorChatController;
 use App\Http\Controllers\TeleseceteriatDoctorsController;
 
+use App\Http\Controllers\HelpDeskController;
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\PatientController;
@@ -40,9 +41,9 @@ use App\Http\Controllers\DoctorUserController;
 use App\Http\Controllers\ChatController;
 
 use Illuminate\Http\Request;
-//use App\Http\Controllers\MailController;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardMedecinController;
 
 
 
@@ -433,8 +434,6 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/seo', [SeoController::class, 'index'])->name('seo.index');
 
 
-    Route::resource('telesecretariats', TelesecretariatController::class);
-    Route::get('/telesecretariats/show/{id}', [TelesecretariatController::class, 'show']);
 
     Route::get('telesecretariats/relation', [TelesecretariatController::class, 'relation'])->name('telesecretariats.relation');
 
@@ -482,6 +481,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
 
 
+
     Route::get('/generer-link', [PatientController::class, 'genererLink'])->name('generer.link');
     Route::resource('/tags', TagController::class);
     Route::get('/tags/{id}/edit', [TagController::class, 'edit']);
@@ -507,7 +507,6 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     Route::get('/listdoctors', [ParrainerController::class, 'listDoctors'])->name('parrainers.listdoctors');
 
-    //Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::post('/adresse/store', [AddressController::class, 'store']);
     Route::get('editProfil', [DoctorController::class, 'editProfil'])->name('doctors.editProfil');
     Route::post('/edit-info-personnelle', [DoctorController::class, 'editInfoPersonnelle'])->name('editInfoPersonnelle');
@@ -552,35 +551,36 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/medecin/generer-url', [DoctorController::class, 'generateConnectedDoctorUrl'])->name('doctors.generateUrl');
 
     Route::post('/prescriptions/{prescription}/send-email', [PrescriptionController::class, 'sendEmail'])
-    ->name('prescriptions.sendEmail');
+        ->name('prescriptions.sendEmail');
     Route::post('/teleconsultations/create-specific-meeting', [MeetController::class, 'createSpecificMeeting'])->name('create.specific.meeting');
 
-    
+
     Route::get('/serve-file/{doctorId}/{category}/{status}/{fileName}', function ($doctorId, $category, $status, $fileName) {
         $filePath = "/mnt/doctor/{$doctorId}/{$category}/{$status}/{$fileName}";
-    
+
         if (!file_exists($filePath)) {
             abort(404);
         }
-    
+
         return Response::file($filePath);
     })->name('serveFile');
-    
+
 
     Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
     Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
-         ->name('chatDP.show')
-         ->where(['doctorUserId' => '[0-9]+', 'patientUserId' => '[0-9]+']);Route::get('/get-patients-by-letter', [ChatController::class, 'getPatientsByLetter']);
+        ->name('chatDP.show')
+        ->where(['doctorUserId' => '[0-9]+', 'patientUserId' => '[0-9]+']);
+    Route::get('/get-patients-by-letter', [ChatController::class, 'getPatientsByLetter']);
     // routes/web.php
     Route::post('/chatDP/send', [PatientDoctorChatController::class, 'sendMessage'])->name('chatDP.send');
     // Afficher la page d'index du chat (pour les médecins)
     Route::get('/chatDP', [PatientDoctorChatController::class, 'index'])->name('chatDP.index');
     Route::get('/chatDP/{doctorUserId}/{patientUserId}', [PatientDoctorChatController::class, 'showChat'])
-        ->name('chatDP.show');  
+        ->name('chatDP.show');
     // Envoyer un message (pour les médecins et les patients)
     // Chemin corrigé avec 'chats'
     Route::delete('/messages/{chatId}/chats/{messageId}', [PatientDoctorChatController::class, 'deleteMessage']);
-     
+
 
     Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
     Route::post('/appointmentsEvent/store', [AppointmentEventController::class, 'store'])
@@ -613,44 +613,45 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     });
 
 
-        
-Route::get('/messages/{doctorId}', [ChatController::class, 'getMessagesForDoctor']);
-Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
-Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
-Route::get('/chat', [ChatController::class, 'showForm']);
-Route::get('storage/{file}', function ($file) {
-    $path = storage_path('app/public/' . $file);
 
-    if (!File::exists($path)) {                                                     
-        abort(404);
-    }
+    Route::get('/messages/{doctorId}', [ChatController::class, 'getMessagesForDoctor']);
+    Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
+    Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
+    Route::get('/chat', [ChatController::class, 'showForm']);
+    
+    Route::get('storage/{file}', function ($file) {
+        $path = storage_path('app/public/' . $file);
 
-    return response()->file($path);
-});
-Route::get('/download/{filename}', function ($filename) {
-    $path = storage_path('app/public/chat_files/' . $filename);
+        if (!File::exists($path)) {
+            abort(404);
+        }
 
-    if (!file_exists($path)) {
-        abort(404);
-    }
+        return response()->file($path);
+    });
+    Route::get('/download/{filename}', function ($filename) {
+        $path = storage_path('app/public/chat_files/' . $filename);
 
-    return response()->download($path);
-})->name('download.file');
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->download($path);
+    })->name('download.file');
 
 
-Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
+    Route::get('/chat/patients', [ChatController::class, 'getPatientsByLetter']);
     Route::get('/last-message', [ChatController::class, 'getLastMessage']);
-Route::delete('/messages/{chatId}/{messageId}', [ChatController::class, 'deleteMessage'])->name('chat.deleteMessage');
-Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
-Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
-Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
+    Route::delete('/messages/{chatId}/{messageId}', [ChatController::class, 'deleteMessage'])->name('chat.deleteMessage');
+    Route::get('/chat/messages/{doctorId}', [ChatController::class, 'fetchMessages'])->name('chat.messages');
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+    Route::get('/chat', [ChatController::class, 'showForm'])->name('chat.showForm');
 
     Route::get('/chat/{userId}/{doctorId}', [ChatController::class, 'showChat']);
 
-Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
+    Route::get('/fetch-messages/{userId}', [ChatController::class, 'fetchMessages']);
 
-Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
- 
+    Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotificationsAsRead']);
+
 
 
 
@@ -687,9 +688,12 @@ Route::post('/mark-notifications-as-read', [ChatController::class, 'markNotifica
     })->middleware('auth');
 });
 Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
-Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
-->name('chatT.show')
+->name('chatT.show');
+// Routes
+Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
+     ->name('chatT.show')
 ->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
@@ -701,4 +705,18 @@ Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->nam
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
-Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
+
+
+Route::get('/helpdesk', [HelpDeskController::class, 'index'])->name('helpdesk.index');
+Route::post('/helpdesk', [HelpDeskController::class, 'store'])->name('helpdesk.store');
+
+Route::get('/dashboard-medecin', [DashboardMedecinController::class, 'index'])->name('dashboard.medecin');
+// Update appointment (PUT request)
+Route::put('/update-appointments/{id}', [AppointmentEventController::class, 'update'])->name('appointments.update');
+
+// Delete appointment (DELETE request)/
+Route::delete('/update-appointments/{id}', [AppointmentEventController::class, 'destroy'])->name('appointments.destroy');
+
+// web.php
+Route::post('patients/store-secondary-profile', [PatientController::class, 'storeSecondaryProfile'])->name('patients.associate');
+Route::get('/patients/related/{mainPatientId}/{relation}', [PatientController::class, 'getRelatedPatients']);

@@ -166,7 +166,7 @@ class User extends Authenticatable implements HasMedia
     }
     public function isOnline()
     {
-        return Cache::has('user-is-online-'.$this->id);
+        return Cache::has('user-is-online-' . $this->id);
     }
 
 
@@ -206,13 +206,13 @@ class User extends Authenticatable implements HasMedia
         return $this->belongsToMany(Clinic::class, 'clinic_users');
     }
 
-    
 
-public function telesecretariat()
-{
-    return $this->hasOne(Telesecretariat::class, 'user_id');
-}
-// app/Models/Telesecretariat.php
+
+    public function telesecretariat()
+    {
+        return $this->hasOne(Telesecretariat::class, 'user_id');
+    }
+    // app/Models/Telesecretariat.php
 
 
     /**
@@ -337,11 +337,11 @@ public function telesecretariat()
      *
      * @return int|null
      */
-        public function doctorPatients()
-{
-    return $this->hasMany(DoctorPatient::class, 'patient_id');
-}
-        public function doctor()
+    public function doctorPatients()
+    {
+        return $this->hasMany(DoctorPatient::class, 'patient_id');
+    }
+    public function doctor()
     {
         return $this->hasOne(Doctor::class, 'user_id');
     }

@@ -25,6 +25,9 @@ use App\Events\AppointmentStatusChangedEvent;
 use App\Repositories\DoctorRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\ClinicRepository;
+use function PHPUnit\Framework\isNull;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 
 class AppointmentEventController extends Controller
 {
@@ -87,7 +90,13 @@ class AppointmentEventController extends Controller
                 ->where('doctor_id', $doctorId)
                 ->select('start_date', 'end_date')
                 ->get();
-
+            $urgencies = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->select('jour', 'heurDebut', 'heurFin', 'reason')
+                ->get()
+                ->map(function ($item) {
+                    return (array) $item; // convert stdClass to array
+                });
             //Log::info("Vacations retrieved", ['vacations' => $vacations]);
 
             if ($request->ajax()) {
@@ -106,8 +115,8 @@ class AppointmentEventController extends Controller
                         'appointments.user_id',
                         'appointments.patient_id',
                         'appointments.hint',
-                        DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
-                        DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.start_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as start_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.ends_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
                         'appointment_status.status as status',
@@ -116,7 +125,8 @@ class AppointmentEventController extends Controller
                         'patient.email as patient_email',
                         'patient.phone_number as patient_phone_number',
                         'patient.mobile_number as patient_mobile_number',
-                        'pattern.nom as motif_name'
+                        'pattern.nom as motif_name',
+                        'pattern.color as motif_color'
                     )
                     ->join('users as user', 'appointments.user_id', '=', 'user.id')
                     ->join('appointment_statuses as appointment_status', 'appointments.appointment_status_id', '=', 'appointment_status.id')
@@ -130,6 +140,7 @@ class AppointmentEventController extends Controller
                     $decodedFirstName = json_decode($appointment->patient_first_name, true);
                     $decodedLastName = json_decode($appointment->patient_last_name, true);
                     $decodedMotifName = json_decode($appointment->motif_name, true);
+                    $color = $appointment->motif_color;
 
                     return [
                         'id' => $appointment->id,
@@ -147,6 +158,12 @@ class AppointmentEventController extends Controller
                         'online' => $appointment->online,
                         'type' => $appointment->type,
                         'note' => $appointment->hint,
+                        'backgroundColor' => $color,
+
+
+
+
+        
                     ];
                 }));
             }
@@ -177,9 +194,10 @@ class AppointmentEventController extends Controller
             })->select('id', 'first_name', 'last_name', 'phone_number')->get();
 
             //Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
+            Log::info('Urgencies retrieved for doctor:', ['doctor_id' => $doctorId, 'urgencies' => $urgencies->toArray()]);
 
             // Pass availabilityDays and vacations to the view
-            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations', 'patternsByType', ));
+            return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations', 'patternsByType', 'urgencies'));
 
 
         } else {
@@ -201,7 +219,13 @@ class AppointmentEventController extends Controller
                 ->where('doctor_id', $doctorId)
                 ->select('start_date', 'end_date')
                 ->get();
-
+            $urgencies = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->select('jour', 'heurDebut', 'heurFin', 'reason')
+                ->get()
+                ->map(function ($item) {
+                    return (array) $item; // convert stdClass to array
+                });
             $patterns = DB::table('pattern')
                 ->select('id', 'nom')
                 ->where('doctor_id', $doctorId)
@@ -233,8 +257,8 @@ class AppointmentEventController extends Controller
                         'appointments.hint',
                         'appointments.cancel_reason',
                         'appointments.type',
-                        DB::raw("DATE_FORMAT(appointments.start_at, '%Y-%m-%dT%H:%i:%s') as start_at"),
-                        DB::raw("DATE_FORMAT(appointments.ends_at, '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.start_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as start_at"),
+                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.ends_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as ends_at"),
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
                         'appointment_status.status as status',
@@ -286,7 +310,8 @@ class AppointmentEventController extends Controller
                 'patients',
                 'availabilityDays',
                 'patterns',
-                'vacations'
+                'vacations',
+                'urgencies'
             ));
         }
     }
@@ -297,11 +322,12 @@ class AppointmentEventController extends Controller
         \Log::info('Appointment Data Received:', $request->all());
         try {
             $doctorId = auth()->user()->getDoctorId();
-
+            $doctor = Doctor::find($doctorId);
             if (!$doctorId) {
                 return response()->json(['error' => 'Doctor not found'], 404);
             }
-
+            \Log::info('Doctor ID:', ['doctor_id' => $doctorId]);
+            \Log::info('Doctor:', ['doctor' => $doctor]);
             Log::info('Appointment Data Received:', $request->all());
 
             // Validate the incoming request data
@@ -319,7 +345,7 @@ class AppointmentEventController extends Controller
 
 
             // 5) Create start_at from date + time
-            $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time']);
+            $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
             $dayName = $startAt->format('l'); // e.g. "Wednesday"
             \Log::info('Day Name:', ['day' => $dayName]);
             $type = $validated['appointment_type'];
@@ -344,28 +370,98 @@ class AppointmentEventController extends Controller
             // 8) appointment_at = just the date portion
             $appointmentAt = $startAt->copy()->startOfDay();
             // Create the appointment
-            $appointment = Appointment::create([
+            $appointment = $doctor->appointments()->create([
                 'doctor_id' => $doctorId,
                 'patient_id' => $validated['patient_id'],
                 'user_id' => $patientUserId,
                 'motif_id' => $validated['patern_id'] ?? null,
                 'online' => $validated['appointment_type'],
                 'appointment_status_id' => 1,
-                'appointment_at' => $appointmentAt,
+                'appointment_at' => $startAt,
                 'start_at' => $startAt,
                 'ends_at' => $endsAt,
                 'hint' => $validated['notes'] ?? null,
             ]);
 
+
+            \Log::info('About to broadcast event');
+            //event(new AppointmentCreated($appointment));
+            \Log::info('Event broadcasted');
+
             Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
+            // Log appointment creation in audit system
+            /* app(\App\Services\AuditLogService::class)->logAppointment(
+
+                $appointment->id,
+                'create_appointment',
+                trans('audit.create_appointment'),
+                [],
+                [
+                    'creator_id' => auth()->id(),
+                    'doctor_id' => $doctorId,
+                    'patient_id' => $validated['patient_id'],
+                    'start_at' => $startAt->toDateTimeString(),
+                    'ends_at' => $endsAt->toDateTimeString(),
+                    'appointment_type' => trans('audit.appointment_type.' . $validated['appointment_type']),
+                    'notes' => $validated['notes'] ?? null
+                ],
+                $doctorId
+
+            ); */
 
 
+            $now = Carbon::now('Africa/Tunis');
+            $diffInMinutes = $now->diffInMinutes($startAt, false);
+            \Log::info('sending sms');
+            $numFrance = $doctor->num_france;
+
+            $api = $doctor->api_key;
+            $api_key = $api; // Or fetch from config/env
+            $from = $numFrance; // Your approved sender number
+            $alphasender = 'Wic doctor';
+
+            $to = $patient->phone_number;
+            $doctor = Doctor::find($doctorId);
+            
+            if ($diffInMinutes > 30) {
+                $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
+                    "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+            
+                if (Str::startsWith($to, '+33')) {
+                    // Envoi via le service SMS France
+                    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+            
+                    if ($smsResult) {
+                        Log::info("SMS FR envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS FR à $to.");
+                    }
+                } elseif (Str::startsWith($to, '+216')) {
+                    // Envoi via le service Tunisie
+                    $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
+                        'gsm' => str_replace('+', '', $to),
+                        'message' => $message
+                    ]);
+            
+                    if ($response->successful() && $response->json('success') === true) {
+                        Log::info("SMS TN envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS TN à $to : " . $response->body());
+                    }
+                } else {
+                    Log::warning("Code pays non pris en charge pour le numéro : $to");
+                }
+            } else {
+                Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
+            }
+            
             return response()->json([
                 'appointment_id' => $appointment->id,
                 'status' => 'success',
                 'refresh' => true,
                 'agenda' => $this->refreshAgenda()->getData() // Get fresh agenda data
             ]);
+
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation Errors:', $e->errors());
@@ -430,39 +526,24 @@ class AppointmentEventController extends Controller
 
     public function updateStatus(Request $request)
     {
+
         Log::info('Checking if user exists by email or phone number.', request()->all());
         try {
+            
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
 
-             /** solve problem cast */
-             $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
-             $appointment->doctor = $doctor;
-             $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
-             $appointment->clinic = $clinic;
-             $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
-             $appointment->patient = $patient;
-             /**** */
 
             // Check if the status is "Canceled" (use the correct status ID for "Canceled")
             if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
                 $appointment->cancel_reason = $request->cancel_Reason ?? "Aucune raison fournie";
                 // Retrieve the start and end times of the appointment
-                $startAt = $appointment->start_at; // Assuming you have these columns
-                $endAt = $appointment->ends_at; // Assuming you have these columns
-                $doctorId = $appointment->doctor_id;
-                $motifId = $appointment->motif_id;  // Adjust based on your schema
-                Log::info('ends_at', ['end' => $endAt]);
-                //Log::info('DoctorCast - Doctor value:', ['doctor' => $availabilityHours]);
-                // Insert or update availability in the `availability_hours` table
-                DB::table('availability_hours')->insertOrIgnore([
-                    'doctor_id' => $doctorId,
-                    'start_at' => $startAt,
-                    'end_at' => $endAt,
-                    'patern_id' => $motifId,
-                ]);
+               
             }
 
+            $patientUserId = $appointment->user_id;
+
+            $userId = User::find($patientUserId);
             // Update the appointment status
             $appointment->appointment_status_id = $request->appointment_status_id;
             $appointment->save();
@@ -471,12 +552,15 @@ class AppointmentEventController extends Controller
             Log::info("Notification envoyé NotificationController Status changed event");
             //event(new AppointmentChangedEvent($appointment));
             //$appointment->doctor = $this->doctor
-            event(new AppointmentStatusChangedEvent($appointment ,$appointment->appointment_status_id,$appointment->user->device_token));
-            /*** End send notification fcm */
+            if ($userId->device_token != null) {
+                event(new AppointmentStatusChangedEvent($appointment, $request['payment_status_id'], $userId->device_token));
+
+            }
 
 
             /*if ($appointment->user) {
                 $appointment->user->notify(new StatusChangedAppointment($appointment));
+
             }
 
             //Log::info('Creating message for appointment status update');
@@ -767,7 +851,7 @@ class AppointmentEventController extends Controller
                 'vacation' => false,
                 'all_slots' => [],
                 'taken_slots' => [],
-                'type' => $selectedType
+                'type' => $selectedType,
             ]);
         }
 
@@ -840,6 +924,7 @@ class AppointmentEventController extends Controller
                 'vacation' => true, // Doctor is on vacation
                 'all_slots' => [],
                 'taken_slots' => [],
+                'session_duration' => $sessionDuration,
             ]);
         }
 
@@ -847,7 +932,8 @@ class AppointmentEventController extends Controller
             'vacation' => false, // Doctor is not on vacation
             'all_slots' => array_values($allSlots),
             'taken_slots' => $takenSlots,
-            'type' => $selectedType
+            'type' => $selectedType,
+            'session_duration' => $sessionDuration,
         ];
 
         \Log::info('Final response', ['response' => $response]);
@@ -864,7 +950,6 @@ class AppointmentEventController extends Controller
             ->where('id', $patternId)
             ->value('color') ?? '#C6E7FF'; // Default if color not found
     }
-
 
     public function getTeleconsultationTimeSlots(Request $request)
     {
@@ -941,63 +1026,61 @@ class AppointmentEventController extends Controller
             if (!$doctorId) {
                 return response()->json(['error' => 'Doctor not found'], 404);
             }
-            $doctor = Doctor::where('id', $doctorId)->first();
-
-            if (!$doctor) {
-                return response()->json(['error' => 'Doctor not found'], 404);
-            }
 
             $search = $request->input('q');
 
-            // Query patients linked to the logged-in doctor
-            $query = Patient::whereHas('doctors', function ($subQuery) use ($doctor) {
-                $subQuery->where('doctor_id', $doctor->id);
-            });
+            // Step 1: Get patient IDs linked to this doctor from the pivot table
+            $patientIds = DB::table('doctor_patients')
+                ->where('doctor_id', $doctorId)
+                ->pluck('patient_id');
 
-
-            // Search by name, phone number, or birthdate
+            // Step 2: Query patients by those IDs
+            $query = Patient::whereIn('id', $patientIds);
+            $searchLower = mb_strtolower($search);
+            // Step 3: Apply search if needed
             if ($search) {
-                $query->where(function ($subQuery) use ($search) {
+                $query->where(function ($subQuery) use ($search, $searchLower) {
                     $subQuery->whereRaw("
-                    (JSON_VALID(first_name) AND JSON_EXTRACT(first_name, '$.fr') LIKE ?)
-                    OR first_name LIKE ?
-                ", ["%{$search}%", "%{$search}%"])
+                        (JSON_VALID(first_name) AND LOWER(JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr'))) LIKE ?)
+                        OR LOWER(first_name) LIKE ?
+                    ", ["%{$searchLower}%", "%{$searchLower}%"])
                         ->orWhereRaw("
-                    (JSON_VALID(last_name) AND JSON_EXTRACT(last_name, '$.fr') LIKE ?)
-                    OR last_name LIKE ?
-                ", ["%{$search}%", "%{$search}%"])
+                        (JSON_VALID(last_name) AND LOWER(JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr'))) LIKE ?)
+                        OR LOWER(last_name) LIKE ?
+                    ", ["%{$searchLower}%", "%{$searchLower}%"])
                         ->orWhere('phone_number', 'like', "%{$search}%")
-                        ->orWhereRaw("DATE_FORMAT(date_naissance, '%Y-%m-%d') LIKE ?", ["%{$search}%"]); // Search by birthday
+                        ->orWhereRaw("DATE_FORMAT(date_naissance, '%Y-%m-%d') LIKE ?", ["%{$search}%"]);
                 });
             }
-
-            // Select id, concatenated text fields with birthday
 
             $patients = $query->select(
                 'id',
                 DB::raw("
-                CONCAT(
-                    CASE 
-                        WHEN JSON_VALID(first_name) THEN JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr')) 
-                        ELSE first_name 
-                    END, ' ',
-                    CASE 
-                        WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
-                        ELSE last_name 
-                    END, ' - ',
-
-                    phone_number, ' - ',
-                    DATE_FORMAT(date_naissance, '%d/%m/%Y')
-                ) as text
-            ")
+                    CONCAT(
+                        CASE 
+                            WHEN JSON_VALID(first_name) THEN JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr')) 
+                            ELSE first_name 
+                        END, ' ',
+                        CASE 
+                            WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
+                            ELSE last_name 
+                        END, ' - ',
+                        IFNULL(phone_number, 'N° inconnu'), ' - ',
+                        IFNULL(DATE_FORMAT(date_naissance, '%d/%m/%Y'), 'N/S')
+                    ) as text
+                ")
             )
-                ->when($search, fn($q) => $q->limit(20)) // Limit results when searching
-
+                ->when($search, fn($q) => $q->limit(20))
                 ->get();
+
+            // ✅ Log for debugging
+            \Log::info('[getPatients] Found patients:', $patients->toArray());
 
             return response()->json($patients);
         }
     }
+
+
 
 
 
@@ -1316,7 +1399,9 @@ class AppointmentEventController extends Controller
         if (!$doctorId) {
             return back()->withErrors(['error' => 'No associated doctor found.']);
         }
-
+        $doctor = Doctor::find($doctorId);
+        $doctorTimezone = $doctor->timezone;
+        \Log::info('Doctor timezone:', ['timezone' => $doctorTimezone]);
         // 2) Validate incoming data
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
@@ -1333,7 +1418,7 @@ class AppointmentEventController extends Controller
 
 
         // 5) Create start_at from date + time
-        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time']);
+        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
         $dayName = $startAt->format('l'); // e.g. "Wednesday"
         $type = $validated['appointment_type'];
 
@@ -1370,13 +1455,79 @@ class AppointmentEventController extends Controller
             'motif_id' => $validated['motif_id'] ?? null,
             'online' => $validated['appointment_type'],
             'appointment_status_id' => 1,
-            'appointment_at' => $appointmentAt,
+            'appointment_at' => $startAt,
             'start_at' => $startAt,
             'ends_at' => $endsAt,
             'hint' => $validated['notes'] ?? null,
         ]);
+        \Log::info('About to broadcast event');
 
+        //event(new AppointmentCreated($appointment));
+        \Log::info('Event broadcasted');
         // \Log::info("Appointment created:", ['id' => $appointment->id]);
+        $now = Carbon::now('Africa/Tunis');
+        $diffInMinutes = $now->diffInMinutes($startAt, false);
+        \Log::info('sending sms');
+        $numFrance = $doctor->num_france;
+
+
+        $api = $doctor->api_key;
+        $api_key = $api; // Or fetch from config/env
+        $from = $numFrance; // Your approved sender number
+        $alphasender = 'Wic doctor';
+
+        $to = $patient->phone_number;
+            $doctor = Doctor::find($doctorId);
+            
+            if ($diffInMinutes > 30) {
+                $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
+                    "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+            
+                if (Str::startsWith($to, '+33')) {
+                    // Envoi via le service SMS France
+                    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+            
+                    if ($smsResult) {
+                        Log::info("SMS FR envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS FR à $to.");
+                    }
+                } elseif (Str::startsWith($to, '+216')) {
+                    // Envoi via le service Tunisie
+                    $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
+                        'gsm' => str_replace('+', '', $to),
+                        'message' => $message
+                    ]);
+            
+                    if ($response->successful() && $response->json('success') === true) {
+                        Log::info("SMS TN envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS TN à $to : " . $response->body());
+                    }
+                } else {
+                    Log::warning("Code pays non pris en charge pour le numéro : $to");
+                }
+            } else {
+                Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
+            }
+            
+        // Log appointment creation in audit system
+        /* app(\App\Services\AuditLogService::class)->logAppointment(
+            $appointment->id,
+            'create_appointment',
+            'Appointment created',
+            [],
+            [
+                'creator_id' => auth()->id(),
+                'doctor_id' => $doctorId,
+                'patient_id' => $validated['patient_id'],
+                'start_at' => $startAt->toDateTimeString(),
+                'ends_at' => $endsAt->toDateTimeString(),
+                'appointment_type' => $validated['appointment_type'],
+                'notes' => $validated['notes'] ?? null
+            ],
+            $doctorId
+        ); */
 
         // 10) Redirect back
         return redirect()->back()->with('success', 'Appointment created successfully');
@@ -1390,7 +1541,7 @@ class AppointmentEventController extends Controller
         if (!$doctorId) {
             return back()->withErrors(['error' => 'Médecin non trouvé.']);
         }
-
+        $doctor = 
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'appointment_type' => 'required', // Changed from strings to IDs
@@ -1401,8 +1552,8 @@ class AppointmentEventController extends Controller
             'motif_id' => 'required|exists:pattern,id',
         ]);
 
-        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_start_time']);
-        $endsAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_end_time']);
+        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_start_time'], 'Africa/Tunis');
+        $endsAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_end_time'], 'Africa/Tunis');
 
         // Check for overlapping appointments
         $overlappingAppointment = Appointment::where('doctor_id', $doctorId)
@@ -1440,7 +1591,51 @@ class AppointmentEventController extends Controller
                 'ends_at' => $endsAt,
                 'hint' => $validated['notes'] ?? null,
             ]);
+            $now = Carbon::now('Africa/Tunis');
+            $diffInMinutes = $now->diffInMinutes($startAt, false);
+            \Log::info('sending sms');
+            $numFrance = $doctor->num_france;
 
+            $api = $doctor->api_key;
+            $api_key = $api; // Or fetch from config/env
+            $from = $numFrance; // Your approved sender number
+            $alphasender = 'Wic doctor';
+
+            $to = $patient->phone_number;
+            $doctor = Doctor::find($doctorId);
+            
+            if ($diffInMinutes > 30) {
+                $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
+                    "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+            
+                if (Str::startsWith($to, '+33')) {
+                    // Envoi via le service SMS France
+                    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+            
+                    if ($smsResult) {
+                        Log::info("SMS FR envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS FR à $to.");
+                    }
+                } elseif (Str::startsWith($to, '+216')) {
+                    // Envoi via le service Tunisie
+                    $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
+                        'gsm' => str_replace('+', '', $to),
+                        'message' => $message
+                    ]);
+            
+                    if ($response->successful() && $response->json('success') === true) {
+                        Log::info("SMS TN envoyé avec succès à $to : $message");
+                    } else {
+                        Log::error("Échec de l'envoi du SMS TN à $to : " . $response->body());
+                    }
+                } else {
+                    Log::warning("Code pays non pris en charge pour le numéro : $to");
+                }
+            } else {
+                Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
+            }
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Rendez-vous forcé créé avec succès.',
@@ -1456,9 +1651,7 @@ class AppointmentEventController extends Controller
                 ]
             ], 500);
         }
-    }
-
-    public function getAvailableDays()
+    }    public function getAvailableDays()
     {
         $doctorId = auth()->user()->getDoctorId();
 
@@ -1629,6 +1822,89 @@ class AppointmentEventController extends Controller
 
     }
 
+private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor')
+    {
+        $url = 'https://dashboard.wic-sms.com/apis/smscontact/';
+
+        // Supprimer le "+" au début si présent
+        if (strpos($to, '+') === 0) {
+            $to = substr($to, 1); // Supprime le premier caractère '+'
+        }
+
+        $fields = [
+            'apikey' => $api_key,
+            'from' => $from,
+            'to' => $to,
+            'message' => $message,
+            'alphasender' => $alphasender,
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+
+        $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        Log::info("HTTP Code: $httpCode");
+        Log::info("API Response: $result");
+
+        // Analyse de la réponse
+        $response = json_decode($result, true);
+        if (isset($response['status']) && $response['status'] === "0") {
+            Log::info("SMS envoyé avec succès à $to : $message from:  $from avec api key:  $api_key ");
+        } else {
+            Log::error("Échec de l'envoi du SMS. Réponse de l'API : " . $result);
+        }
+
+        return $result;
+    }
+
+    public function update(Request $request, $id)
+    {
+        \Log::info('Updating appointment . Request data:', $request->all());
+
+        $appointment = Appointment::findOrFail($id);
+
+        $startAt = Carbon::parse($request->date . ' ' . $request->start_time, 'Africa/Tunis');
+        $sessionDuration = intval($request->session_duration);
+
+        $appointment->online = $request->appointment_type;
+        $appointment->start_at = $startAt;
+        $appointment->appointment_at = $startAt;
+        $appointment->ends_at = $startAt->copy()->addMinutes($sessionDuration);
+        $appointment->hint = $request->note;
+
+        // Add this line to update the motif_id
+        if ($request->has('motif_id')) {
+            $appointment->motif_id = $request->motif_id;
+        }
+
+        $appointment->save();
+
+        \Log::info('Appointment updated:', [
+            'id' => $appointment->id,
+            'start_at' => $appointment->start_at,
+            'ends_at' => $appointment->ends_at,
+            'hint' => $appointment->hint,
+            'motif_id' => $appointment->motif_id, // Add this to log the updated motif_id
+            'online' => $appointment->online // Add this to log the updated type
+        ]);
+
+        return response()->json(['message' => 'Appointment updated successfully']);
+    }
+
+
+    public function destroy($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $appointment->delete();
+
+        return response()->json(['message' => 'Appointment deleted successfully']);
+    }
 
 
 }

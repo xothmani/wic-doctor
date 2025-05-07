@@ -51,20 +51,7 @@
                     <a class="nav-link {{ Request::is('notifications*') ? 'active' : '' }}" href="{!! route('notifications.index') !!}"><i class="fas fa-bell"></i></a>
                 </li>
             @endcan
-            <li class="nav-item dropdown">
-                <a class="nav-link" data-toggle="dropdown" href="#"> <i class="fa fas fa-angle-down"></i> {!! Str::upper(app()->getLocale()) !!}
-                </a>
-                <div class="dropdown-menu dropdown-menu-right">
-                    {!! Form::open(['url' => ['settings/updateLanguage'], 'method' => 'patch','id'=>'languages-form']) !!}
-                    {!!  Form::hidden('locale',app()->getLocale(),['id'=>'current-language'])!!}
-                    @foreach(getAvailableLanguages() as $locale => $lang)
-                        <a href="#" class="dropdown-item @if(app()->getLocale() == $locale) active @endif" onclick="changeLanguage('{{$locale}}')">
-                            <i class="fas fa-circle mr-2"></i> {!! __($lang) !!}
-                        </a>
-                    @endforeach
-                    {!! Form::close() !!}
-                </div>
-            </li>
+  
             <li class="nav-item dropdown">
                 <a class="nav-link" data-toggle="dropdown" href="#">
                     <img src="{{auth()->user()->getFirstMediaUrl('avatar','icon')}}" class="brand-image mx-2 img-circle elevation-2" alt="User Image">

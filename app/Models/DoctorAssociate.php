@@ -23,7 +23,16 @@ class DoctorAssociate extends Model
     {
         return $this->belongsTo(User::class, 'doctor_id');
     }
+// App\Models\DoctorAssociate.php
 
+public function telesecretariat()
+{
+    return $this->belongsTo(Telesecretariat::class, 'user_id', 'id');
+}
+public function doctorModel()
+{
+    return $this->belongsTo(Doctor::class, 'doctor_id');
+}
     /**
      * Relationship: Get the associated user (secretary/telesecetary).
      */

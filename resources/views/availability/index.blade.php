@@ -314,21 +314,16 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label class="required">{{ trans("lang.start_date") }} *</label>
-                                                        <input type="date" name="start_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}"
-                                                            oninvalid="this.setCustomValidity('{{ trans("lang.start_date_required") }}')"
-                                                            oninput="this.setCustomValidity('')">
-                                                        <div class="invalid-feedback">{{ trans("lang.start_date_required") }}</div>
+                                                        <input type="date" name="start_date" class="form-control" +
+                                                            min="{{ date('Y-m-d') }}">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label class="required">{{ trans("lang.end_date") }} *</label>
-                                                        <input type="date" name="end_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}"
-                                                            oninvalid="this.setCustomValidity('{{ trans("lang.end_date_required") }}')"
-                                                            oninput="this.setCustomValidity('')">
-                                                        <div class="invalid-feedback">{{ trans("lang.end_date_required") }}</div>
+
+                                                        <input type="date" name="end_date" class="form-control" +
+                                                            min="{{ date('Y-m-d') }}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -723,21 +718,16 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label class="required">{{ trans("lang.start_date") }} *</label>
-                                                        <input type="date" name="start_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}"
-                                                            oninvalid="this.setCustomValidity('{{ trans("lang.start_date_required") }}')"
-                                                            oninput="this.setCustomValidity('')">
-                                                        <div class="invalid-feedback">{{ trans("lang.start_date_required") }}</div>
+                                                        <input type="date" name="start_date" class="form-control" +
+                                                            min="{{ date('Y-m-d') }}">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label class="required">{{ trans("lang.end_date") }} *</label>
-                                                        <input type="date" name="end_date" class="form-control" required
-                                                            min="{{ date('Y-m-d') }}"
-                                                            oninvalid="this.setCustomValidity('{{ trans("lang.end_date_required") }}')"
-                                                            oninput="this.setCustomValidity('')">
-                                                        <div class="invalid-feedback">{{ trans("lang.end_date_required") }}</div>
+
+                                                        <input type="date" name="end_date" class="form-control" +
+                                                            min="{{ date('Y-m-d') }}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -1839,25 +1829,46 @@
             const startDate = form.querySelector('input[name="start_date"]');
             const endDate = form.querySelector('input[name="end_date"]');
             const reason = form.querySelector('textarea[name="reason"]');
+            const isUpdateMode = form.querySelector('input[name="_method"]')?.value === 'PUT';
 
             // Reset previous error states
             form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
             let isValid = true;
 
-            // Validate start date
-            if (!startDate.value) {
-                startDate.classList.add('is-invalid');
-                isValid = false;
+            // For new vacations, require all fields
+            if (!isUpdateMode) {
+                if (!startDate.value) {
+                    startDate.classList.add('is-invalid');
+                    isValid = false;
+                }
+                if (!endDate.value) {
+                    endDate.classList.add('is-invalid');
+                    isValid = false;
+                }
             }
 
-            // Validate end date
-            if (!endDate.value) {
-                endDate.classList.add('is-invalid');
-                isValid = false;
+            // In update mode, only validate dates if either of them has changed
+            if (isUpdateMode) {
+                const originalStartDate = startDate.getAttribute('data-original');
+                const originalEndDate = endDate.getAttribute('data-original');
+
+                if (startDate.value !== originalStartDate || endDate.value !== originalEndDate) {
+                    // Only validate if dates have been modified
+                    if (startDate.value || endDate.value) {
+                        if (!startDate.value) {
+                            startDate.classList.add('is-invalid');
+                            isValid = false;
+                        }
+                        if (!endDate.value) {
+                            endDate.classList.add('is-invalid');
+                            isValid = false;
+                        }
+                    }
+                }
             }
 
-            // Validate that end date is after start date
+            // Always validate end date is after start date if both dates are present
             if (startDate.value && endDate.value && endDate.value < startDate.value) {
                 endDate.classList.add('is-invalid');
                 Swal.fire({
@@ -1868,7 +1879,7 @@
                 isValid = false;
             }
 
-            // Validate reason
+            // Always validate reason
             if (!reason.value.trim()) {
                 reason.classList.add('is-invalid');
                 isValid = false;
