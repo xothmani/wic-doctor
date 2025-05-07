@@ -100,11 +100,19 @@
             </div>
             <div class="modal-body">
                 @if(session('existingPatient'))
-                <p>Ce numéro de téléphone est déjà associé à <strong>{{ session('existingPatient')['name'] }}</strong>.</p>
+                <p>Ce numéro de téléphone et/ou cette adresse e-mail est déjà associé(e)  <strong>{{ session('existingPatient')['name'] }}</strong>.</p>
                 <p>Souhaitez-vous créer un sous-profil lié à ce compte?</p>
                 
                 <form id="subProfileForm" action="{{ route('patients.store') }}" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
+
+                    @if(session('formData.numFiche'))
+    <div class="form-group">
+        <label for="last_name">Numéro de fiche</label>
+        <input type="text" class="form-control" name="numFiche" value="{{ session('formData.numFiche') }}" readonly/>
+    </div>
+@endif
+
                     
                     <!-- Informations du nouveau sous-profil -->
                     <div class="form-group">
@@ -112,7 +120,7 @@
                         <input type="text" class="form-control" name="first_name" id="modalFirstName" value="{{ session('formData')['first_name'] ?? '' }}" required>
                         <div class="invalid-feedback">Veuillez entrer un prénom valide.</div>
                     </div>
-                    
+                  
                     <div class="form-group">
                         <label for="last_name">Nom</label>
                         <input type="text" class="form-control" name="last_name" id="modalLastName" value="{{ session('formData')['last_name'] ?? '' }}" required>

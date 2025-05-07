@@ -78,6 +78,16 @@
 </div> -->
 
 
+@if(!is_null($fiche->numFiche))
+    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+        {!! Form::label('numFiche', 'Numéro de fiche', ['class' => 'col-md-3 control-label text-md-right mr-2']) !!}
+        <div class="col-md-9">
+            {!! Form::text('numFiche', $fiche->numFiche,  ['class' => 'form-control','readonly']) !!}
+        </div>
+    </div>
+@endif
+
+
 <!-- First Name Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
 {!! Form::label('first_name', trans("lang.patient_first_name"), ['class' => 'col-md-3 control-label text-md-right']) !!}

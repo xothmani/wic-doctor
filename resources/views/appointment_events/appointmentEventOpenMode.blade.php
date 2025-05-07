@@ -1188,137 +1188,138 @@
                 }
             }
             $('#saveAppointmentBtn').on('click', function () {
-                const $btn = $(this);
+    const $btn = $(this);
 
-    // Save original button content to restore later
+    // Sauvegarder le contenu original du bouton
     const originalContent = $btn.html();
 
-    // Show loading indicator and disable button
+    // Afficher le spinner et désactiver le bouton
     $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ trans("lang.loading") }}');
     $btn.prop('disabled', true);
-                // Validate required fields
-                const type = $('#updateAppointmentType').val();
-                const date = $('#updateappointmentDate').val();
-                const time = $('#updatestartTime').val();
-                let motif = $('#sidebarMotif').val();
-                if (motif === 'placeholder' || motif === 'current') {
-                    // Try to find the actual motif ID from the available options
-                    const motifName = $('#sidebarMotif option:selected').text().trim();
-                    console.log("Looking for motif name:", motifName);
 
-                    // Determine type ID based on selected type
-                    let typeId;
-                    switch (type) {
-                        case 'cabinet': typeId = 1; break;
-                        case 'teleconsultation': typeId = 4; break;
-                        case 'home_visit': typeId = 3; break;
-                        default: typeId = 1;
-                    }
+    const type = $('#updateAppointmentType').val();
+    const date = $('#updateappointmentDate').val();
+    const time = $('#updatestartTime').val();
+    let motif = $('#sidebarMotif').val();
 
-                    // Look for matching motif in patternsByType
-                    if (patternsByType && patternsByType[typeId]) {
-                        let foundId = null;
-                        Object.entries(patternsByType[typeId]).forEach(([id, name]) => {
-                            if (name.toLowerCase().trim() === motifName.toLowerCase().trim()) {
-                                foundId = id;
-                                console.log("Found matching motif ID:", id);
-                            }
-                        });
+    // Gestion du motif placeholder
+    if (motif === 'placeholder' || motif === 'current') {
+        const motifName = $('#sidebarMotif option:selected').text().trim();
 
-                        if (foundId) {
-                            motif = foundId; // Use the found ID
-                        } else {
-                            // Still couldn't find a valid ID
-                            toastr.error('{{ trans("lang.please_select_valid_motif") }}');
-                            return;
-                        }
-                    } else {
-                        toastr.error('{{ trans("lang.motif_data_missing") }}');
-                        return;
-                    }
+        let typeId;
+        switch (type) {
+            case 'cabinet': typeId = 1; break;
+            case 'teleconsultation': typeId = 4; break;
+            case 'home_visit': typeId = 3; break;
+            default: typeId = 1;
+        }
+
+        if (patternsByType && patternsByType[typeId]) {
+            let foundId = null;
+            Object.entries(patternsByType[typeId]).forEach(([id, name]) => {
+                if (name.toLowerCase().trim() === motifName.toLowerCase().trim()) {
+                    foundId = id;
                 }
-                let isValid = true;
-                let errorMessage = '';
+            });
 
-                // Reset previous error styling
-                $('#updateAppointmentType, #updateappointmentDate, #updatestartTime, #sidebarMotif')
-                    .removeClass('is-invalid')
-                    .parent()
-                    .find('.invalid-feedback')
-                    .remove();
+            if (foundId) {
+                motif = foundId;
+            } else {
+                toastr.error('{{ trans("lang.please_select_valid_motif") }}');
+                $btn.html(originalContent).prop('disabled', false); // 🔁 Restauration ici
+                return;
+            }
+        } else {
+            toastr.error('{{ trans("lang.motif_data_missing") }}');
+            $btn.html(originalContent).prop('disabled', false); // 🔁 Restauration ici
+            return;
+        }
+    }
 
-                if (!type) {
-                    $('#updateAppointmentType').addClass('is-invalid');
-                    $('#updateAppointmentType').parent().append('<div class="invalid-feedback">{{ trans("lang.type_required") }}</div>');
-                    isValid = false;
-                    errorMessage = '{{ trans("lang.type_required") }}';
-                }
+    let isValid = true;
+    let errorMessage = '';
 
-                if (!motif) {
-                    $('#sidebarMotif').addClass('is-invalid');
-                    $('#sidebarMotif').parent().append('<div class="invalid-feedback">{{ trans("lang.motif_required") }}</div>');
-                    isValid = false;
-                    errorMessage = errorMessage || '{{ trans("lang.motif_required") }}';
-                }
+    // Réinitialiser les erreurs précédentes
+    $('#updateAppointmentType, #updateappointmentDate, #updatestartTime, #sidebarMotif')
+        .removeClass('is-invalid')
+        .parent()
+        .find('.invalid-feedback')
+        .remove();
 
-                if (!date) {
-                    $('#updateappointmentDate').addClass('is-invalid');
-                    $('#updateappointmentDate').parent().append('<div class="invalid-feedback">{{ trans("lang.date_required") }}</div>');
-                    isValid = false;
-                    errorMessage = errorMessage || '{{ trans("lang.date_required") }}';
-                }
+    // --- Validation
+    if (!type) {
+        $('#updateAppointmentType').addClass('is-invalid')
+            .parent().append('<div class="invalid-feedback">{{ trans("lang.type_required") }}</div>');
+        isValid = false;
+        errorMessage = '{{ trans("lang.type_required") }}';
+    }
 
-                if (!time) {
-                    $('#updatestartTime').addClass('is-invalid');
-                    $('#updatestartTime').parent().append('<div class="invalid-feedback">{{ trans("lang.time_required") }}</div>');
-                    isValid = false;
-                    errorMessage = errorMessage || '{{ trans("lang.time_required") }}';
-                }
+    if (!motif) {
+        $('#sidebarMotif').addClass('is-invalid')
+            .parent().append('<div class="invalid-feedback">{{ trans("lang.motif_required") }}</div>');
+        isValid = false;
+        errorMessage = errorMessage || '{{ trans("lang.motif_required") }}';
+    }
 
-                if (!isValid) {
-                    toastr.error(errorMessage);
-                    return;
-                }
+    if (!date) {
+        $('#updateappointmentDate').addClass('is-invalid')
+            .parent().append('<div class="invalid-feedback">{{ trans("lang.date_required") }}</div>');
+        isValid = false;
+        errorMessage = errorMessage || '{{ trans("lang.date_required") }}';
+    }
 
-                // All validation passed, proceed with update
-                const id = $('#sidebarAppointmentId').val();
-                console.log('motif:', motif);
-                $.ajax({
-                    url: `/update-appointments/${id}`,
-                    type: 'PUT',
-                    data: {
-                        _token: $('meta[name="csrf-token"]').attr('content'),
-                        appointment_type: type,
-                        motif_id: motif,
-                        date: date,
-                        start_time: time,
-                        note: $('#sidebarNote').val(),
-                        session_duration: updateSessionDuration
-                    },
-                    success: function () {
-                        toastr.success('{{ __("lang.updated_successfully") }}');
+    if (!time) {
+        $('#updatestartTime').addClass('is-invalid')
+            .parent().append('<div class="invalid-feedback">{{ trans("lang.time_required") }}</div>');
+        isValid = false;
+        errorMessage = errorMessage || '{{ trans("lang.time_required") }}';
+    }
 
-                        // Return to view mode
-                        $('#saveAppointmentBtn').addClass('d-none');
-                        $('#updateAppointmentType, #updatestartTime, #sidebarMotif').prop('disabled', true);
-                        $('#sidebarNote').prop('readonly', true);
+    if (!isValid) {
+        toastr.error(errorMessage);
+        $btn.html(originalContent).prop('disabled', false); // 🔁 Restauration ici
+        return;
+    }
 
-                        // Refresh calendar and close sidebar
-                        closeSidebar();
-                        $('#calendar').fullCalendar('refetchEvents');
-                    },
-                    error: function (xhr) {
-                        const errorMsg = xhr.responseJSON && xhr.responseJSON.message
-                            ? xhr.responseJSON.message
-                            : '{{ __("lang.error_updating") }}';
+    // --- Envoi AJAX
+    const id = $('#sidebarAppointmentId').val();
 
-                        toastr.error(errorMsg);
-                    },complete: function () {
-            // Always restore the button
+    $.ajax({
+        url: `/update-appointments/${id}`,
+        type: 'PUT',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            appointment_type: type,
+            motif_id: motif,
+            date: date,
+            start_time: time,
+            note: $('#sidebarNote').val(),
+            session_duration: updateSessionDuration
+        },
+        success: function () {
+            toastr.success('{{ __("lang.updated_successfully") }}');
+
+            $('#saveAppointmentBtn').addClass('d-none');
+            $('#updateAppointmentType, #updatestartTime, #sidebarMotif').prop('disabled', true);
+            $('#sidebarNote').prop('readonly', true);
+
+            closeSidebar();
+            $('#calendar').fullCalendar('refetchEvents');
+        },
+        error: function (xhr) {
+            const errorMsg = xhr.responseJSON && xhr.responseJSON.message
+                ? xhr.responseJSON.message
+                : '{{ __("lang.error_updating") }}';
+
+            toastr.error(errorMsg);
+        },
+        complete: function () {
+            // 🔁 Toujours restaurer le bouton, même après AJAX
             $btn.html(originalContent).prop('disabled', false);
         }
-                });
-            });
+    });
+});
+
 
             $('#deleteAppointmentBtn').on('click', function () {
                 const id = $('#sidebarAppointmentId').val();
@@ -2172,90 +2173,91 @@
 
 
             $('#saveAppointment').on('click', function (e) {
-    e.preventDefault();
+                
+                e.preventDefault();
 
-    const $btn = $(this);
-    const originalContent = $btn.html();
+                const $btn = $(this);
+                const originalContent = $btn.html();
 
-    // Affiche le spinner et désactive le bouton
-    $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ __("lang.loading") }}');
-    $btn.prop('disabled', true);
+                // Affiche le spinner et désactive le bouton
+                $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ __("lang.loading") }}');
+                $btn.prop('disabled', true);
 
-    const activeTab = $('#appointmentTypeTabs .nav-link.active');
-    const appointmentType = activeTab.data('type');
-    const patternSelectId = '#patern_id_' + appointmentType;
+                const activeTab = $('#appointmentTypeTabs .nav-link.active');
+                const appointmentType = activeTab.data('type');
+                const patternSelectId = '#patern_id_' + appointmentType;
 
-    const appointmentData = {
-        patient_id: $('#patientDropdown').val(),
-        appointment_date: $('#appointmentDate').val(),
-        appointment_time: $('#appointment_time').val(),
-        patern_id: $(patternSelectId).val(),
-        appointment_type: appointmentType,
-        notes: $('#appointment_notes').val(),
-        _token: $('meta[name="csrf-token"]').attr('content')
-    };
+                const appointmentData = {
+                    patient_id: $('#patientDropdown').val(),
+                    appointment_date: $('#appointmentDate').val(),
+                    appointment_time: $('#appointment_time').val(),
+                    patern_id: $(patternSelectId).val(),
+                    appointment_type: appointmentType,
+                    notes: $('#appointment_notes').val(),
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                };
 
-    // --- Validation : Patient
-    if (!appointmentData.patient_id) {
-        Swal.fire({
-            title: "Erreur",
-            text: "Veuillez sélectionner un patient",
-            icon: "error"
-        });
-        $btn.html(originalContent).prop('disabled', false); // RESTAURE LE BOUTON
-        return;
-    }
+                // --- Validation : Patient
+                if (!appointmentData.patient_id) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: "Veuillez sélectionner un patient",
+                        icon: "error"
+                    });
+                    $btn.html(originalContent).prop('disabled', false); // RESTAURE LE BOUTON
+                    return;
+                }
 
-    // --- Validation : Heure
-    if (!appointmentData.appointment_time) {
-        Swal.fire({
-            title: "Erreur",
-            text: "Veuillez sélectionner une heure de rendez-vous",
-            icon: "error"
-        });
-        $btn.html(originalContent).prop('disabled', false);
-        return;
-    }
+                // --- Validation : Heure
+                if (!appointmentData.appointment_time) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: "Veuillez sélectionner une heure de rendez-vous",
+                        icon: "error"
+                    });
+                    $btn.html(originalContent).prop('disabled', false);
+                    return;
+                }
 
-    // --- Validation : Motif
-    if (!appointmentData.patern_id) {
-        Swal.fire({
-            title: "Erreur",
-            text: "Veuillez sélectionner un motif",
-            icon: "error"
-        });
-        $btn.html(originalContent).prop('disabled', false);
-        return;
-    }
+                // --- Validation : Motif
+                if (!appointmentData.patern_id) {
+                    Swal.fire({
+                        title: "Erreur",
+                        text: "Veuillez sélectionner un motif",
+                        icon: "error"
+                    });
+                    $btn.html(originalContent).prop('disabled', false);
+                    return;
+                }
 
-    // --- Envoi AJAX
-    $.ajax({
-        url: "{{ route('appointments.store') }}",
-        method: "POST",
-        data: appointmentData,
-        success: function (response) {
-            toastr.success('{{ __("lang.saved_successfully") }}');
-            $('#appointmentModal').modal('hide');
-            $('#calendar').fullCalendar('refetchEvents');
-        },
-        error: function (xhr) {
-            let errorMessage = "Une erreur s'est produite";
-            if (xhr.responseJSON && xhr.responseJSON.message) {
-                errorMessage = xhr.responseJSON.message;
-            }
+                // --- Envoi AJAX
+                $.ajax({
+                    url: "{{ route('appointments.store') }}",
+                    method: "POST",
+                    data: appointmentData,
+                    success: function (response) {
+                        toastr.success('{{ __("lang.saved_successfully") }}');
+                        $('#appointmentModal').modal('hide');
+                        $('#calendar').fullCalendar('refetchEvents');
+                    },
+                    error: function (xhr) {
+                        let errorMessage = "Une erreur s'est produite";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
 
-            Swal.fire({
-                title: "Erreur",
-                text: errorMessage,
-                icon: "error"
+                        Swal.fire({
+                            title: "Erreur",
+                            text: errorMessage,
+                            icon: "error"
+                        });
+                    },
+                    complete: function () {
+                        // Toujours restaurer le bouton après succès ou erreur
+                        $btn.html(originalContent).prop('disabled', false);
+                    }
+                });
             });
-        },
-        complete: function () {
-            // Toujours restaurer le bouton après succès ou erreur
-            $btn.html(originalContent).prop('disabled', false);
-        }
-    });
-});
 
 
             // Add form submit prevention
