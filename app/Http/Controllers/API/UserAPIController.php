@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Prettus\Repository\Exceptions\RepositoryException;
+use App\Models\Patient;
+use Illuminate\Support\Facades\Log;
 
 class UserAPIController extends Controller
 {
@@ -106,6 +108,34 @@ class UserAPIController extends Controller
             $user->passwordpatient = Hash::make($request->input('passwordpatient'));
             $user->api_token = Str::random(60);
             $user->save();
+
+
+            /****** Save patient */
+            $nameParts = explode(' ', $request->input('name'));
+            Log::info("Name parts: " . json_encode($nameParts));
+            Log::info("First name: " . '{"fr": "' . ($nameParts[0] ?? '') . '"}');
+            Log::info("Last name: " . '{"fr": "' . ($nameParts[1] ?? '') . '"}');
+
+            $data = [
+                'user_id'        => $user->id,
+                'first_name' => $nameParts[0],
+                'last_name'  => $nameParts[1],
+                'email'          => $request->input('email'),
+                'phone_number'   => $request->input('phone_number'),
+                'mobile_number'  => $request->input('phone_number'),
+                'is_main_profil' => true,
+            ];
+
+            // Ajouter date_naissance seulement si elle est fournie
+            if ($request->filled('date_naissance')) {
+                $data['date_naissance'] = $request->input('date_naissance');
+            }
+
+            $patient = Patient::create($data);
+
+            /******* End save patient */
+
+            
 
             $defaultRoles = $this->roleRepository->findByField('default', '1');
             $defaultRoles = $defaultRoles->pluck('name')->toArray();
