@@ -26,10 +26,13 @@ class PatientDataTable extends DataTable
      */
     public function dataTable(mixed $query): DataTableAbstract
     {
+        // Applique l'ordonnancement sur la requête initiale
+        $query = $query->orderBy('created_at', 'desc')->orderBy('updated_at', 'desc');
+    
         $dataTable = new EloquentDataTable($query);
         $columns = array_column($this->getColumns(), 'data');
+        
         return $dataTable
-           
             ->editColumn('first_name', function ($patient) {
                 return $patient->first_name;
             })
@@ -39,14 +42,16 @@ class PatientDataTable extends DataTable
             ->editColumn('updated_at', function ($patient) {
                 return getDateColumn($patient, 'updated_at');
             })
+            ->editColumn('created_at', function ($patient) {
+                return getDateColumn($patient, 'created_at');
+            })
             ->addColumn('last_rdv', function ($patient) {
                 $doctorId = auth()->user()->getDoctorId();
                 $lastAppointment = Appointment::where('patient_id', $patient->id)
                     ->where('doctor_id', $doctorId)
                     ->where('start_at', '<', now())
-                    ->orderBy('start_at', 'desc')
                     ->first();
-            
+    
                 return $lastAppointment ? $lastAppointment->start_at->format('d/m/Y H:i') : 'Aucun RDV';
             })
             ->addColumn('next_rdv', function ($patient) {
@@ -54,22 +59,22 @@ class PatientDataTable extends DataTable
                 $nextAppointment = Appointment::where('patient_id', $patient->id)
                     ->where('doctor_id', $doctorId)
                     ->where('start_at', '>', now())
-                    ->orderBy('start_at', 'asc')
                     ->first();
-            
+    
                 if ($nextAppointment) {
                     return $nextAppointment->start_at->format('d/m/Y H:i');
                 }
-            
+    
                 // Lien "Ajouter RDV" quand aucun rendez-vous n'est trouvé
                 $url = route('appointment-events.index', ['patient_id' => $patient->id]);
                 return '<a href="'.$url.'" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-calendar-plus mr-1"></i> Ajouter RDV
                         </a>';
-            })   
+            })
             ->addColumn('action', 'patients.datatables_actions')
             ->rawColumns(array_merge($columns, ['action', 'last_rdv', 'next_rdv']));
-        }
+    }
+    
 
     /**
      * Get query source of dataTable.

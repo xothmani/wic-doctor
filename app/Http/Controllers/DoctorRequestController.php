@@ -181,10 +181,12 @@ class DoctorRequestController extends Controller
                 return redirect()->back()->with('error', 'Docteur déjà conventionné pour cet utilisateur.');
             }
             $availabilityMode = $request->input('availability_mode'); // Récupérer la valeur du formulaire
+            $titre = $request->input('titre'); // Récupérer la valeur du formulaire
+
 
 
             // Créer le docteur
-            $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode);
+            $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode, $titre);
             // Vérifier si le patient existe déjà
             $existingPatient = Patient::where('user_id', $user->id)->first();
             if (!$existingPatient) {
@@ -227,7 +229,8 @@ class DoctorRequestController extends Controller
     public function createUserFromDoctorRequest($doctorRequestId, Request $request)
     {
         $doctorRequest = DoctorRequest::findOrFail($doctorRequestId);
-        $availabilityMode = $request->input('availability_mode'); // Récupérer la valeur du formulaire
+        $availabilityMode = $request->input(key: 'availability_mode'); // Récupérer la valeur du formulaire
+        $titre = $request->input('titre'); // Récupérer la valeur du formulaire
 
 
         if ($doctorRequest->type !== 'Docteur') {
@@ -296,7 +299,7 @@ class DoctorRequestController extends Controller
             }
 
             // Créer le docteur
-            $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode);
+            $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode, $titre);
 
 
             // Vérifier si le patient existe déjà
@@ -339,7 +342,7 @@ class DoctorRequestController extends Controller
 
 
 
-    private function createDoctor($user, $doctorRequest, $availabilityMode)
+    private function createDoctor($user, $doctorRequest, $availabilityMode, $titre)
     {
         $randomId = random_int(1000000000, 9999999999);
         while (Doctor::where('id_aleatoire', $randomId)->exists()) {
@@ -356,6 +359,8 @@ class DoctorRequestController extends Controller
             'sexe' => $doctorRequest->sexe,
             'code_doctor' => $doctorRequest->code_doctor,
             'availability_mode' => $availabilityMode,
+            'titre' => $titre,
+
         ]);
 
         // Définir l'image par défaut selon le sexe
@@ -499,6 +504,8 @@ class DoctorRequestController extends Controller
             'specialities' => $specialitiesData,
             'type' => "conventionné",
             'availability_mode' => $doctor->availability_mode,
+            'titre' => $doctor->titre,
+
         ];
 
         file_put_contents($filePath, json_encode([$data], JSON_UNESCAPED_UNICODE));
