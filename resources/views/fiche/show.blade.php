@@ -11,9 +11,7 @@
       <h1 class="m-0 text-dark">
     {{ trans('lang.fiche_details') }}  
     | <small>{{ $fiche->code }}</small>
-    @if (!empty($fiche->numFiche))
-    | <small><span class="badge badge-info">{{ $fiche->numFiche }}</span></small>
-@endif
+   
 
 </h1>
       </div><!-- /.col -->
@@ -55,12 +53,16 @@
     <i class="fas fa-user mr-2"></i>{{ trans('lang.patient_details') }}
   </strong>
   <a href="{{ route('patients.edit', $fiche->patient_id) }}" class="ml-auto" data-toggle="tooltip" data-placement="left" title="{{ trans('lang.patient_edit') }}">
-    <i class="fas fa-edit" style="cursor: pointer; color: #5784BA;"></i>
+  @if (!empty($fiche->numFiche))
+    <span class="badge" style="background-color: #5784BA; color: white;" data-placement="left">{{ $fiche->numFiche }}</span>
+@endif
+
+     <i class="fas fa-edit" style="cursor: pointer; color: #5784BA;"></i>
 </a>
 </div>
 
       <div class="card-body">
-    
+ 
         <div class="row">
           <!-- Première ligne : Prénom et Nom -->
           <div class="col-md-6">
