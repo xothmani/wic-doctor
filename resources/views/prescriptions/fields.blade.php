@@ -1168,7 +1168,7 @@
 
             try {
                 // Make API request
-                const response = await fetch('/proxy/analyze-compatibility', {
+                const response = await fetch('/api/proxy/analyze-compatibility', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
