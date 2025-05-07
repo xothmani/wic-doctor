@@ -95,14 +95,26 @@ class Patient extends Model implements HasMedia, Castable
 
 
     
-     // Méthode pour calculer l'âge basé sur la date de naissance
-     public function setAgeAttribute(){
-        if (!empty($this->attributes['date_naissance'])) {
-            $this->attributes['age'] = Carbon::parse($this->attributes['date_naissance'])->age;
-        } else {
-            $this->attributes['age'] = 0;
-        }
-    }
+     // Méthode pour calculer l'âge basé sur la date de naissanc
+    public function setAgeAttribute()
+     {
+         if (!empty($this->attributes['date_naissance'])) {
+             $birthDate = Carbon::parse($this->attributes['date_naissance']);
+             $ageInYears = $birthDate->age;
+             $ageInMonths = $birthDate->diffInMonths(Carbon::now());
+             $ageInDays = $birthDate->diffInDays(Carbon::now());
+     
+             if ($ageInYears >= 1) {
+                 $this->attributes['age'] = $ageInYears . ' ans';
+             } elseif ($ageInMonths >= 1) {
+                 $this->attributes['age'] = $ageInMonths . ' mois';
+             } else {
+                 $this->attributes['age'] = $ageInDays . ' jours';
+             }
+         } else {
+             $this->attributes['age'] = 'N/S';
+         }
+     }
 
 
          // Mutateur pour nettoyer le champ 'notes'
