@@ -13,6 +13,9 @@ use App\Http\Requests\UploadRequest;
 use App\Repositories\UploadRepository;
 use Exception;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Models\Media;
+
+
 
 class UploadAPIController extends Controller
 {
@@ -43,6 +46,11 @@ class UploadAPIController extends Controller
         } catch (ValidatorException $e) {
             return $this->sendError(false, $e->getMessage());
         }
+    }
+
+
+    public function clearMediaById($id): ?bool{
+        return Media::query()->where('id', $id)->delete();
     }
 
     /**

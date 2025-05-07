@@ -14,6 +14,9 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 use App\Events\AppointmentStatusChangedEvent;
 use App\Listeners\SendNotificationOnAppointmentStatusChanged;
 
+use App\Events\CreateAppointmentEvent;
+use App\Listeners\NotifyPatientOfNewAppointment;
+
 
 
 class EventServiceProvider extends ServiceProvider
@@ -42,7 +45,10 @@ class EventServiceProvider extends ServiceProvider
         ],
         AppointmentStatusChangedEvent::class=>[
             SendNotificationOnAppointmentStatusChanged::class
-        ]
+        ],
+        CreateAppointmentEvent::class => [
+            NotifyPatientOfNewAppointment::class,
+        ],
 
     ];
 

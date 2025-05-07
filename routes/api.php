@@ -184,6 +184,7 @@ Route::middleware('auth:api')->group(function () {
     ]);
     Route::post('uploads/store', 'API\UploadAPIController@store');
     Route::post('uploads/clear', 'API\UploadAPIController@clear');
+    Route::get('uploads/clear/{id}', 'API\UploadAPIController@clearMediaById');
     Route::post('users/{user}', 'API\UserAPIController@update');
     Route::delete('users', 'API\UserAPIController@destroy');
 
