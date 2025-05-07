@@ -364,6 +364,8 @@ class AddressController extends Controller
     'adresse_exacte' => $adresse_exacte, 
     'specialities' => $specialitiesData, 
     'availability_mode'=> $doctor->availability_mode, 
+    'titre'=> $doctor->titre, 
+
     'type' => "conventionné", 
         ];
 
