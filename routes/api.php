@@ -8,6 +8,8 @@ use App\Http\Controllers\API\PayPalAPIController;
 use App\Http\Controllers\API\DoctorAPIController;
 use App\Http\Controllers\API\NotificationAPIController;
 use App\Http\Controllers\API\RoomAPIController;
+use App\Http\Controllers\PrescriptionController;
+
 
 /*********************** Route ajouté par Hamza ********************* */
 Route::get('doctors/search','API\DoctorAPIController@indexFiltreHamza');
@@ -221,3 +223,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('wallet_transactions', 'API\WalletTransactionAPIController@index')->name('wallet_transactions.index');
 
 });
+
+// Analyze compatibility, a proxy route in ordre to make dispatching bd from dev to prod dynamic
+Route::post('/proxy/analyze-compatibility', [PrescriptionController::class, 'proxyAnalyzeCompatibility']);
