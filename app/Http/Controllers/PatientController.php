@@ -92,6 +92,7 @@ class PatientController extends Controller
     public function create(): View
     {
         $user = $this->userRepository->pluck('name', 'id');
+        
 
         $hasCustomField = in_array($this->patientRepository->model(), setting('custom_field_models', []));
         if ($hasCustomField) {
@@ -101,11 +102,12 @@ class PatientController extends Controller
 
         // Récupérer la liste des assurances
         $assurances = Assurance::pluck('nom', 'id');
-
         return view('patients.create')
-            ->with("customFields", isset($html) ? $html : false)
-            ->with("user", $user)
-            ->with("assurances", $assurances);
+        ->with("customFields", isset($html) ? $html : false)
+        ->with("user", $user)
+        ->with("assurances", $assurances)
+        ->with("fiche", null); 
+    
     }
 
 
@@ -204,14 +206,17 @@ class PatientController extends Controller
                     session()->flash('existingPatient', [
                         'id' => $mainPatient->id,
                         'name' => $mainPatient->first_name . ' ' . $mainPatient->last_name,
-                        'phone_number' => $mainPatient->phone_number
+                        'phone_number' => $mainPatient->phone_number,
                     ]);
                     
                     session()->flash('formData', [
                         'first_name' => $request->first_name,
                         'last_name' => $request->last_name,
                         'gender' => $request->gender,
-                        'date_naissance' => $request->date_naissance
+                        'date_naissance' => $request->date_naissance,
+                        'numFiche' => $request->numFiche
+
+
                     ]);
                     
                     session()->flash('showSubProfileModal', true);
@@ -310,30 +315,34 @@ class PatientController extends Controller
             $userId = auth()->id();
     
             $fiche = Fiche::where('patient_id', $patient->id)
-                          ->where('user_id', $userId)
-                          ->first();
-    
-            if (!$fiche) {
-                $fiche = new Fiche([
-                    'patient_id' => $patient->id,
-                    'user_id' => $userId,
-                ]);
-                $fiche->save();
-    
-                if (!$fiche->code) {
-                    Log::error("Erreur lors de la génération du code de la fiche pour le patient ID: " . $patient->id);
-                    return false;
-                }
-    
-                Log::info("Fiche créée pour le patient ID: " . $patient->id . " avec le code: " . $fiche->code);
-            }
-    
-            return true;
-        }
-    
-        Log::warning("No doctor associated with user ID: " . auth()->id());
-        return false;
-    }
+            ->where('user_id', $userId)
+            ->first();
+
+if (!$fiche) {
+  // Récupère le numFiche saisi (s'il existe)
+  $numFiche = request()->input('numFiche') ?? null;
+
+  $fiche = new Fiche([
+      'patient_id' => $patient->id,
+      'user_id' => $userId,
+      'numFiche' => $numFiche,
+  ]);
+  $fiche->save();
+
+  if (!$fiche->code) {
+      Log::error("Erreur lors de la génération du code de la fiche pour le patient ID: " . $patient->id);
+      return false;
+  }
+
+  Log::info("Fiche créée pour le patient ID: " . $patient->id . " avec le code: " . $fiche->code . " et numFiche: " . ($fiche->numFiche ?? 'null'));
+}
+
+return true;
+}
+
+Log::warning("No doctor associated with user ID: " . auth()->id());
+return false;
+}
     
     
     /**
@@ -664,12 +673,15 @@ class PatientController extends Controller
 
         // Récupérer les assurances
         $assurances = Assurance::pluck('nom', 'id');
+        $fiche = $patient->fiche; // Utilise la relation définie dans le modèle Patient
+
 
         return view('patients.edit')
             ->with('patient', $patient)
             ->with('customFields', isset($html) ? $html : false)
             ->with('user', $user)
-            ->with('assurances', $assurances); // Passer $assurances à la vue
+            ->with('assurances', $assurances) // Passer $assurances à la vue
+            ->with('fiche', $fiche); 
     }
     /**
      * Update the specified Patient in storage.
@@ -693,11 +705,21 @@ class PatientController extends Controller
     
         try {
             // Vérification spécifique si patient associé tente de changer email ou téléphone
+            \Log::info('Email dans input : ' . ($input['email'] ?? 'non défini'));
+\Log::info('Email du patient : ' . $patient->email);
+\Log::info('Téléphone dans input : ' . ($input['phone_number'] ?? 'non défini'));
+\Log::info('Téléphone du patient : ' . $patient->phone_number);
+
             if (!$patient->is_main_profil) {
                 if (
-                    isset($input['email']) && $input['email'] !== $patient->email ||
-                    isset($input['phone_number']) && $input['phone_number'] !== $patient->phone_number
-                ) {
+                    !$patient->is_main_profil &&
+                    (
+                        (array_key_exists('email', $input) && trim($input['email']) !== trim((string)$patient->email)) ||
+                        (array_key_exists('phone_number', $input) && trim($input['phone_number']) !== trim((string)$patient->phone_number))
+                    )
+                )
+                
+                 {
                     Flash::error("Ce numéro/email est lié au profil principal. Veuillez modifier les informations du profil principal.");
                     return redirect()->back()->withInput();
                 }

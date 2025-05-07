@@ -12,9 +12,13 @@ class Fiche extends Model
     // Spécifier la table si elle est au singulier
     protected $table = 'fiche';
 
-    // Ajouter 'patient_id' à la propriété fillable
-    protected $fillable = ['patient_id', 'code',         'user_id',
-]; // Ajoutez les autres champs que vous souhaitez mass-assigner
+    
+    protected $fillable = [
+        'patient_id',
+        'code',
+        'user_id',
+        'numFiche'
+]; 
 
     protected static function boot()
     {
