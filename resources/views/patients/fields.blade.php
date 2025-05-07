@@ -82,7 +82,11 @@
         <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
             {!! Form::label('numFiche', 'Numéro de fiche', ['class' => 'col-md-3 control-label text-md-right mr-2']) !!}
             <div class="col-md-9">
-                {!! Form::text('numFiche', $fiche->numFiche, ['class' => 'form-control', 'readonly']) !!}
+                {!! Form::text('numFiche', $fiche->numFiche, [
+                    'class' => 'form-control',
+                    'readonly',
+                    'placeholder' => 'Insérer le numéro de fiche'
+                ]) !!}
             </div>
         </div>
     @endif
@@ -90,10 +94,14 @@
     <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
         {!! Form::label('numFiche', 'Numéro de fiche', ['class' => 'col-md-3 control-label text-md-right mr-2']) !!}
         <div class="col-md-9">
-            {!! Form::text('numFiche', null, ['class' => 'form-control']) !!}
+            {!! Form::text('numFiche', null, [
+                'class' => 'form-control',
+                'placeholder' => 'Insérer le numéro de fiche'
+            ]) !!}
         </div>
     </div>
 @endisset
+
 
 
 
