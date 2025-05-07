@@ -140,7 +140,7 @@ class PatientController extends Controller
                 // Établir la relation doctor-patient
                 if ($this->associatePatientToDoctor($patient)) {
                     Flash::success("Le patient existant a été associé avec succès.");
-                    return redirect()->route('patients.create');
+                    return redirect()->route('patients.index');
                 }
                 
                 return redirect()->back()->withErrors(['error' => 'Impossible d\'associer le patient existant.']);
@@ -191,7 +191,7 @@ class PatientController extends Controller
                     // Établir la relation doctor-patient
                     if ($this->associatePatientToDoctor($patient)) {
                         Flash::success("Le sous-profil a été créé et associé avec succès.");
-                        return redirect()->route('patients.create');
+                        return redirect()->route('patients.index');
                     }
                     
                     return redirect()->back()->withErrors(['error' => 'Impossible d\'associer le sous-profil au médecin.']);
@@ -269,7 +269,7 @@ class PatientController extends Controller
             Flash::error("Une erreur inattendue est survenue. Veuillez réessayer.");
         }
     
-        return redirect()->route('patients.create');
+        return redirect()->route('patients.index');
     }
     
     public function getRelatedPatients($mainPatientId, $relation)
