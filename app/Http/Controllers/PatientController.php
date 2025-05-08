@@ -522,6 +522,8 @@ return false;
 
         $randomId = $doctor->id_aleatoire;
         $doctorName = $doctor->name;
+        $doctorTitre = $doctor->titre ? strtolower(str_replace(' ', '', $doctor->titre)) : 'dr';
+
         if (is_string($doctorName)) {
             // Attempt to decode the string as JSON.
             $decoded = json_decode($doctorName, true);
@@ -545,7 +547,7 @@ return false;
             $doctorName = str_replace(' ', '-', $doctorName);
         }
 
-        $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/dr-{$doctorName}-{$randomId}.html";
+        $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/{$doctorTitre}-{$doctorName}-{$randomId}.html";
 
         $randomId = rand(100000, 999999);
         $aliasBase = 'dr-' . $randomId;

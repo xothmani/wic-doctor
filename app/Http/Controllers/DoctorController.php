@@ -701,6 +701,8 @@ public function generateDoctorUrl($doctorId)
 
     /// Récupérer et traiter le nom du médecin
 $doctorName = $doctor->name;
+$doctorTitre = $doctor->titre ? strtolower(str_replace(' ', '', $doctor->titre)) : 'dr';
+
 if (is_string($doctorName)) {
     // Décoder le nom si nécessaire
     $decoded = json_decode($doctorName, true);
@@ -729,7 +731,7 @@ if ($doctorName) {
 
 
     // Générer l'URL du médecin
-    $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/dr-{$doctorName}-{$randomId}.html";
+    $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/{$doctorTitre}-{$doctorName}-{$randomId}.html";
 
     // Rediriger l'utilisateur vers l'URL générée
     return redirect()->away($link);

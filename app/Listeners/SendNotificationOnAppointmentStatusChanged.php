@@ -31,11 +31,12 @@ class SendNotificationOnAppointmentStatusChanged
         // Assurez-vous d'avoir un moyen d'obtenir le device_token du utilisateur
         $deviceToken = $appointment->user->device_token;
         // Préparez la notification
-        $title = 'Statut du rendez-vous modifié';
+
         $doctor = Doctor::find($appointment->doctor_id);
-        $message = "Le statut de votre rendez-vous avec Dr.{$doctor->name} a été {$this->getStatusFromId($event->status_id)}.";
 
-
+        $title = 'Appointment Status Updated';
+        
+        $message = "Your appointment with Dr. %s is now %s.";
 
         // Envoi de la notification FCM
         $this->fcmService->sendNotification(
@@ -46,6 +47,7 @@ class SendNotificationOnAppointmentStatusChanged
                 'appointment_id' => $appointment->id, 
                 'status' => $this->getStatusFromId($event->status_id),
                 'id' => 'App\Notifications\StatusChangedAppointment',
+                'doctor_name' => $doctor->name
                 ]
         );
 
@@ -60,6 +62,7 @@ class SendNotificationOnAppointmentStatusChanged
                 'appointment_id' => $appointment->id, 
                 'status' => $this->getStatusFromId($event->status_id),
                 'id' => 'App\Notifications\StatusChangedAppointment',
+                'doctor_name' => $doctor->name
                 ],
             'read' => false,
             'body' => $message
