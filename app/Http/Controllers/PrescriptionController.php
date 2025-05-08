@@ -34,53 +34,57 @@ class PrescriptionController extends Controller
      */
 
 
-    public function create(Request $request)
-    {
-        $consultation_id = $request->query('consultation_id');
-
-        // Récupérer le médecin associé à l'utilisateur connecté
-        $doctorId = auth()->user()->getDoctorId();
-        $doctor = Doctor::find($doctorId);
-
-        if (!$doctor) {
-            Log::error('Médecin non trouvé pour cet utilisateur', ['user_id' => auth()->id()]);
-            return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
-        }
-
-        // Récupérer l'adresse du médecin
-        $userWithAddress = $doctor->user()->with('address')->first();
-        $address = $userWithAddress->address ?? null;
-
-        // Extraire le pays depuis l'adresse
-        $pays = $address && $address->pays ? json_decode($address->pays, true) : null;
-        $pays = isset($pays['fr']) ? strtolower($pays['fr']) : (is_array($pays) ? strtolower(reset($pays) ?: '') : ($pays ? strtolower($pays) : null));
-
-        // Vérifier si le pays est la France
-        $isFrance = $pays === 'france';
-        Log::info('Requête pour récupérer les médicaments', [
-            'isFrance' => $isFrance
-        ]);
-
-
-        // Sélectionner les médicaments en fonction du pays
-// Sélectionner les médicaments en fonction du pays et les trier par nom_commercial
-        $medicaments = $isFrance
-            ? MedicamentFrance::orderBy('nom_commercial', 'asc')->get()
-            : Medicament::orderBy('nom_commercial', 'asc')->get();
-
-        // Log des médicaments récupérés
-        Log::info('Médicaments récupérés', [
-            'pays' => $pays,
-            'isFrance' => $isFrance,
-            'medicaments' => $medicaments->toArray()
-        ]);
-
-        $analyses = Analyse::all();
-        $radios = Radio::all();
-
-        $customFields = [];
-        return view('prescriptions.create', compact('medicaments', 'analyses', 'radios', 'customFields', 'consultation_id', 'isFrance'));
-    }
+     public function create(Request $request)
+     {
+         $consultation_id = $request->query('consultation_id');
+         $showAlert = false;
+     
+         // Récupérer le médecin connecté
+         $doctor = Doctor::where('user_id', auth()->id())->first();
+     
+         if (!$doctor) {
+             Log::error('Médecin non trouvé pour cet utilisateur', ['user_id' => auth()->id()]);
+             $showAlert = true;
+             return view('prescriptions.create', compact('showAlert'));
+         }
+     
+         // Vérifier l'existence de la consultation et l'association avec le médecin
+         $consultation = Consultation::where('id', $consultation_id)
+             ->where('user_id', auth()->id())
+             ->first();
+     
+         if (!$consultation) {
+             $showAlert = true;
+             return view('prescriptions.create', compact('showAlert'));
+         }
+     
+         // Vérifier l'adresse et le pays
+         $userWithAddress = $doctor->user()->with('address')->first();
+         $address = $userWithAddress->address ?? null;
+         $pays = $address && $address->pays ? json_decode($address->pays, true) : null;
+         $pays = isset($pays['fr']) ? strtolower($pays['fr']) : (is_array($pays) ? strtolower(reset($pays) ?: '') : ($pays ? strtolower($pays) : null));
+         $isFrance = $pays === 'france';
+     
+         $medicaments = $isFrance
+             ? MedicamentFrance::orderBy('nom_commercial', 'asc')->get()
+             : Medicament::orderBy('nom_commercial', 'asc')->get();
+     
+         $analyses = Analyse::all();
+         $radios = Radio::all();
+     
+         $customFields = [];
+     
+         return view('prescriptions.create', compact(
+             'medicaments',
+             'analyses',
+             'radios',
+             'customFields',
+             'consultation_id',
+             'isFrance',
+             'showAlert'
+         ));
+     }
+     
 
     /**
      * Store a newly created prescription in the database.
