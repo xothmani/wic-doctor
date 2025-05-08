@@ -522,7 +522,7 @@ return false;
 
         $randomId = $doctor->id_aleatoire;
         $doctorName = $doctor->name;
-        $doctorTitre = $doctor->titre;
+        $doctorTitre = $doctor->titre ? strtolower(str_replace(' ', '', $doctor->titre)) : 'dr';
 
         if (is_string($doctorName)) {
             // Attempt to decode the string as JSON.
