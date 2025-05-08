@@ -22,7 +22,8 @@
                 @foreach($users->take(8) as $quickUser)
                     <a href="{{ route('doctor.messages.show', $quickUser->id) }}"
                         class="avatar-circle {{ $quickUser->id == $user->id ? 'active' : '' }}">
-                        <img src="{{ $quickUser->avatar ?? asset('images/default-avatar.png') }}" alt="{{ $quickUser->name }}">
+                        <img src="{{ $quickUser->getFirstMediaUrl('avatar', 'icon') ?: asset('images/default-avatar.png') }}"
+                            alt="{{ $quickUser->name }}">
                         <span class="status-dot user-{{ $quickUser->id }}"></span>
                     </a>
                 @endforeach
@@ -39,7 +40,7 @@
                     <div class="chat-item user-{{ $chatUser->id }} {{ $chatUser->id == $user->id ? 'active' : '' }}">
                         <a href="{{ route('doctor.messages.show', $chatUser->id) }}" class="chat-link">
                             <div class="avatar">
-                                <img src="{{ $chatUser->avatar ?? asset('images/default-avatar.png') }}"
+                                <img src="{{ $chatUser->getFirstMediaUrl('avatar', 'icon') ?: asset('images/default-avatar.png') }}"
                                     alt="{{ $chatUser->name }}">
                                 <span class="status-dot"></span>
                             </div>
@@ -69,7 +70,8 @@
             <div class="conversation-header">
                 <div class="conversation-user">
                     <div class="avatar">
-                        <img src="{{ $user->avatar ?? asset('images/default-avatar.png') }}" alt="{{ $user->name }}">
+                        <img src="{{ $user->getFirstMediaUrl('avatar', 'icon') ?: asset('images/default-avatar.png') }}"
+                            alt="{{ $user->name }}">
                         <span class="status-dot user-{{ $user->id }}"></span>
                     </div>
                     <div class="user-info">
@@ -98,9 +100,237 @@
                 <button class="send-btn" id="send-message-btn"><i class="fas fa-paper-plane"></i></button>
             </div>
 
+            <!-- File upload modal -->
+            <input type="file" id="file-upload" style="display:none;">
+            <div id="upload-modal" class="upload-modal" style="display:none;">
+                <div class="upload-modal-content">
+                    <div class="upload-modal-header">
+                        <h4>Upload File</h4>
+                        <span class="upload-close">&times;</span>
+                    </div>
+                    <div class="upload-modal-body">
+                        <div class="upload-options">
+                            <button class="upload-option" id="upload-image">
+                                <i class="fas fa-image"></i>
+                                <span>Téléverser une image</span>
+                            </button>
+                            <button class="upload-option" id="upload-file">
+                                <i class="fas fa-file"></i>
+                                <span>Téléverser un fichier</span>
+                            </button>
+                        </div>
+                        <div class="upload-preview" style="display:none;">
+                            <div class="preview-container">
+                                <img id="image-preview" style="display:none; max-width: 100%; max-height: 200px;">
+                                <div id="file-preview" style="display:none;">
+                                    <i class="fas fa-file"></i>
+                                    <span id="file-name"></span>
+                                </div>
+                            </div>
+                            <button id="cancel-upload" class="btn btn-sm btn-secondary">Cancel</button>
+                            <button id="send-file" class="btn btn-sm btn-primary">Send</button>
+                        </div>
+                        <div class="upload-progress" style="display:none;">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-text">Uploading: 0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        .upload-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .upload-modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 350px;
+            max-width: 90%;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .upload-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .upload-modal-header h4 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .upload-close {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .upload-modal-body {
+            padding: 15px;
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .upload-option {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            background: none;
+            transition: all 0.2s;
+        }
+
+        .upload-option:hover {
+            background-color: #f8f9fa;
+        }
+
+        .upload-option i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4a6cf7;
+        }
+
+        .upload-preview {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .preview-container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #file-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #file-preview i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #6c757d;
+        }
+
+        .upload-progress {
+            margin-top: 15px;
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background-color: #e9ecef;
+            margin-bottom: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background-color: #4a6cf7;
+            height: 100%;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .chat-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+
+        .file-attachment {
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        .file-attachment a {
+            display: flex;
+            align-items: center;
+            color: #4a6cf7;
+            text-decoration: none;
+        }
+
+        .file-attachment i {
+            margin-right: 8px;
+        }
+
+        /* Button styles */
+        .btn {
+            display: inline-block;
+            font-weight: 400;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            border: 1px solid transparent;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background-color: #4a6cf7;
+            border-color: #4a6cf7;
+        }
+
+        .btn-secondary {
+            color: #fff;
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: 0.2rem;
+        }
+    </style>
+@endpush
 
 @section('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -114,6 +344,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <!-- Add Firebase products that you want to use -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-storage.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -131,6 +362,7 @@
             // Load Firebase scripts dynamically to ensure proper loading order
             loadScript('https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js')
                 .then(() => loadScript('https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js'))
+                .then(() => loadScript('https://www.gstatic.com/firebasejs/8.6.8/firebase-storage.js'))
                 .then(() => {
                     initializeFirebase();
                 })
@@ -158,12 +390,14 @@
                     console.log("Firebase availability:", typeof firebase);
                     console.log("Firebase app availability:", typeof firebase.initializeApp);
                     console.log("Firebase firestore availability:", typeof firebase.firestore);
+                    console.log("Firebase storage availability:", typeof firebase.storage);
 
                     const firebaseConfig = {
                         apiKey: "AIzaSyCONylt3t8MDw_02k5H9ceXTEmdtxmQtu8",
                         authDomain: "wic-doctor-b83e0.firebaseapp.com",
                         projectId: "wic-doctor-b83e0",
-                        storageBucket: "wic-doctor-b83e0.appspot.com",
+                        //storageBucket: "wic-doctor-b83e0.appspot.com",
+                        storageBucket: "wic-doctor-b83e0.firebasestorage.app", // Correct bucket name
                         messagingSenderId: "599835198131",
                         appId: "1:599835198131:web:3ee81bdd9f4cff0fa21f22"
                     };
@@ -265,27 +499,32 @@
                     const timestamp = messageDate;
                     const timeStr = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                    let messageContent = message.text;
+                    let messageContent = '';
 
                     // Handle file attachments if present
                     if (message.fileUrl && message.fileUrl.trim() !== '') {
                         const fileUrl = message.fileUrl;
-                        const fileExtension = fileUrl.split('.').pop().toLowerCase();
+
+                        // Image detection - only treat it as an image if the URL has specific image extensions
                         const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                        const fileExtension = fileUrl.split('.').pop().toLowerCase().split('?')[0];
 
                         if (imageExtensions.includes(fileExtension)) {
-                            // It's an image
-                            messageContent = `<img src="${fileUrl}" alt="Image" class="chat-image"><br>${message.text}`;
+                            // It's definitely an image
+                            messageContent = `<img src="${fileUrl}" alt="Image" class="chat-image">`;
                         } else {
-                            // It's a file
-                            const fileName = fileUrl.split('/').pop();
+                            // It's a file - use the file icon
+                            const fileName = message.text || fileUrl.split('/').pop().split('?')[0];
                             messageContent = `<div class="file-attachment">
                                         <a href="${fileUrl}" target="_blank" download="${fileName}">
-                                            <i class="fas fa-file"></i> ${fileName}
+                                            <img src="/images/file.png" alt="File" class="file-icon" style="width: 24px; height: 24px; margin-right: 8px;"> 
+                                            ${fileName}
                                         </a>
-                                    </div>
-                                    ${message.text}`;
+                                    </div>`;
                         }
+                    } else {
+                        // Regular text message
+                        messageContent = message.text;
                     }
 
                     const messageElement = `
@@ -299,6 +538,89 @@
 
                     messagesContainer.append(messageElement);
                     scrollToBottom();
+                }
+
+                function insertMessage(message, isOutgoing, messageDate, beforeElement) {
+                    // Check if we need to add a date divider
+                    const messageTimestamp = messageDate.getTime();
+
+                    // Find the appropriate position for the date divider
+                    let previousElement = beforeElement ? beforeElement.prev() : messagesContainer.children().last();
+                    let nextElement = beforeElement || null;
+
+                    // Check if we need to add a date header
+                    let needsDateHeader = true;
+                    let previousDateHeader = null;
+                    let previousMessageDate = null;
+
+                    // Look backwards to find the previous date header or message
+                    while (previousElement.length > 0) {
+                        if (previousElement.hasClass('date-divider')) {
+                            previousDateHeader = previousElement;
+                            previousMessageDate = new Date(parseInt(previousElement.data('date')));
+                            break;
+                        } else if (previousElement.hasClass('message-row')) {
+                            previousMessageDate = new Date(parseInt(previousElement.attr('data-timestamp')));
+                            break;
+                        }
+                        previousElement = previousElement.prev();
+                    }
+
+                    // If we found a previous message/header with the same date, no need for a new header
+                    if (previousMessageDate && isSameDay(previousMessageDate, messageDate)) {
+                        needsDateHeader = false;
+                    }
+
+                    // If we need a date header and there isn't one for this date already
+                    if (needsDateHeader) {
+                        const dateHeader = $(`<div class="date-divider" data-date="${messageTimestamp}">${formatDateHeader(messageDate)}</div>`);
+                        if (beforeElement) {
+                            beforeElement.before(dateHeader);
+                        } else {
+                            messagesContainer.append(dateHeader);
+                        }
+                    }
+
+                    // Format the message content
+                    const timeStr = messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    let messageContent = message.text;
+
+                    // Handle file attachments if present
+                    if (message.fileUrl && message.fileUrl.trim() !== '') {
+                        const fileUrl = message.fileUrl;
+                        const fileExtension = fileUrl.split('.').pop().toLowerCase();
+                        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+                        if (imageExtensions.includes(fileExtension) || fileUrl.includes('image')) {
+                            // It's an image - just show the image without text below it
+                            messageContent = `<img src="${fileUrl}" alt="Image" class="chat-image">`;
+                        } else {
+                            // It's a file
+                            const fileName = message.text || fileUrl.split('/').pop();
+                            messageContent = `<div class="file-attachment">
+                                                                <a href="${fileUrl}" target="_blank" download="${fileName}">
+                                                                    <i class="fas fa-file"></i> ${fileName}
+                                                                </a>
+                                                            </div>`;
+                        }
+                    }
+
+                    // Create the message element
+                    const messageElement = $(`
+                                                        <div class="message-row ${isOutgoing ? 'outgoing' : 'incoming'}" data-id="${message.id}" data-timestamp="${messageTimestamp}">
+                                                            <div class="message-bubble">
+                                                                <div class="message-text">${messageContent}</div>
+                                                                <div class="message-time">${timeStr}</div>
+                                                            </div>
+                                                        </div>
+                                                    `);
+
+                    // Insert the message at the correct position
+                    if (beforeElement) {
+                        beforeElement.before(messageElement);
+                    } else {
+                        messagesContainer.append(messageElement);
+                    }
                 }
 
                 // Track presence for receiver
@@ -449,14 +771,15 @@
                     sendMessage();
                 });
 
+                // Initialize file upload functionality
+                initFileUpload();
+
                 console.log("Chat initialized successfully");
                 $('.user-status').text('Online (Firebase Mode)');
             } catch (e) {
                 console.error("Error in initChat:", e);
             }
         }
-
-
 
         function sendMessage() {
             try {
@@ -481,13 +804,13 @@
                 // Show sending indicator
                 const tempId = 'msg-' + timestamp;
                 const tempMsg = `
-                                                                        <div id="${tempId}" class="message-row outgoing">
-                                                                            <div class="message-bubble">
-                                                                                <div class="message-text">${messageText}</div>
-                                                                                <div class="message-time">Sending...</div>
-                                                                            </div>
-                                                                        </div>
-                                                                    `;
+                                                                                                    <div id="${tempId}" class="message-row outgoing">
+                                                                                                        <div class="message-bubble">
+                                                                                                            <div class="message-text">${messageText}</div>
+                                                                                                            <div class="message-time">Sending...</div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                `;
                 $('#messages-container').append(tempMsg);
                 scrollToBottom();
 
@@ -549,25 +872,6 @@
             }
         }
 
-        function displayMessage(message) {
-            const currentUserId = "{{ $currentUser->id }}";
-            const isOutgoing = message.senderId === currentUserId;
-
-            const timestamp = message.timestamp ? new Date(message.timestamp.toDate()) : new Date();
-            const timeStr = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            const messageElement = `
-                                                                                                                                                                                <div class="message-row ${isOutgoing ? 'outgoing' : 'incoming'}">
-                                                                                                                                                                                    <div class="message-bubble">
-                                                                                                                                                                                        <div class="message-text">${message.text}</div>
-                                                                                                                                                                                        <div class="message-time">${timeStr}</div>
-                                                                                                                                                                                    </div>
-                                                                                                                                                                                </div>
-                                                                                                                                                                            `;
-
-            $('#messages-container').append(messageElement);
-        }
-
         function scrollToBottom() {
             const container = document.getElementById('messages-container');
             container.scrollTop = container.scrollHeight;
@@ -592,7 +896,7 @@
                     console.log("Marked all messages as read");
 
                     // Reset unread counter
-                    db.collection('unread').doc(userId).collection('senders').doc(senderId).set({
+                    return db.collection('unread').doc(userId).collection('senders').doc(senderId).set({
                         count: 0
                     }, { merge: true });
                 })
@@ -600,7 +904,6 @@
                     console.error("Error marking messages as read:", error);
                 });
         }
-
         function updateUserStatus(userId, status) {
             const statusDot = $(`.user-${userId} .status-dot`);
             if (status.online) {
@@ -679,6 +982,257 @@
                 date1.getFullYear() === date2.getFullYear();
         }
 
+        function initFileUpload() {
+            // Check if Firebase Storage is loaded
+            if (typeof firebase === 'undefined' || typeof firebase.storage === 'undefined') {
+                console.error("Firebase Storage is not loaded!");
+                return;
+            }
 
+            // Get Firebase Storage reference
+            const storage = firebase.storage();
+
+            const attachBtn = document.querySelector('.attach-btn');
+            const fileUploadInput = document.getElementById('file-upload');
+            const uploadModal = document.getElementById('upload-modal');
+            const uploadClose = document.querySelector('.upload-close');
+            const uploadImageBtn = document.getElementById('upload-image');
+            const uploadFileBtn = document.getElementById('upload-file');
+            const imagePreview = document.getElementById('image-preview');
+            const filePreview = document.getElementById('file-preview');
+            const fileName = document.getElementById('file-name');
+            const cancelUploadBtn = document.getElementById('cancel-upload');
+            const sendFileBtn = document.getElementById('send-file');
+            const uploadPreview = document.querySelector('.upload-preview');
+            const uploadOptions = document.querySelector('.upload-options');
+            const uploadProgress = document.querySelector('.upload-progress');
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.querySelector('.progress-text');
+
+            let selectedFile = null;
+            let fileType = null;
+
+            // Attach button click handler
+            attachBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                uploadModal.style.display = 'flex';
+            });
+
+            // Close modal when clicking the X
+            uploadClose.addEventListener('click', function () {
+                uploadModal.style.display = 'none';
+                resetUploadUI();
+            });
+
+            // Close modal when clicking outside
+            uploadModal.addEventListener('click', function (e) {
+                if (e.target === uploadModal) {
+                    uploadModal.style.display = 'none';
+                    resetUploadUI();
+                }
+            });
+
+            // Handle image upload option click
+            uploadImageBtn.addEventListener('click', function () {
+                fileType = 'image';
+                fileUploadInput.accept = 'image/*';
+                fileUploadInput.click();
+            });
+
+            // Handle file upload option click
+            uploadFileBtn.addEventListener('click', function () {
+                fileType = 'file';
+                fileUploadInput.accept = '.pdf,.doc,.docx,.txt,.xls,.xlsx';
+                fileUploadInput.click();
+            });
+
+            // Handle file selection
+            fileUploadInput.addEventListener('change', function (e) {
+                if (e.target.files.length > 0) {
+                    selectedFile = e.target.files[0];
+
+                    // Show preview based on file type
+                    uploadOptions.style.display = 'none';
+                    uploadPreview.style.display = 'block';
+
+                    if (fileType === 'image' && selectedFile.type.startsWith('image/')) {
+                        // Preview image
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            imagePreview.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                            filePreview.style.display = 'none';
+                        };
+                        reader.readAsDataURL(selectedFile);
+                    } else {
+                        // Preview file
+                        imagePreview.style.display = 'none';
+                        filePreview.style.display = 'flex';
+                        fileName.textContent = selectedFile.name;
+                    }
+                }
+            });
+
+            // Handle cancel button
+            cancelUploadBtn.addEventListener('click', function () {
+                resetUploadUI();
+            });
+
+            // Handle send button
+            sendFileBtn.addEventListener('click', function () {
+                if (selectedFile) {
+                    uploadFile(selectedFile);
+                }
+            });
+
+            // Reset the upload UI
+            function resetUploadUI() {
+                selectedFile = null;
+                fileType = null;
+                uploadOptions.style.display = 'flex';
+                uploadPreview.style.display = 'none';
+                uploadProgress.style.display = 'none';
+                progressBar.style.width = '0%';
+                progressText.textContent = 'Uploading: 0%';
+                imagePreview.style.display = 'none';
+                filePreview.style.display = 'none';
+                fileUploadInput.value = '';
+            }
+
+            // Upload the file to Firebase Storage and send message
+            function uploadFile(file) {
+                const currentUserId = "{{ $currentUser->id }}";
+                const receiverId = "{{ $user->id }}";
+                const timestamp = Date.now();
+                const fileExtension = file.name.split('.').pop();
+                const storageRef = storage.ref();
+
+                // Create a reference to the file in Firebase Storage
+                const fileRef = storageRef.child(`chat_files/${currentUserId}/${timestamp}_${file.name}`);
+
+                // Show upload progress
+                uploadOptions.style.display = 'none';
+                uploadPreview.style.display = 'none';
+                uploadProgress.style.display = 'block';
+
+                // Upload the file
+                const uploadTask = fileRef.put(file);
+
+                // Listen for state changes, errors, and completion of the upload
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        // Get upload progress
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        progressBar.style.width = progress + '%';
+                        progressText.textContent = `Uploading: ${Math.round(progress)}%`;
+                    },
+                    (error) => {
+                        // Handle unsuccessful uploads
+                        console.error("Error uploading file:", error);
+                        alert("Error uploading file. Please try again.");
+                        resetUploadUI();
+                    },
+                    () => {
+                        // Handle successful uploads
+                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            console.log('File available at', downloadURL);
+
+                            // Close modal
+                            uploadModal.style.display = 'none';
+                            resetUploadUI();
+
+                            // Send message with file
+                            sendFileMessage(downloadURL, file.name, fileType);
+                        });
+                    }
+                );
+            }
+
+            // Send a message with a file attachment using the same structure as regular messages
+            function sendFileMessage(fileUrl, fileName, fileType) {
+                const currentUserId = "{{ $currentUser->id }}";
+                const receiverId = "{{ $user->id }}";
+                const roomId = `${currentUserId}-${receiverId}`;
+                const timestamp = Date.now();
+                const db = firebase.firestore();
+
+                // Default message text based on file type
+                let messageText = fileType === 'image' ? 'Photo' : fileName;
+
+                // Show sending indicator
+                const tempId = 'msg-' + timestamp;
+                let messageContent = '';
+
+                if (fileType === 'image') {
+                    messageContent = `<img src="${fileUrl}" alt="Image" class="chat-image"><br>${messageText}`;
+                } else {
+                    messageContent = `<div class="file-attachment">
+                                                                                                        <a href="${fileUrl}" target="_blank" download="${fileName}">
+                                                                                                            <i class="fas fa-file"></i> ${fileName}
+                                                                                                        </a>
+                                                                                                    </div>
+                                                                                                    ${messageText}`;
+                }
+
+                const tempMsg = `
+                                                                                                    <div id="${tempId}" class="message-row outgoing">
+                                                                                                        <div class="message-bubble">
+                                                                                                            <div class="message-text">${messageContent}</div>
+                                                                                                            <div class="message-time">Sending...</div>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                `;
+
+                $('#messages-container').append(tempMsg);
+                scrollToBottom();
+
+                // Get sender and receiver data
+                const senderData = {
+                    auth: true,
+                    device_token: "{{ $currentUser->device_token ?? '' }}",
+                    id: currentUserId,
+                    imageUrl: "{{ $currentUser->profile_image ?? '' }}",
+                    name: "{{ $currentUser->name }}",
+                    phone_number: "{{ $currentUser->phone_number ?? '' }}"
+                };
+
+                const receiverData = {
+                    auth: false,
+                    device_token: "{{ $user->device_token ?? '' }}",
+                    id: receiverId,
+                    imageUrl: "{{ $user->profile_image ?? '' }}",
+                    name: "{{ $user->name }}",
+                    phone_number: "{{ $user->phone_number ?? '' }}"
+                };
+
+                // Create the message data with the format you specified
+                const messageData = {
+                    id: timestamp.toString(),
+                    sender: senderData,
+                    receiver: receiverData,
+                    text: messageText,
+                    time: timestamp,
+                    fileUrl: fileUrl // Include the file URL
+                };
+
+                // Save to Firestore in the path: /messages/[senderID]-[receiverID]/chats/[messageID]
+                db.collection('messages').doc(roomId).collection('chats').add(messageData)
+                    .then((docRef) => {
+                        console.log("File message saved successfully", docRef.id);
+
+                        // Update unread counter
+                        db.collection('unread').doc(receiverId).collection('senders').doc(currentUserId).set({
+                            count: firebase.firestore.FieldValue.increment(1)
+                        }, { merge: true });
+
+                        // Remove temp message (it will be replaced by the real one from the snapshot)
+                        $('#' + tempId).remove();
+                    })
+                    .catch(error => {
+                        console.error("Error sending file message:", error);
+                        $('#' + tempId + ' .message-time').text('Failed to send');
+                    });
+            }
+        }
     </script>
 @endsection

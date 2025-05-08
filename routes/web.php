@@ -734,8 +734,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('doctor/messages', [ChatController::class, 'index'])
         ->name('doctor.messages');
 
-    // Individual conversation view
-    Route::get('doctor/messages/{userId}', [ChatController::class, 'show'])
+    // Individual conversation view - using the same index method
+    Route::get('doctor/messages/{selectedUserId}', [ChatController::class, 'index'])
         ->name('doctor.messages.show');
 
     // API endpoints for chat functionality
@@ -753,3 +753,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('doctor/messages/status/{userId}', [ChatController::class, 'getUserStatus'])
         ->name('doctor.messages.status');
 });
+
+// routes/web.php or routes/api.php
+Route::post('/upload-to-firebase', 'FirebaseController@uploadFile');

@@ -320,12 +320,18 @@
                                 <!-- Motif (Pattern) Display -->
                                 <div class="form-group">
                                     <label class="font-weight-bold">{{ trans('lang.motif') }}</label>
+
+                                    <!-- Single pattern display (will be shown when only one pattern) -->
                                     <div id="patternDisplay" class="text-white p-2 rounded text-center"
                                         style="background-color: #cccccc; font-weight: bold; font-size: 16px;">
                                         {{ trans('lang.no_pattern_selected') }}
                                     </div>
-                                </div>
 
+                                    <!-- Multiple patterns dropdown (initially hidden) -->
+                                    <select id="patternSelector" class="form-control mt-2" style="display: none;">
+                                        <option value="">{{ trans('lang.select_pattern') }}</option>
+                                    </select>
+                                </div>
                                 <!-- Appointment Date -->
                                 <div class="form-group">
                                     <label class="font-weight-bold" for="appointmentDate">{{ trans('lang.date') }}</label>
@@ -526,7 +532,7 @@
                 data: { date: viewStart.format("YYYY-MM-DD") }, // Send the current week's start date
                 dataType: "json",
                 success: function (availabilityResponse) {
-                    // console.log("📌 Availability Data:", availabilityResponse);
+                    console.log("📌 Availability Data:", availabilityResponse);
 
                     let backgroundEvents = [];
 
@@ -630,7 +636,6 @@
             //setInterval(refreshCalendarEvents, 10000);
             ////////////////////////////////
             function updateAllPatterns(date, time) {
-                //console.log(date, time);
                 const types = [
                     { type: 'cabinet' },
                     { type: 'Téléconsultation' },
@@ -644,10 +649,10 @@
                         data: {
                             date: date,
                             time: time,
-                            type: item.type
+                            type: item.type,
+                            fetch_all_patterns: true // Add this parameter to tell backend we want all patterns
                         },
                         success: function (response) {
-                            //console.log("Fetched data for", item.type, response);
                             window.patternData[item.type] = response;
 
                             // If the currently active tab is this type, update UI
@@ -664,23 +669,44 @@
             }
 
             // Update the UI for a given appointment type using its returned data
+            // Main function to update UI based on appointment type
             function updateUIForType(apptType) {
-                // Log urgencies for debugging
-                //console.log("Current Urgencies:", urgencies);
+                console.log("Updating UI for type:", apptType);
+
                 const data = window.patternData[apptType];
-                // Update motif
-                $('#patternDisplay').text(data.pattern_name || '{{ trans("lang.no_pattern_selected") }}');
-                $('#patternDisplay').css('background-color', data.pattern_color || '#cccccc');
+                console.log("Pattern data for", apptType, ":", data);
 
-                if (data.pattern_id) {
-                    $("#motif_id").val(data.pattern_id);
-                } else {
-                    $("#motif_id").val('');
+                // Check if we have patterns data
+                let patterns = [];
+
+                if (data && data.patterns && Array.isArray(data.patterns)) {
+                    // New format with patterns array
+                    patterns = data.patterns;
+                    console.log("Found", patterns.length, "patterns from patterns array");
+                } else if (data && data.pattern_id) {
+                    // Old format with single pattern
+                    patterns = [{
+                        pattern_id: data.pattern_id,
+                        pattern_name: data.pattern_name,
+                        pattern_color: data.pattern_color
+                    }];
+                    console.log("Found single pattern from legacy format");
                 }
-                // Reset all fields
-                resetFormFields();
-                console.log("Data for", apptType, data);
 
+                // Update the pattern display based on patterns count
+                if (patterns.length > 1) {
+                    console.log("Multiple patterns found, showing dropdown");
+                    showMultiplePatterns(patterns);
+                } else {
+                    console.log("Single or no pattern found, showing regular display");
+                    const pattern = patterns.length > 0 ? patterns[0] : null;
+                    showSinglePattern(pattern);
+                }
+
+                // Reset form fields
+                resetFormFields();
+
+                // Rest of your existing code
                 const selectedDate = $("#appointmentDate").val();
                 console.log("Selected Date:", selectedDate);
                 const matchedUrgency = urgencies.find(urgency => urgency.jour === selectedDate);
@@ -784,6 +810,220 @@
                             .addClass('btn-secondary');
                     }
                 }
+            }
+
+            // Function to show dropdown for multiple patterns
+            function showMultiplePatterns(patterns) {
+                console.log("Setting up dropdown for patterns:", patterns);
+
+                // Hide the single pattern display
+                $('#patternDisplay').hide();
+
+                // Get the container
+                const $container = $('#patternDisplay').parent();
+
+                // Remove existing dropdown if any
+                $('#patternSelector').remove();
+                $('.custom-pattern-selector').remove();
+
+                // Create a custom dropdown replacement with rounded corners and matching widths
+                const $customDropdown = $(`
+                    <div class="custom-pattern-selector" style="position: relative;">
+                        <div class="selected-pattern p-2 text-center" 
+                             style="background-color: #fff; 
+                                    border: 1px solid #ced4da; 
+                                    cursor: pointer; 
+                                    height: 38px; 
+                                    display: flex; 
+                                    align-items: center; 
+                                    justify-content: space-between;
+                                    border-radius: 8px; /* Curved corners */
+                                    overflow: hidden;
+                                    width: 100%;">
+                            <span>{{ trans('lang.select_pattern') }}</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="pattern-options" 
+                             style="display: none; 
+                                    position: absolute;
+                                    width: 100%; /* Same width as parent */
+                                    z-index: 1000; 
+                                    background: white; 
+                                    border: 1px solid #ced4da; 
+                                    border-top: 1px solid #ced4da; /* Add visible top border */
+                                    max-height: 200px; 
+                                    overflow-y: auto;
+                                    border-radius: 0 0 8px 8px; /* Rounded corners at bottom */
+                                    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Add subtle shadow */
+                                    left: 0;
+                                    right: 0;
+                                    top: 100%; /* Position directly below the selector */
+                                    margin-top: -1px; /* Slightly overlap to avoid double-border */
+                                    ">
+                            <!-- Divider line -->
+                            <div class="dropdown-divider" style="height: 1px; background-color: #ced4da; margin: 0;"></div>
+                        </div>
+                        <input type="hidden" id="pattern-value">
+                    </div>
+                `);
+
+                // Add pattern options
+                const $optionsContainer = $customDropdown.find('.pattern-options');
+
+                // Add each pattern as an option
+                patterns.forEach(pattern => {
+                    $optionsContainer.append(`
+                        <div class="pattern-option p-2" 
+                             data-value="${pattern.pattern_id}" 
+                             data-color="${pattern.pattern_color}"
+                             data-name="${pattern.pattern_name}"
+                             style="cursor: pointer; 
+                                    border-bottom: 1px solid #f0f0f0;
+                                    transition: background-color 0.2s;">
+                            ${pattern.pattern_name}
+                        </div>
+                    `);
+                });
+
+                // Toggle dropdown on click
+                $customDropdown.find('.selected-pattern').on('click', function () {
+                    const $selectedDisplay = $(this);
+
+                    // Toggle options visibility
+                    $optionsContainer.toggle();
+
+                    // Adjust border radius based on dropdown state
+                    if ($optionsContainer.is(':visible')) {
+                        // When open, round only the top corners
+                        $selectedDisplay.css({
+                            'border-radius': '8px 8px 0 0',
+                            'border-bottom-color': '#ced4da' // Make bottom border visible
+                        });
+                    } else {
+                        // When closed, fully rounded
+                        $selectedDisplay.css({
+                            'border-radius': '8px',
+                            'border-bottom-color': '#ced4da'
+                        });
+                    }
+                });
+
+                // Handle option selection
+                $customDropdown.find('.pattern-option').on('click', function () {
+                    const value = $(this).data('value');
+                    const name = $(this).data('name') || '{{ trans("lang.select_pattern") }}';
+                    const color = $(this).data('color');
+
+                    // Update the selected display
+                    const $selectedDisplay = $customDropdown.find('.selected-pattern');
+                    $selectedDisplay.find('span').text(name);
+
+                    // Update the hidden inputs
+                    $('#motif_id').val(value);
+                    $customDropdown.find('#pattern-value').val(value);
+
+                    // Apply color only if a pattern is selected
+                    if (value) {
+                        $selectedDisplay.css({
+                            'background-color': color,
+                            'color': getContrastYIQ(color),
+                            'font-weight': 'bold',
+                            'border-radius': '8px' // Fully rounded when closed
+                        });
+                    } else {
+                        $selectedDisplay.css({
+                            'background-color': '#fff',
+                            'color': '#495057',
+                            'font-weight': 'normal',
+                            'border-radius': '8px' // Fully rounded when closed
+                        });
+                    }
+
+                    // Hide the options
+                    $optionsContainer.hide();
+                });
+
+                // Close dropdown when clicking outside
+                $(document).mouseup(function (e) {
+                    if (!$customDropdown.is(e.target) && $customDropdown.has(e.target).length === 0) {
+                        $optionsContainer.hide();
+                        $customDropdown.find('.selected-pattern').css('border-radius', '8px'); // Restore full border radius
+                    }
+                });
+
+                // Add the custom dropdown to the container
+                $container.append($customDropdown);
+
+                // Add some basic CSS to make it look nice
+                $('<style>')
+                    .prop('type', 'text/css')
+                    .html(`
+                        .pattern-option:hover {
+                            background-color: #f8f9fa;
+                        }
+                        .pattern-option:last-child {
+                            border-bottom: none !important;
+                            border-radius: 0 0 8px 8px;
+                        }
+                    `)
+                    .appendTo('head');
+
+                // Set a specific width after rendering to ensure they match
+                setTimeout(function () {
+                    const selectorWidth = $customDropdown.find('.selected-pattern').outerWidth();
+                    $customDropdown.find('.pattern-options').css('width', selectorWidth + 'px');
+                }, 0);
+            }
+
+            // Function to show single pattern display
+            function showSinglePattern(pattern) {
+                console.log("Setting up display for single pattern:", pattern);
+
+                // Hide the dropdown and show the single pattern display
+                $('#patternSelector').hide();
+
+                // Update the single pattern display
+                const $display = $('#patternDisplay');
+
+                if (pattern) {
+                    $display.text(pattern.pattern_name);
+                    $display.css({
+                        'background-color': pattern.pattern_color,
+                        'color': getContrastYIQ(pattern.pattern_color)
+                    });
+                    $('#motif_id').val(pattern.pattern_id);
+                } else {
+                    $display.text('{{ trans("lang.no_pattern_selected") }}');
+                    $display.css({
+                        'background-color': '#cccccc',
+                        'color': '#000000'
+                    });
+                    $('#motif_id').val('');
+                }
+
+                // Show the display
+                $display.show();
+            }
+
+            // Helper function for text contrast
+            function getContrastYIQ(hexcolor) {
+                if (!hexcolor || hexcolor === '#cccccc' || hexcolor === '') {
+                    return '#000000';
+                }
+
+                // Remove hash if present
+                hexcolor = hexcolor.replace('#', '');
+
+                // Convert to RGB values
+                const r = parseInt(hexcolor.substr(0, 2), 16);
+                const g = parseInt(hexcolor.substr(2, 2), 16);
+                const b = parseInt(hexcolor.substr(4, 2), 16);
+
+                // Calculate luminance
+                const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+
+                // Return black for light colors, white for dark
+                return (yiq >= 128) ? '#000000' : '#ffffff';
             }
             //////////////////////////////////////////////////////////
             function openCreateAppointmentModal(selectedDate, selectedTime, patterns, availableSlots) {
@@ -1132,11 +1372,11 @@
                                     // Append all elements with proper structure
                                     $(this).append(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="custom-day-label substitute-hover">${substituteName}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="custom-number-label">${staticNumber}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-day-label substitute-hover">${substituteName}</div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-number-label">${staticNumber}</div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
 
                                     if (activeSubstitute) {
                                         $(this).find('.custom-day-label').hover(
@@ -1459,15 +1699,15 @@
                     // Base details
                     let detailsHtml = `
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `;
 
                     //console.log(event.cancel_reason);
 
