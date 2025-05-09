@@ -309,6 +309,7 @@ public function openingHours(): OpeningHours
 
     $openingHoursArray = [];
 
+
     foreach ($this->availabilityHours as $element) {
         $dayInEnglish = '';
         // Vérifier si le jour est valide
@@ -450,6 +451,12 @@ public function openingHours(): OpeningHours
                 ->where('appointment_status_id', '>', 0)
                 ->exists();
 
+            Log::info("Appointment exist : ", [
+                'start_at' => $startTime,
+                'ends_at' => $endTime,
+                'appointmentsExist' => $appointmentsExist
+            ]);
+
             $iSameType = false;
             if ($mode == "precise" && $pattern_id != 0) {
                 $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation, $mode, $pattern_id);
@@ -457,7 +464,17 @@ public function openingHours(): OpeningHours
                 $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation);
             }
 
-            $timeSlot[1] = !$appointmentsExist && $iSameType && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation);
+            $timeSlot[1] = !$appointmentsExist && $iSameType && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation) && !$this->isLastSlotOfTheDay($date, $startTime, $endTime, $typeConsultation);
+            Log::info("Result of Calendar : ", [
+                'iSameType' => $iSameType,
+                'vacance' => $vacance,
+                'isUrgent' => $this->isUrgent($date, $startTime, $endTime),
+                'isSessionCollidingWithPause' => $this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation),
+                'appointmentsExist' => $appointmentsExist,
+                'timeSlot[1]' => $timeSlot[1]
+            ]);
+
+
         } else {
             Log::info("SESSION DURATION-------------WeekCalendarRange----------------12");
         }
@@ -498,6 +515,13 @@ public function isUrgent(Carbon $date, Carbon $startTime, Carbon $endTime): bool
         ->exists(); // Check if any matching records exist
 
     // Return true if the current time is during an urgent period, false otherwise
+    Log::info("isUrgent : ", [
+        'start_at' => $startTime,
+        'ends_at' => $endTime,
+        'isUrgent' => $urgency
+    ]);
+
+
     return $urgency;
 }
 
@@ -549,9 +573,55 @@ public function isSameType(Carbon $date, Carbon $startTime, Carbon $endTime, str
     }
     
 
+    Log::info("isSameType : ", [
+        'start_at' => $startTime,
+        'ends_at' => $endTime,
+        'isSameType' => $onlineStatus
+    ]);
+
+
     // Return true if the doctor is available online during the given time, false otherwise
     return $onlineStatus;
 }
+
+
+
+public function isLastSlotOfTheDay(Carbon $date, Carbon $startTime, Carbon $endTime, string $typeConsultation): bool
+{
+    // Get the day name in French and capitalize the first letter
+    $dayName = ucfirst($date->locale('fr')->dayName);
+    $convertDay = [
+        "Lundi" => "monday",
+        "Mardi" => "tuesday",
+        "Mercredi" => "wednesday",
+        "Jeudi" => "thursday",
+        "Vendredi" => "friday",
+        "Samedi" => "saturday",
+        "Dimanche" => "sunday",
+    ];
+
+    // Récupérer l'heure de fin la plus tardive de la journée
+    $latestEndTime = DB::table('availability_hours')
+        ->where('doctor_id', $this->id)
+        ->where('type', $typeConsultation)
+        ->whereRaw('LOWER(day) = ?', [strtolower($convertDay[$dayName])])
+        ->max('end_at');
+
+    $isLast = $startTime->format('H:i') === Carbon::parse($latestEndTime)->format('H:i');
+
+    Log::info("isLastSlotOfTheDay : ", [
+        'start_at' => $startTime->format('H:i'),
+        'ends_at' => $endTime->format('H:i'),
+        'latestEndTime' => $latestEndTime,
+        'isLastSlot' => $isLast
+    ]);
+
+    return $isLast;
+}
+
+
+
+
 
 public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Carbon $endTime, string $typeConsultation): bool
 {
@@ -591,7 +661,11 @@ public function isSessionCollidingWithPause(Carbon $date, Carbon $startTime, Car
         ->exists();
 
     // Log the result of the query for debugging
-    Log::info("Collision Check Result: " . ($collisionExists ? 'Collision Found' : 'No Collision'));
+    Log::info("isSessionCollidingWithPause : ", [
+        'start_at' => $startTime,
+        'ends_at' => $endTime,
+        'isSessionCollidingWithPause' => $collisionExists
+    ]);
 
     return $collisionExists;
 }
