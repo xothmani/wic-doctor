@@ -99,7 +99,8 @@ class UserAPIController extends Controller
             }
             
             $user = new User;
-            $user->name = $request->input('name');
+            $user->name = json_encode(['fr' => $request->input('firstName'),]);
+            $user->lastname = json_encode(['fr' => $request->input('lastName'),]);
             $user->email = $request->input('email');
             $user->phone_number = $request->input('phone_number');
             $user->phone_verified_at = $request->input('phone_verified_at');
@@ -111,15 +112,15 @@ class UserAPIController extends Controller
 
 
             /****** Save patient */
-            $nameParts = explode(' ', $request->input('name'));
+            /*$nameParts = explode(' ', $request->input('name'));
             Log::info("Name parts: " . json_encode($nameParts));
             Log::info("First name: " . '{"fr": "' . ($nameParts[0] ?? '') . '"}');
-            Log::info("Last name: " . '{"fr": "' . ($nameParts[1] ?? '') . '"}');
+            Log::info("Last name: " . '{"fr": "' . ($nameParts[1] ?? '') . '"}');*/
 
             $data = [
                 'user_id'        => $user->id,
-                'first_name' => $nameParts[0],
-                'last_name'  => $nameParts[1],
+                'first_name' => $request->input('firstName'),
+                'last_name'  => $request->input('lastName'),
                 'email'          => $request->input('email'),
                 'phone_number'   => $request->input('phone_number'),
                 'mobile_number'  => $request->input('phone_number'),
