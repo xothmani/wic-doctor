@@ -76,6 +76,16 @@ class UserAPIController extends Controller
 
     }
 
+
+
+    function decodeIfJson($value) {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
+        }
+        return $value;
+    }
+
     /**
      * Create a new user instance after a valid registration.
      *
@@ -99,8 +109,8 @@ class UserAPIController extends Controller
             }
             
             $user = new User;
-            $user->name = json_encode(['fr' => $request->input('firstName'),]);
-            $user->lastname = json_encode(['fr' => $request->input('lastName'),]);
+            $user->name = $request->input('firstName');
+            $user->lastname = $request->input('lastname');
             $user->email = $request->input('email');
             $user->phone_number = $request->input('phone_number');
             $user->phone_verified_at = $request->input('phone_verified_at');
@@ -112,15 +122,12 @@ class UserAPIController extends Controller
 
 
             /****** Save patient */
-            /*$nameParts = explode(' ', $request->input('name'));
-            Log::info("Name parts: " . json_encode($nameParts));
-            Log::info("First name: " . '{"fr": "' . ($nameParts[0] ?? '') . '"}');
-            Log::info("Last name: " . '{"fr": "' . ($nameParts[1] ?? '') . '"}');*/
+            
 
             $data = [
-                'user_id'        => $user->id,
-                'first_name' => $request->input('firstName'),
-                'last_name'  => $request->input('lastName'),
+                'user_id'=> $user->id,
+                'first_name'     => $this->decodeIfJson($request->input('firstName')),
+                'last_name'      => $this->decodeIfJson($request->input('lastname')),
                 'email'          => $request->input('email'),
                 'phone_number'   => $request->input('phone_number'),
                 'mobile_number'  => $request->input('phone_number'),
