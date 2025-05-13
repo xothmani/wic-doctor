@@ -464,7 +464,7 @@ public function openingHours(): OpeningHours
                 $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation);
             }
 
-            $timeSlot[1] = !$appointmentsExist && $iSameType && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation) && !$this->isLastSlotOfTheDay($date, $startTime, $endTime, $typeConsultation);
+            $timeSlot[1] = !$appointmentsExist && $iSameType && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation) && !$this->isLastSlotOfTheDay($date, $startTime, $endTime, $typeConsultation) && !$this->isFirstSlotOfTheDay($date, $startTime,$typeConsultation);
             Log::info("Result of Calendar : ", [
                 'iSameType' => $iSameType,
                 'vacance' => $vacance,
@@ -618,6 +618,45 @@ public function isLastSlotOfTheDay(Carbon $date, Carbon $startTime, Carbon $endT
 
     return $isLast;
 }
+
+
+
+public function isFirstSlotOfTheDay(Carbon $date, Carbon $startTime, string $typeConsultation): bool
+{
+    $dayName = ucfirst($date->locale('fr')->dayName);
+    $convertDay = [
+        "Lundi" => "monday",
+        "Mardi" => "tuesday",
+        "Mercredi" => "wednesday",
+        "Jeudi" => "thursday",
+        "Vendredi" => "friday",
+        "Samedi" => "saturday",
+        "Dimanche" => "sunday",
+    ];
+
+    $earliestStartTime = DB::table('availability_hours')
+        ->where('doctor_id', $this->id)
+        ->where('type', $typeConsultation)
+        ->whereRaw('LOWER(day) = ?', [strtolower($convertDay[$dayName])])
+        ->min('start_at');
+
+    if (!$earliestStartTime) {
+        return false;
+    }
+
+    $startTimeHour = $startTime->format('H:i');
+    $earliestHour = Carbon::parse($earliestStartTime)->format('H:i');
+
+
+    Log::info("isFirstSlotOfTheDay : ", [
+        'startTimeHour' => $startTimeHour ,
+        'earliestHour' => $earliestHour
+    ]);
+
+    return $startTimeHour < $earliestHour;
+}
+
+
 
 
 
