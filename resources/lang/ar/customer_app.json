@@ -453,5 +453,6 @@
     "Appointment Status Updated": "تم تحديث حالة الموعد",
     "Your appointment with Dr. %s is now %s.": "موعدك مع الدكتور %s الان %s.",
     "New Appointment": "موعد جديد",
-    "Your appointment has been successfully scheduled. Please check the details in the app.": "تم تحديد موعدك بنجاح. يرجى التحقق من التفاصيل في التطبيق."
+    "Your appointment has been successfully scheduled. Please check the details in the app.": "تم تحديد موعدك بنجاح. يرجى التحقق من التفاصيل في التطبيق.",
+    "You have a new appointment with Dr. %s on %s at %s.": "s% على الساعة s%  يوم %s.لديك موعد جديد مع د"
 }
