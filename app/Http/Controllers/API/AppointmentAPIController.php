@@ -498,11 +498,19 @@ class AppointmentAPIController extends Controller
                     $patient_last_name = $request->input('patient.last_name');
                     $patient_phone = $request->input('patient.phone_number');
                     $roomName = "{$patient_first_name}_{$patient_last_name}_{$patient_phone}_{$date}_{$time}";
+                    $doctorId = is_array($request->input('doctor.id')) ? $request->input('doctor.id')[0] : $request->input('doctor.id');
+                    $doctor = Doctor::find($doctorId);
+
+                    Log::info("RoomName", [
+                        "RoomName" => $roomName,
+                        "doctor" => $doctor,
+                        "user_id" => $doctor->user_id
+                    ]);
 
                     $roomData = [
                         'room_name' => $roomName,
                         'meet_link' => 'https://meet.wic-doctor.com/' . $roomName,
-                        'owner_id' => is_array($request->input('doctor.id')) ? $request->input('doctor.id')[0] : $request->input('doctor.id'),
+                        'owner_id' => $doctor->user_id,
                         'appointment_id' => $appointmentId,
                         'patient_id' => is_array($request->input('patient.id')) ? $request->input('patient.id')[0] : $request->input('patient.id'),
                         'date' => $date,
