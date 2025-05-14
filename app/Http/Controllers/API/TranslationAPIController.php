@@ -9,9 +9,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class TranslationAPIController extends Controller
 {
@@ -53,10 +55,26 @@ class TranslationAPIController extends Controller
 
     function translations(Request $request)
     {
+        Log::info("TranslationAPIController", ["request" => $request->all()]);
+
+        if (auth()->check()) {
+            Log::info("Utilisateur connecté", ["id" => auth()->id()]);
+        }
+
+
         try {
             $this->validate($request, [
                 'locale' => 'required|string:10',
             ]);
+
+
+            // 1. Mise à jour directe du champ locale_mobile de l'utilisateur connecté
+            if (auth()->check()) {
+                $user = auth()->user();
+                $user->locale_mobile = $request->locale;
+                $user->save(); // ✅ Sauvegarder la mise à jour
+            }
+
             if (($request->segment(2) == 'clinic_owner')) {
                 $file = "clinic_owner_app.json";
             }else if (($request->segment(2) == 'doctor')) {
@@ -73,5 +91,30 @@ class TranslationAPIController extends Controller
             return $this->sendError("Translation Not Found");
         }
         return $this->sendResponse($translation, 'Translation retrieved successfully');
+    }
+
+
+
+    public function setUserLocale(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(false);
+        }
+
+
+        $locale = $request->get('locale');
+        if (!in_array($locale, ['en', 'fr', 'ar'])) {
+            return response()->json(false);
+        }
+
+        try {
+            $user->locale_mobile = $locale;
+            $user->save();
+            return response()->json(true);
+        } catch (\Exception $e) {
+            return response()->json(false);
+        }
     }
 }

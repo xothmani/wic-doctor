@@ -387,11 +387,12 @@ class AppointmentEventController extends Controller
 
             //get user device token from users table
             $userFcm = User::find($patientUserId);
-            
+        
             if ($userFcm && !empty($userFcm->device_token)) {
+                $appointment = Appointment::find($appointment->id);
                 event(new CreateAppointmentEvent(
-                    $appointment->id,
-                    $userFcm->id,
+                    $appointment,
+                    $userFcm,
                     $userFcm->device_token
                 ));
             }
@@ -568,7 +569,7 @@ class AppointmentEventController extends Controller
             //event(new AppointmentChangedEvent($appointment));
             //$appointment->doctor = $this->doctor
             if ($userId->device_token != null) {
-                event(new AppointmentStatusChangedEvent($appointment, $request['payment_status_id'], $userId->device_token));
+                event(new AppointmentStatusChangedEvent($appointment, $request->appointment_status_id, $userId->device_token));
 
             }
 
@@ -1484,8 +1485,8 @@ class AppointmentEventController extends Controller
             
         if ($userFcm && !empty($userFcm->device_token)) {
             event(new CreateAppointmentEvent(
-                $appointment->id,
-                $userFcm->id,
+                $appointment,
+                    $userFcm,
                 $userFcm->device_token
             ));
         }
@@ -1628,8 +1629,8 @@ class AppointmentEventController extends Controller
             
             if ($userFcm && !empty($userFcm->device_token)) {
                 event(new CreateAppointmentEvent(
-                    $appointment->id,
-                    $userFcm->id,
+                    $appointment,
+                    $userFcm,
                     $userFcm->device_token
                 ));
             }

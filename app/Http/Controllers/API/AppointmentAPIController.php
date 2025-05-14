@@ -596,7 +596,11 @@ class AppointmentAPIController extends Controller
         $startAt = $request->input('start_at');
         if ($startAt != null && !empty($startAt)) {
             try {
-                $this->appointmentRepository->update(['start_at' => $request->input('start_at')], $id);
+                //$this->appointmentRepository->update(['start_at' => $request->input('start_at')], $id);
+                $this->appointmentRepository->update([
+                    'start_at' => $request->input('start_at'),
+                    'appointment_at' => $request->input('start_at'),
+                ], $id);
                 return response()->json(true);
                 //return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
             } catch (ValidatorException $e) {

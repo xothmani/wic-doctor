@@ -6,9 +6,10 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Appointment;
+use App\Models\User;
 
 class CreateAppointmentEvent
 {
@@ -17,14 +18,17 @@ class CreateAppointmentEvent
     /**
      * Create a new event instance. haaaaamzaaaaaaa event
      */
-    public int $appointment_id;
-    public int $user_id;
+    public Appointment $appointment;
+    public User $user;
     public string $deviceToken;
 
-    public function __construct(int $appointment_id, int $user_id, string $deviceToken)
+    /**
+     * Create a new event instance.
+     */
+    public function __construct(Appointment $appointment, User $user, string $deviceToken)
     {
-        $this->appointment_id = $appointment_id;
-        $this->user_id = $user_id;
+        $this->appointment = $appointment;
+        $this->user = $user;
         $this->deviceToken = $deviceToken;
     }
 
