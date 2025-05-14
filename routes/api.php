@@ -9,6 +9,7 @@ use App\Http\Controllers\API\DoctorAPIController;
 use App\Http\Controllers\API\NotificationAPIController;
 use App\Http\Controllers\API\RoomAPIController;
 use App\Http\Controllers\PrescriptionController;
+use App\Http\Controllers\API\TranslationAPIController;
 
 
 /*********************** Route ajouté par Hamza ********************* */
@@ -29,6 +30,7 @@ Route::prefix('rooms')->middleware('auth:api')->group(function () {
     Route::put('/{id}', [RoomAPIController::class, 'update']); // UPDATE an existing room
     Route::delete('/{id}', [RoomAPIController::class, 'destroy']); // DELETE a room
 });
+Route::middleware('auth:api')->post('/set-locale', [TranslationAPIController::class, 'setUserLocale']);
 
 /*********************** End Route ajouté par Hamza ********************* */
 

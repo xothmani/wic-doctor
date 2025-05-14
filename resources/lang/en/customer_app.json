@@ -418,5 +418,6 @@
     "Appointment Status Updated": "Appointment Status Updated",
     "Your appointment with Dr. %s is now %s.": "Your appointment with Dr. %s is now %s.",
     "New Appointment": "New Appointment",
-    "Your appointment has been successfully scheduled. Please check the details in the app.": "Your appointment has been successfully scheduled. Please check the details in the app."
+    "Your appointment has been successfully scheduled. Please check the details in the app.": "Your appointment has been successfully scheduled. Please check the details in the app.",
+    "You have a new appointment with Dr. %s on %s at %s.": "You have a new appointment with Dr. %s on %s at %s."
 }

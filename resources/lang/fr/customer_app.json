@@ -453,5 +453,6 @@
     "Appointment Status Updated": "Statut du rendez-vous mis à jour",
     "Your appointment with Dr. %s is now %s.": "Votre rendez-vous avec Dr. %s est maintenant %s.",
     "New Appointment": "Nouveau rendez-vous",
-    "Your appointment has been successfully scheduled. Please check the details in the app.": "Votre rendez-vous a été planifié avec succès. Veuillez vérifier les détails dans l'application."
+    "Your appointment has been successfully scheduled. Please check the details in the app.": "Votre rendez-vous a été planifié avec succès. Veuillez vérifier les détails dans l'application.",
+    "You have a new appointment with Dr. %s on %s at %s.": "Vous avez un nouveau rendez-vous avec Dr. %s le %s à %s."
 }
