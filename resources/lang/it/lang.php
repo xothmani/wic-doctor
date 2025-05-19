@@ -19,6 +19,8 @@ return [
     "reports_list" => "Elenco dei rapporti",
     ///////////translation from rayen
     ///
+    'time_slot_already_exists' => 'Il y a déjà un créneau à cet horaire',
+    'no_patterns_for_this_type' => 'Pas de motif disponible ,Il faut aller à la section motif pour créer motif de ce type de consultation.',
     'doctor_user_edit' => 'Modificare l\'utente',
     'manage_users_desc' => 'Gestire gli utenti associati al medico.',
     'start_date_required' => 'La data di inizio è obbligatoria',
