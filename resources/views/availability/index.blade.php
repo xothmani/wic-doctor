@@ -152,48 +152,48 @@
                                                 </thead>
                                                 <tbody>
                                                     @foreach(['Lundi' => 'monday', 'Mardi' => 'tuesday', 'Mercredi' => 'wednesday', 'Jeudi' => 'thursday', 'Vendredi' => 'friday', 'Samedi' => 'saturday', 'Dimanche' => 'sunday'] as $frenchDay => $englishDay)
-                                                                        @php
+                                                        @php
 
-                                                                            $dayData = $availabilities[$type][$englishDay] ?? ['is_available' => 0];
-                                                                            $isAvailable = $dayData['is_available'] ?? 0;
-                                                                            $startAt = $dayData['start_at'] ?? '09:00';
-                                                                            $endAt = $dayData['end_at'] ?? '17:00';
-                                                                            $pauseFrom = $dayData['pause_from'] ?? '';
-                                                                            $pauseTo = $dayData['pause_to'] ?? '';
-                                                                        @endphp
-                                                                        <tr>
-                                                                            <td class="text-center align-middle">
-                                                                                <label class="switch">
-                                                                                    <input type="checkbox" name="availability[{{ $loop->index }}][is_available]"
-                                                                                        value="1" {{ $isAvailable ? 'checked' : '' }}>
-                                                                                    <span class="slider round"></span>
-                                                                                </label>
-                                                                            </td>
-                                                                            <td class="align-middle">
-                                                                                <input type="hidden" name="availability[{{ $loop->index }}][day]"
-                                                                                    value="{{ $frenchDay }}">
-                                                                                {{ $frenchDay }}
-                                                                            </td>
-                                                                            <td>
-                                                                                <input type="time" class="form-control timepicker"
-                                                                                    name="availability[{{ $loop->index }}][from]" value="{{ $startAt }}">
-                                                                            </td>
-                                                                            <td>
-                                                                                <input type="time" class="form-control timepicker"
-                                                                                    name="availability[{{ $loop->index }}][to]" value="{{ $endAt }}">
-                                                                            </td>
-                                                                            <td>
-                                                                                <div class="d-flex">
-                                                                                    <input type="time" class="form-control mr-2 break-time"
-                                                                                        name="availability[{{ $loop->index }}][pause_from]"
-                                                                                        value="{{ $pauseFrom }}" data-pair="pause_to"
-                                                                                        placeholder="{{ trans('lang.break_start') }}">
-                                                                                    <input type="time" class="form-control break-time"
-                                                                                        name="availability[{{ $loop->index }}][pause_to]" value="{{ $pauseTo }}"
-                                                                                        data-pair="pause_from" placeholder="{{ trans('lang.break_end') }}">
-                                                                                </div>
-                                                                            </td>
-                                                                        </tr>
+                                                            $dayData = $availabilities[$type][$englishDay] ?? ['is_available' => 0];
+                                                            $isAvailable = $dayData['is_available'] ?? 0;
+                                                            $startAt = $dayData['start_at'] ?? '09:00';
+                                                            $endAt = $dayData['end_at'] ?? '17:00';
+                                                            $pauseFrom = $dayData['pause_from'] ?? '';
+                                                            $pauseTo = $dayData['pause_to'] ?? '';
+                                                        @endphp
+                                                        <tr>
+                                                            <td class="text-center align-middle">
+                                                                <label class="switch">
+                                                                    <input type="checkbox" name="availability[{{ $loop->index }}][is_available]"
+                                                                        value="1" {{ $isAvailable ? 'checked' : '' }}>
+                                                                    <span class="slider round"></span>
+                                                                </label>
+                                                            </td>
+                                                            <td class="align-middle">
+                                                                <input type="hidden" name="availability[{{ $loop->index }}][day]"
+                                                                    value="{{ $frenchDay }}">
+                                                                {{ $frenchDay }}
+                                                            </td>
+                                                            <td>
+                                                                <input type="time" class="form-control timepicker"
+                                                                    name="availability[{{ $loop->index }}][from]" value="{{ $startAt }}">
+                                                            </td>
+                                                            <td>
+                                                                <input type="time" class="form-control timepicker"
+                                                                    name="availability[{{ $loop->index }}][to]" value="{{ $endAt }}">
+                                                            </td>
+                                                            <td>
+                                                                <div class="d-flex">
+                                                                    <input type="time" class="form-control mr-2 break-time"
+                                                                        name="availability[{{ $loop->index }}][pause_from]"
+                                                                        value="{{ $pauseFrom }}" data-pair="pause_to"
+                                                                        placeholder="{{ trans('lang.break_start') }}">
+                                                                    <input type="time" class="form-control break-time"
+                                                                        name="availability[{{ $loop->index }}][pause_to]" value="{{ $pauseTo }}"
+                                                                        data-pair="pause_from" placeholder="{{ trans('lang.break_end') }}">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
@@ -426,58 +426,58 @@
                                 </form>
 
                                 @if(isset($substitutes) && count($substitutes) > 0)
-                                        <div class="card mt-4">
-                                            <div class="card-header">
-                                                <h4>{{ trans('lang.substitute_list') }}</h4>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="table-responsive">
-                                                    <table class="table table-hover">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>{{ trans('lang.substitute_name') }}</th>
-                                                                <th>{{ trans('lang.start_date') }}</th>
-                                                                <th>{{ trans('lang.end_date') }}</th>
-                                                                <th>{{ trans('lang.notes') }}</th>
-                                                                <th>{{ trans('lang.actions') }}</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach($substitutes as $substitute)
-                                                                                        @php
-                                                                                            $now = now();
-                                                                                            $startDate = \Carbon\Carbon::parse($substitute->start_date);
-                                                                                            $endDate = \Carbon\Carbon::parse($substitute->end_date);
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h4>{{ trans('lang.substitute_list') }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>{{ trans('lang.substitute_name') }}</th>
+                                                            <th>{{ trans('lang.start_date') }}</th>
+                                                            <th>{{ trans('lang.end_date') }}</th>
+                                                            <th>{{ trans('lang.notes') }}</th>
+                                                            <th>{{ trans('lang.actions') }}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($substitutes as $substitute)
+                                                            @php
+                                                                $now = now();
+                                                                $startDate = \Carbon\Carbon::parse($substitute->start_date);
+                                                                $endDate = \Carbon\Carbon::parse($substitute->end_date);
 
-                                                                                            $status = 'inactive';
-                                                                                            if ($now->between($startDate, $endDate)) {
-                                                                                                $status = 'active';
-                                                                                            } elseif ($now->lt($startDate)) {
-                                                                                                $status = 'pending';
-                                                                                            }
-                                                                                        @endphp
-                                                                                        <tr>
-                                                                                            <td>{{ $substitute->name }}</td>
-                                                                                            <td>{{ $substitute->formatted_start_date }}</td>
-                                                                                            <td>{{ $substitute->formatted_end_date }}</td>
-                                                                                            <td>{{ $substitute->notes }}</td>
-                                                                                            <td>
-                                                                                                <form action="{{ route('substitute.destroy', $substitute->id) }}"
-                                                                                                    method="POST" class="d-inline">
-                                                                                                    @csrf
-                                                                                                    @method('DELETE')
-                                                                                                    <button type="submit" class="btn btn-danger btn-sm">
-                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                    </button>
-                                                                                                </form>
-                                                                                            </td>
-                                                                                        </tr>
-                                                            @endforeach
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                                $status = 'inactive';
+                                                                if ($now->between($startDate, $endDate)) {
+                                                                    $status = 'active';
+                                                                } elseif ($now->lt($startDate)) {
+                                                                    $status = 'pending';
+                                                                }
+                                                            @endphp
+                                                            <tr>
+                                                                <td>{{ $substitute->name }}</td>
+                                                                <td>{{ $substitute->formatted_start_date }}</td>
+                                                                <td>{{ $substitute->formatted_end_date }}</td>
+                                                                <td>{{ $substitute->notes }}</td>
+                                                                <td>
+                                                                    <form action="{{ route('substitute.destroy', $substitute->id) }}"
+                                                                        method="POST" class="d-inline">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
+                                    </div>
                                 @endif
                             </div>
                         </div>
@@ -542,63 +542,70 @@
                                             </thead>
                                             <tbody>
                                                 @foreach($days as $dayIndex => $day)
-                                                                    <tr>
-                                                                        <td class="text-center align-middle">
-                                                                            <label class="switch">
-                                                                                <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]"
-                                                                                    value="1" @if(isset($availabilities[$type][$day]) && $availabilities[$type][$day]->contains('is_available', true)) checked
-                                                                                    @endif>
-                                                                                <span class="slider round"></span>
-                                                                            </label>
-                                                                            <input type="hidden" name="availability[{{ $dayIndex }}][day]"
-                                                                                value="{{ $day }}">
-                                                                        </td>
-                                                                        <td class="align-middle">
-                                                                            {{ trans('lang.' . strtolower($day)) }}
-                                                                        </td>
-                                                                        <td>
-                                                                            <div id="{{ $type }}-slots-{{ $dayIndex }}" class="slots-container">
-                                                                                @php
-                                                                                    $daySlots = $availabilities[$type][$day] ?? collect();
-                                                                                @endphp
+                                                    <tr>
+                                                        <td class="text-center align-middle">
+                                                            <label class="switch">
+                                                                <input type="checkbox" name="availability[{{ $dayIndex }}][is_available]"
+                                                                    value="1" @if(isset($availabilities[$type][$day]) && $availabilities[$type][$day]->contains('is_available', true)) checked
+                                                                    @endif>
+                                                                <span class="slider round"></span>
+                                                            </label>
+                                                            <input type="hidden" name="availability[{{ $dayIndex }}][day]"
+                                                                value="{{ $day }}">
+                                                        </td>
+                                                        <td class="align-middle">
+                                                            {{ trans('lang.' . strtolower($day)) }}
+                                                        </td>
+                                                        <td>
+                                                            <div id="{{ $type }}-slots-{{ $dayIndex }}" class="slots-container">
+                                                                @php
+                                                                    $daySlots = $availabilities[$type][$day] ?? collect();
+                                                                @endphp
 
-                                                                                @if($daySlots->isNotEmpty())
-                                                                                    @foreach($daySlots as $slot)
-                                                                                        <div class="slot-entry d-flex align-items-center mb-2">
-                                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][start][]"
-                                                                                                class="form-control mr-2" required
-                                                                                                value="{{ \Carbon\Carbon::parse($slot->start_at)->format('H:i') }}">
-                                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][end][]"
-                                                                                                class="form-control mr-2" required
-                                                                                                value="{{ \Carbon\Carbon::parse($slot->end_at)->format('H:i') }}">
-                                                                                            <select name="availability[{{ $dayIndex }}][slots][pattern][]"
-                                                                                                class="form-control mr-2" required>
-                                                                                                <option value="">{{ trans('lang.select_pattern') }}</option>
-                                                                                                @foreach($doctorPatterns as $pattern)
-                                                                                                    <option value="{{ $pattern->id }}" {{ $slot->patern_id == $pattern->id ? 'selected' : '' }}>
-                                                                                                        {{ $pattern->nom }}
-                                                                                                    </option>
-                                                                                                @endforeach
-                                                                                            </select>
-                                                                                            <input type="number"
-                                                                                                name="availability[{{ $dayIndex }}][slots][duration][]"
-                                                                                                class="form-control mr-2" placeholder="{{ trans('lang.duration') }}"
-                                                                                                required min="15" value="{{ $slot->session_duration ?? 30 }}">
-                                                                                            <button type="button" class="btn btn-danger btn-sm"
-                                                                                                onclick="removeSlot(this)">
-                                                                                                <i class="fas fa-trash"></i>
-                                                                                            </button>
+                                                                @if($daySlots->isNotEmpty())
+                                                                    @foreach($daySlots as $slot)
+                                                                        <div class="slot-entry d-flex align-items-center mb-2">
+                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][start][]"
+                                                                                class="form-control mr-2" required
+                                                                                value="{{ \Carbon\Carbon::parse($slot->start_at)->format('H:i') }}">
+                                                                            <input type="time" name="availability[{{ $dayIndex }}][slots][end][]"
+                                                                                class="form-control mr-2" required
+                                                                                value="{{ \Carbon\Carbon::parse($slot->end_at)->format('H:i') }}">
+                                                                            <select name="availability[{{ $dayIndex }}][slots][pattern][]"
+                                                                                class="form-control mr-2" required>
+                                                                                <option value="">{{ trans('lang.select_pattern') }}</option>
 
-                                                                                        </div>
+                                                                                @if(isset($patternsByType[$type]) && count($patternsByType[$type]) > 0)
+                                                                                    @foreach($patternsByType[$type] as $pattern)
+                                                                                        <option value="{{ $pattern->id }}" {{ isset($slot) && $slot->patern_id == $pattern->id ? 'selected' : '' }}>
+                                                                                            {{ $pattern->nom }}
+                                                                                        </option>
                                                                                     @endforeach
+                                                                                @else
+                                                                                    <option value="" disabled>
+                                                                                        {{ trans('lang.no_patterns_for_this_type') }}
+                                                                                    </option>
                                                                                 @endif
-                                                                                <button type="button" class="btn btn-primary btn-sm mt-2"
-                                                                                    onclick="addSlot('{{ $type }}', {{ $dayIndex }})">
-                                                                                    <i class="fas fa-plus"></i> {{ trans('lang.add_slot') }}
-                                                                                </button>
-                                                                            </div>
-                                                                        </td>
-                                                                    </tr>
+                                                                            </select>
+                                                                            <input type="number"
+                                                                                name="availability[{{ $dayIndex }}][slots][duration][]"
+                                                                                class="form-control mr-2" placeholder="{{ trans('lang.duration') }}"
+                                                                                required min="15" value="{{ $slot->session_duration ?? 30 }}">
+                                                                            <button type="button" class="btn btn-danger btn-sm"
+                                                                                onclick="removeSlot(this)">
+                                                                                <i class="fas fa-trash"></i>
+                                                                            </button>
+
+                                                                        </div>
+                                                                    @endforeach
+                                                                @endif
+                                                                <button type="button" class="btn btn-primary btn-sm mt-2"
+                                                                    onclick="addSlot('{{ $type }}', {{ $dayIndex }})">
+                                                                    <i class="fas fa-plus"></i> {{ trans('lang.add_slot') }}
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
@@ -830,65 +837,65 @@
                                 </form>
 
                                 @if(isset($substitutes) && count($substitutes) > 0)
-                                        <div class="card mt-4">
-                                            <div class="card-header">
-                                                <h4>{{ trans('lang.substitute_list') }}</h4>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="table-responsive">
-                                                    <table class="table table-hover">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>{{ trans('lang.substitute_name') }}</th>
-                                                                <th>{{ trans('lang.start_date') }}</th>
-                                                                <th>{{ trans('lang.end_date') }}</th>
-                                                                <th>{{ trans('lang.notes') }}</th>
-                                                                <th>{{ trans('lang.status') }}</th>
-                                                                <th>{{ trans('lang.actions') }}</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach($substitutes as $substitute)
-                                                                                        @php
-                                                                                            $now = now();
-                                                                                            $startDate = \Carbon\Carbon::parse($substitute->start_date);
-                                                                                            $endDate = \Carbon\Carbon::parse($substitute->end_date);
+                                    <div class="card mt-4">
+                                        <div class="card-header">
+                                            <h4>{{ trans('lang.substitute_list') }}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>{{ trans('lang.substitute_name') }}</th>
+                                                            <th>{{ trans('lang.start_date') }}</th>
+                                                            <th>{{ trans('lang.end_date') }}</th>
+                                                            <th>{{ trans('lang.notes') }}</th>
+                                                            <th>{{ trans('lang.status') }}</th>
+                                                            <th>{{ trans('lang.actions') }}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($substitutes as $substitute)
+                                                            @php
+                                                                $now = now();
+                                                                $startDate = \Carbon\Carbon::parse($substitute->start_date);
+                                                                $endDate = \Carbon\Carbon::parse($substitute->end_date);
 
-                                                                                            $status = 'inactive';
-                                                                                            if ($now->between($startDate, $endDate)) {
-                                                                                                $status = 'active';
-                                                                                            } elseif ($now->lt($startDate)) {
-                                                                                                $status = 'pending';
-                                                                                            }
-                                                                                        @endphp
-                                                                                        <tr>
-                                                                                            <td>{{ $substitute->name }}</td>
-                                                                                            <td>{{ $substitute->formatted_start_date }}</td>
-                                                                                            <td>{{ $substitute->formatted_end_date }}</td>
-                                                                                            <td>{{ $substitute->notes }}</td>
-                                                                                            <td>
-                                                                                                <span
-                                                                                                    class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">
-                                                                                                    {{ trans('lang.substitute_status_' . $status) }}
-                                                                                                </span>
-                                                                                            </td>
-                                                                                            <td>
-                                                                                                <form action="{{ route('substitute.destroy', $substitute->id) }}"
-                                                                                                    method="POST" class="d-inline">
-                                                                                                    @csrf
-                                                                                                    @method('DELETE')
-                                                                                                    <button type="submit" class="btn btn-danger btn-sm">
-                                                                                                        <i class="fas fa-trash"></i>
-                                                                                                    </button>
-                                                                                                </form>
-                                                                                            </td>
-                                                                                        </tr>
-                                                            @endforeach
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                                $status = 'inactive';
+                                                                if ($now->between($startDate, $endDate)) {
+                                                                    $status = 'active';
+                                                                } elseif ($now->lt($startDate)) {
+                                                                    $status = 'pending';
+                                                                }
+                                                            @endphp
+                                                            <tr>
+                                                                <td>{{ $substitute->name }}</td>
+                                                                <td>{{ $substitute->formatted_start_date }}</td>
+                                                                <td>{{ $substitute->formatted_end_date }}</td>
+                                                                <td>{{ $substitute->notes }}</td>
+                                                                <td>
+                                                                    <span
+                                                                        class="badge badge-{{ $status === 'active' ? 'success' : ($status === 'pending' ? 'warning' : 'secondary') }}">
+                                                                        {{ trans('lang.substitute_status_' . $status) }}
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <form action="{{ route('substitute.destroy', $substitute->id) }}"
+                                                                        method="POST" class="d-inline">
+                                                                        @csrf
+                                                                        @method('DELETE')
+                                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
+                                    </div>
                                 @endif
                             </div>
                         </div>
@@ -1160,32 +1167,64 @@
         const doctorPatterns = @json($doctorPatterns);
 
         function checkOverlap(startTime, endTime, container, currentSlot = null) {
+            console.log("Checking overlap:", startTime, endTime);
+
             const slots = container.querySelectorAll('.slot-entry');
+            console.log("Total slots to check:", slots.length);
+
             for (const slot of slots) {
-                if (slot === currentSlot) continue; // Skip comparing with itself when editing
+                if (slot === currentSlot) {
+                    console.log("Skipping current slot");
+                    continue; // Skip comparing with itself when editing
+                }
 
                 const slotStart = slot.querySelector('input[name$="[start][]"]').value;
                 const slotEnd = slot.querySelector('input[name$="[end][]"]').value;
+
+                console.log("Comparing with slot:", slotStart, slotEnd);
 
                 if (slotStart && slotEnd) {
                     // Check if the new slot overlaps with existing slot
                     if ((startTime >= slotStart && startTime < slotEnd) ||
                         (endTime > slotStart && endTime <= slotEnd) ||
                         (startTime <= slotStart && endTime >= slotEnd)) {
+                        console.log("Found overlap!");
                         return true;
                     }
                 }
             }
+            console.log("No overlap found");
             return false;
         }
 
+        // Make sure the validation is called on input change
+        document.addEventListener('DOMContentLoaded', function () {
+            const timeInputs = document.querySelectorAll('input[name$="[start][]"], input[name$="[end][]"]');
+
+            timeInputs.forEach(input => {
+                input.addEventListener('change', function () {
+                    validateTimeSlot(this);
+                });
+            });
+
+            // Also handle dynamically added inputs (for the "Ajouter un créneau" button)
+            document.querySelector('.slots-container').addEventListener('change', function (e) {
+                if (e.target.matches('input[name$="[start][]"], input[name$="[end][]"]')) {
+                    validateTimeSlot(e.target);
+                }
+            });
+        });
         function validateTimeSlot(input) {
             const slotEntry = input.closest('.slot-entry');
             const startInput = slotEntry.querySelector('input[name$="[start][]"]');
             const endInput = slotEntry.querySelector('input[name$="[end][]"]');
             const container = input.closest('.slots-container');
 
+            // Store original value before any validation
+            const originalValue = input.value;
+
             if (startInput.value && endInput.value) {
+                // Check if start time is before end time
                 if (startInput.value >= endInput.value) {
                     Swal.fire({
                         title: '{{ trans("lang.time_conflict") }}',
@@ -1198,35 +1237,28 @@
                     return false;
                 }
 
-                if (checkOverlap(startInput.value, endInput.value, container, slotEntry)) {
+                // Check for overlapping time slots
+                const hasOverlap = checkOverlap(startInput.value, endInput.value, container, slotEntry);
+
+                if (hasOverlap) {
+                    // Afficher un toast simple sans demander confirmation
                     Swal.fire({
-                        title: '{{ trans("lang.time_conflict") }}',
-                        text: '{{ trans("lang.time_conflict_message") }}',
+                        toast: true,
+                        position: 'top-end',
                         icon: 'warning',
-                        confirmButtonText: '{{ trans("lang.close") }}',
-                        confirmButtonColor: '#3085d6'
+                        title: '{{ trans("lang.time_slot_already_exists") }}',
+                        showConfirmButton: false,
+                        timer: 3000
                     });
-                    input.value = '';
+
+
                     return false;
                 }
             }
             return true;
         }
 
-        function addSlot(type, dayIndex) {
-            const container = document.getElementById(`${type}-slots-${dayIndex}`);
-            const div = document.createElement('div');
-            div.classList.add('slot-entry', 'd-flex', 'align-items-center', 'mb-2');
 
-            let options = '';
-            doctorPatterns.forEach(function (pattern) {
-                options += `<option value="${pattern.id}">${pattern.nom}</option>`;
-            });
-
-            div.innerHTML = ` <input type="time" name="availability[${dayIndex}][slots][start][]" class="form-control mr-2" required onchange="validateTimeSlot(this)"> <input type="time" name="availability[${dayIndex}][slots][end][]" class="form-control mr-2" required onchange="validateTimeSlot(this)"> <select name="availability[${dayIndex}][slots][pattern][]" class="form-control mr-2" required> <option value="">{{ trans('lang.select_pattern') }}</option> ${options} </select> <input type="number" name="availability[${dayIndex}][slots][duration][]" class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" required min="15" value="30"> <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)"> <i class="fas fa-trash"></i> </button> `;
-
-            container.insertBefore(div, container.lastElementChild);
-        }
 
         function removeSlot(button) {
             const confirmDeletion = confirm("Voulez-vous vraiment supprimer ce slot ?");
@@ -1342,29 +1374,35 @@
             const container = document.getElementById(`${type}-slots-${dayIndex}`);
             const div = document.createElement('div');
             div.classList.add('slot-entry', 'd-flex', 'align-items-center', 'mb-2');
-
+            // Get patterns for the specific type
+            const patternsByType = @json($patternsByType);
+            const typePatterns = patternsByType[type] || [];
             let options = '';
-            doctorPatterns.forEach(function (pattern) {
-                options += `<option value="${pattern.id}">${pattern.nom}</option>`;
-            });
+            if (typePatterns.length > 0) {
+                typePatterns.forEach(function (pattern) {
+                    options += `<option value="${pattern.id}">${pattern.nom}</option>`;
+                });
+            } else {
+                options += `<option value="" disabled>{{ trans('lang.no_patterns_for_this_type') }}</option>`;
+            }
 
             div.innerHTML = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="time" name="availability[${dayIndex}][slots][start][]" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                    class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="time" name="availability[${dayIndex}][slots][end][]" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                    class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                                                                                                                                                                                                                                                                                                                                                                                                                                <select name="availability[${dayIndex}][slots][pattern][]" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                    class="form-control mr-2" required>
-                                                                                                                                                                                                                                                                                                                                                                                                                                    <option value="">{{ trans('lang.select_pattern') }}</option>
-                                                                                                                                                                                                                                                                                                                                                                                                                                    ${options}
-                                                                                                                                                                                                                                                                                                                                                                                                                                </select>
-                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="number" name="availability[${dayIndex}][slots][duration][]" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                    class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                    required min="15" value="30">
-                                                                                                                                                                                                                                                                                                                                                                                                                                <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
-                                                                                                                                                                                                                                                                                                                                                                                                                                    <i class="fas fa-trash"></i>
-                                                                                                                                                                                                                                                                                                                                                                                                                                </button>
-                                                                                                                                                                                                                                                                                                                                                                                                                            `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="time" name="availability[${dayIndex}][slots][start][]" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="time" name="availability[${dayIndex}][slots][end][]" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <select name="availability[${dayIndex}][slots][pattern][]" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="form-control mr-2" required>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <option value="">{{ trans('lang.select_pattern') }}</option>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ${options}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </select>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="number" name="availability[${dayIndex}][slots][duration][]" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                required min="15" value="30">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `;
 
             container.insertBefore(div, container.lastElementChild);
 
@@ -1482,13 +1520,13 @@
             const warning = document.createElement('div');
             warning.className = 'unsaved-warning';
             warning.innerHTML = `
-                                                                                                                                                                                                                                                                                                                                                                <div class="d-flex align-items-center">
-                                                                                                                                                                                                                                                                                                                                                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                                                                                                                                                                                                                                                                                                                                                    <div>
-                                                                                                                                                                                                                                                                                                                                                                        N'oubliez pas d'enregistrer vos disponibilités !<br>
-                                                                                                                                                                                                                                                                                                                                                                <small>Cliquez sur le bouton "Enregistrer" en bas de page pour ne pas perdre vos modifications</small>
-                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                                </div>`;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="d-flex align-items-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    N'oubliez pas d'enregistrer vos disponibilités !<br>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <small>Cliquez sur le bouton "Enregistrer" en bas de page pour ne pas perdre vos modifications</small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>`;
             document.body.appendChild(warning);
 
             // Function to show warning and glow button

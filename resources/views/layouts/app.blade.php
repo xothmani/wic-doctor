@@ -55,7 +55,18 @@
             <li class="nav-item dropdown">
                 <a class="nav-link" data-toggle="dropdown" href="#">
                     <img src="{{auth()->user()->getFirstMediaUrl('avatar','icon')}}" class="brand-image mx-2 img-circle elevation-2" alt="User Image">
-                    <i class="fa fas fa-angle-down"></i> {!! auth()->user()->name !!}
+@php
+    $name = auth()->user()->name;
+    $decodedName = json_decode($name);
+
+    if (json_last_error() === JSON_ERROR_NONE && is_object($decodedName) && isset($decodedName->fr)) {
+        $displayName = $decodedName->fr;
+    } else {
+        $displayName = $name;
+    }
+@endphp
+
+<i class="fa fas fa-angle-down"></i> {{ $displayName }}
 
                 </a>
                 <div class="dropdown-menu dropdown-menu-right">

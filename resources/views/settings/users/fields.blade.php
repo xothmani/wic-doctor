@@ -2,30 +2,53 @@
     <h5 class="col-12 pb-4">{!! trans('lang.main_fields') !!}</h5>
 @endif
 <div class="d-flex flex-column col-sm-12 col-md-6 mt-2">
-  <!-- Lastname Field -->
+<!-- Lastname Field (affiche prénom) -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
     {!! Form::label('lastname', trans("lang.user_name"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
     <div class="col-md-9">
-        {!! Form::text('lastname', null,  [
-            'class' => 'form-control',
-            'placeholder' => trans("lang.user_name_placeholder"),
-            'readonly' => 'readonly'
-        ]) !!}
+    @php
+    $lastname = $user->lastname;
+    $decodedLastName = json_decode($lastname);
+
+    if (json_last_error() === JSON_ERROR_NONE && is_object($decodedLastName) && isset($decodedLastName->fr)) {
+        $lastNameValue = $decodedLastName->fr;
+    } else {
+        $lastNameValue = $lastname;
+    }
+@endphp
+
+{!! Form::text('lastname', $lastNameValue, [
+    'class' => 'form-control',
+    'placeholder' => trans("lang.user_name_placeholder"),
+    'readonly' => 'readonly'
+]) !!}
+
     </div>
 </div>
 
-<!-- Name Field -->
+<!-- Name Field (affiche nom de famille) -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
     {!! Form::label('name', trans("lang.user_lastname"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
     <div class="col-md-9">
-        {!! Form::text('name', null,  [
-            'class' => 'form-control',
-            'placeholder' => trans("lang.user_lastname_placeholder"),
-            'readonly' => 'readonly'
-        ]) !!}
+    @php
+    $name = $user->name;
+    $decodedName = json_decode($name);
+
+    if (json_last_error() === JSON_ERROR_NONE && is_object($decodedName) && isset($decodedName->fr)) {
+        $nameValue = $decodedName->fr;
+    } else {
+        $nameValue = $name;
+    }
+@endphp
+
+{!! Form::text('name', $nameValue, [
+    'class' => 'form-control',
+    'placeholder' => trans("lang.user_lastname_placeholder"),
+    'readonly' => 'readonly'
+]) !!}
+
     </div>
 </div>
-
 
  
 

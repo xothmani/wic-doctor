@@ -100,7 +100,7 @@
     <!-- Content Header (Page header) -->
     <div class="content-header">
         <div class="container-fluid">
-            <div class="row mb-2">
+            <div class="row">
                 <div class="col-sm-6">
                     <h1 class="m-0">{!! trans('lang.user_profile') !!} <small>{{trans('lang.media_desc')}}</small></h1>
                 </div><!-- /.col -->
@@ -126,11 +126,31 @@
                             <h3 class="card-title"><i class="fas fa-user mr-2"></i> {{trans('lang.user_about_me')}}</h3>
                                                  </div>
                         <div class="card-body box-profile">
-                            <div class="text-center">
-                                <img src="{{auth()->user()->getFirstMediaUrl('avatar', 'icon')}}"
-                                    class="profile-user-img img-fluid img-circle" alt="{{auth()->user()->lastname}} {{auth()->user()->name}}">
-                            </div>
-                            <h3 class="profile-username text-center">{{auth()->user()->lastname}} {{auth()->user()->name}}</h3>
+                        @php
+    $user = auth()->user();
+
+    // Décodage sécurisé du prénom
+    $decodedName = json_decode($user->name);
+    $displayName = (json_last_error() === JSON_ERROR_NONE && is_object($decodedName) && isset($decodedName->fr))
+        ? $decodedName->fr
+        : $user->name;
+
+    // Décodage sécurisé du nom de famille
+    $decodedLastName = json_decode($user->lastname);
+    $displayLastName = (json_last_error() === JSON_ERROR_NONE && is_object($decodedLastName) && isset($decodedLastName->fr))
+        ? $decodedLastName->fr
+        : $user->lastname;
+@endphp
+
+<div class="text-center">
+    <img src="{{ $user->getFirstMediaUrl('avatar', 'icon') }}"
+         class="profile-user-img img-fluid img-circle"
+         alt="{{ $displayName }} {{ $displayLastName }}">
+</div>
+<h3 class="profile-username text-center">
+    {{ $displayName }} {{ $displayLastName }}
+</h3>
+
 
                             <p class="text-muted text-center">{{implode(', ',$rolesSelected)}}</p>
                             <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="mailto:{{auth()->user()->email}}"><i class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}</a>
@@ -278,7 +298,18 @@
         {{ $subscriptionStatus }}
     </span>
 </div>
-
+<div class="form-group border p-3 mb-3" style="border: 2px solid #2196f3; border-radius: 5px;">
+    <i class="fas fa-sms mr-2" style="font-size: 1.2rem; color: #007bff;"></i> <!-- Icône SMS -->
+    <b>SMS utilisés :</b>
+    <div class="mt-2">
+        <span style="background-color: #28a745; color: white; padding: 2px 8px; border-radius: 10px; font-size: 15px; margin-right: 10px;">
+            Pack SMS Gratuit : {{ $doctor->pack_sms_gratuit }}
+        </span>
+        <span style="background-color: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 15px;">
+            Pack SMS Personnalisé : {{ $doctor->pack_sms_perso }}
+        </span>
+    </div>
+</div>
 
 @endhasrole
 
