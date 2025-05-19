@@ -373,31 +373,78 @@ return false;
             "MDP: $password\n" .
             "RDV: $shortUrl\n";
     
-        if (Str::startsWith($to, '+33')) {
-            // Envoi via le service SMS France
-            $smsResult = $this->sendsms($api, $numFrance, $to, $message, $alphasender);
+            if (Str::startsWith($to, '+33')) {
+                // Envoi via le service SMS France
+                $smsSuccess = $this->sendsms($api, $numFrance, $to, $message, $alphasender);
             
-            if ($smsResult) {
-                Log::info("SMS envoyé avec succès à $to");
-            } else {
-                Log::error("Échec de l'envoi du SMS à $to");
-            }
-        } elseif (Str::startsWith($to, '+216')) {
-            // Envoi via le service Tunisie
-            $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
-                'gsm' => str_replace('+', '', $to),
-                'message' => $message
-            ]);
+                if ($smsSuccess) {
+                    Log::info("SMS envoyé avec succès à $to");
+        
+                    //  Incrémentation du pack SMS gratuit
+                    $doctor->increment('pack_sms_gratuit');
+                } else {
+                    Log::error("Échec de l'envoi du SMS à $to");
+                }
+            } elseif (Str::startsWith($to, '+216')) {
+                // Envoi via le service Tunisie
+                $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
+                    'gsm' => str_replace('+', '', $to),
+                    'message' => $message
+                ]);
+                
+                if ($response->successful() && $response->json('success') === true) {
+                    Log::info("SMS Tunisie envoyé avec succès à $to");
             
-            if ($response->successful() && $response->json('success') === true) {
-                Log::info("SMS Tunisie envoyé avec succès à $to");
-            } else {
-                Log::error("Échec de l'envoi du SMS Tunisie à $to : " . $response->body());
+                    //  Incrémentation du pack SMS gratuit
+                    $doctor->increment('pack_sms_gratuit');
+                } else {
+                    Log::error("Échec de l'envoi du SMS Tunisie à $to : " . $response->body());
+                }
             }
-        } else {
+             else {
             Log::warning("Code pays non pris en charge pour le numéro : $to");
         }
     }
+    private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor')
+    {
+        $url = 'https://dashboard.wic-sms.com/apis/smscontact/';
+    
+        if (strpos($to, '+') === 0) {
+            $to = substr($to, 1);
+        }
+    
+        $fields = [
+            'apikey' => $api_key,
+            'from' => $from,
+            'to' => $to,
+            'message' => $message,
+            'alphasender' => $alphasender,
+        ];
+    
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+    
+        $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+    
+        Log::info("HTTP Code: $httpCode");
+        Log::info("API Response: $result");
+    
+        $response = json_decode($result, true);
+    
+        if (isset($response['status']) && $response['status'] === "0") {
+            Log::info("SMS envoyé avec succès à $to : $message from: $from avec api key: $api_key");
+            return true; //  succès
+        } else {
+            Log::error("Échec de l'envoi du SMS. Réponse de l'API : " . $result);
+            return false; //  échec
+        }
+    }
+    
     private function sendWelcomeNotifications(Patient $patient, string $password): void
     {
         // 1. Génération du lien court
@@ -431,46 +478,7 @@ return false;
     }
     
     
-    private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor')
-    {
-        $url = 'https://dashboard.wic-sms.com/apis/smscontact/';
-
-        // Supprimer le "+" au début si présent
-        if (strpos($to, '+') === 0) {
-            $to = substr($to, 1); // Supprime le premier caractère '+'
-        }
-
-        $fields = [
-            'apikey' => $api_key,
-            'from' => $from,
-            'to' => $to,
-            'message' => $message,
-            'alphasender' => $alphasender,
-        ];
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
-
-        $result = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        Log::info("HTTP Code: $httpCode");
-        Log::info("API Response: $result");
-
-        // Analyse de la réponse
-        $response = json_decode($result, true);
-        if (isset($response['status']) && $response['status'] === "0") {
-            Log::info("SMS envoyé avec succès à $to : $message from:  $from avec api key:  $api_key ");
-        } else {
-            Log::error("Échec de l'envoi du SMS. Réponse de l'API : " . $result);
-        }
-
-        return $result;
-    }
+   
 
 
 

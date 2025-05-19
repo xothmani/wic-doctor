@@ -2203,6 +2203,7 @@ return [
     'do_you_want_to_end_appointment_and_start_consultation' => 'Voulez-vous terminer ce rendez-vous et commencer la consultation ?',
     'cancel' => 'Annuler',
     'confirm' => 'Oui, continuer',
+    'no_email' => 'Le patient n \'a pas d\'email',
 
 
 ];

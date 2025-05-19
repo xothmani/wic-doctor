@@ -70,7 +70,24 @@
 <body>
     <header class="header">
         <div class="header-left">
-            <h1>Dr. {{ $user_name }}</h1>
+@php
+    $name = auth()->user()->name;
+    $lastname = auth()->user()->lastname;
+
+    $decodedName = json_decode($name);
+    $decodedLastName = json_decode($lastname);
+
+    $displayName = (json_last_error() === JSON_ERROR_NONE && is_object($decodedName) && isset($decodedName->fr))
+        ? $decodedName->fr
+        : $name;
+
+    $displayLastName = (json_last_error() === JSON_ERROR_NONE && is_object($decodedLastName) && isset($decodedLastName->fr))
+        ? $decodedLastName->fr
+        : $lastname;
+@endphp
+
+<h1>Dr. {{ $displayName }} {{ $displayLastName }}</h1>
+
             <table>
                 <tr>
                     <td style="text-align: left;">{{ json_decode($doctor_speciality)->{app()->getLocale()} ?? '' }}</td>

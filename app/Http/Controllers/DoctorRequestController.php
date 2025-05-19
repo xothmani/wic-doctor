@@ -147,13 +147,14 @@ class DoctorRequestController extends Controller
                 // Création d'un nouvel utilisateur
                 $patientPassword = Str::random(8); // Générer un nouveau mot de passe patient
                 $user = User::create([
-                    'name' => $doctorRequest->name,
-                    'lastname' => $doctorRequest->lastname,
+                    'name' => json_encode(['fr' => $doctorRequest->name]),
+                    'lastname' => json_encode(['fr' => $doctorRequest->lastname]),
                     'email' => $doctorRequest->email,
                     'phone_number' => $doctorRequest->Phone,
                     'password' => bcrypt($doctorPassword),
                     'passwordpatient' => Hash::make($patientPassword),
                 ]);
+                
 
                 // Logguer le dernier utilisateur créé
                 Log::info('Nouvel utilisateur créé.', ['user_id' => $user->id]);
@@ -259,8 +260,8 @@ class DoctorRequestController extends Controller
                 // Création d'un nouvel utilisateur
                 $patientPassword = Str::random(8); // Générer un nouveau mot de passe patient
                 $user = User::create([
-                    'name' => $doctorRequest->name,
-                    'lastname' => $doctorRequest->lastname,
+                    'name' => json_encode(['fr' => $doctorRequest->name]),
+                    'lastname' => json_encode(['fr' => $doctorRequest->lastname]),
                     'email' => $doctorRequest->email,
                     'phone_number' => $doctorRequest->Phone,
                     'password' => bcrypt($doctorPassword),
