@@ -422,8 +422,13 @@ class DoctorController extends Controller
         }
     
         $user->update([
-            'name' => ucfirst(strtolower($request->input('lastname'))),
-            'lastname' => strtoupper($request->input('name')),
+           'name' => json_encode([
+    'fr' => ucfirst(strtolower($request->input('lastname')))
+]),
+'lastname' => json_encode([
+    'fr' => strtoupper($request->input('name'))
+]),
+
             'email' => $request->input('email'),
             'phone_number' => $request->input('phone_number'),
         ]);
@@ -761,6 +766,23 @@ public function generateConnectedDoctorUrl()
 
 
 
+public function editParam(Request $request)
+{
+  // Récupérer l'utilisateur authentifié
+    $user = auth()->user();
+        
+  // Récupérer le médecin associé à l'utilisateur
+    $doctor = Doctor::where('user_id', $user->id)->first();
+    $doctor->notif_sms_personnalise = $request->notif_sms_personnalise ?? 0;
+    $doctor->notif_mail = $request->notif_mail ?? 0;
+    $doctor->notif_google_ajenda = $request->notif_google_ajenda ?? 0;
+    $doctor->mail_agenda = $request->mail_agenda ?? null;
+    $doctor->paiement_avance = $request->paiement_avance ?? 0;
+
+    $doctor->save();
+
+    return response()->json(['success' => true, 'message' => 'Paramètres enregistrés avec succès.']);
+}
 
 
 

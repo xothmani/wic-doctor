@@ -6,7 +6,7 @@
   gap: 10px;
   margin-top: 20px;
 }
-#saveAppointmentRef {
+#saveAppointmentRef{
   padding: 10px;
   background-color: #e0f7ff;
   border: 1px solid #007bff;
@@ -60,13 +60,13 @@
 
 /* Style for available dates */
 .availability-text.available {
-  color: #7dc2a5; /* Green for available */
+  color: #7DC2A5; /* Green for available */
   background-color: rgba(255, 255, 255, 0.7); /* Optional: Add background */
 }
 
 /* Style for unavailable dates */
 .availability-text.unavailable {
-  color: #f0604d; /* Red for unavailable */
+  color: #F0604D; /* Red for unavailable */
   background-color: rgba(255, 255, 255, 0.7); /* Optional: Add background */
 }
 /* Style for event bars */
@@ -99,9 +99,9 @@
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1); /* Adds a slight shadow */
 }
 
+
 /* Modal header and footer */
-.modal-header,
-.modal-footer {
+.modal-header, .modal-footer {
   border-bottom: 1px solid #e3e3e3;
   border-top: 1px solid #e3e3e3;
 }
@@ -126,10 +126,10 @@
 /* Common dot style */
 .dot {
   position: absolute;
-  top: 5px; /* Adjust distance from the top */
-  left: 5px; /* Adjust distance from the left */
-  width: 10px; /* Dot size */
-  height: 10px; /* Dot size */
+  top: 5px;       /* Adjust distance from the top */
+  left: 5px;      /* Adjust distance from the left */
+  width: 10px;    /* Dot size */
+  height: 10px;   /* Dot size */
   border-radius: 50%; /* Make it circular */
 }
 
@@ -169,9 +169,7 @@
   border-color: #532188; /* Darker border on hover */
 }
 
-#patientDropdown {
-  height: 2rem; /* Match the smaller button height */
-}
+
 #calendar-legend {
   border-top: 1px solid #ddd;
   padding-top: 15px;
@@ -202,6 +200,7 @@
   align-items: center; /* Vertically align items */
 }
 
+
 #addMoreAvailable {
   position: relative;
   margin-left: auto; /* Pushes the button to the right */
@@ -224,7 +223,7 @@
   transform: scale(1.1); /* Slightly enlarge the button on hover */
 }
 .cell-with-background {
-  background-image: url("/images/images.png"); /* Replace with your image URL */
+  background-image: url('/images/images.png'); /* Replace with your image URL */
   background-size: cover; /* Make the image cover the entire cell */
   background-position: center; /* Center the image in the cell */
   background-repeat: no-repeat; /* Prevent the image from repeating */
@@ -271,18 +270,17 @@
 }
 
 /* Adjust font size for responsiveness */
-.datepicker td,
-.datepicker th {
+.datepicker td, .datepicker th {
   font-size: 14px;
 }
 
 /* Make it fully responsive */
 @media (max-width: 768px) {
   .datepicker {
-    font-size: 12px !important; /* Reduce size for smaller screens */
+      font-size: 12px !important; /* Reduce size for smaller screens */
   }
   .card-body {
-    padding: 5px; /* Adjust spacing */
+      padding: 5px; /* Adjust spacing */
   }
 }
 /* Improve Select2 appearance */
@@ -365,8 +363,7 @@
   height: 2rem; /* Match select dropdown height */
 }
 /* Standard Button Styling */
-.save-btn,
-.cancel-btn {
+.save-btn, .cancel-btn {
   font-size: 14px; /* Smaller font */
   height: 38px; /* Uniform height */
   border-radius: 5px; /* Rounded corners */
@@ -412,7 +409,7 @@
   line-height: 13px;
 }
 .time-slot-button {
-  border: 2px solid #5c6bc0; /* or your desired color */
+  border: 2px solid #5c6bc0;   /* or your desired color */
   color: #5c6bc0;
   background-color: #fff;
   border-radius: 8px;
@@ -431,12 +428,19 @@
   transform: translateY(-2px);
 }
 
-.time-slot-button.active {
+/* .time-slot-button.active {
   background-color: #5c6bc0;
   color: #fff;
   transform: translateY(-2px);
-}
+} */
 
+.time-slot-button.active, 
+.slot-btn.time-slot-button.active {
+  background-color: #5c6bc0 !important;
+  color: #fff !important;
+  transform: translateY(-2px) !important;
+  border-color: #4a5aa5 !important;
+}
 /* For all tab links in .nav-tabs */
 .nav-tabs .nav-link {
   color: #5c6bc0; /* desired color */
@@ -444,9 +448,9 @@
 
 /* When a tab is active (currently selected) */
 .nav-tabs .nav-link.active {
-  color: #fff; /* text color when active */
+  color: #fff;            /* text color when active */
   background-color: #5c6bc0; /* background for active tab */
-  border-color: #5c6bc0; /* if you want the border to match */
+  border-color: #5c6bc0;     /* if you want the border to match */
 }
 .slot-taken {
   background-color: #cccccc !important;
@@ -516,6 +520,7 @@
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Softer shadow effect */
 }
 
+
 #forcedApptTypeTabs .nav-link.active {
   color: #6a89cc;
 }
@@ -547,7 +552,7 @@
 #appointment_notes:focus {
   border-color: #80bdff;
   outline: 0;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
 }
 
 /* Add this to your CSS */
@@ -578,7 +583,7 @@
   background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   padding: 10px;
   display: none;
   width: 250px;
@@ -628,8 +633,8 @@
   color: #666;
 }
 .list-group-item.active {
-  background-color: #5c6bc0 !important;
-  border-color: #5c6bc0 !important;
+  background-color: #5C6BC0 !important;
+  border-color: #5C6BC0 !important;
 }
 .list-group-item {
   cursor: pointer;
@@ -661,7 +666,7 @@
 }
 @media screen and (max-height: 700px) {
   #calendar-container {
-    height: calc(100vh - 100px);
+      height: calc(100vh - 100px);
   }
 }
 .pattern-select-group {
@@ -701,13 +706,13 @@
 /* Glowing Animation */
 @keyframes glowing {
   0% {
-    box-shadow: 0 0 10px #ffcc00;
+      box-shadow: 0 0 10px #ffcc00;
   }
   50% {
-    box-shadow: 0 0 20px #ffcc00;
+      box-shadow: 0 0 20px #ffcc00;
   }
   100% {
-    box-shadow: 0 0 10px #ffcc00;
+      box-shadow: 0 0 10px #ffcc00;
   }
 }
 
@@ -719,7 +724,7 @@
   width: 400px;
   height: 100%;
   background: #fff;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+  box-shadow: -2px 0 8px rgba(0,0,0,0.2);
   z-index: 1050;
   transition: right 0.3s ease-in-out;
   display: flex;
@@ -744,7 +749,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0,0,0,0.3);
   z-index: 1040;
   display: none;
 }
@@ -899,19 +904,19 @@
   background-size: 8px 10px;
 }
 #editAppointmentBtn {
-  background-color: #295f98;
+  background-color: #295F98;
   color: #fff;
   border: none;
 }
 
 /* Delete button in the top-left corner */
 #deleteAppointmentBtn {
-  background-color: #c84361;
+  background-color: #C84361;
   color: white;
   border: none;
 }
 #saveAppointmentBtn {
-  background-color: #295f98;
+  background-color: #295F98;
   color: white;
   border: none;
 }
@@ -947,6 +952,8 @@
   max-width: 100%;
 }
 
+
+
 #appointmentForm label {
   font-size: 0.95rem;
   font-weight: 600;
@@ -969,7 +976,7 @@
 #appointmentForm input:focus,
 #appointmentForm select:focus,
 #appointmentForm textarea:focus {
-  border-color: #9fb3df;
+  border-color: #9FB3DF;
   box-shadow: 0 0 0 0.1rem rgba(159, 179, 223, 0.25);
   outline: none;
 }
@@ -994,12 +1001,13 @@
   outline: 0;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
-input[readonly],
-select[disabled] {
+input[readonly], select[disabled] {
   background-color: #f8f9fa;
   cursor: default;
   opacity: 1; /* Make text fully visible even when disabled */
 }
+
+
 
 /* Style for circle indicators */
 .circle-indicator {
@@ -1025,6 +1033,7 @@ select[disabled] {
 #mini-calendar .fc-daygrid-day {
   padding: 2px;
 }
+
 
 #calendar-toggle {
   width: 100%;
@@ -1085,13 +1094,13 @@ select[disabled] {
 }
 
 .filter-item.active::after {
-  content: "✓";
+  content: '✓';
   position: absolute;
   right: 10px;
   color: #333;
-}
+}   
 .legend-container {
-  display: flex;
+  display: flex;      
   flex-direction: column;
   padding-left: 11px; /* or 16px, 20px, etc. */
   align-items: flex-start; /* ⬅️ Make sure content aligns to the left */
@@ -1106,16 +1115,24 @@ select[disabled] {
 }
 
 .legend-dot {
-  width: 20px;
-  height: 20px;
+  width: 20px;  
+  height: 20px; 
   border-radius: 50%;
   margin-right: 8px;
   flex-shrink: 0;
   background-color: currentColor; /* fallback if inline color fails */
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+
 }
 
 .legend-text {
   font-size: 14px;
   color: #333;
+}
+
+.slot-btn.active {
+  background-color: #007bff !important; /* Primary blue color */
+  color: white !important;
+  border-color: #0069d9 !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
 }

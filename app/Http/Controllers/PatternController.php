@@ -136,19 +136,25 @@ class PatternController extends Controller
 
         $clinics = $this->clinicRepository->pluck('name', 'id');
         $selectedClinicId = $pattern->clinic_id;
+
+        // Check if type is null for "all types"
+        $isAllTypesSet = is_null($pattern->type);
         $isClinicSet = $pattern->type == 2;
         $isAdomicileSet = $pattern->type == 3;
         $isTeleconsultationSet = $pattern->type == 4;
-
+        // Cabinet type check (updated to match the view)
+        $isCabinetSet = $pattern->type == 1;
 
         return view('patterns.edit', compact(
             'pattern',
             'clinics',
             'customFields',
             'doctorSpecialityId',
+            'isAllTypesSet',  // Add this
             'isClinicSet',
             'isAdomicileSet',
             'isTeleconsultationSet',
+            'isCabinetSet',   // Add this for consistency
             'selectedClinicId'
         ));
     }
@@ -176,6 +182,10 @@ class PatternController extends Controller
         }
 
         $input = $request->all();
+        $locale = app()->getLocale();
+        $nomArray = json_decode($pattern->nom, true);
+        $nomArray[$locale] = $input['nom'];
+        $input['nom'] = json_encode($nomArray);
 
         $typeMapping = [
             'cabinet' => 1,
@@ -184,22 +194,68 @@ class PatternController extends Controller
             'teleconsultation' => 4,
         ];
 
-        if (isset($input['type'])) {
-            $input['type'] = $typeMapping[$input['type']] ?? $pattern->type;
-        }
+        // Si l'utilisateur a sélectionné "tous les types"
+        if ($input['type'] === 'all') {
+            // Types à créer (sauf clinique qui nécessite une clinique)
+            $typesToInsert = ['cabinet', 'adomicile', 'teleconsultation'];
 
-        if ($input['type'] === 1 || $input['type'] === 3 || $input['type'] === 4) {
+            // Mettre à jour l'enregistrement existant avec le premier type
+            $firstType = 'cabinet';
+            $input['type'] = $typeMapping[$firstType];
             $input['clinic_id'] = null;
+            $this->patternRepository->update($input, $id);
+
+            // Créer des nouveaux enregistrements pour les autres types
+            // Mais d'abord, vérifier qu'ils n'existent pas déjà
+            $existingPatterns = $this->patternRepository->findWhere([
+                'doctor_id' => $doctorId,
+                'nom' => $input['nom']
+            ]);
+
+            $existingTypes = $existingPatterns->pluck('type')->toArray();
+
+            // Créer seulement les types qui n'existent pas déjà
+            foreach ($typesToInsert as $typeKey) {
+                // Sauter le premier type car nous l'avons déjà mis à jour
+                if ($typeKey === $firstType) {
+                    continue;
+                }
+
+                $typeValue = $typeMapping[$typeKey];
+
+                // Ne pas créer si ce type existe déjà
+                if (in_array($typeValue, $existingTypes)) {
+                    continue;
+                }
+
+                $newPattern = $input;
+                $newPattern['type'] = $typeValue;
+                $newPattern['doctor_id'] = $doctorId;
+                $newPattern['clinic_id'] = null; // Ces types n'ont pas besoin de clinique
+
+                // Supprimer l'ID pour créer un nouvel enregistrement
+                unset($newPattern['id']);
+                if (isset($newPattern['_method']))
+                    unset($newPattern['_method']);
+                if (isset($newPattern['_token']))
+                    unset($newPattern['_token']);
+
+                $this->patternRepository->create($newPattern);
+            }
+
+            Flash::success(__('Motif(s) mis à jour et créé(s) avec succès.'));
+        } else {
+            // Mise à jour normale d'un seul type
+            $input['type'] = $typeMapping[$input['type']] ?? $pattern->type;
+
+            if ($input['type'] !== 2) {
+                $input['clinic_id'] = null;
+            }
+
+            $this->patternRepository->update($input, $id);
+            Flash::success(__('Motif mis à jour avec succès.'));
         }
 
-        $locale = app()->getLocale();
-        $nomArray = json_decode($pattern->nom, true);
-        $nomArray[$locale] = $input['nom'];
-        $input['nom'] = json_encode($nomArray);
-
-        $this->patternRepository->update($input, $id);
-
-        Flash::success(__('Motif modifié avec succès.'));
         return redirect(route('patterns.index'));
     }
 

@@ -124,7 +124,14 @@ class Doctor extends Model implements HasMedia, Castable
         'pourcentage_tags',
         'verif_chart',
         'availability_mode',
-        'titre'
+        'titre',
+        'notif_mail',
+        'notif_sms_personnalise',        
+        'notif_google_ajenda',        
+        'mail_agenda',        
+        'paiement_avance',        
+        'pack_sms_gratuit',        
+        'pack_sms_perso'
 
     ];
     /**

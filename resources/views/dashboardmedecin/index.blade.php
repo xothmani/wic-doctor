@@ -28,7 +28,18 @@
             <div class="position-relative w-100" style="min-height: 200px;">
                 <div class="card p-4 shadow-sm h-100" style="position: relative; background-color: #fff; border: none; z-index: 1;">
                     <h2 class="mb-1">
-                        👨‍⚕️ Bonjour, <strong>Dr. {{ Auth::user()->name }}</strong>
+@php
+    $userName = Auth::user()->name;
+    $decodedName = json_decode($userName);
+
+    if (json_last_error() === JSON_ERROR_NONE && is_object($decodedName) && isset($decodedName->fr)) {
+        $displayName = $decodedName->fr;
+    } else {
+        $displayName = $userName;
+    }
+@endphp
+
+👨‍⚕️ Bonjour, <strong>Dr. {{ $displayName }}</strong>
                     </h2>
                     <p class="text-muted mb-3 text-left ml-2" style="font-size: 1.25rem; font-weight: 500;">Ravi de vous revoir aujourd'hui !</p>            
                     <!-- Conteneur pour les deux cartes alignées horizontalement -->

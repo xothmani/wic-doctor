@@ -39,7 +39,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PhotosCabinetController;
 use App\Http\Controllers\DoctorUserController;
 use App\Http\Controllers\ChatController;
-
+use App\Http\Controllers\PersonalizedMessageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
@@ -720,3 +720,10 @@ Route::delete('/update-appointments/{id}', [AppointmentEventController::class, '
 // web.php
 Route::post('patients/store-secondary-profile', [PatientController::class, 'storeSecondaryProfile'])->name('patients.associate');
 Route::get('/patients/related/{mainPatientId}/{relation}', [PatientController::class, 'getRelatedPatients']);
+Route::post('/sms/send', [PersonalizedMessageController::class, 'store'])->name('sms.store');
+Route::get('/patients/{patientId}/messages/history', [PersonalizedMessageController::class, 'history'])
+    ->name('messages.history'); 
+    Route::post('/doctors/edit-param', [DoctorController::class, 'editParam'])->name('doctors.editParam');
+
+
+Route::get('/get-slots-for-pattern', 'AppointmentEventController@getSlotsForPattern');
