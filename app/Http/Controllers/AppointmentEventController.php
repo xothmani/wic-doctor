@@ -1458,7 +1458,77 @@ class AppointmentEventController extends Controller
             'message' => "Voici les créneaux indisponibles du médecin.",
         ]);
     }
+    // In your routes file (web.php)
 
+    // In your AppointmentController
+    public function getSlotsForPattern(Request $request)
+    {
+        $patternId = $request->input('pattern_id');
+        $date = $request->input('date');
+        $type = $request->input('type');
+
+        $doctorId = auth()->user()->getDoctorId();
+
+        if (!$doctorId || !$date || !$patternId || !$type) {
+            return response()->json(['error' => 'Missing data'], 400);
+        }
+
+        $dayName = Carbon::parse($date)->format('l');
+
+        // Find availability hours for the specific pattern
+        $availability = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('type', $type)
+            ->where('day', $dayName)
+            ->where('patern_id', $patternId)
+            ->where('mode', 'precise')
+            ->first();
+
+        if (!$availability) {
+            return response()->json([
+                'available_slots' => [],
+                'taken_slots' => []
+            ]);
+        }
+
+        // Generate all possible time slots
+        $startTime = Carbon::parse($availability->start_at);
+        $endTime = Carbon::parse($availability->end_at);
+        $sessionDuration = $availability->session_duration;
+        $availableSlots = [];
+        $pastSlots = []; // Track past slots
+
+        while ($startTime->lessThan($endTime)) {
+            $slotTime = $startTime->format('H:i');
+            $availableSlots[] = $slotTime;
+
+            // Check if slot is in the past
+            $slotDateTime = Carbon::parse($date . ' ' . $slotTime);
+            if ($slotDateTime->isPast()) {
+                $pastSlots[] = $slotTime;
+            }
+
+            $startTime->addMinutes($sessionDuration);
+        }
+
+        // Get taken slots (excluding canceled appointments)
+        $takenSlots = DB::table('appointments')
+            ->where('doctor_id', $doctorId)
+            ->whereDate('start_at', $date)
+            ->where('appointment_status_id', '!=', 7) // Exclude canceled appointments
+            ->select(DB::raw("DATE_FORMAT(start_at, '%H:%i') as time"))
+            ->pluck('time')
+            ->toArray();
+
+        // Combine taken slots with past slots
+        $takenSlots = array_unique(array_merge($takenSlots, $pastSlots));
+
+        return response()->json([
+            'available_slots' => $availableSlots,
+            'taken_slots' => $takenSlots
+        ]);
+    }
 
     public function store(Request $request)
     {

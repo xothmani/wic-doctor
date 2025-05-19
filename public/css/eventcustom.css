@@ -1123,3 +1123,15 @@ input[readonly], select[disabled] {
     color: #333;
 }
 
+.available-slot {
+    background-color: #4042c0 !important;
+    color: white !important;
+    font-weight: bold !important;
+    border: 2px solid #4042c0 !important;
+}
+
+.slot-taken {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}

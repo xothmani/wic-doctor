@@ -506,6 +506,8 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <!-- Bootstrap Datepicker JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/i18n/fr.min.js"></script>
+
 
     <!-- French Locale for Datepicker -->
     <script
@@ -523,6 +525,7 @@
         let vacations = @json($vacations);
         let urgencies = @json($urgencies);
         window.activeDoctorId = {{ $doctorId ?? 'null' }};
+        const currentLocale = '{{ app()->getLocale() }}';
         function loadAvailabilitySlots(viewStart) {
             // console.log("📡 Fetching background colors for:", viewStart);
 
@@ -653,6 +656,7 @@
                             fetch_all_patterns: true // Add this parameter to tell backend we want all patterns
                         },
                         success: function (response) {
+                            console.log("Pattern data for type:", item.type, response);
                             window.patternData[item.type] = response;
 
                             // If the currently active tab is this type, update UI
@@ -670,6 +674,7 @@
 
             // Update the UI for a given appointment type using its returned data
             // Main function to update UI based on appointment type
+            // Modify the updateUIForType function to not show slots initially when multiple patterns exist
             function updateUIForType(apptType) {
                 console.log("Updating UI for type:", apptType);
 
@@ -680,11 +685,9 @@
                 let patterns = [];
 
                 if (data && data.patterns && Array.isArray(data.patterns)) {
-                    // New format with patterns array
                     patterns = data.patterns;
                     console.log("Found", patterns.length, "patterns from patterns array");
                 } else if (data && data.pattern_id) {
-                    // Old format with single pattern
                     patterns = [{
                         pattern_id: data.pattern_id,
                         pattern_name: data.pattern_name,
@@ -693,127 +696,328 @@
                     console.log("Found single pattern from legacy format");
                 }
 
+                // Clear time slots container initially
+                const $container = $('#timeSlotContainer');
+                $container.empty();
+
+                // For multiple patterns, don't show slots yet - ask user to select a pattern first
+                if (patterns.length > 1) {
+                    $container.append('<div class="text-center w-100 p-3 text-muted">{{ trans("lang.select_pattern_first") }}</div>');
+                    // Hide time slots until pattern is selected
+                    $('#appointmentTime').val('');
+                }
+
                 // Update the pattern display based on patterns count
                 if (patterns.length > 1) {
                     console.log("Multiple patterns found, showing dropdown");
-                    showMultiplePatterns(patterns);
+                    showMultiplePatterns(patterns, apptType);
+                } else if (patterns.length === 1) {
+                    console.log("Single pattern found, showing regular display");
+                    showSinglePattern(patterns[0]);
+                    // For single pattern, show slots immediately
+                    displaySlotsForType(apptType, data);
                 } else {
-                    console.log("Single or no pattern found, showing regular display");
-                    const pattern = patterns.length > 0 ? patterns[0] : null;
-                    showSinglePattern(pattern);
+                    console.log("No patterns found");
+                    showSinglePattern(null);
+                    // No patterns, clear slots and show message
+                    $container.append('<div class="text-center w-100 p-3 text-muted">{{ trans("lang.no_pattern_available") }}</div>');
                 }
 
                 // Reset form fields
                 resetFormFields();
+            }
 
-                // Rest of your existing code
+            // Function to display slots from the existing data
+            // Function to display slots from the existing data
+            function displaySlotsForType(apptType, data) {
+                console.log("Displaying slots for type:", apptType);
+
+                // First, clear any existing protection interval
+                if (window.slotProtectionInterval) {
+                    clearInterval(window.slotProtectionInterval);
+                    window.slotProtectionInterval = null;
+                }
+
+                // Get container and hidden input
+                const $container = $('#timeSlotContainer');
+                const $hiddenInput = $('#appointmentTime');
+
+                // Store the current apptType - important for tab switching
+                $container.data('currentApptType', apptType);
+
+                // Clear container
+                $container.empty();
+
+                // Check if we have slots data
+                const availableSlots = data.available_slots || [];
+                const takenSlots = Array.isArray(data.taken_slots) ? data.taken_slots : [];
+
+                console.log("Available slots:", availableSlots);
+                console.log("Taken slots:", takenSlots);
+
+                // If no available slots, show message and disable save button
+                if (availableSlots.length === 0) {
+                    $container.append('<span class="text-muted">{{ __("lang.no_slots_available") }}</span>');
+                    $hiddenInput.val('');
+                    $('.save-btn').prop('disabled', true)
+                        .removeClass('btn-primary')
+                        .addClass('btn-secondary');
+                    return;
+                }
+
+                // Get selected date
                 const selectedDate = $("#appointmentDate").val();
-                console.log("Selected Date:", selectedDate);
-                const matchedUrgency = urgencies.find(urgency => urgency.jour === selectedDate);
+                const dateToUse = window.globalSelectedDate || selectedDate;
 
-                //console.log("Selected Date:", selectedDate);
-                //console.log("Matched Urgency:", matchedUrgency);
+                // Store the current date - important for reopening the modal
+                $container.data('currentDate', selectedDate);
+
+                // Check for urgency
+                const matchedUrgency = window.urgencies ? window.urgencies.find(urgency => urgency.jour === selectedDate) : null;
+                console.log("Matched urgency:", matchedUrgency);
+
+                // Keep track of slots added
+                let slotsAdded = 0;
+                let availableVisibleSlots = 0;
 
                 if (matchedUrgency) {
+                    console.log("Processing with urgency consideration");
                     const urgencyStart = moment(matchedUrgency.heurDebut, "HH:mm:ss").format("HH:mm");
                     const urgencyEnd = moment(matchedUrgency.heurFin, "HH:mm:ss").format("HH:mm");
 
-                    //console.log("Urgency Start:", urgencyStart);
-                    //console.log("Urgency End:", urgencyEnd);
+                    console.log("Urgency time range:", urgencyStart, "to", urgencyEnd);
 
-                    // Existing function logic here
-                    const data = window.patternData[apptType];
-                    const availableSlots = data.available_slots || [];
-                    const takenSlots = Array.isArray(data.taken_slots) ? data.taken_slots : [];
+                    availableSlots.forEach(slot => {
+                        // Check if slot is within urgency range
+                        const slotMoment = moment(slot, "HH:mm");
+                        const urgencyStartMoment = moment(urgencyStart, "HH:mm");
+                        const urgencyEndMoment = moment(urgencyEnd, "HH:mm");
 
-                    const $container = $('#timeSlotContainer');
-                    const $hiddenInput = $('#appointmentTime');
-                    $container.empty();
+                        const isInUrgencyRange =
+                            slotMoment.isSameOrAfter(urgencyStartMoment) &&
+                            slotMoment.isSameOrBefore(urgencyEndMoment);
 
-                    if (availableSlots.length > 0) {
-                        availableSlots.forEach(slot => {
-                            // Check if slot is within urgency range
-                            const slotMoment = moment(slot, "HH:mm");
-                            const urgencyStartMoment = moment(urgencyStart, "HH:mm");
-                            const urgencyEndMoment = moment(urgencyEnd, "HH:mm");
+                        console.log(`Slot ${slot} in urgency range? ${isInUrgencyRange}`);
 
-                            const isInUrgencyRange =
-                                slotMoment.isSameOrAfter(urgencyStartMoment) &&
-                                slotMoment.isSameOrBefore(urgencyEndMoment);
+                        // Skip rendering if in urgency range
+                        if (isInUrgencyRange) {
+                            return; // Skip this iteration
+                        }
 
-                            //console.log(`Slot: ${slot}, In Urgency Range: ${isInUrgencyRange}`);
+                        const isTaken = takenSlots.includes(slot);
+                        // Check if the dateToUse is valid before using it
+                        const isPast = dateToUse ? moment(`${dateToUse} ${slot}`, "YYYY-MM-DD HH:mm").isBefore(moment()) : false;
 
-                            // Skip rendering if in urgency range
-                            if (isInUrgencyRange) {
-                                //console.log(`Hiding slot ${slot} due to urgency`);
-                                return; // Skip this iteration
-                            }
+                        console.log(`Slot ${slot} - Taken: ${isTaken}, Past: ${isPast}`);
 
-                            const isTaken = takenSlots.includes(slot);
-                            const isPast = moment(`${globalSelectedDate} ${slot}`, "YYYY-MM-DD HH:mm").isBefore(moment());
+                        const $btn = $(` <button type="button" class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}" data-slot="${slot}" ${isTaken || isPast ? 'disabled' : ''} > ${slot} </button> `);
 
-                            const $btn = $(` <button type="button" class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}" data-slot="${slot}" ${isTaken || isPast ? 'disabled' : ''} > ${slot} </button> `);
+                        // Only add click handler for available slots
+                        if (!isTaken && !isPast) {
+                            $btn.on('click', function () {
+                                $container.find('.slot-btn').removeClass('active');
+                                $(this).addClass('active');
+                                $hiddenInput.val(slot);
+                            });
 
-                            // Only add click handler for available slots
-                            if (!isTaken && !isPast) {
-                                $btn.on('click', function () {
-                                    $container.find('.slot-btn').removeClass('active');
-                                    $(this).addClass('active');
-                                    $hiddenInput.val(slot);
-                                });
-                            }
+                            $btn.addClass('available-slot');
+                            availableVisibleSlots++;
+                        }
 
-                            $container.append($btn);
-                        });
-                    }
+                        $container.append($btn);
+                        slotsAdded++;
+                    });
                 } else {
-                    const availableSlots = data.available_slots || [];
-                    const takenSlots = Array.isArray(data.taken_slots) ? data.taken_slots : [];
+                    console.log("Processing without urgency");
+                    availableSlots.forEach(slot => {
+                        const isTaken = takenSlots.includes(slot);
+                        const isPast = dateToUse ? moment(`${dateToUse} ${slot}`, "YYYY-MM-DD HH:mm").isBefore(moment()) : false;
 
+                        console.log(`Slot ${slot} - Taken: ${isTaken}, Past: ${isPast}`);
 
-                    const $container = $('#timeSlotContainer');
-                    const $hiddenInput = $('#appointmentTime');
-                    $container.empty();
-                    toggleSubmitButton(availableSlots.length > 0);
-                    // Get current date and time
-                    const currentDate = moment().format("YYYY-MM-DD");
-                    const currentTime = moment().format("HH:mm");
-                    // Find urgency for the selected date
-                    if (availableSlots.length > 0) {
-                        availableSlots.forEach(slot => {
-                            //console.log("slots avalble");
-                            const isTaken = takenSlots.includes(slot);
-                            const isPast = moment(globalSelectedDate + ' ' + slot).isBefore(moment());
+                        const $btn = $(` <button type="button" class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}" data-slot="${slot}" ${isTaken || isPast ? 'disabled' : ''}> ${slot} </button> `);
 
-                            const $btn = $(` <button type="button" class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}" data-slot="${slot}" ${isTaken || isPast ? 'disabled' : ''}> ${slot} </button> `);
+                        // If it's not taken and not in the past, let the user pick it
+                        if (!isTaken && !isPast) {
+                            $btn.on('click', function () {
+                                $container.find('.slot-btn').removeClass('active');
+                                $(this).addClass('active');
+                                $hiddenInput.val(slot);
+                            });
 
-                            // If it's not taken and not in the past, let the user pick it
-                            if (!isTaken && !isPast) {
-                                $btn.on('click', function () {
+                            // Add a class to make it more noticeable
+                            $btn.addClass('available-slot');
+
+                            // Count this as a visibly available slot
+                            availableVisibleSlots++;
+                        }
+
+                        $container.append($btn);
+                        slotsAdded++;
+                    });
+                }
+
+                console.log(`Total slots added: ${slotsAdded}, Available slots: ${availableVisibleSlots}`);
+
+                // Enable save button if slots were added
+                if (slotsAdded > 0) {
+                    console.log("Enabling save button");
+                    $('.save-btn').prop('disabled', false)
+                        .removeClass('btn-secondary')
+                        .addClass('btn-primary');
+
+                    // SIMPLE PROTECTION: Just add this one part to keep our slots from being replaced
+                    const originalHtml = $container.html();
+
+                    // Store these values for context checking
+                    const currentType = apptType;
+                    const currentDate = selectedDate;
+
+                    const intervalId = setInterval(function () {
+                        // Only restore if we're still on the same tab/type and date
+                        const activeType = $('#appointmentType').val();
+                        const activeDate = $("#appointmentDate").val();
+
+                        if (activeType === currentType &&
+                            activeDate === currentDate &&
+                            $container.html() !== originalHtml) {
+
+                            console.log("Container content changed, restoring original");
+                            $container.html(originalHtml);
+
+                            // Re-attach click handlers
+                            $container.find('.slot-btn:not(.slot-taken):not([disabled])').each(function () {
+                                const slot = $(this).data('slot');
+                                $(this).on('click', function () {
                                     $container.find('.slot-btn').removeClass('active');
                                     $(this).addClass('active');
                                     $hiddenInput.val(slot);
                                 });
-                            }
+                            });
+                        }
+                    }, 100);
 
-                            $container.append($btn);
-                        });
-                        $('.save-btn').prop('disabled', false)
-                            .removeClass('btn-secondary')
-                            .addClass('btn-primary');
-                    } else {
-                        //console.log("No slots available for", apptType);
-                        $container.append('<span class="text-muted">{{ __("lang.no_slots_available") }}</span>');
-                        $hiddenInput.val('');
-                        $('.save-btn').prop('disabled', true)
-                            .removeClass('btn-primary')
-                            .addClass('btn-secondary');
+                    // Store interval ID to clear it later if needed
+                    window.slotProtectionInterval = intervalId;
+                } else {
+                    console.log("No slots were added to container");
+                    if (availableSlots.length > 0) {
+                        console.log("WARNING: Had available slots but none were displayed");
+                        $container.append('<div class="text-center w-100 p-3 text-warning">{{ trans("lang.no_valid_slots_found") }}</div>');
                     }
                 }
             }
 
-            // Function to show dropdown for multiple patterns
-            function showMultiplePatterns(patterns) {
+            // Improved tab change handler setup 
+            function setupTabChangeHandlers() {
+                // Only set up once
+                if (window.tabHandlersInitialized) {
+                    return;
+                }
+
+                console.log("Setting up tab change handlers");
+
+                $("#apptTypeTabs a").on("click", function (e) {
+                    console.log("Tab clicked:");
+                    // Clear any existing protection interval
+                    if (window.slotProtectionInterval) {
+                        clearInterval(window.slotProtectionInterval);
+                        window.slotProtectionInterval = null;
+                    }
+
+                    const newType = $(this).data('type');
+                    console.log("Tab clicked: Switching to type:", newType);
+
+                    // Update the hidden input
+                    $('#appointmentType').val(newType);
+
+                    // Get current date
+                    const currentDate = $("#appointmentDate").val();
+
+                    // Fetch fresh data for this tab
+                    console.log("Fetching fresh data for type:", newType, "date:", currentDate);
+
+                    // Use your existing updateAllPatterns function
+                    updateAllPatterns(currentDate, '');
+                });
+
+                window.tabHandlersInitialized = true;
+            }
+
+            // Date change handler
+            function setupDateChangeHandler() {
+                // Only set up once
+                if (window.dateHandlerInitialized) {
+                    return;
+                }
+
+                console.log("Setting up date change handler");
+
+                $('#appointmentDate').on('change', function () {
+                    // Clear any existing protection interval
+                    if (window.slotProtectionInterval) {
+                        clearInterval(window.slotProtectionInterval);
+                        window.slotProtectionInterval = null;
+                    }
+
+                    const newDate = $(this).val();
+                    console.log("Date changed to:", newDate);
+
+                    // Get current type
+                    const currentType = $('#appointmentType').val();
+
+                    // Fetch fresh data for the new date
+                    console.log("Fetching fresh data for date:", newDate);
+                    updateAllPatterns(newDate, '');
+                });
+
+                window.dateHandlerInitialized = true;
+            }
+
+            // Function to initialize the modal when opened
+            function initializeAppointmentModal() {
+                console.log("Initializing appointment modal");
+
+                // Reset tab to Cabinet
+                $('#apptTypeTabs a[href="#cabinet-pane"]').tab('show');
+                $('#appointmentType').val('cabinet');
+
+                // Clear any previous state
+                $('#motif_id').val('');
+                $('#appointmentTime').val('');
+
+                // Get current date
+                const currentDate = $("#appointmentDate").val() || moment().format('YYYY-MM-DD');
+                $("#appointmentDate").val(currentDate);
+
+                console.log("Initial date:", currentDate);
+                window.globalSelectedDate = currentDate;
+
+                // Set up handlers if not already done
+                setupTabChangeHandlers();
+                setupDateChangeHandler();
+
+
+            }
+
+            // Call this when the modal is shown
+            $(document).ready(function () {
+                // For Bootstrap modal
+                $('#appointmentModal').on('shown.bs.modal', function () {
+                    console.log("Modal shown");
+                    initializeAppointmentModal();
+                });
+
+                // Initialize tab handlers 
+                setupTabChangeHandlers();
+
+                // Initialize date change handler
+                setupDateChangeHandler();
+            });
+
+
+            // Modify the showMultiplePatterns function to include appointmentType parameter
+            function showMultiplePatterns(patterns, apptType) {
                 console.log("Setting up dropdown for patterns:", patterns);
 
                 // Hide the single pattern display
@@ -828,44 +1032,44 @@
 
                 // Create a custom dropdown replacement with rounded corners and matching widths
                 const $customDropdown = $(`
-                    <div class="custom-pattern-selector" style="position: relative;">
-                        <div class="selected-pattern p-2 text-center" 
-                             style="background-color: #fff; 
-                                    border: 1px solid #ced4da; 
-                                    cursor: pointer; 
-                                    height: 38px; 
-                                    display: flex; 
-                                    align-items: center; 
-                                    justify-content: space-between;
-                                    border-radius: 8px; /* Curved corners */
-                                    overflow: hidden;
-                                    width: 100%;">
-                            <span>{{ trans('lang.select_pattern') }}</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="pattern-options" 
-                             style="display: none; 
-                                    position: absolute;
-                                    width: 100%; /* Same width as parent */
-                                    z-index: 1000; 
-                                    background: white; 
-                                    border: 1px solid #ced4da; 
-                                    border-top: 1px solid #ced4da; /* Add visible top border */
-                                    max-height: 200px; 
-                                    overflow-y: auto;
-                                    border-radius: 0 0 8px 8px; /* Rounded corners at bottom */
-                                    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Add subtle shadow */
-                                    left: 0;
-                                    right: 0;
-                                    top: 100%; /* Position directly below the selector */
-                                    margin-top: -1px; /* Slightly overlap to avoid double-border */
-                                    ">
-                            <!-- Divider line -->
-                            <div class="dropdown-divider" style="height: 1px; background-color: #ced4da; margin: 0;"></div>
-                        </div>
-                        <input type="hidden" id="pattern-value">
-                    </div>
-                `);
+                                                                                                            <div class="custom-pattern-selector" style="position: relative;">
+                                                                                                                <div class="selected-pattern p-2 text-center" 
+                                                                                                                     style="background-color: #fff; 
+                                                                                                                            border: 1px solid #ced4da; 
+                                                                                                                            cursor: pointer; 
+                                                                                                                            height: 38px; 
+                                                                                                                            display: flex; 
+                                                                                                                            align-items: center; 
+                                                                                                                            justify-content: space-between;
+                                                                                                                            border-radius: 8px; /* Curved corners */
+                                                                                                                            overflow: hidden;
+                                                                                                                            width: 100%;">
+                                                                                                                    <span>{{ trans('lang.select_pattern') }}</span>
+                                                                                                                    <i class="fas fa-chevron-down"></i>
+                                                                                                                </div>
+                                                                                                                <div class="pattern-options" 
+                                                                                                                     style="display: none; 
+                                                                                                                            position: absolute;
+                                                                                                                            width: 100%; /* Same width as parent */
+                                                                                                                            z-index: 1000; 
+                                                                                                                            background: white; 
+                                                                                                                            border: 1px solid #ced4da; 
+                                                                                                                            border-top: 1px solid #ced4da; /* Add visible top border */
+                                                                                                                            max-height: 200px; 
+                                                                                                                            overflow-y: auto;
+                                                                                                                            border-radius: 0 0 8px 8px; /* Rounded corners at bottom */
+                                                                                                                            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Add subtle shadow */
+                                                                                                                            left: 0;
+                                                                                                                            right: 0;
+                                                                                                                            top: 100%; /* Position directly below the selector */
+                                                                                                                            margin-top: -1px; /* Slightly overlap to avoid double-border */
+                                                                                                                            ">
+                                                                                                                    <!-- Divider line -->
+                                                                                                                    <div class="dropdown-divider" style="height: 1px; background-color: #ced4da; margin: 0;"></div>
+                                                                                                                </div>
+                                                                                                                <input type="hidden" id="pattern-value">
+                                                                                                            </div>
+                                                                                                        `);
 
                 // Add pattern options
                 const $optionsContainer = $customDropdown.find('.pattern-options');
@@ -873,16 +1077,16 @@
                 // Add each pattern as an option
                 patterns.forEach(pattern => {
                     $optionsContainer.append(`
-                        <div class="pattern-option p-2" 
-                             data-value="${pattern.pattern_id}" 
-                             data-color="${pattern.pattern_color}"
-                             data-name="${pattern.pattern_name}"
-                             style="cursor: pointer; 
-                                    border-bottom: 1px solid #f0f0f0;
-                                    transition: background-color 0.2s;">
-                            ${pattern.pattern_name}
-                        </div>
-                    `);
+                                                                                                                <div class="pattern-option p-2" 
+                                                                                                                     data-value="${pattern.pattern_id}" 
+                                                                                                                     data-color="${pattern.pattern_color}"
+                                                                                                                     data-name="${pattern.pattern_name}"
+                                                                                                                     style="cursor: pointer; 
+                                                                                                                            border-bottom: 1px solid #f0f0f0;
+                                                                                                                            transition: background-color 0.2s;">
+                                                                                                                    ${pattern.pattern_name}
+                                                                                                                </div>
+                                                                                                            `);
                 });
 
                 // Toggle dropdown on click
@@ -930,6 +1134,17 @@
                             'font-weight': 'bold',
                             'border-radius': '8px' // Fully rounded when closed
                         });
+
+                        // Show loading message in the time slots container
+                        const $container = $('#timeSlotContainer');
+                        $container.empty();
+                        $container.append('<div class="text-center w-100 p-3"><i class="fas fa-spinner fa-spin"></i> {{ trans("lang.loading_slots") }}</div>');
+
+                        // Get selected date
+                        const selectedDate = $("#appointmentDate").val();
+
+                        // Fetch the available slots for this pattern
+                        fetchSlotsForPattern(value, apptType, selectedDate);
                     } else {
                         $selectedDisplay.css({
                             'background-color': '#fff',
@@ -937,6 +1152,11 @@
                             'font-weight': 'normal',
                             'border-radius': '8px' // Fully rounded when closed
                         });
+
+                        // Clear slots if no pattern selected
+                        $('#timeSlotContainer').empty();
+                        $('#timeSlotContainer').append('<div class="text-center w-100 p-3 text-muted">{{ trans("lang.select_pattern_first") }}</div>');
+                        $('#appointmentTime').val('');
                     }
 
                     // Hide the options
@@ -958,14 +1178,14 @@
                 $('<style>')
                     .prop('type', 'text/css')
                     .html(`
-                        .pattern-option:hover {
-                            background-color: #f8f9fa;
-                        }
-                        .pattern-option:last-child {
-                            border-bottom: none !important;
-                            border-radius: 0 0 8px 8px;
-                        }
-                    `)
+                                                                                                                .pattern-option:hover {
+                                                                                                                    background-color: #f8f9fa;
+                                                                                                                }
+                                                                                                                .pattern-option:last-child {
+                                                                                                                    border-bottom: none !important;
+                                                                                                                    border-radius: 0 0 8px 8px;
+                                                                                                                }
+                                                                                                            `)
                     .appendTo('head');
 
                 // Set a specific width after rendering to ensure they match
@@ -973,6 +1193,123 @@
                     const selectorWidth = $customDropdown.find('.selected-pattern').outerWidth();
                     $customDropdown.find('.pattern-options').css('width', selectorWidth + 'px');
                 }, 0);
+            }
+
+            // Function to fetch slots for a specific pattern
+            function fetchSlotsForPattern(patternId, apptType, date) {
+                console.log("Fetching slots for pattern ID:", patternId, "Type:", apptType, "Date:", date);
+
+                // Call your existing API to get slots for this pattern
+                $.ajax({
+                    url: "/get-slots-for-pattern",
+                    method: 'GET',
+                    data: {
+                        date: date,
+                        pattern_id: patternId,
+                        type: apptType
+                    },
+                    success: function (response) {
+                        console.log("Slots received for pattern:", response);
+
+                        // Display the slots
+                        const $container = $('#timeSlotContainer');
+                        const $hiddenInput = $('#appointmentTime');
+                        $container.empty();
+
+                        // Check if we have slots
+                        const availableSlots = response.available_slots || [];
+                        const takenSlots = Array.isArray(response.taken_slots) ? response.taken_slots : [];
+
+                        if (availableSlots.length === 0) {
+                            $container.append('<span class="text-muted">{{ __("lang.no_slots_available") }}</span>');
+                            $hiddenInput.val('');
+                            $('.save-btn').prop('disabled', true)
+                                .removeClass('btn-primary')
+                                .addClass('btn-secondary');
+                            return;
+                        }
+
+                        // Display the slots based on whether there's an urgency
+                        displaySlots(availableSlots, takenSlots, date);
+
+                        // Enable save button
+                        $('.save-btn').prop('disabled', false)
+                            .removeClass('btn-secondary')
+                            .addClass('btn-primary');
+                    },
+                    error: function (error) {
+                        console.error("Error fetching slots for pattern:", error);
+
+                        const $container = $('#timeSlotContainer');
+                        $container.empty();
+                        $container.append('<div class="text-center w-100 p-3 text-danger">{{ trans("lang.error_loading_slots") }}</div>');
+                    }
+                });
+            }
+
+            // Helper function to display slots
+            function displaySlots(availableSlots, takenSlots, date) {
+                const $container = $('#timeSlotContainer');
+                const $hiddenInput = $('#appointmentTime');
+
+                // Check if there's a matched urgency
+                const matchedUrgency = urgencies.find(urgency => urgency.jour === date);
+
+                if (matchedUrgency) {
+                    const urgencyStart = moment(matchedUrgency.heurDebut, "HH:mm:ss").format("HH:mm");
+                    const urgencyEnd = moment(matchedUrgency.heurFin, "HH:mm:ss").format("HH:mm");
+
+                    availableSlots.forEach(slot => {
+                        // Check if slot is within urgency range
+                        const slotMoment = moment(slot, "HH:mm");
+                        const urgencyStartMoment = moment(urgencyStart, "HH:mm");
+                        const urgencyEndMoment = moment(urgencyEnd, "HH:mm");
+
+                        const isInUrgencyRange =
+                            slotMoment.isSameOrAfter(urgencyStartMoment) &&
+                            slotMoment.isSameOrBefore(urgencyEndMoment);
+
+                        // Skip rendering if in urgency range
+                        if (isInUrgencyRange) {
+                            return; // Skip this iteration
+                        }
+
+                        const isTaken = takenSlots.includes(slot);
+                        const isPast = moment(`${date} ${slot}`, "YYYY-MM-DD HH:mm").isBefore(moment());
+
+                        const $btn = $(` <button type="button" class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}" data-slot="${slot}" ${isTaken || isPast ? 'disabled' : ''} > ${slot} </button> `);
+
+                        // Only add click handler for available slots
+                        if (!isTaken && !isPast) {
+                            $btn.on('click', function () {
+                                $container.find('.slot-btn').removeClass('active');
+                                $(this).addClass('active');
+                                $hiddenInput.val(slot);
+                            });
+                        }
+
+                        $container.append($btn);
+                    });
+                } else {
+                    // Regular slot display without urgency
+                    availableSlots.forEach(slot => {
+                        const isTaken = takenSlots.includes(slot);
+                        const isPast = moment(date + ' ' + slot).isBefore(moment());
+
+                        const $btn = $(` <button type="button" class="slot-btn time-slot-button m-1 ${isTaken || isPast ? 'slot-taken' : ''}" data-slot="${slot}" ${isTaken || isPast ? 'disabled' : ''}> ${slot} </button> `);
+
+                        // If it's not taken and not in the past, let the user pick it
+                        if (!isTaken && !isPast) {
+                            $btn.on('click', function () {
+                                $container.find('.slot-btn').removeClass('active');
+                                $(this).addClass('active');
+                                $hiddenInput.val(slot);
+                            });
+                        }
+
+                        $container.append($btn);
+                    });
+                }
             }
 
             // Function to show single pattern display
@@ -1283,7 +1620,102 @@
                 }
             });
             /////////////////////////////////////////////////////////////////////////////
+            function resetPatternDisplay() {
+                console.log("Resetting pattern display and form to initial state");
+
+                // Show the original pattern display if it was hidden
+                $('#patternDisplay').show();
+
+                // Remove any custom dropdown
+                $('.custom-pattern-selector').remove();
+
+                // Reset the motif_id
+                $('#motif_id').val('');
+
+                // Reset the original pattern display style
+                $('#patternDisplay').text('{{ trans("lang.no_pattern_selected") }}');
+                $('#patternDisplay').css({
+                    'background-color': '#cccccc',
+                    'color': '#000000',
+                    'font-weight': 'bold',
+                    'font-size': '16px'
+                });
+
+                // Reset to first tab (Cabinet)
+                $('#cabinet-tab').tab('show');
+                $('#appointmentType').val('cabinet');
+
+                // Clear time slot selection
+                $('#appointmentTime').val('');
+                $('#timeSlotContainer').empty();
+
+                // Reset patient selection if using select2
+                if ($.fn.select2) {
+                    $('#patientDropdown').val('').trigger('change');
+                } else {
+                    $('#patientDropdown').val('');
+                }
+
+                // Clear notes
+                $('#notes').val('');
+
+                // Reset any active slot button
+                $('.slot-btn').removeClass('active');
+            }
+
+
+            // Function to validate the appointment form
+            function validateAppointmentForm() {
+                let isValid = true;
+                let errorMessage = '';
+
+                // Validate motif/pattern selection
+                if (!$('#motif_id').val()) {
+                    errorMessage += '{{ trans("lang.please_select_pattern") }}\n';
+                    isValid = false;
+                }
+
+                // Validate time selection
+                if (!$('#appointmentTime').val()) {
+                    errorMessage += '{{ trans("lang.please_select_time") }}\n';
+                    isValid = false;
+                }
+
+                // Display error message if validation fails
+                if (!isValid) {
+                    // Use SweetAlert if available (matches your existing UI)
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: '{{ trans("lang.validation_error") }}',
+                            text: errorMessage,
+                            icon: 'error',
+                            confirmButtonText: '{{ trans("lang.close") }}',
+                            confirmButtonColor: '#3085d6'
+                        });
+                    } else {
+                        // Fallback to regular alert
+                        alert(errorMessage);
+                    }
+                }
+
+                return isValid;
+            }
+
+            $('form').on('submit', function (e) {
+                console.log("Form submission triggered");
+                // Validate the form before submission
+                if (!validateAppointmentForm()) {
+                    // Prevent form submission if validation fails
+                    e.preventDefault();
+                    return false;
+                }
+                // Form is valid, allow submission
+                return true;
+            });
+
+            /////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
+                language: currentLocale,
                 allowClear: false,
                 ajax: {
                     url: "/appointment-event/search",
@@ -1372,11 +1804,11 @@
                                     // Append all elements with proper structure
                                     $(this).append(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-day-label substitute-hover">${substituteName}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <hr class="day-header-divider">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="custom-number-label">${staticNumber}</div>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="custom-day-label substitute-hover">${substituteName}</div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <hr class="day-header-divider">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="custom-number-label">${staticNumber}</div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `);
 
                                     if (activeSubstitute) {
                                         $(this).find('.custom-day-label').hover(
@@ -1686,6 +2118,8 @@
 
 
                             $('#apptTypeTabs a[href="#cabinet-pane"]').tab('show');
+                            initializeAppointmentModal();
+                            resetPatternDisplay();
                             $('#appointmentModal').modal('show');
 
                         });
@@ -1699,15 +2133,15 @@
                     // Base details
                     let detailsHtml = `
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.appointment_date}:</strong> ${event.start.format('YYYY-MM-DD')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.appointment_time}:</strong> ${event.start.format('HH:mm')}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.patient_nom}:</strong> ${event.patient_name || translations.unknown_patient}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.appointment_status}:</strong> ${event.status || translations.unknown_status}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.motif_name}:</strong> ${event.motif_name || translations.no_motif_name}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.phone}:</strong> ${event.patient_phone_number || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.email}:</strong> ${event.email || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p><strong>${translations.note}:</strong> ${event.note || 'N/A'}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            `;
 
                     //console.log(event.cancel_reason);
 
@@ -1939,6 +2373,7 @@
                 });
             }
             $('#saveAppointmentPass').click(function () {
+                consolelog("Save Appointment Pass clicked");
                 // Gather form data from "Patient de passage" fields
                 let formData = {
                     first_name: $('input[name="first_name"]').val(),

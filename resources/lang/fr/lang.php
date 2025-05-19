@@ -19,7 +19,9 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
-
+    'validation_error' => 'Erreur de validation',
+    'please_select_pattern' => 'Veuillez sélectionner un motif',
+    'please_select_time' => 'Veuillez sélectionner une heure',
     'type_required' => 'Le type de rendez-vous est requis',
     'motif_required' => 'Le motif est requis',
     'date_required' => 'La date est requise',

@@ -756,3 +756,4 @@ Route::middleware(['auth'])->group(function () {
 
 // routes/web.php or routes/api.php
 Route::post('/upload-to-firebase', 'FirebaseController@uploadFile');
+Route::get('/get-slots-for-pattern', 'AppointmentEventController@getSlotsForPattern');
