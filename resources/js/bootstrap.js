@@ -12,6 +12,6 @@ window.Echo = new Echo({
 // Listen for the AppointmentCreated event
 window.Echo.channel('appointments')
     .listen('AppointmentCreated', (e) => {
-        console.log('New appointment received:', e.appointment);
+        //console.log('New appointment received:', e.appointment);
         // Update the UI dynamically with the new appointment
     });

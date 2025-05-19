@@ -1,5 +1,11 @@
 <?php
 
+
+putenv('GRPC_PHP_SUPPRESS_CREDENTIALS_WARNINGS=1');
+putenv('GRPC_VERBOSITY=ERROR');
+putenv('GRPC_TRACE=none');
+putenv('GRPC_POLL_STRATEGY=epoll1');
+
 /**
  * Laravel - A PHP Framework For Web Artisans
  *
@@ -21,7 +27,7 @@ define('LARAVEL_START', microtime(true));
 |
 */
 
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -35,7 +41,7 @@ require __DIR__.'/../vendor/autoload.php';
 |
 */
 
-$app = require_once __DIR__.'/../bootstrap/app.php';
+$app = require_once __DIR__ . '/../bootstrap/app.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -58,3 +64,4 @@ $response = $kernel->handle(
 $response->send();
 
 $kernel->terminate($request, $response);
+

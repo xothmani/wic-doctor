@@ -238,6 +238,17 @@ class AvailabilityController extends Controller
                     }
                     return $pattern;
                 });
+            \Log::info('Doctor Patterns:111111111', ['patterns' => $doctorPatterns->toArray()]);
+            $patternsByType = [
+                'cabinet' => $doctorPatterns->where('type', 1)->values(),
+                'teleconsultation' => $doctorPatterns->where('type', 4)->values(),
+                'home_visit' => $doctorPatterns->where('type', 3)->values()
+            ];
+            \Log::info('Patterns by type:', [
+                'cabinet_count' => count($patternsByType['cabinet']),
+                'teleconsultation_count' => count($patternsByType['teleconsultation']),
+                'home_visit_count' => count($patternsByType['home_visit'])
+            ]);
             $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
                 ->orderBy('start_date', 'desc')
                 ->get();
@@ -254,6 +265,7 @@ class AvailabilityController extends Controller
                 ->get();
             // For debugging
             \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
+            \Log::info('patternsByType:', ['patternsByType' => $patternsByType]);
             return view('availability.index', compact(
                 'availabilities',
                 'currentMode',
@@ -262,6 +274,7 @@ class AvailabilityController extends Controller
                 'substitutes',
                 'doctorPatterns',
                 'dailyClosures',
+                'patternsByType',
                 'periodClosures'
             ));
         }

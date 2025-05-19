@@ -19,6 +19,8 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
+    'time_slot_already_exists' => 'Il y a déjà un créneau à cet horaire',
+    'no_patterns_for_this_type' => 'Pas de motif disponible ,Il faut aller à la section motif pour créer motif de ce type de consultation.',
     'validation_error' => 'Erreur de validation',
     'please_select_pattern' => 'Veuillez sélectionner un motif',
     'please_select_time' => 'Veuillez sélectionner une heure',

@@ -1247,10 +1247,17 @@ class AppointmentEventController extends Controller
                 ? ($decodedNom[$lang] ?? $decodedNom['fr'] ?? $pattern->nom)
                 : $pattern->nom;
 
+            // Find the availability for this pattern
+            $patternAvailability = $availabilities->firstWhere('patern_id', $pattern->id);
+
             $formattedPatterns[] = [
                 'pattern_id' => $pattern->id,
                 'pattern_name' => $displayMotifName,
-                'pattern_color' => $pattern->color
+                'pattern_color' => $pattern->color,
+                // Add these time-related fields
+                'time_start' => $patternAvailability ? Carbon::parse($patternAvailability->start_at)->format('H:i') : null,
+                'time_end' => $patternAvailability ? Carbon::parse($patternAvailability->end_at)->format('H:i') : null,
+                'time_context' => $selectedTime // Store the selected time for context
             ];
         }
 
@@ -1260,6 +1267,7 @@ class AppointmentEventController extends Controller
         if (count($formattedPatterns) > 1) {
             // Multiple patterns - return array format
             \Log::info('Returning multiple patterns response');
+
             return response()->json([
                 'patterns' => $formattedPatterns,
                 'available_slots' => $availableSlots,
@@ -1284,7 +1292,7 @@ class AppointmentEventController extends Controller
     }
     public function getPatternForTimeSlotWithoutType(Request $request)
     {
-        \Log::info('Fetching Unavailable Time Slots:', [
+        \Log::info('Fetching Unavailable Time Slots1:', [
             'date' => $request->get('date'),
             'time' => $request->get('time')
         ]);
@@ -1381,7 +1389,7 @@ class AppointmentEventController extends Controller
     }
     public function getUnavailableTimeSlots(Request $request)
     {
-        \Log::info('Fetching Unavailable Time Slots:', ['date' => $request->get('date')]);
+        \Log::info('Fetching Unavailable Time Slots2:', ['date' => $request->get('date')]);
 
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
@@ -1460,32 +1468,50 @@ class AppointmentEventController extends Controller
     }
     // In your routes file (web.php)
 
-    // In your AppointmentController
+
+
     public function getSlotsForPattern(Request $request)
     {
+        \Log::info('Fetching slots for pattern:', $request->all());
         $patternId = $request->input('pattern_id');
         $date = $request->input('date');
         $type = $request->input('type');
+        $time = $request->input('time', now()->format('H:i'));
 
-        $doctorId = auth()->user()->getDoctorId();
+        \Log::info('Fetching slots for pattern;;;;:', [
+            'pattern_id' => $patternId,
+            'date' => $date,
+            'type' => $type,
+            'time' => $time
+        ]);
 
-        if (!$doctorId || !$date || !$patternId || !$type) {
-            return response()->json(['error' => 'Missing data'], 400);
+        // Validate input
+        if (!$patternId || !$date || !$type) {
+            return response()->json(['error' => 'Missing required parameters'], 400);
         }
 
+        $doctorId = auth()->user()->getDoctorId();
         $dayName = Carbon::parse($date)->format('l');
 
-        // Find availability hours for the specific pattern
+        // Get availability for this specific pattern
         $availability = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
             ->where('is_available', 1)
             ->where('type', $type)
-            ->where('day', $dayName)
             ->where('patern_id', $patternId)
+            ->where('day', $dayName)
             ->where('mode', 'precise')
+            ->whereTime('start_at', '<=', $time) // Only availabilities that start before or at the selected time
+            ->whereTime('end_at', '>', $time)    // Only availabilities that end after the selected time
             ->first();
+        \Log::info('Availability fetched for pattern:', [
+            'pattern_id' => $patternId,
+            'availability' => $availability
+        ]);
 
         if (!$availability) {
+            \Log::info('No availability found for pattern');
+
             return response()->json([
                 'available_slots' => [],
                 'taken_slots' => []
@@ -1497,7 +1523,7 @@ class AppointmentEventController extends Controller
         $endTime = Carbon::parse($availability->end_at);
         $sessionDuration = $availability->session_duration;
         $availableSlots = [];
-        $pastSlots = []; // Track past slots
+        $pastSlots = [];
 
         while ($startTime->lessThan($endTime)) {
             $slotTime = $startTime->format('H:i');
@@ -1512,22 +1538,30 @@ class AppointmentEventController extends Controller
             $startTime->addMinutes($sessionDuration);
         }
 
-        // Get taken slots (excluding canceled appointments)
+        // Get taken slots specifically for this pattern
         $takenSlots = DB::table('appointments')
             ->where('doctor_id', $doctorId)
+            ->where('motif_id', $patternId)
             ->whereDate('start_at', $date)
             ->where('appointment_status_id', '!=', 7) // Exclude canceled appointments
             ->select(DB::raw("DATE_FORMAT(start_at, '%H:%i') as time"))
             ->pluck('time')
             ->toArray();
 
+        \Log::info('Fetched taken slots for pattern:', [
+            'pattern_id' => $patternId,
+            'taken_slots' => $takenSlots
+        ]);
+
         // Combine taken slots with past slots
         $takenSlots = array_unique(array_merge($takenSlots, $pastSlots));
 
         return response()->json([
             'available_slots' => $availableSlots,
-            'taken_slots' => $takenSlots
+            'taken_slots' => $takenSlots,
+            'pattern_id' => $patternId
         ]);
+
     }
 
     public function store(Request $request)

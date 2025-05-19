@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Doctor;
 use Illuminate\Support\Facades\Log;
+use App\Services\FirebaseService;
+
 
 
 class AppServiceProvider extends ServiceProvider
@@ -29,7 +31,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
+        // Register the FirebaseService as a singleton
+        $this->app->singleton(FirebaseService::class, function ($app) {
+            return FirebaseService::getInstance();
+        });
     }
 
     /**
@@ -41,6 +46,12 @@ class AppServiceProvider extends ServiceProvider
     {
         App::setLocale('fr');
         Schema::defaultStringLength(191);
+        register_shutdown_function(function () {
+            if ($this->app->bound(FirebaseService::class)) {
+                $firebase = $this->app->make(FirebaseService::class);
+                // The __destruct method will handle the flush
+            }
+        });
         try {
 
             config(['mail.driver' => setting('mail_driver', 'smtp')]);

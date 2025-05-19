@@ -428,12 +428,19 @@
     transform: translateY(-2px);
 }
 
-.time-slot-button.active {
+/* .time-slot-button.active {
     background-color: #5c6bc0;
     color: #fff;
     transform: translateY(-2px);
-}
+} */
 
+.time-slot-button.active, 
+.slot-btn.time-slot-button.active {
+    background-color: #5c6bc0 !important;
+    color: #fff !important;
+    transform: translateY(-2px) !important;
+    border-color: #4a5aa5 !important;
+}
 /* For all tab links in .nav-tabs */
 .nav-tabs .nav-link {
     color: #5c6bc0; /* desired color */
@@ -1123,15 +1130,10 @@ input[readonly], select[disabled] {
     color: #333;
 }
 
-.available-slot {
-    background-color: #4042c0 !important;
+.slot-btn.active {
+    background-color: #007bff !important; /* Primary blue color */
     color: white !important;
-    font-weight: bold !important;
-    border: 2px solid #4042c0 !important;
+    border-color: #0069d9 !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
 }
 
-.slot-taken {
-    background-color: #e9ecef;
-    color: #6c757d;
-    cursor: not-allowed;
-}

@@ -17,11 +17,13 @@
         "firebase/php-jwt": "^6.11",
         "fruitcake/laravel-cors": "dev-develop",
         "google/auth": "^1.45",
+        "google/cloud-core": "*",
         "google/cloud-firestore": "^1.48",
         "grpc/grpc": "^1.43",
         "guzzlehttp/guzzle": "^7.8.1",
         "infyomlabs/adminlte-templates": "^v6.0.0",
         "kreait/firebase-bundle": "^5.6",
+        "kreait/firebase-php": "^7.0",
         "kreait/laravel-firebase": "^5.10",
         "laravel/cashier": "^v15.3.2",
         "laravel/framework": "^v10.48.8",
@@ -48,6 +50,7 @@
         "spatie/laravel-translatable": "^6.6.2",
         "spatie/opening-hours": "^2.41",
         "srmklive/paypal": "^3.0",
+        "symfony/cache": "^7.2",
         "yajra/laravel-datatables": "v10.0.0"
     },
     "require-dev": {

@@ -11,6 +11,9 @@
 |
 */
 
+// Load gRPC fix
+require_once __DIR__ . '/grpc_fix.php';
+
 $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );

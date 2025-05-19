@@ -574,11 +574,18 @@
                                                                             <select name="availability[{{ $dayIndex }}][slots][pattern][]"
                                                                                 class="form-control mr-2" required>
                                                                                 <option value="">{{ trans('lang.select_pattern') }}</option>
-                                                                                @foreach($doctorPatterns as $pattern)
-                                                                                    <option value="{{ $pattern->id }}" {{ $slot->patern_id == $pattern->id ? 'selected' : '' }}>
-                                                                                        {{ $pattern->nom }}
+
+                                                                                @if(isset($patternsByType[$type]) && count($patternsByType[$type]) > 0)
+                                                                                    @foreach($patternsByType[$type] as $pattern)
+                                                                                        <option value="{{ $pattern->id }}" {{ isset($slot) && $slot->patern_id == $pattern->id ? 'selected' : '' }}>
+                                                                                            {{ $pattern->nom }}
+                                                                                        </option>
+                                                                                    @endforeach
+                                                                                @else
+                                                                                    <option value="" disabled>
+                                                                                        {{ trans('lang.no_patterns_for_this_type') }}
                                                                                     </option>
-                                                                                @endforeach
+                                                                                @endif
                                                                             </select>
                                                                             <input type="number"
                                                                                 name="availability[{{ $dayIndex }}][slots][duration][]"
@@ -1234,61 +1241,24 @@
                 const hasOverlap = checkOverlap(startInput.value, endInput.value, container, slotEntry);
 
                 if (hasOverlap) {
-                    // Use a flag to track if this conflict has already been forced
-                    const slotId = slotEntry.dataset.slotId || Math.random().toString(36).substr(2, 9);
-                    slotEntry.dataset.slotId = slotId;
-
-                    // Check if this slot already has been forced
-                    if (slotEntry.dataset.forced === 'true') {
-                        // Already forced, allow it
-                        return true;
-                    }
-
-                    // Ask doctor if they want to force it despite the conflict
+                    // Afficher un toast simple sans demander confirmation
                     Swal.fire({
-                        title: '{{ trans("lang.time_conflict") }}',
-                        text: '{{ trans("lang.time_conflict_message") }}',
+                        toast: true,
+                        position: 'top-end',
                         icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: '{{ trans("lang.force_booking") }}',
-                        cancelButtonText: '{{ trans("lang.cancel") }}',
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Doctor chose to force it
-                            slotEntry.dataset.forced = 'true'; // Mark this slot as forced
-                            // Keep the original value
-                            input.value = originalValue;
-                            // If needed, trigger any other necessary updates here
-                        } else {
-                            // Doctor chose to cancel
-                            input.value = '';
-                            slotEntry.dataset.forced = 'false';
-                        }
+                        title: '{{ trans("lang.time_slot_already_exists") }}',
+                        showConfirmButton: false,
+                        timer: 3000
                     });
 
-                    // Temporarily prevent further handling until user decides
+
                     return false;
                 }
             }
             return true;
         }
 
-        function addSlot(type, dayIndex) {
-            const container = document.getElementById(`${type}-slots-${dayIndex}`);
-            const div = document.createElement('div');
-            div.classList.add('slot-entry', 'd-flex', 'align-items-center', 'mb-2');
 
-            let options = '';
-            doctorPatterns.forEach(function (pattern) {
-                options += `<option value="${pattern.id}">${pattern.nom}</option>`;
-            });
-
-            div.innerHTML = ` <input type="time" name="availability[${dayIndex}][slots][start][]" class="form-control mr-2" required onchange="validateTimeSlot(this)"> <input type="time" name="availability[${dayIndex}][slots][end][]" class="form-control mr-2" required onchange="validateTimeSlot(this)"> <select name="availability[${dayIndex}][slots][pattern][]" class="form-control mr-2" required> <option value="">{{ trans('lang.select_pattern') }}</option> ${options} </select> <input type="number" name="availability[${dayIndex}][slots][duration][]" class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" required min="15" value="30"> <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)"> <i class="fas fa-trash"></i> </button> `;
-
-            container.insertBefore(div, container.lastElementChild);
-        }
 
         function removeSlot(button) {
             const confirmDeletion = confirm("Voulez-vous vraiment supprimer ce slot ?");
@@ -1404,29 +1374,35 @@
             const container = document.getElementById(`${type}-slots-${dayIndex}`);
             const div = document.createElement('div');
             div.classList.add('slot-entry', 'd-flex', 'align-items-center', 'mb-2');
-
+            // Get patterns for the specific type
+            const patternsByType = @json($patternsByType);
+            const typePatterns = patternsByType[type] || [];
             let options = '';
-            doctorPatterns.forEach(function (pattern) {
-                options += `<option value="${pattern.id}">${pattern.nom}</option>`;
-            });
+            if (typePatterns.length > 0) {
+                typePatterns.forEach(function (pattern) {
+                    options += `<option value="${pattern.id}">${pattern.nom}</option>`;
+                });
+            } else {
+                options += `<option value="" disabled>{{ trans('lang.no_patterns_for_this_type') }}</option>`;
+            }
 
             div.innerHTML = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="time" name="availability[${dayIndex}][slots][start][]" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="time" name="availability[${dayIndex}][slots][end][]" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="form-control mr-2" required onchange="validateTimeSlot(this)">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <select name="availability[${dayIndex}][slots][pattern][]" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="form-control mr-2" required>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <option value="">{{ trans('lang.select_pattern') }}</option>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ${options}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </select>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="number" name="availability[${dayIndex}][slots][duration][]" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            required min="15" value="30">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <i class="fas fa-trash"></i>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </button>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="time" name="availability[${dayIndex}][slots][start][]" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="time" name="availability[${dayIndex}][slots][end][]" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="form-control mr-2" required onchange="validateTimeSlot(this)">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <select name="availability[${dayIndex}][slots][pattern][]" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="form-control mr-2" required>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <option value="">{{ trans('lang.select_pattern') }}</option>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ${options}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </select>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="number" name="availability[${dayIndex}][slots][duration][]" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                class="form-control mr-2" placeholder="{{ trans('lang.duration') }}" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                required min="15" value="30">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <button type="button" class="btn btn-danger btn-sm" onclick="removeSlot(this)">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <i class="fas fa-trash"></i>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </button>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `;
 
             container.insertBefore(div, container.lastElementChild);
 
@@ -1544,13 +1520,13 @@
             const warning = document.createElement('div');
             warning.className = 'unsaved-warning';
             warning.innerHTML = `
-                                                                                                                                                                                                                                                                                                                                                                                                        <div class="d-flex align-items-center">
-                                                                                                                                                                                                                                                                                                                                                                                                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                                                                                                                                                                                                                                                                                                                                                                                                            <div>
-                                                                                                                                                                                                                                                                                                                                                                                                                N'oubliez pas d'enregistrer vos disponibilités !<br>
-                                                                                                                                                                                                                                                                                                                                                                                                        <small>Cliquez sur le bouton "Enregistrer" en bas de page pour ne pas perdre vos modifications</small>
-                                                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                                                        </div>`;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="d-flex align-items-center">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    N'oubliez pas d'enregistrer vos disponibilités !<br>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <small>Cliquez sur le bouton "Enregistrer" en bas de page pour ne pas perdre vos modifications</small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>`;
             document.body.appendChild(warning);
 
             // Function to show warning and glow button

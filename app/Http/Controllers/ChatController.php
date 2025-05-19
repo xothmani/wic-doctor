@@ -9,11 +9,11 @@ use App\Models\Group; // Assuming you have a Group model
 
 class ChatController extends Controller
 {
-    protected $firebaseService;
+    protected $firebase;
 
-    public function __construct(FirebaseService $firebaseService)
+    public function __construct(FirebaseService $firebase)
     {
-        $this->firebaseService = $firebaseService;
+        $this->firebase = $firebase;
     }
 
     public function index($selectedUserId = null)
