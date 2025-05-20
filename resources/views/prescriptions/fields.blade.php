@@ -168,6 +168,21 @@
                                     <input type="text" class="form-control" id="medicamentSearch_0"
                                         placeholder="{{ trans('lang.search') }}...">
                                 </div>
+                                                                <!-- Champ pour ajout manuel de médicament -->
+<div class="form-group mt-3">
+    <label for="manualMedicament_0">{{ trans('lang.prescription_add_manual_medicament') }}</label>
+    <div class="input-group">
+        <input type="text" class="form-control" id="manualMedicament_0"
+               placeholder="{{ trans('lang.prescription_enter_medicament_name') }}"
+               value=""> <!-- Ajout explicite de value="" -->
+               <div class="input-group-append">
+    <button class="btn btn-primary" type="button" 
+            onclick="addManualMedicament(0)">
+        {{ trans('lang.add') }}
+    </button>
+</div>
+    </div>
+</div>
 
                                 <!-- Liste des médicaments -->
                                 <div class="list-group" id="medicamentList_0"
@@ -596,6 +611,11 @@
 
     function setupMedicamentSearch() {
         console.log("Setting up medicament search");
+        document.addEventListener('input', function(e) {
+        if (e.target && e.target.id && e.target.id.startsWith('medicamentSearch_')) {
+            filterMedicamentList(e.target);
+        }
+    });
 
         // Set up search for the initial medicament field
         document.querySelectorAll('[id^=medicamentSearch_]').forEach(searchField => {
@@ -611,31 +631,45 @@
         });
     }
 
+
+    // Fonction dédiée au filtrage pour une meilleure réutilisation
     function filterMedicamentList(searchField) {
-        if (!searchField || !searchField.id) return;
+    const index = searchField.id.split('_')[1];
+    const searchText = searchField.value.toLowerCase().trim();
+    console.log(`Filtering modal ${index} with text: "${searchText}"`);
 
-        const index = searchField.id.split('_')[1];
-        const searchText = searchField.value.toLowerCase().trim();
-        console.log(`Filtering modal ${index} with text: "${searchText}"`);
+    const listContainer = document.getElementById(`medicamentList_${index}`);
+    if (!listContainer) return;
 
-        const listItems = document.querySelectorAll(`#medicamentList_${index} a`);
-        listItems.forEach(item => {
-            // Reset visibility first
-            item.style.display = '';
+    // Réinitialiser d'abord l'affichage de tous les éléments
+    listContainer.querySelectorAll('a').forEach(item => {
+        item.style.display = '';
+    });
 
-            // Apply filter if there's search text
-            if (searchText.length > 0) {
-                const itemText = item.textContent.toLowerCase();
-                if (!itemText.includes(searchText)) {
-                    item.style.display = 'none';
-                }
+    // Appliquer le filtre seulement si du texte est entré
+    if (searchText.length > 0) {
+        listContainer.querySelectorAll('a').forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (!text.includes(searchText)) {
+                item.style.display = 'none';
             }
         });
     }
 
+    console.log(`Items visible after filtering: ${listContainer.querySelectorAll('a:not([style*="display: none"])').length}`);
+}
+
     function openMedicamentModal(index) {
-        console.log(`Opening modal for index ${index}`);
-        let modal = document.getElementById(`medicamentModal_${index}`);
+    console.log(`Opening modal for index ${index} (vérifié)`);
+    
+    // Vérification supplémentaire
+    const clickedElement = document.getElementById(`medicamentInput_${index}`);
+    if (!clickedElement) {
+        console.error(`Élément medicamentInput_${index} non trouvé!`);
+        return;
+    }
+    
+    let modal = document.getElementById(`medicamentModal_${index}`);
 
         if (!modal) {
             console.log(`Creating new modal for index ${index}`);
@@ -652,6 +686,19 @@
                     }
                 });
 
+                   // Mise à jour des attributs onclick
+            modal.querySelectorAll('[onclick]').forEach(el => {
+                const onclick = el.getAttribute('onclick');
+                if (onclick) {
+                    if (onclick.includes('addManualMedicament(0)')) {
+                        el.setAttribute('onclick', onclick.replace('addManualMedicament(0)', `addManualMedicament(${index})`));
+                    }
+                    if (onclick.includes('selectMedicament(0,')) {
+                        el.setAttribute('onclick', onclick.replace('selectMedicament(0,', `selectMedicament(${index},`));
+                    }
+                }
+            });
+
                 // Update onclick of list items
                 modal.querySelectorAll('.list-group-item').forEach(item => {
                     item.setAttribute('onclick', `selectMedicament(${index}, this)`);
@@ -659,6 +706,8 @@
 
                 // Add modal to document
                 document.body.appendChild(modal);
+                 // Initialiser la recherche pour ce nouveau modal
+            setupMedicamentSearch();
             } else {
                 console.error("Original modal not found");
                 return;
@@ -691,6 +740,12 @@
                     document.querySelectorAll(`#medicamentList_${index} a`).forEach(item => {
                         item.style.display = '';
                     });
+
+                     // Réinitialiser le champ manuel
+        const manualInput = document.getElementById(`manualMedicament_${index}`);
+        if (manualInput) {
+            manualInput.value = '';
+        }
                 }
             }, 100);
         } catch (error) {
@@ -1611,6 +1666,37 @@
         document.head.appendChild(styleEl);
         console.log("Compatibility styles added");
     }
+
+
+
+
+        // Fonction pour ajouter un médicament manuellement
+        function addManualMedicament(index) {
+    const manualInput = document.getElementById(`manualMedicament_${index}`);
+    if (!manualInput) {
+        console.error(`Element manualMedicament_${index} not found`);
+        return;
+    }
+    
+    const medicamentName = manualInput.value.trim();
+    console.log(`Adding manual medicament for index ${index}:`, medicamentName);
+    
+    if (!medicamentName) {
+        alert("Veuillez entrer un nom de médicament");
+        return;
+    }
+    
+    // Mettre à jour les champs
+    const inputField = document.getElementById(`medicamentInput_${index}`);
+    const valueField = document.getElementById(`medicamentValue_${index}`);
+    
+    if (inputField) inputField.value = medicamentName;
+    if (valueField) valueField.value = 'manual_' + medicamentName;
+    
+    // Fermer le modal et réinitialiser
+    $(`#medicamentModal_${index}`).modal('hide');
+    manualInput.value = '';
+}
 </script>
 
 

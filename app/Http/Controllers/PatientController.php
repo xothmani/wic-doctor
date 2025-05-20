@@ -379,12 +379,17 @@ return false;
             
                 if ($smsSuccess) {
                     Log::info("SMS envoyé avec succès à $to");
-        
-                    //  Incrémentation du pack SMS gratuit
-                    $doctor->increment('pack_sms_gratuit');
+                
+                    // Calcul du nombre de SMS nécessaires
+                    $messageLength = strlen($message);
+                    $smsCount = ceil($messageLength / 160); // 1 SMS par 160 caractères
+                
+                    // Incrémentation du pack SMS gratuit selon le nombre de SMS envoyés
+                    $doctor->increment('pack_sms_gratuit', $smsCount);
                 } else {
                     Log::error("Échec de l'envoi du SMS à $to");
                 }
+                
             } elseif (Str::startsWith($to, '+216')) {
                 // Envoi via le service Tunisie
                 $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
@@ -394,12 +399,17 @@ return false;
                 
                 if ($response->successful() && $response->json('success') === true) {
                     Log::info("SMS Tunisie envoyé avec succès à $to");
-            
-                    //  Incrémentation du pack SMS gratuit
-                    $doctor->increment('pack_sms_gratuit');
+                
+                    // Calcul du nombre de SMS nécessaires (1 SMS par 160 caractères)
+                    $messageLength = strlen($message);
+                    $smsCount = ceil($messageLength / 160);
+                
+                    // Incrémentation du pack SMS gratuit selon le nombre de SMS envoyés
+                    $doctor->increment('pack_sms_gratuit', $smsCount);
                 } else {
                     Log::error("Échec de l'envoi du SMS Tunisie à $to : " . $response->body());
                 }
+                 
             }
              else {
             Log::warning("Code pays non pris en charge pour le numéro : $to");
