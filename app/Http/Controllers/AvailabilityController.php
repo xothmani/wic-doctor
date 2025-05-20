@@ -153,7 +153,11 @@ class AvailabilityController extends Controller
                 ->where('mode', 'open')
                 ->select('pause_from', 'pause_to')
                 ->first();
-
+            $patternsByType = [
+                    'cabinet' => $doctorPatterns->where('type', 1)->values(),
+                    'teleconsultation' => $doctorPatterns->where('type', 4)->values(),
+                    'home_visit' => $doctorPatterns->where('type', 3)->values()
+            ];
             // Get vacations
             $vacations = DB::table('vacance')
                 ->where('doctor_id', $doctorId)
@@ -177,6 +181,7 @@ class AvailabilityController extends Controller
                 'breakTime',
                 'vacations',
                 'substitutes',
+                'patternsByType',
                 'dailyClosures',
             ));
         }elseif ($currentMode == 'precise') {
