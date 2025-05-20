@@ -123,6 +123,21 @@
                                     <input type="text" class="form-control" id="medicamentSearch_0"
                                         placeholder="{{ trans('lang.search') }}...">
                                 </div>
+                                <!-- Champ pour ajout manuel de médicament -->
+<div class="form-group mt-3">
+    <label for="manualMedicament_0">{{ trans('lang.prescription_add_manual_medicament') }}</label>
+    <div class="input-group">
+        <input type="text" class="form-control" id="manualMedicament_0"
+               placeholder="{{ trans('lang.prescription_enter_medicament_name') }}"
+               value=""> <!-- Ajout explicite de value="" -->
+               <div class="input-group-append">
+    <button class="btn btn-primary" type="button" 
+            onclick="addManualMedicament(0)">
+        {{ trans('lang.add') }}
+    </button>
+</div>
+    </div>
+</div>
 
                                 <!-- Liste des médicaments -->
                                 <div class="list-group" id="medicamentList_0"
@@ -535,42 +550,40 @@
 
     // Fonction principale pour configurer la recherche de médicaments
     function setupMedicamentSearch() {
-        // Supprimer les écouteurs d'événements existants pour éviter les doublons
-        document.querySelectorAll('[id^=medicamentSearch_]').forEach(searchField => {
-            // Copier les anciens écouteurs avant de les supprimer
-            const oldSearchField = searchField.cloneNode(true);
-            searchField.parentNode.replaceChild(oldSearchField, searchField);
-
-            // Ajouter un nouvel écouteur d'événements
-            oldSearchField.addEventListener('input', function () {
-                filterMedicamentList(this);
-            });
-        });
-    }
+    // Utiliser la délégation d'événements pour gérer les champs de recherche dynamiques
+    document.addEventListener('input', function(e) {
+        if (e.target && e.target.id && e.target.id.startsWith('medicamentSearch_')) {
+            filterMedicamentList(e.target);
+        }
+    });
+}
 
     // Fonction dédiée au filtrage pour une meilleure réutilisation
     function filterMedicamentList(searchField) {
-        const index = searchField.id.split('_')[1];
-        const searchText = searchField.value.toLowerCase().trim();
-        console.log(`Filtering modal ${index} with text: "${searchText}"`);
+    const index = searchField.id.split('_')[1];
+    const searchText = searchField.value.toLowerCase().trim();
+    console.log(`Filtering modal ${index} with text: "${searchText}"`);
 
-        // Réinitialiser d'abord l'affichage de tous les éléments
-        document.querySelectorAll(`#medicamentList_${index} a`).forEach(item => {
-            item.style.display = '';
+    const listContainer = document.getElementById(`medicamentList_${index}`);
+    if (!listContainer) return;
+
+    // Réinitialiser d'abord l'affichage de tous les éléments
+    listContainer.querySelectorAll('a').forEach(item => {
+        item.style.display = '';
+    });
+
+    // Appliquer le filtre seulement si du texte est entré
+    if (searchText.length > 0) {
+        listContainer.querySelectorAll('a').forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (!text.includes(searchText)) {
+                item.style.display = 'none';
+            }
         });
-
-        // Appliquer le filtre seulement si du texte est entré
-        if (searchText.length > 0) {
-            document.querySelectorAll(`#medicamentList_${index} a`).forEach(item => {
-                const text = item.textContent.toLowerCase();
-                if (!text.includes(searchText)) {
-                    item.style.display = 'none';
-                }
-            });
-        }
-
-        console.log(`Items visible after filtering: ${document.querySelectorAll(`#medicamentList_${index} a[style=""]`).length}`);
     }
+
+    console.log(`Items visible after filtering: ${listContainer.querySelectorAll('a:not([style*="display: none"])').length}`);
+}
 
     // Fonction pour réinitialiser le filtrage lors de l'ouverture d'une modale
     function resetMedicamentFilter(index) {
@@ -583,131 +596,121 @@
 
     // Fonction pour ouvrir le modal avec gestion améliorée des événements
     function openMedicamentModal(index) {
-        console.log(`Opening modal for index ${index}`);
-        let modal = document.getElementById(`medicamentModal_${index}`);
+    console.log(`Opening modal for index ${index} (vérifié)`);
+    
+    // Vérification supplémentaire
+    const clickedElement = document.getElementById(`medicamentInput_${index}`);
+    if (!clickedElement) {
+        console.error(`Élément medicamentInput_${index} non trouvé!`);
+        return;
+    }
+    
+    let modal = document.getElementById(`medicamentModal_${index}`);
 
-        if (!modal) {
-            console.log(`Creating new modal for index ${index}`);
-            let originalModal = document.getElementById('medicamentModal_0');
-            if (originalModal) {
-                // Cloner profondément le modal original
-                modal = originalModal.cloneNode(true);
-                modal.id = `medicamentModal_${index}`;
+    if (!modal) {
+        console.log(`Creating new modal for index ${index}`);
+        let originalModal = document.getElementById('medicamentModal_0');
+        if (originalModal) {
+            // Cloner profondément le modal original
+            modal = originalModal.cloneNode(true);
+            modal.id = `medicamentModal_${index}`;
 
-                // Mise à jour des IDs dans le modal cloné
-                modal.querySelectorAll('[id]').forEach(el => {
-                    if (el.id.includes('_0')) {
-                        el.id = el.id.replace('_0', `_${index}`);
+            // Mise à jour des IDs dans le modal cloné
+            modal.querySelectorAll('[id]').forEach(el => {
+                if (el.id.includes('_0')) {
+                    el.id = el.id.replace('_0', `_${index}`);
+                }
+            });
+
+            // Mise à jour des attributs onclick
+            modal.querySelectorAll('[onclick]').forEach(el => {
+                const onclick = el.getAttribute('onclick');
+                if (onclick) {
+                    if (onclick.includes('addManualMedicament(0)')) {
+                        el.setAttribute('onclick', onclick.replace('addManualMedicament(0)', `addManualMedicament(${index})`));
                     }
-                });
+                    if (onclick.includes('selectMedicament(0,')) {
+                        el.setAttribute('onclick', onclick.replace('selectMedicament(0,', `selectMedicament(${index},`));
+                    }
+                }
+            });
 
-                // Mise à jour des attributs onclick des éléments de la liste
-                modal.querySelectorAll('.list-group-item').forEach(item => {
-                    item.setAttribute('onclick', `selectMedicament(${index}, this)`);
-                });
-
-                // Ajouter le nouveau modal au document
-                document.body.appendChild(modal);
-
-                // S'assurer que tous les éléments de la liste sont visibles
-                modal.querySelectorAll('.list-group-item').forEach(item => {
-                    item.style.display = '';
-                });
-            }
+            // Ajouter le nouveau modal au document
+            document.body.appendChild(modal);
+            
+            // Initialiser la recherche pour ce nouveau modal
+            setupMedicamentSearch();
         }
-
-        // Afficher le modal
-        $(`#medicamentModal_${index}`).modal('show');
-
-        // Réinitialiser la recherche et attacher les événements après un court délai
-        setTimeout(() => {
-            // Configurer l'événement de recherche pour ce modal spécifique
-            const searchField = document.getElementById(`medicamentSearch_${index}`);
-            if (searchField) {
-                // Supprimer les anciens écouteurs et en ajouter un nouveau
-                const newSearchField = searchField.cloneNode(true);
-                searchField.parentNode.replaceChild(newSearchField, searchField);
-
-                newSearchField.value = '';
-                newSearchField.addEventListener('input', function () {
-                    filterMedicamentList(this);
-                });
-
-                // Focus sur le champ de recherche
-                newSearchField.focus();
-
-                // Réinitialiser l'affichage de tous les éléments de la liste
-                document.querySelectorAll(`#medicamentList_${index} a`).forEach(item => {
-                    item.style.display = '';
-                });
-            }
-        }, 100);
     }
 
+    // Afficher le modal
+    $(`#medicamentModal_${index}`).modal('show');
+
+    // Réinitialiser la recherche
+    setTimeout(() => {
+        const searchField = document.getElementById(`medicamentSearch_${index}`);
+        if (searchField) {
+            searchField.value = '';
+            searchField.focus();
+        }
+        
+        // Réinitialiser le champ manuel
+        const manualInput = document.getElementById(`manualMedicament_${index}`);
+        if (manualInput) {
+            manualInput.value = '';
+        }
+    }, 100);
+}
     // Fonction révisée pour ajouter un médicament
     function addMedicament() {
-        console.log(`Adding new medicament row with index ${medicamentCount}`);
-
-        // Cloner la première ligne de médicament
-        let newMedicament = document.querySelector('.medicament-row').cloneNode(true);
-
-        // Mettre à jour tous les champs avec le nouvel index
-        newMedicament.querySelectorAll('input, select').forEach(element => {
-            // Mettre à jour l'attribut name
-            if (element.name) {
-                element.name = element.name.replace(/\[\d+\]/, `[${medicamentCount}]`);
-            }
-
-            // Mettre à jour l'attribut id
-            if (element.id) {
-                element.id = element.id.replace(/\_\d+/, `_${medicamentCount}`);
-            }
-
-            // Réinitialiser les valeurs
-            if (element.tagName === 'SELECT') {
-                element.selectedIndex = 0;
-            } else if (!element.classList.contains('no-reset')) {
-                element.value = '';
-            }
-        });
-
-        // Mettre à jour spécifiquement l'input du médicament
-        const medicamentInput = newMedicament.querySelector('[id^="medicamentInput_"]');
-        if (medicamentInput) {
-            medicamentInput.id = `medicamentInput_${medicamentCount}`;
-            medicamentInput.value = '';
-            medicamentInput.setAttribute('onclick', `openMedicamentModal(${medicamentCount})`);
+    console.log(`Adding new medicament row with index ${medicamentCount}`);
+    
+    // Cloner la première ligne de médicament
+    let newMedicament = document.querySelector('.medicament-row').cloneNode(true);
+    
+    // Mettre à jour tous les IDs et names
+    newMedicament.querySelectorAll('[id], [name], [onclick]').forEach(element => {
+        // Mettre à jour l'ID
+        if (element.id) {
+            element.id = element.id.replace(/_0(_|$)/, `_${medicamentCount}$1`);
         }
-
-        // Mettre à jour l'input caché
-        const hiddenInput = newMedicament.querySelector('[name^="medicaments"][name$="[CODE_PCT]"]');
-        if (hiddenInput) {
-            hiddenInput.id = `medicamentValue_${medicamentCount}`;
-            hiddenInput.name = `medicaments[${medicamentCount}][CODE_PCT]`;
-            hiddenInput.value = '';
+        
+        // Mettre à jour le name
+        if (element.name) {
+            element.name = element.name.replace(/\[\d+\]/, `[${medicamentCount}]`);
         }
-
-        // Supprimer l'ancien modal s'il existe dans la ligne clonée
-        const oldModal = newMedicament.querySelector('.modal');
-        if (oldModal) {
-            oldModal.remove();
-        }
-
-        // Mettre à jour les attributs onclick des boutons
-        newMedicament.querySelectorAll('[onclick]').forEach(element => {
-            let onclickAttr = element.getAttribute('onclick');
-            if (onclickAttr && onclickAttr.includes('openMedicamentModal')) {
-                element.setAttribute('onclick', `openMedicamentModal(${medicamentCount})`);
+        
+        // Mettre à jour les onclick
+        if (element.onclick) {
+            const onclickStr = element.getAttribute('onclick').toString();
+            if (onclickStr.includes('openMedicamentModal(0)')) {
+                element.setAttribute('onclick', onclickStr.replace('openMedicamentModal(0)', `openMedicamentModal(${medicamentCount})`));
             }
-        });
-
-        // Ajouter la nouvelle ligne au conteneur
-        document.getElementById('medicament-fields').appendChild(newMedicament);
-
-        // Incrémenter le compteur pour la prochaine addition
-        medicamentCount++;
+            if (onclickStr.includes('addManualMedicament(0)')) {
+                element.setAttribute('onclick', onclickStr.replace('addManualMedicament(0)', `addManualMedicament(${medicamentCount})`));
+            }
+        }
+        
+        // Réinitialiser les valeurs
+        if (element.tagName === 'SELECT') {
+            element.selectedIndex = 0;
+        } else if (element.type !== 'button' && !element.classList.contains('no-reset')) {
+            element.value = '';
+        }
+    });
+    
+    // Supprimer l'ancien modal s'il existe dans la ligne clonée
+    const oldModal = newMedicament.querySelector('.modal');
+    if (oldModal) {
+        oldModal.remove();
     }
-
+    
+    // Ajouter la nouvelle ligne au conteneur
+    document.getElementById('medicament-fields').appendChild(newMedicament);
+    
+    // Incrémenter le compteur
+    medicamentCount++;
+}
     // Fonction révisée pour sélectionner un médicament
     function selectMedicament(index, element) {
         // Obtenir les données de l'élément cliqué
@@ -726,31 +729,50 @@
     }
 
     // Initialisation du document
-    document.addEventListener('DOMContentLoaded', function () {
-        console.log("Document loaded, setting up medicament search");
+    // Initialisation du document
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Document loaded, setting up medicament search");
 
-        // Configuration initiale des recherches
-        setupMedicamentSearch();
+    // Configuration initiale des recherches
+    setupMedicamentSearch();
 
-        // Écouteur pour les modales qui s'ouvrent
-        $(document).on('shown.bs.modal', function (e) {
-            const modalId = e.target.id;
-            if (modalId && modalId.startsWith('medicamentModal_')) {
-                const index = modalId.split('_')[1];
-                console.log(`Modal ${modalId} shown, resetting filter for index ${index}`);
-                resetMedicamentFilter(index);
-            }
-        });
-
-        // Assurer que la recherche fonctionne pour les modales dynamiques
-        $(document).on('hidden.bs.modal', function (e) {
-            const modalId = e.target.id;
-            if (modalId && modalId.startsWith('medicamentModal_')) {
-                const index = modalId.split('_')[1];
-                console.log(`Modal ${modalId} hidden for index ${index}`);
-            }
-        });
+    // Écouteur pour les modales qui s'ouvrent
+    $(document).on('shown.bs.modal', function(e) {
+        const modalId = e.target.id;
+        if (modalId && modalId.startsWith('medicamentModal_')) {
+            const index = modalId.split('_')[1];
+            console.log(`Modal ${modalId} shown, resetting filter for index ${index}`);
+            resetMedicamentFilter(index);
+        }
     });
+});
+    // Fonction pour ajouter un médicament manuellement
+    function addManualMedicament(index) {
+    const manualInput = document.getElementById(`manualMedicament_${index}`);
+    if (!manualInput) {
+        console.error(`Element manualMedicament_${index} not found`);
+        return;
+    }
+    
+    const medicamentName = manualInput.value.trim();
+    console.log(`Adding manual medicament for index ${index}:`, medicamentName);
+    
+    if (!medicamentName) {
+        alert("Veuillez entrer un nom de médicament");
+        return;
+    }
+    
+    // Mettre à jour les champs
+    const inputField = document.getElementById(`medicamentInput_${index}`);
+    const valueField = document.getElementById(`medicamentValue_${index}`);
+    
+    if (inputField) inputField.value = medicamentName;
+    if (valueField) valueField.value = 'manual_' + medicamentName;
+    
+    // Fermer le modal et réinitialiser
+    $(`#medicamentModal_${index}`).modal('hide');
+    manualInput.value = '';
+}
 </script>
 
 

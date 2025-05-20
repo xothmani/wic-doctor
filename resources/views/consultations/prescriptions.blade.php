@@ -211,78 +211,80 @@
 <script>
   $(document).ready(function() {
     $('#viewModal').on('show.bs.modal', function (event) {
-      var button = $(event.relatedTarget);
-      var prescriptionId = button.data('id'); // Get the prescription ID
+        var button = $(event.relatedTarget);
+        var prescriptionId = button.data('id');
+        var modal = $(this);
+        modal.find('.modal-body').html('<p>{{ trans('lang.loading') }}</p>');
 
-      // Clear previous modal content
-      var modal = $(this);
-      modal.find('.modal-body').html('<p>Loading...</p>');
+        $.ajax({
+            url: `/prescriptions/details/${prescriptionId}`,
+            method: 'GET',
+            success: function(response) {
+                var prescriptionDetails = `<h5>${response.type}</h5>`;
 
-      // Make AJAX request to get the prescription details
-      $.ajax({
-        url: `/prescriptions/details/${prescriptionId}`, // Adjust the URL to match your route
-        method: 'GET',
-        success: function(response) {
-          // Prepare the header content for the modal
-          var prescriptionDetails = `
-            <h5>${response.type}</h5>
-          `;
+                // Affichage des médicaments
+                if(response.medicaments.length > 0) {
+                    response.medicaments.forEach(function(medicament) {
+                        // Format de base commun à tous les médicaments
+                        var medDetails = `
+                            <p>
+                                <span style="color: #0080FF;">${medicament.nom_commercial}</span>
+                                <span style="color: darkblue;">${medicament.dosage}</span>, 
+                                <span style="color: darkblue;">${medicament.nb_de_fois}</span>, 
+                                ${medicament.horaire ? `<span style="color: darkblue;">${medicament.horaire}</span>` : ''}
+                                <span style="color: darkblue;">{{ trans('lang.pendant') }} ${medicament.nb_de_jours}</span>.
+                        `;
 
-          // Format each medicament's details in the desired way
-          if(response.medicaments.length > 0) {
-    prescriptionDetails += ``;
-    response.medicaments.forEach(function(medicament) {
-        prescriptionDetails += `
-            <p>
-                <span style="color: #0080FF;">${medicament.nom_commercial}- ${medicament.category} - ${medicament.format} - ${medicament.form}</span>
-                <span style="color: darkblue;">${medicament.dosage}</span>, 
-                <span style="color: darkblue;">${medicament.nb_de_fois}</span>, 
-                ${medicament.horaire ? `<span style="color: darkblue;">${medicament.horaire}</span>` : ''}
-          <span style="color: darkblue;">{{ trans('lang.pendant') }} ${medicament.nb_de_jours}</span>.
-            </p>
-        `;
+                        // Ajout des détails supplémentaires pour les médicaments standards
+                        if (medicament.category) {
+                            medDetails = medDetails.replace(
+                                `${medicament.nom_commercial}</span>`,
+                                `${medicament.nom_commercial}</span> - 
+                                <span style="font-size: smaller; color: #666;">
+                                    ${medicament.category} - ${medicament.format} - ${medicament.form}
+                                </span>`
+                            );
+                        }
+
+                        // Fermeture du paragraphe
+                        medDetails += `</p>`;
+                        
+                        prescriptionDetails += medDetails;
+                    });
+                }
+
+                // Affichage des analyses
+                if(response.analyses.length > 0) {
+                    prescriptionDetails += `<h6>Analyses:</h6>`;
+                    response.analyses.forEach(function(analyse) {
+                        prescriptionDetails += `<p><span style="color: #0080FF;">${analyse.Code_Analyse}</span></p>`;
+                    });
+                }
+
+                // Affichage des radios
+                if(response.radios.length > 0) {
+                    prescriptionDetails += `<h6>Radiologies:</h6>`;
+                    response.radios.forEach(function(radio) {
+                        prescriptionDetails += `<p><span style="color: #0080FF;">${radio.Nom}</span></p>`;
+                    });
+                }
+
+                // Affichage des autres traitements
+                if(response.other_treatments.length > 0) {
+                    prescriptionDetails += `<h6>Autres traitements:</h6>`;
+                    response.other_treatments.forEach(function(treatment) {
+                        prescriptionDetails += `<p><span style="color: #0080FF;">${treatment}</span></p>`;
+                    });
+                }
+
+                modal.find('.modal-body').html(prescriptionDetails);
+            },
+            error: function() {
+                modal.find('.modal-body').html('<p>{{ trans('lang.Erreur') }}</p>');
+            }
+        });
     });
-}
-          if(response.analyses.length > 0) {
-            prescriptionDetails += ``;
-            response.analyses.forEach(function(analyse) {
-              prescriptionDetails += `
-                <p>
-                  <span style="color: #0080FF;">${analyse.Code_Analyse}</span> 
-
-                </p>
-              `;
-            });
-          }
-          if(response.radios.length > 0) {
-            prescriptionDetails += ``;
-            response.radios.forEach(function(radio) {
-              prescriptionDetails += `
-                <p>
-                  <span style="color: #0080FF;">${radio.Nom}</span> 
-
-                </p>
-              `;
-            });
-          }          
-
-          // Format other treatments if available
-          if(response.other_treatments.length > 0) {
-            prescriptionDetails += ``;
-            response.other_treatments.forEach(function(treatment) {
-              prescriptionDetails += `<p><span style="color: #0080FF;">${treatment}</span> </p>`;
-            });
-          }
-
-          // Update the modal content with the formatted details
-          modal.find('.modal-body').html(prescriptionDetails);
-        },
-        error: function() {
-          modal.find('.modal-body').html('<p>{{ trans('lang.Erreur') }}</p>');
-        }
-      });
-    });
-  });
+});
 </script>
 
 
