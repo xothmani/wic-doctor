@@ -407,5 +407,17 @@
     "Enter your new password": "Enter your new password",
     "New password": "New password",
     "Retype new password": "Retype new password",
-    "Date of birth is required.":"Date of birth is required."
+    "Date of birth is required.":"Date of birth is required.",
+    "Your address":"Your address",
+    "Read more":"Read more",
+    "Show less" :"Show less",
+    "In-office consultation":"In-office consultation",
+    "Any other information to add?": "Any other information to add?",
+    "Please fill in all required fields: patient, pattern, and appointment time.": "Please fill in all required fields: patient, pattern, and appointment time.",
+    "Search speciality":"Search speciality",
+    "Appointment Status Updated": "Appointment Status Updated",
+    "Your appointment with Dr. %s is now %s.": "Your appointment with Dr. %s is now %s.",
+    "New Appointment": "New Appointment",
+    "Your appointment has been successfully scheduled. Please check the details in the app.": "Your appointment has been successfully scheduled. Please check the details in the app.",
+    "You have a new appointment with Dr. %s on %s at %s.": "You have a new appointment with Dr. %s on %s at %s."
 }

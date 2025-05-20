@@ -96,8 +96,8 @@ class Appointment extends Model
      */
     protected $casts = [
         //'clinic' => Clinic::class,
-        'doctor' => Doctor::class,
-        'patient' => Patient::class,
+        //'doctor' => Doctor::class,
+        //'patient' => Patient::class,
         //'address' => Address::class,
         'coupon' => Coupon::class,
         'taxes' => TaxCollectionCast::class,
@@ -216,7 +216,8 @@ class Appointment extends Model
 
     public function getSubtotal(): float
     {
-        return $this->doctor->getPrice();
+        //return $this->doctor->getPrice();
+        return optional($this->doctor)->getPrice() ?? 0;
     }
 
     public function getTaxesValue(): float
@@ -248,6 +249,6 @@ class Appointment extends Model
     }
     public function doctor()
     {
-        return $this->belongsTo(Doctor::class, 'doctor_id');
+        return $this->belongsTo(Doctor::class, 'doctor_id', 'id');
     }
 }

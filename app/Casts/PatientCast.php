@@ -23,16 +23,21 @@ class PatientCast implements CastsAttributes
      */
     public function get($model, string $key, $value, array $attributes): Patient
     {
-        $decodedValue = json_decode($value, true);
-        $patient = Patient::find($decodedValue['id']);
-        if (!empty($patient)) {
-            return $patient;
-        }
+        if($value != null){
+            $decodedValue = json_decode($value, true);
+            $patient = Patient::find($decodedValue['id']);
+            if (!empty($patient)) {
+                return $patient;
+            }
 
-        $patient = new Patient($decodedValue);
-        $patient->fillable[] = 'id';
-        $patient->id = $decodedValue['id'];
-        return $patient;
+            $patient = new Patient($decodedValue);
+            $patient->fillable[] = 'id';
+            $patient->id = $decodedValue['id'];
+            return $patient;
+        }else{
+            return new Patient();
+        }
+        
     }
 
     /**

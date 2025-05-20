@@ -8,6 +8,9 @@ use App\Http\Controllers\API\PayPalAPIController;
 use App\Http\Controllers\API\DoctorAPIController;
 use App\Http\Controllers\API\NotificationAPIController;
 use App\Http\Controllers\API\RoomAPIController;
+use App\Http\Controllers\PrescriptionController;
+use App\Http\Controllers\API\TranslationAPIController;
+
 
 /*********************** Route ajouté par Hamza ********************* */
 Route::get('doctors/search','API\DoctorAPIController@indexFiltreHamza');
@@ -27,6 +30,7 @@ Route::prefix('rooms')->middleware('auth:api')->group(function () {
     Route::put('/{id}', [RoomAPIController::class, 'update']); // UPDATE an existing room
     Route::delete('/{id}', [RoomAPIController::class, 'destroy']); // DELETE a room
 });
+Route::middleware('auth:api')->post('/set-locale', [TranslationAPIController::class, 'setUserLocale']);
 
 /*********************** End Route ajouté par Hamza ********************* */
 
@@ -154,6 +158,8 @@ Route::get('patterns', 'API\PatternAPIController@index');
 Route::get('patterns/{id}', 'API\PatternAPIController@show');
 
 Route::get('patterns-by-doctor/{id}', 'API\PatternAPIController@getPatternsByDoctor');
+Route::get('patterns-by-doctor-and-type', 'API\PatternAPIController@getPatternsByDoctorAndType');
+
 
 Route::middleware('auth:api')->group(function () {
     Route::group(['middleware' => ['role:clinic_owner']], function () {
@@ -180,6 +186,7 @@ Route::middleware('auth:api')->group(function () {
     ]);
     Route::post('uploads/store', 'API\UploadAPIController@store');
     Route::post('uploads/clear', 'API\UploadAPIController@clear');
+    Route::get('uploads/clear/{id}', 'API\UploadAPIController@clearMediaById');
     Route::post('users/{user}', 'API\UserAPIController@update');
     Route::delete('users', 'API\UserAPIController@destroy');
 
@@ -219,3 +226,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('wallet_transactions', 'API\WalletTransactionAPIController@index')->name('wallet_transactions.index');
 
 });
+
+// Analyze compatibility, a proxy route in ordre to make dispatching bd from dev to prod dynamic
+Route::post('/proxy/analyze-compatibility', [PrescriptionController::class, 'proxyAnalyzeCompatibility']);

@@ -5,6 +5,11 @@ namespace App\Listeners;
 use App\Events\AppointmentStatusChangedEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Models\Notification;
+use App\Models\Doctor;
+use App\Notifications\FCMServices;
+
+
 
 class SendAppointmentStatusNotificationsListener
 {
@@ -21,17 +26,12 @@ class SendAppointmentStatusNotificationsListener
      */
     public function handle(AppointmentStatusChangedEvent $event)
     {
-        Log::info("Lunch event appointment changed Listener");
-        Log::info("Handle Status Appointment Changer Listener");
         $appointment = $event->appointment;
         $deviceToken = $event->deviceToken;
-        Log::info("Appointment -> Listener Status Changed Event: {$appointment} / {$deviceToken}");
         
         $appointment->doctor = Doctor::find($appointment->doctor_id);
-        Log::info("Appointment SendNotificationOnAppointmentStatusChanged: {$appointment}");
         // Assurez-vous d'avoir un moyen d'obtenir le device_token du utilisateur
         $deviceToken = $appointment->user->device_token;
-        Log::info("Device Token -> Listener Status Changed Event: {$deviceToken}");
         // Préparez la notification
         $title = 'Statut du rendez-vous modifié';
         $message = "Le statut de votre rendez-vous avec Dr.{$appointment->doctor->name} a été {$this->getStatusFromId($event->status_id)}.";
@@ -50,7 +50,6 @@ class SendAppointmentStatusNotificationsListener
 
 
         //Ajouter la notification dans la base de donnée
-        Log::info("Add notification in database Send notification on appointment status changed");
         Notification::create([
             'type' => 'App\Notifications\StatusChangedAppointment',
             'read_at' => null,

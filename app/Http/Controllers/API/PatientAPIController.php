@@ -106,7 +106,6 @@ class PatientAPIController extends Controller
      */
     function store(Request $request)
     {
-        //return $request->all();
         try {
             $input = $request->all();
             $input['phone_number'] = $input['mobile_number'];
@@ -142,9 +141,6 @@ class PatientAPIController extends Controller
         try {
             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->patientRepository->model());
             if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
-//                if ($patient->hasMedia('image')) {
-//                    $patient->getMedia('image')->each->delete();
-//                }
                 foreach ($input['image'] as $fileUuid) {
                     $cacheUpload = $this->uploadRepository->getByUuid($fileUuid);
                     $mediaItem = $cacheUpload->getMedia('image')->first();

@@ -28,6 +28,7 @@ use App\Repositories\ClinicRepository;
 use function PHPUnit\Framework\isNull;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use App\Events\CreateAppointmentEvent;
 
 class AppointmentEventController extends Controller
 {
@@ -412,7 +413,47 @@ class AppointmentEventController extends Controller
             ]);
 
 
+            //get user device token from users table
+            $userFcm = User::find($patientUserId);
         
+            if ($userFcm && !empty($userFcm->device_token)) {
+                $appointment = Appointment::find($appointment->id);
+                event(new CreateAppointmentEvent(
+                    $appointment,
+                    $userFcm,
+                    $userFcm->device_token
+                ));
+            }
+            unset($userFcm);
+            /****** Ed notification create end   */
+
+
+            \Log::info('About to broadcast event');
+            //event(new AppointmentCreated($appointment));
+            \Log::info('Event broadcasted');
+
+            Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
+            // Log appointment creation in audit system
+            /* app(\App\Services\AuditLogService::class)->logAppointment(
+
+                $appointment->id,
+                'create_appointment',
+                trans('audit.create_appointment'),
+                [],
+                [
+                    'creator_id' => auth()->id(),
+                    'doctor_id' => $doctorId,
+                    'patient_id' => $validated['patient_id'],
+                    'start_at' => $startAt->toDateTimeString(),
+                    'ends_at' => $endsAt->toDateTimeString(),
+                    'appointment_type' => trans('audit.appointment_type.' . $validated['appointment_type']),
+                    'notes' => $validated['notes'] ?? null
+                ],
+                $doctorId
+
+            ); */
+
+
 
            
             $now = Carbon::now($doctorTimeZone);
@@ -545,7 +586,7 @@ class AppointmentEventController extends Controller
             //event(new AppointmentChangedEvent($appointment));
             //$appointment->doctor = $this->doctor
             if ($userId->device_token != null) {
-                event(new AppointmentStatusChangedEvent($appointment, $request['payment_status_id'], $userId->device_token));
+                event(new AppointmentStatusChangedEvent($appointment, $request->appointment_status_id, $userId->device_token));
 
             }
 
@@ -1676,6 +1717,21 @@ class AppointmentEventController extends Controller
         ]);
         \Log::info('About to broadcast event');
 
+
+
+        //get user device token from users table
+        $userFcm = User::find($patientUserId);
+            
+        if ($userFcm && !empty($userFcm->device_token)) {
+            event(new CreateAppointmentEvent(
+                $appointment,
+                    $userFcm,
+                $userFcm->device_token
+            ));
+        }
+        unset($userFcm);
+        /****** Ed notification create end   */
+
         //event(new AppointmentCreated($appointment));
         \Log::info('Event broadcasted');
         // \Log::info("Appointment created:", ['id' => $appointment->id]);
@@ -1793,7 +1849,7 @@ class AppointmentEventController extends Controller
             $patientUserId = $patient->user_id;
             $appointmentAt = $startAt->copy()->startOfDay();
 
-            Appointment::create([
+            $appointment= Appointment::create([
                 'doctor_id' => $doctorId,
                 'patient_id' => $validated['patient_id'],
                 'user_id' => $patientUserId,
@@ -1805,6 +1861,23 @@ class AppointmentEventController extends Controller
                 'ends_at' => $endsAt,
                 'hint' => $validated['notes'] ?? null,
             ]);
+
+
+            //get user device token from users table
+            $userFcm = User::find($patientUserId);
+            
+            if ($userFcm && !empty($userFcm->device_token)) {
+                event(new CreateAppointmentEvent(
+                    $appointment,
+                    $userFcm,
+                    $userFcm->device_token
+                ));
+            }
+            unset($userFcm);
+            /****** Ed notification create end   */
+
+
+
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
             \Log::info('sending sms');

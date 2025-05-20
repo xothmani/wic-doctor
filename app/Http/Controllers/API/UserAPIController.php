@@ -24,6 +24,8 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Prettus\Repository\Exceptions\RepositoryException;
+use App\Models\Patient;
+use Illuminate\Support\Facades\Log;
 
 class UserAPIController extends Controller
 {
@@ -74,6 +76,16 @@ class UserAPIController extends Controller
 
     }
 
+
+
+    function decodeIfJson($value) {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
+        }
+        return $value;
+    }
+
     /**
      * Create a new user instance after a valid registration.
      *
@@ -97,7 +109,8 @@ class UserAPIController extends Controller
             }
             
             $user = new User;
-            $user->name = $request->input('name');
+            $user->name = $request->input('firstName');
+            $user->lastname = $request->input('lastname');
             $user->email = $request->input('email');
             $user->phone_number = $request->input('phone_number');
             $user->phone_verified_at = $request->input('phone_verified_at');
@@ -106,6 +119,31 @@ class UserAPIController extends Controller
             $user->passwordpatient = Hash::make($request->input('passwordpatient'));
             $user->api_token = Str::random(60);
             $user->save();
+
+
+            /****** Save patient */
+            
+
+            $data = [
+                'user_id'=> $user->id,
+                'first_name'     => $this->decodeIfJson($request->input('firstName')),
+                'last_name'      => $this->decodeIfJson($request->input('lastname')),
+                'email'          => $request->input('email'),
+                'phone_number'   => $request->input('phone_number'),
+                'mobile_number'  => $request->input('phone_number'),
+                'is_main_profil' => true,
+            ];
+
+            // Ajouter date_naissance seulement si elle est fournie
+            if ($request->filled('date_naissance')) {
+                $data['date_naissance'] = $request->input('date_naissance');
+            }
+
+            $patient = Patient::create($data);
+
+            /******* End save patient */
+
+            
 
             $defaultRoles = $this->roleRepository->findByField('default', '1');
             $defaultRoles = $defaultRoles->pluck('name')->toArray();

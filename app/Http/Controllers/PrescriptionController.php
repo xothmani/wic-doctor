@@ -11,6 +11,7 @@ use App\Models\Consultation;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 
 
 use PDF;
@@ -592,8 +593,12 @@ if ($request->input('type') === 'Médicament') {
         return Redirect::back()->with('success', 'La prescription a été envoyée par e-mail avec succès.');
     }
 
+    public function proxyAnalyzeCompatibility(Request $request)
+    {
+        $response = Http::post('https://wicdialer.com/api/analyze/compatibility/', $request->all());
 
-    
+        return response()->json($response->json(), $response->status());
+    }
 }
 
 

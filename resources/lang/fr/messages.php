@@ -17,5 +17,5 @@ return [
     'closure_not_found' => 'Urgence non trouvée',
     'closure_time_conflict' => 'Il existe déjà une urgence sur cette période',
     'vacation_overlap_detailed' => 'Il existe déjà un congé sur la période du :start au :end',
-
+    'appointment_status_updated' => 'Le statut de votre rendez-vous avec Dr. :doctor est :status.',
 ];
