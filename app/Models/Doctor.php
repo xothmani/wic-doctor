@@ -395,94 +395,94 @@ public function openingHours(): OpeningHours
      * get each range of doctor duration in min with open/close clinic
      */
     public function weekCalendarRange(Carbon $date, string $typeConsultation, $mode = "open", $pattern_id = 0): array
-{
-    $doctorDurationMinutes = 60; // Par défaut
-    $filteredAvailability = collect($this->availabilityHours)->filter(callback: function ($item) use ($typeConsultation, $mode, $pattern_id) {
-        if ($mode === 'open') {
-            return $item->type === $typeConsultation && $item->mode === 'open';
-        } else {
-            return $item->type === $typeConsultation &&
-                $item->mode === $mode &&
-                $item->patern_id == $pattern_id;
-        }
-    })->first();
-
-    if ($filteredAvailability && $filteredAvailability->session_duration > 0) {
-        $doctorDurationMinutes = $this->parseTime($filteredAvailability->session_duration);
-        Log::info("Filtered session_duration found: $doctorDurationMinutes minutes");
-    } else {
-        Log::warning('No matching availability hour found. Using default session duration of 60 minutes.', [
-            'typeConsultation' => $typeConsultation,
-            'mode' => $mode,
-            'pattern_id' => $pattern_id
-        ]);
-    }
-
-    Log::info("weekCalendarRange", ["type consultation" => $typeConsultation, "Session duration" => $doctorDurationMinutes]);
-
-    // Utilisation de CarbonPeriod et ajustement de la timezone
-    $period = CarbonPeriod::since($date->subDay()->ceilDay()->setTimezone('Africa/Tunis'))
-        ->minutes($doctorDurationMinutes)
-        ->until($date->addDay()->ceilDay()->setTimezone('Africa/Tunis')->subMinutes($doctorDurationMinutes));
-
-    $dates = [];
-    // Obtenir l'heure actuelle en Tunisie et enlever les secondes
-    $now = Carbon::now('Africa/Tunis')->setTime(Carbon::now('Africa/Tunis')->hour, Carbon::now('Africa/Tunis')->minute, 0);
-
-    foreach ($period as $d) {
-        $isOpen = $this->openingHours()->isOpenAt($d);
-        $times = $d->locale('en')->toIso8601String();
-        $isPast = $d->lessThan($now);
-        $dates[] = [$times, $isOpen, $isPast];
-    }
-
-    $vacance = $this->vacance($date);
-
-    foreach ($dates as &$timeSlot) {
-        if (!$timeSlot[2] && $timeSlot[1]) { 
-            $startTime = new Carbon($timeSlot[0]);
-            $startTime->setTimezone('Africa/Tunis');  // Forcer la timezone de startTime
-            $endTime = (clone $startTime)->addMinutes($doctorDurationMinutes);
-
-            $appointmentsExist = Appointment::where('doctor_id', $this->id)
-                ->where('start_at', '>=', $startTime)
-                ->where('ends_at', '<=', $endTime)
-                ->whereNotIn('appointment_status_id', [6, 7])
-                ->exists();
-
-            Log::info("Appointment exist : ", [
-                'start_at' => $startTime,
-                'ends_at' => $endTime,
-                'appointmentsExist' => $appointmentsExist
-            ]);
-
-            $iSameType = false;
-            if ($mode == "precise" && $pattern_id != 0) {
-                $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation, $mode, $pattern_id);
+    {
+        $doctorDurationMinutes = 60; // Par défaut
+        $filteredAvailability = collect($this->availabilityHours)->filter(callback: function ($item) use ($typeConsultation, $mode, $pattern_id) {
+            if ($mode === 'open') {
+                return $item->type === $typeConsultation && $item->mode === 'open';
             } else {
-                $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation);
+                return $item->type === $typeConsultation &&
+                    $item->mode === $mode &&
+                    $item->patern_id == $pattern_id;
             }
+        })->first();
 
-            $timeSlot[1] = !$appointmentsExist && $iSameType && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation) && !$this->isLastSlotOfTheDay($date, $startTime, $endTime, $typeConsultation) && !$this->isFirstSlotOfTheDay($date, $startTime,$typeConsultation);
-            Log::info("Result of Calendar : ", [
-                'iSameType' => $iSameType,
-                'vacance' => $vacance,
-                'isUrgent' => $this->isUrgent($date, $startTime, $endTime),
-                'isSessionCollidingWithPause' => $this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation),
-                'appointmentsExist' => $appointmentsExist,
-                'timeSlot[1]' => $timeSlot[1]
-            ]);
-
-
+        if ($filteredAvailability && $filteredAvailability->session_duration > 0) {
+            $doctorDurationMinutes = $this->parseTime($filteredAvailability->session_duration);
+            Log::info("Filtered session_duration found: $doctorDurationMinutes minutes");
         } else {
-            Log::info("SESSION DURATION-------------WeekCalendarRange----------------12");
+            Log::warning('No matching availability hour found. Using default session duration of 60 minutes.', [
+                'typeConsultation' => $typeConsultation,
+                'mode' => $mode,
+                'pattern_id' => $pattern_id
+            ]);
         }
+
+        Log::info("weekCalendarRange", ["type consultation" => $typeConsultation, "Session duration" => $doctorDurationMinutes]);
+
+        // Utilisation de CarbonPeriod et ajustement de la timezone
+        $period = CarbonPeriod::since($date->subDay()->ceilDay()->setTimezone('Africa/Tunis'))
+            ->minutes($doctorDurationMinutes)
+            ->until($date->addDay()->ceilDay()->setTimezone('Africa/Tunis')->subMinutes($doctorDurationMinutes));
+
+        $dates = [];
+        // Obtenir l'heure actuelle en Tunisie et enlever les secondes
+        $now = Carbon::now('Africa/Tunis')->setTime(Carbon::now('Africa/Tunis')->hour, Carbon::now('Africa/Tunis')->minute, 0);
+
+        foreach ($period as $d) {
+            $isOpen = $this->openingHours()->isOpenAt($d);
+            $times = $d->locale('en')->toIso8601String();
+            $isPast = $d->lessThan($now);
+            $dates[] = [$times, $isOpen, $isPast];
+        }
+
+        $vacance = $this->vacance($date);
+
+        foreach ($dates as &$timeSlot) {
+            if (!$timeSlot[2] && $timeSlot[1]) { 
+                $startTime = new Carbon($timeSlot[0]);
+                $startTime->setTimezone('Africa/Tunis');  // Forcer la timezone de startTime
+                $endTime = (clone $startTime)->addMinutes($doctorDurationMinutes);
+
+                $appointmentsExist = Appointment::where('doctor_id', $this->id)
+                    ->where('start_at', '>=', $startTime)
+                    ->where('ends_at', '<=', $endTime)
+                    ->whereNotIn('appointment_status_id', [6, 7])
+                    ->exists();
+
+                Log::info("Appointment exist : ", [
+                    'start_at' => $startTime,
+                    'ends_at' => $endTime,
+                    'appointmentsExist' => $appointmentsExist
+                ]);
+
+                $iSameType = false;
+                if ($mode == "precise" && $pattern_id != 0) {
+                    $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation, $mode, $pattern_id);
+                } else {
+                    $iSameType = $this->isSameType($date, $startTime, $endTime, $typeConsultation);
+                }
+
+                $timeSlot[1] = !$appointmentsExist && $iSameType && $timeSlot[1] && !$vacance && !$this->isUrgent($date, $startTime, $endTime) && !$this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation) && !$this->isLastSlotOfTheDay($date, $startTime, $endTime, $typeConsultation) && !$this->isFirstSlotOfTheDay($date, $startTime,$typeConsultation);
+                Log::info("Result of Calendar : ", [
+                    'iSameType' => $iSameType,
+                    'vacance' => $vacance,
+                    'isUrgent' => $this->isUrgent($date, $startTime, $endTime),
+                    'isSessionCollidingWithPause' => $this->isSessionCollidingWithPause($date, $startTime, $endTime, $typeConsultation),
+                    'appointmentsExist' => $appointmentsExist,
+                    'timeSlot[1]' => $timeSlot[1]
+                ]);
+
+
+            } else {
+                Log::info("SESSION DURATION-------------WeekCalendarRange----------------12");
+            }
+        }
+
+        unset($timeSlot);
+
+        return $dates;
     }
-
-    unset($timeSlot);
-
-    return $dates;
-}
 
     
 

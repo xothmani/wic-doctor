@@ -10,6 +10,8 @@ use App\Http\Controllers\API\NotificationAPIController;
 use App\Http\Controllers\API\RoomAPIController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\API\TranslationAPIController;
+use App\Http\Controllers\API\AvailabilityHourAPIController;
+use Google\Service\Doubleclicksearch\Availability;
 
 
 /*********************** Route ajouté par Hamza ********************* */
@@ -31,6 +33,7 @@ Route::prefix('rooms')->middleware('auth:api')->group(function () {
     Route::delete('/{id}', [RoomAPIController::class, 'destroy']); // DELETE a room
 });
 Route::middleware('auth:api')->post('/set-locale', [TranslationAPIController::class, 'setUserLocale']);
+Route::get('/get-type-consultation/{id}', [AvailabilityHourAPIController::class, 'getTypeConsultation']);
 
 /*********************** End Route ajouté par Hamza ********************* */
 
