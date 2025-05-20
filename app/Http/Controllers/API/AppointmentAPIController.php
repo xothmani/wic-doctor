@@ -444,76 +444,34 @@ class AppointmentAPIController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            $motifObject = $request->input('motif_id');
-            // Extract the necessary data from the nested objects
-
-
-
-            $data = [
-                //'clinic' => json_encode($request->input('clinic')),
-                //'doctor' => json_encode($request->input('doctor')),
-                'doctor_id' => is_array($request->input('doctor.id')) ? $request->input('doctor.id')[0] : $request->input('doctor.id'),
-                //'patient' => json_encode($request->input('patient')),
-                'patient_id' => is_array($request->input('patient.id')) ? $request->input('patient.id')[0] : $request->input('patient.id'),
-                'user_id' => is_array($request->input('user_id')) ? $request->input('user_id')[0] : $request->input('user_id'),
-                'clinic_id' => is_array($request->input('clinic.id')) ? $request->input('clinic.id')[0] : $request->input('clinic.id'),
-                'quantity' => $request->input('quantity', 1),
-                'appointment_status_id' => $request->input('appointment_status_id', 1),
-                'payment_id' => $request->input('payment_id'),
-                'taxes' => json_encode($request->input('taxes')), // Encodé en JSON pour éviter les erreurs
-                'appointment_at' => $request->input('appointment_at'),
-                'start_at' => Carbon::parse($request->input('start_at'))->setTimezone(config('app.timezone')),
-                'ends_at' => Carbon::parse($request->input('ends_at'))->setTimezone(config('app.timezone')),
-                'hint' => $request->input('hint'),
-                'online' => 'mobile',
-                'cancel' => $request->input('cancel', false),
-                'motif_id' => is_array($request->input('motif_id.id')) ? $request->input('motif_id.id')[0] : $request->input('motif_id.id'),
-                'type' => $request->input('type', 'aucun'),
-            ];
-
-
-
-            $coupon = $request->input('coupon');
-            $address = $request->input('address');
-            if (!empty($coupon)) { // Vérifie si la valeur n'est pas vide
-                $data['coupon'] = json_encode($coupon); // Ajoute au tableau si elle est définie
-            }
-
-            if (!empty($address) || $address != null) {
-                Log::info("AddressIF", ["address" => $address]);
-                $data['address'] = json_encode($address); // Ajoute au tableau si elle est définie
-            }
-
-
-
-            $motifObject = $request->input('motif_id');
-            Log::info('Motif Object:', ['motif_id' => $motifObject]);
+            $utc = new \DateTimeZone('UTC');
+            $tunis = new \DateTimeZone('Africa/Tunis');
 
             // Extract the necessary data from the nested objects
             $data = [
                 'doctor_id' => $request->input('doctor.id'), // Extract doctor ID
                 'patient_id' => $request->input('patient.id'), // Extract patient ID if needed
                 'user_id' => $request->input('user_id'),
-                'clinic_id' => $request->input('clinic.id'), // Extract clinic ID
+                //'clinic_id' => $request->input('clinic.id'), // Extract clinic ID
                 'quantity' => $request->input('quantity', 1),
                 'appointment_status_id' => $request->input('appointment_status_id', 1),
                 'address' => $request->input('address.address'), // Extract address as a string
                 'payment_id' => $request->input('payment_id'),
                 'coupon' => $request->input('coupon'),
                 'taxes' => json_encode($request->input('taxes', [])), // Ensure taxes is an array and encode as JSON
-                'appointment_at' => $request->input('appointment_at'),
-                'start_at' => Carbon::parse($request->input('start_at'))->setTimezone(config('app.timezone')),
-                'ends_at' => Carbon::parse($request->input('ends_at'))->setTimezone(config('app.timezone')),
+                'appointment_at' => Carbon::parse($request->input('appointment_at',$tunis)),
+                'start_at' => Carbon::parse($request->input('start_at'), $tunis),
+                'ends_at' => Carbon::parse($request->input('ends_at'), $tunis),
                 'hint' => $request->input('hint'),
-                'online' => 'mobile',
+                'online' => $request->input('type', 'aucun'),
                 'cancel' => $request->input('cancel', false),
-                'motif_id' => $request->input('motif_id.id'),
-                'type' => $request->input('type', 'aucun'),
+                'motif_id' => $request->input('motif_id'),
+                'type' => 'mobile',
             ];
 
 
             // Validate that critical fields are not null
-            if (is_null($data['doctor_id']) || is_null($data['user_id']) || is_null($data['clinic_id'])) {
+            if (is_null($data['doctor_id']) || is_null($data['user_id'])) {
                 Log::error("Missing required data: doctor_id, user_id, or clinic_id is null.");
                 return response()->json([
                     'status' => 400,
@@ -528,11 +486,9 @@ class AppointmentAPIController extends Controller
 
 
             //If the appointment is remote, create a room for it
-            if ($data['online'] == true) {
-                Log::info("Create new room for online appointment", ["online" => $data['online']]);
-
+            if ($data['online'] == 'teleconsultation') {
                 try {
-                    $startAt = Carbon::parse($request->input('start_at'))->setTimezone(config('app.timezone'));
+                    $startAt = Carbon::parse($request->input('start_at'), $utc)->setTimezone($tunis);
                     // Heure donnée (10:11:00)
                     $date = $startAt->toDateString();
                     $time = $startAt->format('H-i-s');
@@ -542,11 +498,19 @@ class AppointmentAPIController extends Controller
                     $patient_last_name = $request->input('patient.last_name');
                     $patient_phone = $request->input('patient.phone_number');
                     $roomName = "{$patient_first_name}_{$patient_last_name}_{$patient_phone}_{$date}_{$time}";
+                    $doctorId = is_array($request->input('doctor.id')) ? $request->input('doctor.id')[0] : $request->input('doctor.id');
+                    $doctor = Doctor::find($doctorId);
+
+                    Log::info("RoomName", [
+                        "RoomName" => $roomName,
+                        "doctor" => $doctor,
+                        "user_id" => $doctor->user_id
+                    ]);
 
                     $roomData = [
                         'room_name' => $roomName,
                         'meet_link' => 'https://meet.wic-doctor.com/' . $roomName,
-                        'owner_id' => is_array($request->input('doctor.id')) ? $request->input('doctor.id')[0] : $request->input('doctor.id'),
+                        'owner_id' => $doctor->user_id,
                         'appointment_id' => $appointmentId,
                         'patient_id' => is_array($request->input('patient.id')) ? $request->input('patient.id')[0] : $request->input('patient.id'),
                         'date' => $date,
@@ -613,23 +577,13 @@ class AppointmentAPIController extends Controller
      */
     public function update(int $id, Request $request): JsonResponse
     {
-        Log::info("Update Appointment Request:", [$request->all()]);
         $appointment = Appointment::find($id);
         $new_status_id = $request->input('appointment_status_id');
         $appointment->cancel_reason = $request->input('cancel_reason');
-        //$doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
-        //$appointment->doctor = $doctor;
         $appointment->appointment_status_id = $new_status_id;
         $user = $this->userRepository->findWithoutFail($appointment->user_id);
         $deviceToken = $user->device_token;
-        //$patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
-        //$appointment->patient = $patient;
         $appointment->save();
-
-        Log::info("Update Appointment Request Lunch Event");
-
-        //Send notification to phone
-        Log::info("Update Appointment Listen event");
         event(new AppointmentStatusChangedEvent($appointment,$new_status_id,$deviceToken));
         return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
     }
@@ -642,7 +596,11 @@ class AppointmentAPIController extends Controller
         $startAt = $request->input('start_at');
         if ($startAt != null && !empty($startAt)) {
             try {
-                $this->appointmentRepository->update(['start_at' => $request->input('start_at')], $id);
+                //$this->appointmentRepository->update(['start_at' => $request->input('start_at')], $id);
+                $this->appointmentRepository->update([
+                    'start_at' => $request->input('start_at'),
+                    'appointment_at' => $request->input('start_at'),
+                ], $id);
                 return response()->json(true);
                 //return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
             } catch (ValidatorException $e) {

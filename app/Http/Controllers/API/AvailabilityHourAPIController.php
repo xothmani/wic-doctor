@@ -105,8 +105,6 @@ class AvailabilityHourAPIController extends Controller
     {
         Log::info("Availibility hours controller => show function ");
         try {
-
-
             $this->doctorRepository->pushCriteria(new RequestCriteria($request));
             $this->availabilityHourRepository->pushCriteria(new AvailabilityHoursOfUserCriteria($id));
             $this->doctorRepository->pushCriteria(new LimitOffsetCriteria($request));
@@ -384,6 +382,10 @@ class AvailabilityHourAPIController extends Controller
         $this->availabilityHourRepository->delete($id);
         return $this->sendResponse($availabilityHour, __('lang.deleted_successfully', ['operator' => __('lang.availability_hour')]));
     }
+
+
+
+    
     public function getPatternNom()
     {
         // Fetch availability hours and eager load the 'pattern' relation
@@ -397,6 +399,10 @@ class AvailabilityHourAPIController extends Controller
         // Return the 'nom' values in the response
         return response()->json(['data' => $patternNames]);
     }
+
+
+
+
     public function getMatchingAvailabilityAndAppointments(Request $request): JsonResponse
     {
         try {

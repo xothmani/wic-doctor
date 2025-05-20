@@ -63,7 +63,7 @@ class DoctorAPIController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-public function index(Request $request): JsonResponse
+ /*public function index(Request $request): JsonResponse
 {
     try {
         // Push existing criteria
@@ -79,12 +79,14 @@ public function index(Request $request): JsonResponse
         }
 
         // Load the address relationship
-        $doctors = $this->doctorRepository->with('address')->all();
+        $doctors = $this->doctorRepository->with('address')->with('user')->all();
 
         // Additional filtering and processing
         if (!$request->has('all')) {
             $this->availableDoctors($doctors);
         }
+
+
         $this->hasValidSubscription($request, $doctors);
         $this->orderByRating($request, $doctors);
         $this->limitOffset($request, $doctors);
@@ -99,9 +101,75 @@ public function index(Request $request): JsonResponse
         // Handle any exceptions that may occur
         return $this->sendError('Error retrieving doctors: ' . $e->getMessage());
     }
+} */
+
+public function index(Request $request): JsonResponse
+{
+    try {
+        // Push existing criteria
+        $this->doctorRepository->pushCriteria(new RequestCriteria($request));
+        $this->doctorRepository->pushCriteria(new DoctorsOfUserCriteria(auth()->id()));
+        $this->doctorRepository->pushCriteria(new NearCriteria($request));
+
+        // Apply gouvernorat filter if provided
+        if ($request->has('gouvernorat') && !empty($request->input('gouvernorat'))) {
+            Log::info('Search doctor governorat :', [$request->input('gouvernorat')]);
+            $gouvernoratList = (array) $request->input('gouvernorat'); // Ensure it's an array
+            $this->doctorRepository->pushCriteria(new FilterByGouvernoratCriteria($gouvernoratList));
+        }
+
+        // Load the address relationship AND user relationship
+        $doctors = $this->doctorRepository->with(['address', 'user'])->all();
+
+        // Additional filtering and processing
+        if (!$request->has('all')) {
+            $this->availableDoctors($doctors);
+        }
+
+        $this->hasValidSubscription($request, $doctors);
+        $this->orderByRating($request, $doctors);
+        $this->limitOffset($request, $doctors);
+        $this->filterCollection($request, $doctors);
+        
+        // For each doctor, merge media from doctor and user models
+        foreach ($doctors as $doctor) {
+            // Get doctor media
+            $doctorMedia = $doctor->getMedia();
+            
+            // Get user media if the user relationship exists
+            $userMedia = $doctor->user ? $doctor->user->getMedia() : collect();
+            
+            // Merge the media collections
+            $mergedMedia = $doctorMedia->merge($userMedia);
+            
+            // Format media for response
+            $formattedMedia = $mergedMedia->map(function ($media) {
+                return [
+                    'id' => $media->id,
+                    'uuid' => $media->uuid,
+                    'name' => $media->name,
+                    'url' => $media->getUrl(),
+                    'thumb' => $media->getUrl('thumb'),
+                    'icon' => $media->getUrl('icon'),
+                    'formated_size' => $media->human_readable_size,
+                    'model_type' => $media->model_type, // Shows if it's from Doctor or User
+                ];
+            });
+            
+            // Replace the doctor's media with the merged media
+            $doctor->setRelation('media', $formattedMedia);
+        }
+
+        // Convert collection to array
+        $doctors = array_values($doctors->toArray());
+
+        // Return response
+        return $this->sendResponse($doctors, 'Doctors retrieved successfully');
+    } catch (\Exception $e) {
+        // Handle any exceptions that may occur
+        return $this->sendError('Error retrieving doctors: ' . $e->getMessage());
+    }
 }
-
-
 
 
 
@@ -124,6 +192,35 @@ public function recommandedDoctor(Request $request): JsonResponse
 
         // Charger les médecins après les filtres
         $doctors = $this->doctorRepository->with('address')->all();
+
+        // For each doctor, merge media from doctor and user models
+        foreach ($doctors as $doctor) {
+            // Get doctor media
+            $doctorMedia = $doctor->getMedia();
+            
+            // Get user media if the user relationship exists
+            $userMedia = $doctor->user ? $doctor->user->getMedia() : collect();
+            
+            // Merge the media collections
+            $mergedMedia = $doctorMedia->merge($userMedia);
+            
+            // Format media for response
+            $formattedMedia = $mergedMedia->map(function ($media) {
+                return [
+                    'id' => $media->id,
+                    'uuid' => $media->uuid,
+                    'name' => $media->name,
+                    'url' => $media->getUrl(),
+                    'thumb' => $media->getUrl('thumb'),
+                    'icon' => $media->getUrl('icon'),
+                    'formated_size' => $media->human_readable_size,
+                    'model_type' => $media->model_type, // Shows if it's from Doctor or User
+                ];
+            });
+            
+            // Replace the doctor's media with the merged media
+            $doctor->setRelation('media', $formattedMedia);
+        }
 
         // Si aucun médecin trouvé après le filtre gouvernorat, on récupère tous les médecins
         if ($filteredByGouvernorat && $doctors->isEmpty()) {
@@ -181,6 +278,36 @@ public function indexFiltreHamza(Request $request): JsonResponse
 
         // Charger la relation address
         $doctors = $this->doctorRepository->with('address')->all();
+
+
+        // For each doctor, merge media from doctor and user models
+        foreach ($doctors as $doctor) {
+            // Get doctor media
+            $doctorMedia = $doctor->getMedia();
+            
+            // Get user media if the user relationship exists
+            $userMedia = $doctor->user ? $doctor->user->getMedia() : collect();
+            
+            // Merge the media collections
+            $mergedMedia = $doctorMedia->merge($userMedia);
+            
+            // Format media for response
+            $formattedMedia = $mergedMedia->map(function ($media) {
+                return [
+                    'id' => $media->id,
+                    'uuid' => $media->uuid,
+                    'name' => $media->name,
+                    'url' => $media->getUrl(),
+                    'thumb' => $media->getUrl('thumb'),
+                    'icon' => $media->getUrl('icon'),
+                    'formated_size' => $media->human_readable_size,
+                    'model_type' => $media->model_type, // Shows if it's from Doctor or User
+                ];
+            });
+            
+            // Replace the doctor's media with the merged media
+            $doctor->setRelation('media', $formattedMedia);
+        }
 
 
         // Liste des médecins filtrés
