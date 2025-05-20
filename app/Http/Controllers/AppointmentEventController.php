@@ -74,9 +74,13 @@ class AppointmentEventController extends Controller
         }
 
         $doctor = Doctor::find($doctorId);
+        $doctorTimeZone = $doctor->time_zone ?? 'Africa/Tunis';
         $currentMode = $doctor->availability_mode ?? 'open';
 
         if ($currentMode === 'open') {
+
+
+
             // Retrieve distinct availability days for the logged-in doctor
             $availabilityDays = DB::table('availability_hours')
                 ->where('doctor_id', $doctorId)
@@ -117,8 +121,8 @@ class AppointmentEventController extends Controller
                         'appointments.user_id',
                         'appointments.patient_id',
                         'appointments.hint',
-                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.start_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as start_at"),
-                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.ends_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        'appointments.start_at', // Get raw UTC time
+                        'appointments.ends_at',
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
                         'appointment_status.status as status',
@@ -136,19 +140,21 @@ class AppointmentEventController extends Controller
                     ->join('pattern as pattern', 'appointments.motif_id', '=', 'pattern.id')
                     ->get();
 
-                //Log::info("Appointments retrieved for Doctor ID {$doctorId}", ['appointments_count' => $data->count()]);
+                Log::info("Appointments retrieved for Doctor ID {$doctorId}", ['appointments_count' => $data->count()]);
 
-                return response()->json($data->map(function ($appointment) {
+                return response()->json($data->map(function ($appointment) use ($doctorTimeZone) {
                     $decodedFirstName = json_decode($appointment->patient_first_name, true);
                     $decodedLastName = json_decode($appointment->patient_last_name, true);
                     $decodedMotifName = json_decode($appointment->motif_name, true);
                     $color = $appointment->motif_color;
+                    $startAt = Carbon::parse($appointment->start_at)->setTimezone($doctorTimeZone);
+                    $endsAt = Carbon::parse($appointment->ends_at)->setTimezone($doctorTimeZone);
 
 
                     return [
                         'id' => $appointment->id,
-                        'start_at' => $appointment->start_at,
-                        'ends_at' => $appointment->ends_at,
+                        'start_at' => $startAt->format('Y-m-d\TH:i:s'),
+                        'ends_at' => $endsAt->format('Y-m-d\TH:i:s'),
                         'title' => $appointment->user_name,
                         'status' => $appointment->status,
                         'patient_id' => $appointment->patient_id,
@@ -257,8 +263,8 @@ class AppointmentEventController extends Controller
                         'appointments.hint',
                         'appointments.cancel_reason',
                         'appointments.type',
-                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.start_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as start_at"),
-                        DB::raw("DATE_FORMAT(CONVERT_TZ(appointments.ends_at, '+00:00', '+01:00'), '%Y-%m-%dT%H:%i:%s') as ends_at"),
+                        'appointments.start_at', // Get raw UTC time
+                        'appointments.ends_at',
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
                         'appointment_status.status as status',
@@ -276,15 +282,17 @@ class AppointmentEventController extends Controller
                     ->join('pattern as pattern', 'appointments.motif_id', '=', 'pattern.id')
                     ->get();
 
-                return response()->json($data->map(function ($appointment) {
+                return response()->json($data->map(function ($appointment) use ($doctorTimeZone) {
                     $decodedFirstName = json_decode($appointment->patient_first_name, true);
                     $decodedLastName = json_decode($appointment->patient_last_name, true);
                     $decodedMotifName = json_decode($appointment->motif_name, true);
                     $color = $appointment->motif_color;
+                    $startAt = Carbon::parse($appointment->start_at)->setTimezone($doctorTimeZone);
+                    $endsAt = Carbon::parse($appointment->ends_at)->setTimezone($doctorTimeZone);
                     return [
                         'id' => $appointment->id,
-                        'start_at' => $appointment->start_at,
-                        'ends_at' => $appointment->ends_at,
+                        'start_at' => $startAt->format('Y-m-d\TH:i:s'),
+                        'ends_at' => $endsAt->format('Y-m-d\TH:i:s'),
                         'title' => $appointment->user_name,
                         'status' => $appointment->status,
                         'patient_id' => $appointment->patient_id,
@@ -323,6 +331,8 @@ class AppointmentEventController extends Controller
         try {
             $doctorId = auth()->user()->getDoctorId();
             $doctor = Doctor::find($doctorId);
+            $doctorTimeZone = $doctor->time_zone ?? 'Africa/Tunis';
+
             if (!$doctorId) {
                 return response()->json(['error' => 'Doctor not found'], 404);
             }
@@ -339,13 +349,32 @@ class AppointmentEventController extends Controller
                 'appointment_type' => 'required', // Changed from strings to IDs
                 'notes' => 'nullable|string|max:1000', // Add validation for notes
             ]);
+            $initialTime = Carbon::parse(
+                $validated['appointment_date'] . ' ' . $validated['appointment_time'],
+                $doctorTimeZone
+            );
+
+            $utcTime = (clone $initialTime)->setTimezone('UTC');
+            Log::info('Time Zone Debugging', [
+                'input_date_time' => $validated['appointment_date'] . ' ' . $validated['appointment_time'],
+                'doctor_timezone' => $doctorTimeZone,
+                'initial_parsed_time' => $initialTime->format('Y-m-d H:i:s'),
+                'initial_timezone' => $initialTime->tzName,
+                'initial_offset' => $initialTime->offset / 60, // in hours
+                'utc_converted_time' => $utcTime->format('Y-m-d H:i:s'),
+                'is_dst' => $initialTime->isDST() ? 'Yes' : 'No',
+            ]);
+
             Log::info('validate', $validated);
             $patient = Patient::findOrFail($validated['patient_id']);
             $patientUserId = $patient->user_id; // or null if your patients table doesn't store user_id
 
 
             // 5) Create start_at from date + time
-            $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
+            $startAt = Carbon::parse(
+                $validated['appointment_date'] . ' ' . $validated['appointment_time'],
+                $doctorTimeZone
+            )->setTimezone('UTC');
             $dayName = $startAt->format('l'); // e.g. "Wednesday"
             \Log::info('Day Name:', ['day' => $dayName]);
             $type = $validated['appointment_type'];
@@ -755,6 +784,7 @@ class AppointmentEventController extends Controller
 
     public function getAvailableTimeSlotsPresice(Request $request)
     {
+        \Log::info('Request received-33', ['request' => $request->all()]);
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
 
@@ -837,7 +867,8 @@ class AppointmentEventController extends Controller
         if (!$doctorId || !$selectedDate) {
             return response()->json(['error' => 'Doctor or date not found'], 404);
         }
-
+        $doctor = Doctor::find($doctorId);
+        $doctorTimeZone = $doctor->time_zone ?? 'Africa/Tunis';
         // Get the day name for the selected date
         $dayName = strtolower(Carbon::parse($selectedDate)->locale('en')->dayName);
         \Log::info('Day name fetched', ['dayName' => $dayName]);
@@ -913,13 +944,35 @@ class AppointmentEventController extends Controller
         \Log::info('Filtered slots after urgency exclusion', ['filteredSlots' => $allSlots]);
 
         // Get taken slots for the selected date
-        $takenSlots = Appointment::where('doctor_id', $doctorId)
+        $appointments = Appointment::where('doctor_id', $doctorId)
             ->whereDate('start_at', $selectedDate)
             ->where('appointment_status_id', '!=', 7) // Exclude failed appointments
-            ->pluck(DB::raw("DATE_FORMAT(start_at, '%H:%i')"))
-            ->toArray();
+            ->get(['id', 'start_at']);
 
+        // Debug time conversions
+        $debugTimeConversions = [];
+        $takenSlots = [];
+
+        foreach ($appointments as $appointment) {
+            // Convert each UTC time to the doctor's local time zone
+            $utcTime = $appointment->start_at;
+            $localTime = Carbon::parse($utcTime)->setTimezone($doctorTimeZone);
+
+            $formattedLocalTime = $localTime->format('H:i');
+            $takenSlots[] = $formattedLocalTime;
+
+            // Add debug information
+            $debugTimeConversions[] = [
+                'appointment_id' => $appointment->id,
+                'utc_time' => $utcTime,
+                'local_time' => $localTime->format('Y-m-d H:i:s'),
+                'formatted_local_time' => $formattedLocalTime
+            ];
+        }
+
+        \Log::info('Time conversion debug', ['conversions' => $debugTimeConversions]);
         \Log::info('Taken slots fetched', ['takenSlots' => $takenSlots]);
+
 
         // Check for vacations
         $vacations = DB::table('vacance')
@@ -968,7 +1021,8 @@ class AppointmentEventController extends Controller
         \Log::info('Request received-2', ['request' => $request->all()]);
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
-
+        $doctor = Doctor::find($doctorId);
+        $doctorTimeZone = $doctor->time_zone ?? 'Africa/Tunis';
         if (!$doctorId || !$selectedDate) {
             return response()->json(['error' => 'Doctor or date not found'], 404);
         }
@@ -1013,11 +1067,35 @@ class AppointmentEventController extends Controller
         }
 
         // Get taken teleconsultation slots for the selected date
-        $takenTeleSlots = Appointment::where('doctor_id', $doctorId)
+        $appointments = Appointment::where('doctor_id', $doctorId)
             ->whereDate('start_at', $selectedDate)
             ->where('online', 'Téléconsultation') // Ensure to filter by teleconsultation type
-            ->pluck(DB::raw("DATE_FORMAT(start_at, '%H:%i')"))
-            ->toArray();
+            ->get(['id', 'start_at']);
+
+        // Debug time conversions
+        $debugTimeConversions = [];
+        $takenTeleSlots = [];
+
+        foreach ($appointments as $appointment) {
+            // Convert each UTC time to the doctor's local time zone
+            $utcTime = $appointment->start_at;
+            $localTime = Carbon::parse($utcTime)->setTimezone($doctorTimeZone);
+
+            $formattedLocalTime = $localTime->format('H:i');
+            $takenTeleSlots[] = $formattedLocalTime;
+
+            // Add debug information
+            $debugTimeConversions[] = [
+                'appointment_id' => $appointment->id,
+                'utc_time' => $utcTime,
+                'local_time' => $localTime->format('Y-m-d H:i:s'),
+                'formatted_local_time' => $formattedLocalTime
+            ];
+        }
+
+        \Log::info('Teleconsultation time conversion debug', ['conversions' => $debugTimeConversions]);
+        \Log::info('Taken teleconsultation slots', ['takenTeleSlots' => $takenTeleSlots]);
+
 
         return response()->json([
             'all_slots' => $teleSlots,
@@ -1068,19 +1146,19 @@ class AppointmentEventController extends Controller
             $patients = $query->select(
                 'id',
                 DB::raw("
-                    CONCAT(
-                        CASE 
-                            WHEN JSON_VALID(first_name) THEN JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr')) 
-                            ELSE first_name 
-                        END, ' ',
-                        CASE 
-                            WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
-                            ELSE last_name 
-                        END, ' - ',
+                CONCAT(
+                    CASE 
+                        WHEN JSON_VALID(first_name) THEN JSON_UNQUOTE(JSON_EXTRACT(first_name, '$.fr')) 
+                        ELSE first_name 
+                    END, ' ',
+                    CASE 
+                        WHEN JSON_VALID(last_name) THEN JSON_UNQUOTE(JSON_EXTRACT(last_name, '$.fr')) 
+                        ELSE last_name 
+                    END, ' - ',
                         IFNULL(phone_number, 'N° inconnu'), ' - ',
                         IFNULL(DATE_FORMAT(date_naissance, '%d/%m/%Y'), 'N/S')
-                    ) as text
-                ")
+                ) as text
+            ")
             )
                 ->when($search, fn($q) => $q->limit(20))
                 ->get();
@@ -1148,7 +1226,8 @@ class AppointmentEventController extends Controller
         $selectedTime = $request->input('time');
         $selectedType = $request->input('type');
         $fetchAllPatterns = $request->input('fetch_all_patterns', false);
-
+        $doctor = Doctor::find($doctorId);
+        $doctorTimeZone = $doctor->time_zone ?? 'Africa/Tunis';
         \Log::info('Request parameters:', [
             'doctorId' => $doctorId,
             'selectedDate' => $selectedDate,
@@ -1214,13 +1293,27 @@ class AppointmentEventController extends Controller
         }
 
         // Get taken slots (excluding canceled appointments)
-        $takenSlots = DB::table('appointments')
+        $appointments = DB::table('appointments')
             ->where('doctor_id', $doctorId)
             ->whereDate('start_at', $selectedDate)
             ->where('appointment_status_id', '!=', 7) // Exclude canceled appointments
-            ->select(DB::raw("DATE_FORMAT(start_at, '%H:%i') as time"))
-            ->pluck('time')
-            ->toArray();
+            ->select('id', 'start_at')
+            ->get();
+
+        $takenSlots = [];
+
+        foreach ($appointments as $appointment) {
+            // Convert UTC time to doctor's local time zone
+            $localTime = Carbon::parse($appointment->start_at)
+                ->setTimezone($doctorTimeZone)
+                ->format('H:i');
+            $takenSlots[] = $localTime;
+        }
+
+        \Log::info('Taken slots with timezone conversion:', [
+            'takenSlots' => $takenSlots,
+            'timezone' => $doctorTimeZone
+        ]);
 
         // Combine taken slots with past slots
         $takenSlots = array_unique(array_merge($takenSlots, $pastSlots));
@@ -1300,7 +1393,8 @@ class AppointmentEventController extends Controller
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
         $selectedTime = $request->input('time');
-
+        $doctor = Doctor::find($doctorId);
+        $doctorTimeZone = $doctor->time_zone ?? 'Africa/Tunis';
         if (!$doctorId || !$selectedDate || !$selectedTime) {
             return response()->json(['error' => 'Missing data'], 400);
         }
@@ -1574,8 +1668,9 @@ class AppointmentEventController extends Controller
             return back()->withErrors(['error' => 'No associated doctor found.']);
         }
         $doctor = Doctor::find($doctorId);
-        $doctorTimezone = $doctor->timezone;
-        \Log::info('Doctor timezone:', ['timezone' => $doctorTimezone]);
+        $doctorTimeZone = $doctor->time_zone ?? 'Africa/Tunis';
+
+        \Log::info('Doctor timezone:', ['timezone' => $doctorTimeZone]);
         // 2) Validate incoming data
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
@@ -1592,7 +1687,10 @@ class AppointmentEventController extends Controller
 
 
         // 5) Create start_at from date + time
-        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_time'], 'Africa/Tunis');
+        $startAt = Carbon::parse(
+            $validated['appointment_date'] . ' ' . $validated['appointment_time'],
+            $doctorTimeZone
+        )->setTimezone('UTC');
         $dayName = $startAt->format('l'); // e.g. "Wednesday"
         $type = $validated['appointment_type'];
 
@@ -1639,7 +1737,7 @@ class AppointmentEventController extends Controller
         event(new AppointmentCreated($appointment));
         \Log::info('Event broadcasted');
         // \Log::info("Appointment created:", ['id' => $appointment->id]);
-        $now = Carbon::now('Africa/Tunis');
+        $now = Carbon::now($doctorTimeZone);
         $diffInMinutes = $now->diffInMinutes($startAt, false);
         \Log::info('sending sms');
         $numFrance = $doctor->num_france;
@@ -1702,6 +1800,9 @@ class AppointmentEventController extends Controller
             return back()->withErrors(['error' => 'Médecin non trouvé.']);
         }
         $doctor = Doctor::find($doctorId);
+        $doctorTimeZone = $doctor->time_zone ?? 'Africa/Tunis';
+
+        \Log::info('Doctor timezone:', ['timezone' => $doctorTimeZone]);
 
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
@@ -1713,8 +1814,8 @@ class AppointmentEventController extends Controller
             'motif_id' => 'required|exists:pattern,id',
         ]);
 
-        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_start_time'], 'Africa/Tunis');
-        $endsAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_end_time'], 'Africa/Tunis');
+        $startAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_start_time'], $doctorTimeZone);
+        $endsAt = Carbon::parse($validated['appointment_date'] . ' ' . $validated['appointment_end_time'], $doctorTimeZone);
 
         // Check for overlapping appointments
         $overlappingAppointment = Appointment::where('doctor_id', $doctorId)
@@ -1752,7 +1853,7 @@ class AppointmentEventController extends Controller
                 'ends_at' => $endsAt,
                 'hint' => $validated['notes'] ?? null,
             ]);
-            $now = Carbon::now('Africa/Tunis');
+            $now = Carbon::now($doctorTimeZone);
             $diffInMinutes = $now->diffInMinutes($startAt, false);
             \Log::info('sending sms');
             $numFrance = $doctor->num_france;
