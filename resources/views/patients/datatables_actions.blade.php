@@ -89,11 +89,18 @@
                 <div class="modal-body">
                     <p><strong>Numéro :</strong> {{ $phone_number ?? 'Non disponible' }}</p>
                     @php
-                        $name = json_decode(auth()->user()->name)->fr ?? '';
-                        $lastname = json_decode(auth()->user()->lastname)->fr ?? '';
+    // Tentative de décoder le JSON pour 'name'
+    $decodedName = json_decode(auth()->user()->name);
+    $name = is_object($decodedName) && isset($decodedName->fr) ? $decodedName->fr : auth()->user()->name;
 
-                        $defaultMessage = "Bienvenue cher patient chez Wic-Dr, avec Dr. " . $name . " " . $lastname . "\nINSÉRER VOTRE MESSAGE ICI ...\nL'équipe Wic-Dr";
-                    @endphp
+    // Tentative de décoder le JSON pour 'lastname'
+    $decodedLastname = json_decode(auth()->user()->lastname);
+    $lastname = is_object($decodedLastname) && isset($decodedLastname->fr) ? $decodedLastname->fr : auth()->user()->lastname;
+
+    // Message par défaut
+    $defaultMessage = "Bienvenue cher patient chez Wic-Dr, avec Dr. " . $name . " " . $lastname . "\nINSÉRER VOTRE MESSAGE ICI ...\nL'équipe Wic-Dr";
+@endphp
+
 
 
                     <div class="form-group">
