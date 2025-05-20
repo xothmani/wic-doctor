@@ -454,5 +454,13 @@
     "Your appointment with Dr. %s is now %s.": "موعدك مع الدكتور %s الان %s.",
     "New Appointment": "موعد جديد",
     "Your appointment has been successfully scheduled. Please check the details in the app.": "تم تحديد موعدك بنجاح. يرجى التحقق من التفاصيل في التطبيق.",
-    "You have a new appointment with Dr. %s on %s at %s.": "s% على الساعة s%  يوم %s.لديك موعد جديد مع د"
+    "You have a new appointment with Dr. %s on %s at %s.": "%s على الساعة %s يوم %s.لديك موعد جديد مع د",
+    "Yesterday": "اليوم الماضي",
+    "D": "يوم",
+    "Right now": "الان",
+    "H" : "ساعة",
+    "M": "دقيقة",
+    "You cannot modify or delete this appointment because there are less than two days left.":"لا يمكنك تعديل أو حذف هذا الموعد لأنه تبقى أقل من يومين.",
+    "You cannot modify or delete this appointment because it has already been cancelled.":"لا يمكنك تعديل أو حذف هذا الموعد لأنه تم إلغاؤه بالفعل.",
+    "You cannot modify or delete this appointment because it has already ended.":"لا يمكنك تعديل أو حذف هذا الموعد لأنه تم الانتهاء منه بالفعل."
 }
