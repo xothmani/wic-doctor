@@ -19,6 +19,8 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
+    'time_slot_already_exists' => 'Il y a déjà un créneau à cet horaire',
+    'no_patterns_for_this_type' => 'Pas de motif disponible ,Il faut aller à la section motif pour créer motif de ce type de consultation.',
     'type_required' => 'Le type de rendez-vous est requis',
     'motif_required' => 'Le motif est requis',
     'date_required' => 'La date est requise',
@@ -2204,6 +2206,8 @@ return [
     'cancel' => 'Annuler',
     'confirm' => 'Oui, continuer',
     'no_email' => 'Le patient n \'a pas d\'email',
+    'prescription_enter_medicament_name' => 'Entrez le nom du médicament manuellement',
+    'prescription_add_manual_medicament' => 'Médicament non trouvé? Insérez son nom manuellement',
 
 
 ];
