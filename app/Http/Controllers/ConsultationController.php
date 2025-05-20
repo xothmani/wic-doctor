@@ -93,6 +93,7 @@ class ConsultationController extends Controller
         $input = $request->all();
         $input['motif'] = strip_tags($request->input('motif'));
         $input['raison'] = strip_tags($request->input('raison'));
+        $data['duree'] = $request->input('duree', 0); // Valeur par défaut 0 si non fournie
         
         $patient_id = $request->input('patient_id');
         $patient = Patient::find($patient_id);
