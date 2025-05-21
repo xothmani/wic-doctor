@@ -463,5 +463,7 @@
     "M": "M",
     "You cannot modify or delete this appointment because there are less than two days left.":"Vous ne pouvez pas modifier ou supprimer ce rendez-vous car il reste moins de deux jours.",
     "You cannot modify or delete this appointment because it has already been cancelled.":"Vous ne pouvez pas modifier ou supprimer ce rendez-vous car il a déjà été annulé.",
-    "You cannot modify or delete this appointment because it has already ended.":"Vous ne pouvez pas modifier ou supprimer ce rendez-vous car il a déjà fini."
+    "You cannot modify or delete this appointment because it has already ended.":"Vous ne pouvez pas modifier ou supprimer ce rendez-vous car il a déjà fini.",
+    "Add your email": "Ajouter votre email",
+    "Your account does not have an email address.\nPlease enter one to continue.": "Votre compte n'a pas d'adresse email.\nVeuillez l'entrer pour poursuivre."
 }
