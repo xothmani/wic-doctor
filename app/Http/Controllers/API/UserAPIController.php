@@ -368,6 +368,8 @@ class UserAPIController extends Controller
                     $input['passwordpatient'] = Hash::make($request->input('password'));
                 }
 
+                
+
 
                 if (isset($input['avatar']) && $input['avatar']) {
                     $cacheUpload = $this->uploadRepository->getByUuid($input['avatar']);
@@ -388,6 +390,21 @@ class UserAPIController extends Controller
             return $this->sendError($e->getMessage(), 200);
         }
 
+        return $this->sendResponse($user, __('lang.updated_successfully', ['operator' => __('lang.user')]));
+    }
+
+
+    public function updateUserEmail($id, Request $request): JsonResponse{
+        $user = User::find($id);
+        if (empty($user) || !empty($user->email)) {
+            return $this->sendError('User not found or email already exists');
+        }
+
+        $user->email = $request->input('email');
+        Log::info("user email: {$user->email}");
+        Log::info("request email: {$request->input('email')}");
+        $user->save();
+        //$user = $this->userRepository->update($request->only('email'), $id);
         return $this->sendResponse($user, __('lang.updated_successfully', ['operator' => __('lang.user')]));
     }
 
