@@ -101,6 +101,24 @@ class AvailabilityHourAPIController extends Controller
      */
 
     /*********************** Code hamza ****************************** */
+
+
+    public function getTypeConsultation($id, Request $request): JsonResponse
+    {
+        try {
+            $types = AvailabilityHour::where('doctor_id', '=',$id)
+                ->whereNotNull('type') 
+                ->distinct()
+                ->pluck('type');
+
+            return $this->sendResponse($types, 'Types retrieved successfully.');
+        } catch (\Exception $e) {
+            return $this->sendError('Error retrieving types: ' . $e->getMessage());
+        }
+    }
+
+
+
     public function show(int $id, Request $request): JsonResponse
     {
         Log::info("Availibility hours controller => show function ");

@@ -87,24 +87,30 @@ class PersonalizedMessageController extends Controller
     
         if ($smsSuccess) {
             Log::info("SMS envoyé avec succès à $to");
-
-            //  Incrémentation du pack SMS perso
-            $doctor->increment('pack_sms_perso');
+    
+            // Déterminer le nombre de SMS nécessaires
+            $messageLength = strlen($message);
+            $smsCount = ceil($messageLength / 160); // 1 SMS par 160 caractères
+    
+            // Incrémentation du pack SMS perso
+            $doctor->increment('pack_sms_perso', $smsCount);
         } else {
             Log::error("Échec de l'envoi du SMS à $to");
         }
-    }elseif (Str::startsWith($to, '+216')) {
+    } elseif (Str::startsWith($to, '+216')) {
         // Envoi via l'API Tunisie
         $this->sendSmsToTunisia($to, $message);
     } else {
         Log::warning("Code pays non pris en charge pour le numéro : $to");
     }
+    
 }
 
 private function sendSmsToTunisia($to, $message)
 {
     $doctorId = auth()->user()->getDoctorId();
     $doctor = Doctor::find($doctorId);
+
     // Suppression du caractère "+" pour le service Tunisie
     $to = str_replace('+', '', $to);
 
@@ -116,12 +122,18 @@ private function sendSmsToTunisia($to, $message)
 
     if ($response->successful() && $response->json('success') === true) {
         Log::info("SMS Tunisie envoyé avec succès à $to");
-                //  Incrémentation du pack SMS perso
-                $doctor->increment('pack_sms_perso');
+
+        // Déterminer le nombre de SMS nécessaires
+        $messageLength = strlen($message);
+        $smsCount = ceil($messageLength / 160); // 1 SMS par 160 caractères
+
+        // Incrémentation du pack SMS perso selon le nombre de SMS envoyés
+        $doctor->increment('pack_sms_perso', $smsCount);
     } else {
         Log::error("Échec de l'envoi du SMS Tunisie à $to : " . $response->body());
     }
 }
+
 
 private function sendsmsToFrance($api_key, $from, $to, $message, $alphasender = 'WIC DOCTOR')
 {

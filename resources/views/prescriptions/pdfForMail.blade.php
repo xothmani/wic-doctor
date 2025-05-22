@@ -125,18 +125,26 @@
             @if ($type === 'Médicament')
                 <h2>Médicaments</h2>
                 <div class="medications">
-                    @foreach ($medicaments as $medicament)
-                    <p>
-    {{ $medicament['nom_commercial'] }} - 
-    {{ $medicament['category'] }} - 
-    {{ $medicament['format'] }} - 
-    {{ $medicament['form'] }} :
-    {{ $medicament['dosage'] }}, 
-    {{ $medicament['nb_de_fois'] }}, 
-    {{ $medicament['horaire'] }} pendant 
-    {{ $medicament['nb_de_jours'] }} jours.
-</p>
-                    @endforeach
+                @foreach ($medicaments as $medicament)
+    <p>
+        <span style="color: #0080FF;">{{ $medicament['nom_commercial'] }}</span>
+        @if (!empty($medicament['category']) || !empty($medicament['format']) || !empty($medicament['form']))
+            -
+            <span style="font-size: smaller; color: #666;">
+                {{ $medicament['category'] ?? '' }}{{ !empty($medicament['category']) && (!empty($medicament['format']) || !empty($medicament['form'])) ? ' - ' : '' }}
+                {{ $medicament['format'] ?? '' }}{{ !empty($medicament['format']) && !empty($medicament['form']) ? ' - ' : '' }}
+                {{ $medicament['form'] ?? '' }}
+            </span>
+        @endif
+        :
+        <span style="color: darkblue;">{{ $medicament['dosage'] }}</span>,
+        <span style="color: darkblue;">{{ $medicament['nb_de_fois'] }}</span>,
+        @if (!empty($medicament['horaire']))
+            <span style="color: darkblue;">{{ $medicament['horaire'] }}</span>,
+        @endif
+        <span style="color: darkblue;">{{ __('lang.pendant') }} {{ $medicament['nb_de_jours'] }}</span>.
+    </p>
+@endforeach
                 </div>
             @elseif($type === 'Analyse')
                 <h2>Analyses</h2>

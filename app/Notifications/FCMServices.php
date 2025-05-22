@@ -27,10 +27,10 @@ class FCMServices
             ->withData($data)
             ->withAndroidConfig([
                 'priority' => 'high',
-                'notification' => [
+                /*'notification' => [
                     'sound' => 'default',
                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK'
-                ]
+                ]*/
             ])
             ->withApnsConfig([
                 'headers' => [

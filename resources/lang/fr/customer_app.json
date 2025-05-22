@@ -396,6 +396,7 @@
     "Address mail": "Adresse mail",
     "New to WIC-Doctor ?" : "Nouveau sur WIC-Doctor ?",
     "Send Code" : "Envoyer le code",
+    "Send" : "Envoyer",
     "Welcome to the best doctor provider system!": "Bienvenue dans le meilleur système de prestataires de soins médicaux !",
     "Please enter a valid email address." : "Veuillez entrer une adresse email valide.",
     "Please enter a valid phone number.": "Veuillez entrer un numéro de téléphone valide.",
@@ -409,7 +410,7 @@
     "No notifications yet.": "Pas encore de notifications.",
     "Internal Server Error": "Erreur interne du serveur",
     "Information": "Information",
-    "You cannot modify or delete this appointment because there are less than two days left or it has already been cancelled.": "Vous ne pouvez pas modifier ou supprimer ce rendez-vous car il reste moins de deux jours ou il a deja ete annule.",
+    "You cannot modify or delete this appointment because there are less than two days left or it has already been cancelled.": "Vous ne pouvez pas modifier ou supprimer ce rendez-vous : il reste moins de deux jours, ou il a déjà été annulé ou terminé.",
     "You can only join the online meeting 10 minutes before the appointment time.": "Vous pouvez rejoindre la reunion en ligne 10 minutes avant l'heure de rendez-vous.",
     "Page successfully refreshed": "Page actualisée avec succès",
     "Location permission denied. Please enable it in settings.": "La permission de localisation a ete refusee. Veuillez l'activer dans les parametres.",
@@ -454,5 +455,15 @@
     "Your appointment with Dr. %s is now %s.": "Votre rendez-vous avec Dr. %s est maintenant %s.",
     "New Appointment": "Nouveau rendez-vous",
     "Your appointment has been successfully scheduled. Please check the details in the app.": "Votre rendez-vous a été planifié avec succès. Veuillez vérifier les détails dans l'application.",
-    "You have a new appointment with Dr. %s on %s at %s.": "Vous avez un nouveau rendez-vous avec Dr. %s le %s à %s."
+    "You have a new appointment with Dr. %s on %s at %s.": "Vous avez un nouveau rendez-vous avec Dr. %s le %s à %s.",
+    "Yesterday": "Hier",
+    "D": "J",
+    "Right now": "À l'instant",
+    "H" : "H",
+    "M": "M",
+    "You cannot modify or delete this appointment because there are less than two days left.":"Vous ne pouvez pas modifier ou supprimer ce rendez-vous car il reste moins de deux jours.",
+    "You cannot modify or delete this appointment because it has already been cancelled.":"Vous ne pouvez pas modifier ou supprimer ce rendez-vous car il a déjà été annulé.",
+    "You cannot modify or delete this appointment because it has already ended.":"Vous ne pouvez pas modifier ou supprimer ce rendez-vous car il a déjà fini.",
+    "Add your email": "Ajouter votre email",
+    "Your account does not have an email address.\nPlease enter one to continue.": "Votre compte n'a pas d'adresse email.\nVeuillez l'entrer pour poursuivre."
 }

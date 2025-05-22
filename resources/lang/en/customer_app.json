@@ -179,6 +179,7 @@
     "Select a time": "Select a time",
     "Select your preferred payment mode": "Select your preferred payment mode",
     "Send Reset Link": "Send Reset Link",
+    "Send": "Send",
     "Doctor Payment": "Doctor Payment",
     "Doctor Clinic": "Doctor Clinic",
     "Settings": "Settings",
@@ -419,5 +420,15 @@
     "Your appointment with Dr. %s is now %s.": "Your appointment with Dr. %s is now %s.",
     "New Appointment": "New Appointment",
     "Your appointment has been successfully scheduled. Please check the details in the app.": "Your appointment has been successfully scheduled. Please check the details in the app.",
-    "You have a new appointment with Dr. %s on %s at %s.": "You have a new appointment with Dr. %s on %s at %s."
+    "You have a new appointment with Dr. %s on %s at %s.": "You have a new appointment with Dr. %s on %s at %s.",
+    "Yesterday": "Yesterday",
+    "D": "D",
+    "Right now": "Right now",
+    "H" : "H",
+    "M": "M",
+    "You cannot modify or delete this appointment because there are less than two days left.":"You cannot modify or delete this appointment because there are less than two days left.",
+    "You cannot modify or delete this appointment because it has already been cancelled.":"You cannot modify or delete this appointment because it has already been cancelled.",
+    "You cannot modify or delete this appointment because it has already ended.":"You cannot modify or delete this appointment because it has already ended.",
+    "Add your email": "Add your email",
+    "Your account does not have an email address.\nPlease enter one to continue.": "Your account does not have an email address.\nPlease enter one to continue."
 }
