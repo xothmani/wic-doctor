@@ -464,5 +464,8 @@
     "You cannot modify or delete this appointment because it has already been cancelled.":"لا يمكنك تعديل أو حذف هذا الموعد لأنه تم إلغاؤه بالفعل.",
     "You cannot modify or delete this appointment because it has already ended.":"لا يمكنك تعديل أو حذف هذا الموعد لأنه تم الانتهاء منه بالفعل.",
     "Add your email":"اضافة بريدك الالكتروني",
-    "Your account does not have an email address.\nPlease enter one to continue.":"حسابك لا يحتوي على بريد إلكتروني.\nيرجى إدخال بريد إلكتروني للمتابعة."
+    "Your account does not have an email address.\nPlease enter one to continue.":"حسابك لا يحتوي على بريد إلكتروني.\nيرجى إدخال بريد إلكتروني للمتابعة.",
+    "Some features described in these Terms of Use may not yet be available in the mobile version of WIC Doctor. We invite you to visit our website for the full experience.":"قد لا تكون بعض الميزات المذكورة في شروط الاستخدام هذه متوفرة بعد في الإصدار المحمول من WIC Doctor. ندعوك لزيارة موقعنا الإلكتروني للحصول على تجربة كاملة.",
+    "View Terms of Use": "عرض شروط الاستخدام",
+    "Resend the code again":"أعد إرسال الرمز مرة أخرى"
 }
