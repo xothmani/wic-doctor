@@ -54,7 +54,29 @@
                 </div>
             </div>
         </div>
-
+        <div class="modal fade" id="confirmDoneModal" tabindex="-1" role="dialog" aria-labelledby="confirmDoneModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDoneModalLabel">{{ trans('lang.confirmation') }}</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <div class="modal-body">
+                    {{ trans('lang.do_you_want_to_end_appointment_and_start_consultation') }}
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    <i class="fas fa-times"></i> {{ trans('lang.cancel') }}
+                                </button>
+                <button type="button" class="btn btn-success"
+                        id="confirmDoneButton">{{ trans('lang.confirm') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
         <!-- Cancellation Reason Modal -->
         <div class="modal fade" id="cancelAppointmentModal" tabindex="-1" role="dialog"
             aria-labelledby="cancelAppointmentModalLabel" aria-hidden="true">
@@ -1840,113 +1862,116 @@
             //////////////////////////////////////////////////
             function checkAvailability(selectedDate, selectedTime) {
                 return $.ajax({
-                    url: "/get-pattern-for-time-slot-without-type",
-                    method: "GET",
-                    data: { date: selectedDate, time: selectedTime }
-                }).then(function (response) {
-                    //console.log("Unavailable Slots Response:", response);
-                    let sessionDuration = response.session_duration;
-                    if (!response.unavailable_slots || response.unavailable_slots.length === 0) {
-                        return true;
+    url: "/get-pattern-for-time-slot-without-type",
+    method: "GET",
+    data: { date: selectedDate, time: selectedTime }
+}).then(function (response) {
+    //console.log("Unavailable Slots Response:", response);
+    let sessionDuration = response.session_duration;
+    if (!response.unavailable_slots || response.unavailable_slots.length === 0) {
+        return true;
+    }
+
+    Swal.fire({
+        title: "Créneaux indisponibles",
+        text: response.message,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Forcer l'ajout",
+        cancelButtonText: "Annuler",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $("#forcedAppointmentDate").val(selectedDate);
+
+            // Populate motifs dropdown
+            let patternDropdown = $("#forcedMotifDropdown");
+            patternDropdown.empty();
+            response.patterns.forEach(pattern => {
+                patternDropdown.append(`<option value="${pattern.id}">${pattern.nom}</option>`);
+            });
+
+            // Open the modal
+            $("#forcedAppointmentModal").modal("show");
+        }
+    });
+
+    $("#forcedAppointmentStartTime, #forcedAppointmentEndTime").off("change").on("change", function (e) {
+        let startTime = $("#forcedAppointmentStartTime").val();
+        let endTime = $("#forcedAppointmentEndTime").val();
+        console.log(startTime);
+        console.log(endTime);
+        /* if (!startTime || !endTime || startTime === "" || endTime === "") {
+            e.preventDefault(); // Now 'e' is properly defined
+            Swal.fire("Erreur", "Veuillez sélectionner une heure de début et de fin valide.", "error");
+            return;
+        } */
+
+        let selectedStartDateTime = moment(`${selectedDate} ${startTime}`, "YYYY-MM-DD HH:mm");
+        let selectedEndDateTime = moment(`${selectedDate} ${endTime}`, "YYYY-MM-DD HH:mm");
+
+        // Validate if the selected range is within the available slots
+        if (!selectedStartDateTime.isValid() || !selectedEndDateTime.isValid()) {
+            Swal.fire({
+                title: "Heure invalide",
+                text: "Les heures sélectionnées sont invalides. Veuillez réessayer.",
+                icon: "error",
+            });
+            return;
+        }
+        // ✅ Validate alignment with dynamic session duration
+        let minutesSinceMidnightStart = selectedStartDateTime.hours() * 60 + selectedStartDateTime.minutes();
+        let minutesSinceMidnightEnd = selectedEndDateTime.hours() * 60 + selectedEndDateTime.minutes();
+
+        if (Array.isArray(response.available_slots) && response.available_slots.length > 0) {
+            let overlapsAvailability = response.available_slots.some(slot => {
+                let slotStart = moment(`${selectedDate} ${slot}`, "YYYY-MM-DD HH:mm");
+                let slotEnd = moment(slotStart).add(sessionDuration, 'minutes');
+                return selectedStartDateTime.isBetween(slotStart, slotEnd, null, '[)') ||
+                    selectedEndDateTime.isBetween(slotStart, slotEnd, null, '(]') ||
+                    slotStart.isBetween(selectedStartDateTime, selectedEndDateTime, null, '[)');
+            });
+
+            if (overlapsAvailability) {
+                Swal.fire({
+                    title: "Plage horaire déjà utilisée",
+                    text: "Vous avez déjà des heures de disponibilité pour ce créneau.",
+                    icon: "warning",
+                    confirmButtonText: "D'accord",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $("#forcedAppointmentStartTime").val("");
+                        $("#forcedAppointmentEndTime").val("");
                     }
-
-                    Swal.fire({
-                        title: "Créneaux indisponibles",
-                        text: response.message,
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Forcer l'ajout",
-                        cancelButtonText: "Annuler",
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $("#forcedAppointmentDate").val(selectedDate);
-
-                            // Populate motifs dropdown
-                            let patternDropdown = $("#forcedMotifDropdown");
-                            patternDropdown.empty();
-                            response.patterns.forEach(pattern => {
-                                patternDropdown.append(`<option value="${pattern.id}">${pattern.nom}</option>`);
-                            });
-
-                            // Open the modal
-                            $("#forcedAppointmentModal").modal("show");
-                        }
-                    });
-
-                    $("#forcedAppointmentStartTime, #forcedAppointmentEndTime").off("change").on("change", function () {
-                        let startTime = $("#forcedAppointmentStartTime").val();
-                        let endTime = $("#forcedAppointmentEndTime").val();
-                        //console.log(startTime);
-                        if (!startTime || !endTime || startTime === "" || endTime === "") {
-                            e.preventDefault(); // Prevent submission if empty
-                            Swal.fire("Erreur", "Veuillez sélectionner une heure de début et de fin valide.", "error");
-
-                            return;
-                        }
-
-                        let selectedStartDateTime = moment(`${selectedDate} ${startTime}`, "YYYY-MM-DD HH:mm");
-                        let selectedEndDateTime = moment(`${selectedDate} ${endTime}`, "YYYY-MM-DD HH:mm");
-
-                        // Validate if the selected range is within the available slots
-                        if (!selectedStartDateTime.isValid() || !selectedEndDateTime.isValid()) {
-                            Swal.fire({
-                                title: "Heure invalide",
-                                text: "Les heures sélectionnées sont invalides. Veuillez réessayer.",
-                                icon: "error",
-                            });
-                            return;
-                        }
-                        // ✅ Validate alignment with dynamic session duration
-                        let minutesSinceMidnightStart = selectedStartDateTime.hours() * 60 + selectedStartDateTime.minutes();
-                        let minutesSinceMidnightEnd = selectedEndDateTime.hours() * 60 + selectedEndDateTime.minutes();
-
-                        if (Array.isArray(response.available_slots) && response.available_slots.length > 0) {
-                            let overlapsAvailability = response.available_slots.some(slot => {
-                                let slotStart = moment(`${selectedDate} ${slot}`, "YYYY-MM-DD HH:mm");
-                                let slotEnd = moment(slotStart).add(sessionDuration, 'minutes');
-                                return selectedStartDateTime.isBetween(slotStart, slotEnd, null, '[)') ||
-                                    selectedEndDateTime.isBetween(slotStart, slotEnd, null, '(]') ||
-                                    slotStart.isBetween(selectedStartDateTime, selectedEndDateTime, null, '[)');
-                            });
-
-                            if (overlapsAvailability) {
-                                Swal.fire({
-                                    title: "Plage horaire déjà utilisée",
-                                    text: "Vous avez déjà des heures de disponibilité pour ce créneau.",
-                                    icon: "warning",
-                                    confirmButtonText: "D'accord",
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        $("#forcedAppointmentStartTime").val("");
-                                        $("#forcedAppointmentEndTime").val("");
-                                    }
-                                });
-                            }
-                        } else {
-                            // No availability set: this is a forced appointment
-                            //console.log("No availability defined; this is a forced appointment scenario.");
-                            // You can skip validation here
-                        }
-                    });
-                    $("#forcedAppointmentForm").on("submit", function () {
-                        // Optionally clear the time fields after submission
-                        //console.log("startTime", $("#forcedAppointmentStartTime").val());
-                        $("#forcedAppointmentStartTime").val("");
-                        $("#forcedAppointmentEndTime").val("");
-                        // console.log("endTime", $("#forcedAppointmentEndTime").val());
-                    });
-                    // Clear fields and close modal on cancel
-                    $(".cancel-btn").on("click", function () {
-                        // Reset time fields
-                        $("#forcedAppointmentStartTime").val("");
-                        $("#forcedAppointmentEndTime").val("");
-
-                        // Close the modal
-                        $("#forcedAppointmentModal").modal("hide");
-                    });
-
-                    return false;
                 });
+            }
+        } else {
+            // No availability set: this is a forced appointment
+            //console.log("No availability defined; this is a forced appointment scenario.");
+            // You can skip validation here
+        }
+    });
+    
+    $("#forcedAppointmentForm").on("submit", function (e) {
+        // Add event parameter here too for consistency
+        // Optionally clear the time fields after submission
+        //console.log("startTime", $("#forcedAppointmentStartTime").val());
+        $("#forcedAppointmentStartTime").val("");
+        $("#forcedAppointmentEndTime").val("");
+        // console.log("endTime", $("#forcedAppointmentEndTime").val());
+    });
+    
+    // Clear fields and close modal on cancel
+    $(".cancel-btn").on("click", function () {
+        // Reset time fields
+        $("#forcedAppointmentStartTime").val("");
+        $("#forcedAppointmentEndTime").val("");
+
+        // Close the modal
+        $("#forcedAppointmentModal").modal("hide");
+    });
+
+    return false;
+});
             }
 
 
@@ -2121,53 +2146,157 @@
             }
 
             // Function to validate the appointment form
-            function validateAppointmentForm() {
-                let isValid = true;
-                let errorMessage = '';
-
-                // Validate motif/pattern selection
-                if (!$('#motif_id').val()) {
-                    errorMessage += '{{ trans("lang.please_select_pattern") }}\n';
-                    isValid = false;
-                }
-
-                // Validate time selection
-                if (!$('#appointmentTime').val()) {
-                    errorMessage += '{{ trans("lang.please_select_time") }}\n';
-                    isValid = false;
-                }
-
-                // Display error message if validation fails
-                if (!isValid) {
-                    // Use SweetAlert if available (matches your existing UI)
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: '{{ trans("lang.validation_error") }}',
-                            text: errorMessage,
-                            icon: 'error',
-                            confirmButtonText: '{{ trans("lang.close") }}',
-                            confirmButtonColor: '#3085d6'
-                        });
-                    } else {
-                        // Fallback to regular alert
-                        alert(errorMessage);
-                    }
-                }
-
-                return isValid;
-            }
-
-            $('form').on('submit', function (e) {
-                console.log("Form submission triggered");
-                // Validate the form before submission
-                if (!validateAppointmentForm()) {
-                    // Prevent form submission if validation fails
-                    e.preventDefault();
-                    return false;
-                }
-                // Form is valid, allow submission
-                return true;
+            function validateAppointmentForm(formElement) {
+    let isValid = true;
+    let errorMessage = '';
+    
+    // Determine if this is a forced appointment form or regular form
+    const isForcedForm = $(formElement).attr('id') === 'forcedAppointmentForm';
+    
+    if (isForcedForm) {
+        // Validation for forced appointment form
+        
+        // Validate patient selection
+        if (!$('#patientDropdownForced').val()) {
+            errorMessage += '{{ trans("lang.please_select_patient") }}\n';
+            isValid = false;
+        }
+        
+        // Validate motif selection
+        if (!$('#forcedMotifDropdown').val()) {
+            errorMessage += '{{ trans("lang.please_select_pattern") }}\n';
+            isValid = false;
+        }
+        
+        // Validate start time
+        if (!$('#forcedAppointmentStartTime').val()) {
+            errorMessage += '{{ trans("lang.please_select_start_time") }}\n';
+            isValid = false;
+        }
+        
+        // Validate end time
+        if (!$('#forcedAppointmentEndTime').val()) {
+            errorMessage += '{{ trans("lang.please_select_end_time") }}\n';
+            isValid = false;
+        }
+        
+        // Validate time logic (end time should be after start time)
+        const startTime = $('#forcedAppointmentStartTime').val();
+        const endTime = $('#forcedAppointmentEndTime').val();
+        
+        if (startTime && endTime && startTime >= endTime) {
+            errorMessage += '{{ trans("lang.end_time_must_be_after_start_time") }}\n';
+            isValid = false;
+        }
+        
+    } else {
+        // Validation for regular appointment form
+        
+        // Validate motif/pattern selection
+        if (!$('#motif_id').val()) {
+            errorMessage += '{{ trans("lang.please_select_pattern") }}\n';
+            isValid = false;
+        }
+        
+        // Validate time selection
+        if (!$('#appointmentTime').val()) {
+            errorMessage += '{{ trans("lang.please_select_time") }}\n';
+            isValid = false;
+        }
+    }
+    
+    // Display error message if validation fails
+    if (!isValid) {
+        // Use SweetAlert if available (matches your existing UI)
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '{{ trans("lang.validation_error") }}',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonText: '{{ trans("lang.close") }}',
+                confirmButtonColor: '#3085d6'
             });
+        } else {
+            // Fallback to regular alert
+            alert(errorMessage);
+        }
+    }
+    
+    return isValid;
+}
+
+// Updated form submission handler
+$('form').on('submit', function (e) {
+    console.log("Form submission triggered for:", this.id);
+    
+    // Only validate appointment-related forms
+    const formId = $(this).attr('id');
+    if (formId === 'forcedAppointmentForm' || $(this).find('#motif_id').length > 0) {
+        // Validate the form before submission
+        if (!validateAppointmentForm(this)) {
+            // Prevent form submission if validation fails
+            e.preventDefault();
+            return false;
+        }
+    }
+    
+    // Form is valid, allow submission
+    return true;
+});
+
+// Alternative: Separate validation functions
+function validateForcedAppointmentForm() {
+    let isValid = true;
+    let errorMessage = '';
+    
+    // Validate patient selection
+    if (!$('#patientDropdownForced').val()) {
+        errorMessage += '{{ trans("lang.please_select_patient") }}\n';
+        isValid = false;
+    }
+    
+    // Validate motif selection
+    if (!$('#forcedMotifDropdown').val()) {
+        errorMessage += '{{ trans("lang.please_select_pattern") }}\n';
+        isValid = false;
+    }
+    
+    // Validate start time
+    if (!$('#forcedAppointmentStartTime').val()) {
+        errorMessage += '{{ trans("lang.please_select_start_time") }}\n';
+        isValid = false;
+    }
+    
+    // Validate end time
+    if (!$('#forcedAppointmentEndTime').val()) {
+        errorMessage += '{{ trans("lang.please_select_end_time") }}\n';
+        isValid = false;
+    }
+    
+    // Display error if validation fails
+    if (!isValid) {
+        Swal.fire({
+            title: '{{ trans("lang.validation_error") }}',
+            text: errorMessage,
+            icon: 'error',
+            confirmButtonText: '{{ trans("lang.close") }}'
+        });
+    }
+    
+    return isValid;
+}
+
+// Specific handler for forced appointment form
+$('#forcedAppointmentForm').on('submit', function (e) {
+    console.log("Forced appointment form submission triggered");
+    
+    if (!validateForcedAppointmentForm()) {
+        e.preventDefault();
+        return false;
+    }
+    
+    return true;
+});
 
             /////////////////////////////////////////////////////////////////////////////
             $('#patientDropdown').select2({
@@ -2687,8 +2816,37 @@
                     });
                     // Event handler for "Mark as Done"
                     $('#markAsDone').off('click').on('click', function () {
-                        updateAppointmentStatus(event.id, 5, "Done");
-                    });
+                        console.log("clicked");
+                            currentAppointment = appointment;
+
+                            // Fermer les autres modals actifs
+                            $('.modal').modal('hide'); // ça ferme tous les modals ouverts
+
+                            // Attendre un peu avant d’ouvrir celui-ci (laisser le temps de fermer l’autre)
+                            setTimeout(() => {
+                                console.log("testetet");
+                                $('#confirmDoneModal').modal('show');
+                            }, 300);
+
+                            
+                        });
+
+
+                        $('#confirmDoneButton').off('click').on('click', function () {
+                            console.log("clickedd2");
+                            if (currentAppointment) {
+                                // 1. Mise à jour du statut à 6 (Done)
+                                updateAppointmentStatus(currentAppointment.appointment_id, 6, "Done");
+
+                                // 2. Redirection vers la création de consultation
+                                setTimeout(() => {
+                                    const url = `{{ route('consultations.create', ['patient_id' => '__PATIENT_ID__']) }}`.replace('__PATIENT_ID__', encodeURIComponent(currentAppointment.patient_id));
+                                    window.location.href = url;
+                                }, 500);
+                            }
+
+                            $('#confirmDoneModal').modal('hide'); // fermer le modal
+                        });
                 }
             });
             ////////////////////////////////////
@@ -2819,7 +2977,6 @@
                         _token: $('meta[name="csrf-token"]').attr('content') // CSRF Token
                     },
                     success: function (response) {
-                        alert(response.message); // Optional: Show a success message
                         $('#appointmentDetailsModal').modal('hide'); // Close the modal
                         $('#calendar').fullCalendar('refetchEvents'); // Refresh the calendar
                     },
@@ -2964,42 +3121,38 @@
                 console.log('[DEBUG] Switched to type:', selectedType); // Check in dev tools
             });
             $('#forcedAppointmentForm').on('submit', function (e) {
-                e.preventDefault();
-
-                const formData = new FormData(this);
-                console.log('Form Data:', formData);
-                $.ajax({
-                    url: $(this).attr('action'),
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        $('#forcedAppointmentModal').modal('hide');
-                        Swal.fire({
-                            title: 'Succès',
-                            text: response.message,
-                            icon: 'success'
-                        }).then(() => {
-                            location.reload();
-                        });
-                    },
-                    error: function (xhr) {
-                        const response = xhr.responseJSON;
-                        let errorMessage = 'Veuillez vérifier le formulaire et réessayer';
-
-                        if (response && response.errors) {
-                            errorMessage = Object.values(response.errors)[0]; // Get first error message
-                        }
-
-                        Swal.fire({
-                            title: 'Erreur',
-                            text: errorMessage,
-                            icon: 'error'
-                        });
-                    }
-                });
-            });
+    e.preventDefault();
+    
+    const $btn = $(this).find('button[type="submit"]');
+    const originalHtml = $btn.html();
+    
+    // Prevent double submission
+    if ($btn.prop('disabled')) return;
+    
+    // Set loading state
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+    
+    $.ajax({
+        url: $(this).attr('action'),
+        method: 'POST',
+        data: new FormData(this),
+        processData: false,
+        contentType: false,
+        success: function (response) {
+            $('#forcedAppointmentModal').modal('hide');
+            Swal.fire('Succès', response.message, 'success').then(() => location.reload());
+        },
+        error: function (xhr) {
+            const errorMessage = xhr.responseJSON?.errors 
+                ? Object.values(xhr.responseJSON.errors)[0] 
+                : 'Veuillez vérifier le formulaire et réessayer';
+            Swal.fire('Erreur', errorMessage, 'error');
+        },
+        complete: function() {
+            $btn.prop('disabled', false).html(originalHtml);
+        }
+    });
+});
         });
     </script>
 @endpush

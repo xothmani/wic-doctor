@@ -350,7 +350,7 @@ class DoctorRequestController extends Controller
             $randomId = random_int(1000000000, 9999999999);
         }
 
-        $formattedName = ['fr' => $user->lastname . ' ' . $user->name];
+        $formattedName = ['fr' => $doctorRequest->name . ' ' . $doctorRequest->lastname];
 
         // Créer le docteur
         $doctor = Doctor::create([
