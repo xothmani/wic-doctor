@@ -329,7 +329,7 @@ return [
     'pattern' => 'Motif',
     'appointment_status' => 'Statut du rendez-vous',
     'mark_failed' => 'Marquer comme annuler',
-    'mark_ready' => 'Marquer comme prêt',
+    'mark_ready' => 'Créer une consultation',
     'agenda' => 'Calendrier',
     'calendar_view' => 'Vue du calendrier',
     'availability_date' => 'Date de disponibilité',
