@@ -428,7 +428,7 @@ class AppointmentEventController extends Controller
 
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
-            \Log::info('sending sms');
+            \Log::info('sending sms1');
             $numFrance = $doctor->num_france;
 
             $api = $doctor->api_key;
@@ -1656,7 +1656,7 @@ class AppointmentEventController extends Controller
         // \Log::info("Appointment created:", ['id' => $appointment->id]);
         $now = Carbon::now('Africa/Tunis');
         $diffInMinutes = $now->diffInMinutes($startAt, false);
-        \Log::info('sending sms');
+        \Log::info(message: 'sending sms2');
         $numFrance = $doctor->num_france;
 
 
@@ -1730,7 +1730,7 @@ class AppointmentEventController extends Controller
         if (!$doctorId) {
             return back()->withErrors(['error' => 'Médecin non trouvé.']);
         }
-        $doctor = 
+        $doctor = Doctor::find($doctorId);
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'appointment_type' => 'required', // Changed from strings to IDs
@@ -1799,7 +1799,7 @@ class AppointmentEventController extends Controller
 
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
-            \Log::info('sending sms');
+            \Log::info('sending sms3');
             $numFrance = $doctor->num_france;
 
             $api = $doctor->api_key;
