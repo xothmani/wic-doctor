@@ -54,7 +54,26 @@
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="confirmDoneModal" tabindex="-1" role="dialog" aria-labelledby="confirmDoneModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDoneModalLabel">{{ trans('lang.confirmation') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 
+                </div>
+                <div class="modal-body">
+                    {{ trans('lang.do_you_want_to_end_appointment_and_start_consultation') }}
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-success"
+                        id="confirmDoneButton">{{ trans('lang.confirm') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
         <!-- Cancellation Reason Modal -->
         <div class="modal fade" id="cancelAppointmentModal" tabindex="-1" role="dialog"
             aria-labelledby="cancelAppointmentModalLabel" aria-hidden="true">
@@ -2687,8 +2706,37 @@
                     });
                     // Event handler for "Mark as Done"
                     $('#markAsDone').off('click').on('click', function () {
-                        updateAppointmentStatus(event.id, 5, "Done");
-                    });
+                        console.log("clicked");
+                            currentAppointment = appointment;
+
+                            // Fermer les autres modals actifs
+                            $('.modal').modal('hide'); // ça ferme tous les modals ouverts
+
+                            // Attendre un peu avant d’ouvrir celui-ci (laisser le temps de fermer l’autre)
+                            setTimeout(() => {
+                                console.log("testetet");
+                                $('#confirmDoneModal').modal('show');
+                            }, 300);
+
+                            
+                        });
+
+
+                        $('#confirmDoneButton').off('click').on('click', function () {
+                            console.log("clickedd2");
+                            if (currentAppointment) {
+                                // 1. Mise à jour du statut à 6 (Done)
+                                updateAppointmentStatus(currentAppointment.appointment_id, 6, "Done");
+
+                                // 2. Redirection vers la création de consultation
+                                setTimeout(() => {
+                                    const url = `{{ route('consultations.create', ['patient_id' => '__PATIENT_ID__']) }}`.replace('__PATIENT_ID__', encodeURIComponent(currentAppointment.patient_id));
+                                    window.location.href = url;
+                                }, 500);
+                            }
+
+                            $('#confirmDoneModal').modal('hide'); // fermer le modal
+                        });
                 }
             });
             ////////////////////////////////////
@@ -2819,7 +2867,6 @@
                         _token: $('meta[name="csrf-token"]').attr('content') // CSRF Token
                     },
                     success: function (response) {
-                        alert(response.message); // Optional: Show a success message
                         $('#appointmentDetailsModal').modal('hide'); // Close the modal
                         $('#calendar').fullCalendar('refetchEvents'); // Refresh the calendar
                     },
