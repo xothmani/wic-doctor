@@ -430,5 +430,8 @@
     "You cannot modify or delete this appointment because it has already been cancelled.":"You cannot modify or delete this appointment because it has already been cancelled.",
     "You cannot modify or delete this appointment because it has already ended.":"You cannot modify or delete this appointment because it has already ended.",
     "Add your email": "Add your email",
-    "Your account does not have an email address.\nPlease enter one to continue.": "Your account does not have an email address.\nPlease enter one to continue."
+    "Your account does not have an email address.\nPlease enter one to continue.": "Your account does not have an email address.\nPlease enter one to continue.",
+    "Some features described in these Terms of Use may not yet be available in the mobile version of WIC Doctor. We invite you to visit our website for the full experience.": "Some features described in these Terms of Use may not yet be available in the mobile version of WIC Doctor. We invite you to visit our website for the full experience.",
+    "View Terms of Use": "View Terms of Use",
+    "Resend the code again": "Resend the code again"
 }
