@@ -282,8 +282,8 @@
     "60": "60",
     "KG": "KG",
     "Gender": "Le sexe",
-    "Male": "Homme",
-    "Female": "Femme",
+    "Male": "homme",
+    "Female": "femme",
     "ClinicFilter.ALL": "Tous",
     "ClinicFilter.ACCEPTED": "Accepté",
     "ClinicFilter.PENDING": "En attente",
@@ -361,8 +361,8 @@
     "Doctors list is empty": "La liste des médecins est vide",
     "You don't have any messages yet.":"Vous n’avez encore aucun message.",
     "%s Years old": "%s Ans",
-    "Homme": "Homme",
-    "Femme": "Femme",
+    "homme": "homme",
+    "femme": "femme",
     "Autre": "Autre",
     "Select your gender": "Sélectionnez votre sexe",
     "Date of birth": "Date de naissance",
@@ -468,5 +468,6 @@
     "Your account does not have an email address.\nPlease enter one to continue.": "Votre compte n'a pas d'adresse email.\nVeuillez l'entrer pour poursuivre.",
     "Some features described in these Terms of Use may not yet be available in the mobile version of WIC Doctor. We invite you to visit our website for the full experience.":"Certaines fonctionnalités décrites dans les présentes CGU peuvent ne pas être encore disponibles dans la version mobile de WIC Doctor. Nous vous invitons à consulter notre site web pour une expérience complète.",
     "View Terms of Use": "Voir les CGU",
-    "Resend the code again": "Renvoyer le code"
+    "Resend the code again": "Renvoyer le code",
+    "Email or phone number": "Email ou numéro de téléphone"
 }
