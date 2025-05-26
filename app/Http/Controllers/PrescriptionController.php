@@ -157,6 +157,7 @@ if ($request->input('type') === 'Médicament') {
             DB::table('medicament_prescription')->insert([
                 'prescription_id' => $prescription->id,
                 'nom_medicament' => $nomMedicament, // Stocker le nom dans nom_medicament
+                'status_medicament' => 'en cours', // Ajout du statut
                 'dosage' => $medicamentData['dosage'],
                 'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
                 'horaire' => $medicamentData['horaire'] ?? null,

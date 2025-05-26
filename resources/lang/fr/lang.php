@@ -2208,6 +2208,13 @@ return [
     'no_email' => 'Le patient n \'a pas d\'email',
     'prescription_enter_medicament_name' => 'Entrez le nom du médicament manuellement',
     'prescription_add_manual_medicament' => 'Médicament non trouvé? Insérez son nom manuellement',
+    'medicament_prescription_plural' => 'Gestion d\'ajout d\'un médicament',
+    'medicament_prescription_desc' => 'Ajout d\'un médicament',
+    'medicament_prescription_table' => 'Liste des médicaments',
+    'medicament_prescription_nom' => 'Nom du médicament',
+    'medicament_prescription_status' => 'Status',
+    'medicament_prescription_created_at' => 'Crée le',
+    'liste_medicament' => 'Liste médicaments',
 
-
+    
 ];
