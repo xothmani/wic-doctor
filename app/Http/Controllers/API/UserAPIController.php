@@ -223,7 +223,7 @@ public function login(Request $request)//v3 syncronisation avec web
                 'last_name'      => $this->decodeIfJson($request->input('lastname')),
                 'email'          => $request->input('email'),
                 'phone_number'   => $request->input('phone_number'),
-                'mobile_number'  => $request->input('phone_number'),
+                //'mobile_number'  => $request->input('phone_number'),
                 'is_main_profil' => true,
             ];
 

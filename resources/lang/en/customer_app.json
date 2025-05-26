@@ -320,8 +320,8 @@
     "You don't have any messages yet.": "You don't have any messages yet.",
     "%s Years old": "%s Years old",
     "These are all patients assigned to your account, you can create new ones using the Add button below": "These are all patients assigned to your account, you can create new ones using the Add button below",
-    "Homme": "Male",
-    "Femme": "Female",
+    "homme": "Male",
+    "femme": "Female",
     "Autre": "Other",
     "Select your gender": "Select your gender",
     "Date of birth": "Date of birth",
@@ -433,5 +433,6 @@
     "Your account does not have an email address.\nPlease enter one to continue.": "Your account does not have an email address.\nPlease enter one to continue.",
     "Some features described in these Terms of Use may not yet be available in the mobile version of WIC Doctor. We invite you to visit our website for the full experience.": "Some features described in these Terms of Use may not yet be available in the mobile version of WIC Doctor. We invite you to visit our website for the full experience.",
     "View Terms of Use": "View Terms of Use",
-    "Resend the code again": "Resend the code again"
+    "Resend the code again": "Resend the code again",
+    "Email or phone number": "Email or phone number"
 }

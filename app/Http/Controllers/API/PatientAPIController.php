@@ -6,6 +6,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Requests\CreatePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Models\Patient;
+use App\Models\User;
 use App\Repositories\CustomFieldRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\UploadRepository;
@@ -106,9 +107,14 @@ class PatientAPIController extends Controller
      */
     function store(Request $request)
     {
+        $user= User::find($request->user_id);
+        
         try {
             $input = $request->all();
+            $input['email'] = $user->email;
             $input['phone_number'] = $input['mobile_number'];
+            $input['mobile_number'] = null;
+            $input['gender'] = strtolower($input['gender']);
             $patient = $this->patientRepository->create($input);
             if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
                 foreach ($input['image'] as $fileUuid) {
@@ -147,6 +153,11 @@ class PatientAPIController extends Controller
                     $mediaItem->copy($patient, 'image');
                 }
             }
+
+            $input['phone_number'] = $input['mobile_number'];
+            $input['mobile_number'] = null;
+            $input['gender'] = strtolower($input['gender']);
+
             $patient = $this->patientRepository->update($input, $id);
 
             foreach (getCustomFieldsValues($customFields, $request) as $value) {
