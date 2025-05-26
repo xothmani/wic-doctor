@@ -727,3 +727,11 @@ Route::get('/patients/{patientId}/messages/history', [PersonalizedMessageControl
 
 
 Route::get('/get-slots-for-pattern', 'AppointmentEventController@getSlotsForPattern');
+use App\Http\Controllers\MedicamentPrescriptionController;
+
+Route::resource('medicament-prescriptions', MedicamentPrescriptionController::class)
+    ->names([
+        'index' => 'medicament_prescriptions.index',
+   
+    ]);
+    Route::patch('/medicament-prescriptions/{id}/mark-treated', [App\Http\Controllers\MedicamentPrescriptionController::class, 'markAsTreated'])->name('medicament_prescriptions.markAsTreated');
