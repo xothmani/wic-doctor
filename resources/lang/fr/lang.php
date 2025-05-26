@@ -2214,7 +2214,7 @@ return [
     'medicament_prescription_nom' => 'Nom du médicament',
     'medicament_prescription_status' => 'Status',
     'medicament_prescription_created_at' => 'Crée le',
-    'prescription_add_manual_medicament' => 'Médicament non trouvé? Insérez son nom manuellement',
+    'liste_medicament' => 'Liste médicaments',
 
-
+    
 ];

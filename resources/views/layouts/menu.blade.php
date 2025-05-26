@@ -521,6 +521,17 @@
         </a>
     </li>
 @endcan
+@can('medicament_prescriptions.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('medicament_prescriptions') ? 'active' : '' }}" href="{!! route('medicament_prescriptions.index') !!}">
+            @if($icons)
+                <!-- Icône de pilule pour représenter les médicaments -->
+                <i class="nav-icon fas fa-pills"></i>
+            @endif
+            <p>{{ trans('lang.liste_medicament') }}</p>
+        </a>
+    </li>
+@endcan
 
 
 
