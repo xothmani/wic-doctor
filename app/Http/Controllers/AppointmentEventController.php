@@ -78,9 +78,6 @@ class AppointmentEventController extends Controller
         $currentMode = $doctor->availability_mode ?? 'open';
 
         if ($currentMode === 'open') {
-
-
-
             // Retrieve distinct availability days for the logged-in doctor
             $availabilityDays = DB::table('availability_hours')
                 ->where('doctor_id', $doctorId)
@@ -88,8 +85,6 @@ class AppointmentEventController extends Controller
                 ->where('mode', 'open')
                 ->distinct()
                 ->pluck('day'); // Get distinct day names (e.g., Lundi, Mardi)
-
-            //Log::info("Availability days retrieved", ['availability_days' => $availabilityDays->toArray()]);
 
             // Retrieve vacation data for the doctor
             $vacations = DB::table('vacance')
@@ -103,7 +98,6 @@ class AppointmentEventController extends Controller
                 ->map(function ($item) {
                     return (array) $item; // convert stdClass to array
                 });
-            //Log::info("Vacations retrieved", ['vacations' => $vacations]);
 
             if ($request->ajax()) {
                 $start = $request->start ?? '2024-01-01 00:00:00';
@@ -121,7 +115,7 @@ class AppointmentEventController extends Controller
                         'appointments.user_id',
                         'appointments.patient_id',
                         'appointments.hint',
-                        'appointments.start_at', // Get raw UTC time
+                        'appointments.start_at', // Get raw UTC time from DB
                         'appointments.ends_at',
                         'user.name as user_name',
                         'user.phone_number as user_phone_number',
@@ -143,13 +137,18 @@ class AppointmentEventController extends Controller
                 Log::info("Appointments retrieved for Doctor ID {$doctorId}", ['appointments_count' => $data->count()]);
 
                 return response()->json($data->map(function ($appointment) use ($doctorTimeZone) {
+                    // Convert UTC times from database to doctor's timezone
+                    // The times in the database are already in UTC, so we just need to convert to doctor's timezone
+                    $startAt = Carbon::createFromFormat('Y-m-d H:i:s', $appointment->start_at, 'UTC')
+                        ->setTimezone($doctorTimeZone);
+
+                    $endsAt = Carbon::createFromFormat('Y-m-d H:i:s', $appointment->ends_at, 'UTC')
+                        ->setTimezone($doctorTimeZone);
+
                     $decodedFirstName = json_decode($appointment->patient_first_name, true);
                     $decodedLastName = json_decode($appointment->patient_last_name, true);
                     $decodedMotifName = json_decode($appointment->motif_name, true);
                     $color = $appointment->motif_color;
-                    $startAt = Carbon::parse($appointment->start_at)->setTimezone($doctorTimeZone);
-                    $endsAt = Carbon::parse($appointment->ends_at)->setTimezone($doctorTimeZone);
-
 
                     return [
                         'id' => $appointment->id,
@@ -168,8 +167,6 @@ class AppointmentEventController extends Controller
                         'type' => $appointment->type,
                         'note' => $appointment->hint,
                         'backgroundColor' => $color,
-
-
                     ];
                 }));
             }
@@ -199,13 +196,10 @@ class AppointmentEventController extends Controller
                 $query->where('doctor_id', $doctorId);
             })->select('id', 'first_name', 'last_name', 'phone_number')->get();
 
-            //Log::info("Patients retrieved", ['patients_count' => $patients->count()]);
             Log::info('Urgencies retrieved for doctor:', ['doctor_id' => $doctorId, 'urgencies' => $urgencies->toArray()]);
 
             // Pass availabilityDays and vacations to the view
             return view('appointment_events.appointmentEventOpenMode', compact('patients', 'availabilityDays', 'patterns', 'vacations', 'patternsByType', 'urgencies'));
-
-
         } else {
             // Precise mode - keeping existing functionality
             $availability = AvailabilityHour::where('doctor_id', $doctorId)
@@ -287,8 +281,14 @@ class AppointmentEventController extends Controller
                     $decodedLastName = json_decode($appointment->patient_last_name, true);
                     $decodedMotifName = json_decode($appointment->motif_name, true);
                     $color = $appointment->motif_color;
-                    $startAt = Carbon::parse($appointment->start_at)->setTimezone($doctorTimeZone);
-                    $endsAt = Carbon::parse($appointment->ends_at)->setTimezone($doctorTimeZone);
+
+                    // Fixed timezone handling - explicitly create from UTC and convert to doctor's timezone
+                    $startAt = Carbon::createFromFormat('Y-m-d H:i:s', $appointment->start_at, 'UTC')
+                        ->setTimezone($doctorTimeZone);
+
+                    $endsAt = Carbon::createFromFormat('Y-m-d H:i:s', $appointment->ends_at, 'UTC')
+                        ->setTimezone($doctorTimeZone);
+
                     return [
                         'id' => $appointment->id,
                         'start_at' => $startAt->format('Y-m-d\TH:i:s'),
@@ -309,7 +309,6 @@ class AppointmentEventController extends Controller
                         'cancel_reason' => $appointment->cancel_reason,
                         'type' => $appointment->type,
                     ];
-
                 }));
             }
 
@@ -323,7 +322,6 @@ class AppointmentEventController extends Controller
             ));
         }
     }
-
 
     public function saveAppointment(Request $request)
     {
@@ -346,59 +344,79 @@ class AppointmentEventController extends Controller
                 'appointment_date' => 'required|date',
                 'appointment_time' => 'required',
                 'patern_id' => 'required',
-                'appointment_type' => 'required', // Changed from strings to IDs
-                'notes' => 'nullable|string|max:1000', // Add validation for notes
+                'appointment_type' => 'required',
+                'notes' => 'nullable|string|max:1000',
             ]);
+
+            \Log::info('time', ['value' => $validated['appointment_time'], 'type' => gettype($validated['appointment_time'])]);
+
+            // Parse local time in doctor's timezone
             $initialTime = Carbon::parse(
                 $validated['appointment_date'] . ' ' . $validated['appointment_time'],
                 $doctorTimeZone
             );
 
-            $utcTime = (clone $initialTime)->setTimezone('UTC');
+            // Convert to UTC for storage
+            $startAtCarbon = (clone $initialTime)->setTimezone('UTC');
+
             Log::info('Time Zone Debugging', [
                 'input_date_time' => $validated['appointment_date'] . ' ' . $validated['appointment_time'],
                 'doctor_timezone' => $doctorTimeZone,
                 'initial_parsed_time' => $initialTime->format('Y-m-d H:i:s'),
                 'initial_timezone' => $initialTime->tzName,
                 'initial_offset' => $initialTime->offset / 60, // in hours
-                'utc_converted_time' => $utcTime->format('Y-m-d H:i:s'),
+                'utc_converted_time' => $startAtCarbon->format('Y-m-d H:i:s'),
                 'is_dst' => $initialTime->isDST() ? 'Yes' : 'No',
             ]);
 
-            Log::info('validate', $validated);
             $patient = Patient::findOrFail($validated['patient_id']);
-            $patientUserId = $patient->user_id; // or null if your patients table doesn't store user_id
+            $patientUserId = $patient->user_id;
 
-
-            // 5) Create start_at from date + time
-            $startAt = Carbon::parse(
-                $validated['appointment_date'] . ' ' . $validated['appointment_time'],
-                $doctorTimeZone
-            )->setTimezone('UTC');
-            $dayName = $startAt->format('l'); // e.g. "Wednesday"
+            // Get day name from the original local time
+            $dayName = $initialTime->format('l');
             \Log::info('Day Name:', ['day' => $dayName]);
+
             $type = $validated['appointment_type'];
+
+            // Check availability using the local time format
             $availability = DB::table('availability_hours')
                 ->where('doctor_id', $doctorId)
                 ->where('day', $dayName)
                 ->where('type', $type)
                 ->where('mode', 'open')
                 ->where('is_available', 1)
-                ->whereTime('start_at', '<=', $startAt->format('H:i'))
-                ->whereTime('end_at', '>', $startAt->format('H:i'))
+                ->whereTime('start_at', '<=', $initialTime->format('H:i'))
+                ->whereTime('end_at', '>', $initialTime->format('H:i'))
                 ->first();
 
             $sessionDuration = 15;
-            $motifId = null;
             if ($availability) {
                 $sessionDuration = $availability->session_duration;
             }
             \Log::info('Session Duration:', ['duration' => $sessionDuration]);
-            $endsAt = (clone $startAt)->addMinutes($sessionDuration);
 
-            // 8) appointment_at = just the date portion
-            $appointmentAt = $startAt->copy()->startOfDay();
-            // Create the appointment
+            // Calculate end time
+            $endsAtCarbon = (clone $startAtCarbon)->addMinutes($sessionDuration);
+
+            // Calculate appointment_at (start of day)
+            $appointmentAtCarbon = (clone $startAtCarbon)->startOfDay();
+
+            // Format times as strings for database storage
+            $startAtString = $startAtCarbon->format('Y-m-d H:i:s');
+            $endsAtString = $endsAtCarbon->format('Y-m-d H:i:s');
+            $appointmentAtString = $appointmentAtCarbon->format('Y-m-d H:i:s');
+
+            // Format local time for SMS and display
+            $localTimeString = $initialTime->format('d/m/Y H:i');
+
+            Log::info('Final Values Being Sent to Database', [
+                'start_at_string' => $startAtString,
+                'ends_at_string' => $endsAtString,
+                'appointment_at_string' => $appointmentAtString,
+                'local_time_for_display' => $localTimeString
+            ]);
+
+            // Create the appointment with string values
             $appointment = $doctor->appointments()->create([
                 'doctor_id' => $doctorId,
                 'patient_id' => $validated['patient_id'],
@@ -406,78 +424,44 @@ class AppointmentEventController extends Controller
                 'motif_id' => $validated['patern_id'] ?? null,
                 'online' => $validated['appointment_type'],
                 'appointment_status_id' => 1,
-                'appointment_at' => $startAt,
-                'start_at' => $startAt,
-                'ends_at' => $endsAt,
+                'appointment_at' => $appointmentAtString,
+                'start_at' => $startAtString,
+                'ends_at' => $endsAtString,
                 'hint' => $validated['notes'] ?? null,
             ]);
 
+            // Verify what was stored
+            $storedAppointment = DB::table('appointments')
+                ->where('id', $appointment->id)
+                ->first();
 
-            \Log::info('About to broadcast event');
-            event(new AppointmentCreated($appointment));
-            \Log::info('Event broadcasted');
+            Log::info('Values Actually Stored in Database', [
+                'appointment_id' => $appointment->id,
+                'stored_start_at' => $storedAppointment->start_at,
+                'stored_ends_at' => $storedAppointment->ends_at
+            ]);
 
-            Log::info('Appointment Created Successfully:', ['appointment_id' => $appointment->id]);
-            // Log appointment creation in audit system
-            /* app(\App\Services\AuditLogService::class)->logAppointment(
-                $appointment->id,
-                'create_appointment',
-                trans('audit.create_appointment'),
-                [],
-                [
-                    'creator_id' => auth()->id(),
-                    'doctor_id' => $doctorId,
-                    'patient_id' => $validated['patient_id'],
-                    'start_at' => $startAt->toDateTimeString(),
-                    'ends_at' => $endsAt->toDateTimeString(),
-                    'appointment_type' => trans('audit.appointment_type.' . $validated['appointment_type']),
-                    'notes' => $validated['notes'] ?? null
-                ],
-                $doctorId
-            ); */
-
-            $newValues = [
-                'id' => $appointment->id,
-                'doctor_id' => $doctorId,
-                'patient_id' => $validated['patient_id'],
-                'user_id' => auth()->id(),
-                'motif_id' => $validated['motif_id'] ?? null,
-                'start_at' => $startAt->toDateTimeString(),
-                'ends_at' => $endsAt->toDateTimeString(),
-                'appointment_type' => trans('audit.appointment_type.' . $validated['appointment_type']),
-                'notes' => $validated['notes'] ?? null,
-                'status' => trans('audit.appointment_status.scheduled')
-            ];
-
-            // Log the appointment creation
-            $this->auditLogService->createAuditLog(
-                'create_appointment',
-                'appointment',
-                null, // Let the service generate a description
-                [], // old_values
-                $newValues,
-                $doctorId
-            );
+            // SMS logic
             $now = Carbon::now('Africa/Tunis');
-            $diffInMinutes = $now->diffInMinutes($startAt, false);
+            // We need to compare Carbon to Carbon, not Carbon to string
+            $diffInMinutes = $now->diffInMinutes($startAtCarbon, false);
+            \Log::info('diffInMinutes', ['diff' => $diffInMinutes]);
+
             \Log::info('sending sms');
             $numFrance = $doctor->num_france;
-
             $api = $doctor->api_key;
-            $api_key = $api; // Or fetch from config/env
-            $from = $numFrance; // Your approved sender number
+            $api_key = $api;
+            $from = $numFrance;
             $alphasender = 'Wic doctor';
-
             $to = $patient->phone_number;
-            $doctor = Doctor::find($doctorId);
-            \Log::info('diffInMinutes', ['diff' => $diffInMinutes]);
-            if ($diffInMinutes > 30) {
-                // Optional: build a link (or remove this line if you don’t use shortUrl)
-                $shortUrl = url('/'); // Change this to your appointment detail route if needed
 
+            if ($diffInMinutes > 30) {
+                $shortUrl = url('/');
+
+                // Use the localTimeString for the SMS
                 $message = "Bienvenue " . $patient->first_name . " " . $patient->last_name .
                     " chez Wic-Dr avec Dr." . $doctor->name . ".\n" .
-                    "RDV: " . $startAt->format('d/m/Y H:i') . "\n" .
+                    "RDV: " . $localTimeString . "\n" .
                     "Plus d'infos: $shortUrl";
 
                 $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
@@ -490,13 +474,13 @@ class AppointmentEventController extends Controller
             } else {
                 Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
             }
+
             return response()->json([
                 'appointment_id' => $appointment->id,
                 'status' => 'success',
                 'refresh' => true,
-                'agenda' => $this->refreshAgenda()->getData() // Get fresh agenda data
+                'agenda' => $this->refreshAgenda()->getData()
             ]);
-
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation Errors:', $e->errors());
@@ -508,7 +492,7 @@ class AppointmentEventController extends Controller
                 'file' => $e->getFile(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            return response()->json(['error' => 'An unexpected error occurred. Please try again.'], 500);
+            return response()->json(['error' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
         }
     }
     /**
@@ -620,10 +604,10 @@ class AppointmentEventController extends Controller
             Log::info("Notification envoyé NotificationController Status changed event");
             //event(new AppointmentChangedEvent($appointment));
             //$appointment->doctor = $this->doctor
-            if ($userId->device_token != null) {
+            /* if ($userId->device_token != null) {
                 event(new AppointmentStatusChangedEvent($appointment, $input['payment_status_id'], $user->device_token));
 
-            }
+            } */
 
 
 

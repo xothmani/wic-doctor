@@ -86,8 +86,9 @@ class Appointment extends Model
         'quantity',
         'patient_id',
         'cancel_reason',
-        'type'
-
+        'type',
+        'created_at', // Added column
+        'updated_at'  // Added column
     ];
     /**
      * The attributes that should be casted to native types.
