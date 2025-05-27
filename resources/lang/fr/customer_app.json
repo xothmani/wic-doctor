@@ -23,8 +23,8 @@
     "Available Clinic": "Clinique disponible",
     "Available Doctor": "Médecin disponible",
     "Awards": "Récompenses",
-    "Book This Doctor": "Réservez ce médecin",
-    "Book the Doctor": "Réservez le médecin",
+    "Book This Doctor": "Réserver ce médecin",
+    "Book the Doctor": "Réserver le médecin",
     "Appointment At": "Rendez-vous à",
     "Appointment Date & Time": "Date et heure du rendez-vous",
     "Appointment Details": "Détails du rendez-vous",
@@ -469,5 +469,10 @@
     "Some features described in these Terms of Use may not yet be available in the mobile version of WIC Doctor. We invite you to visit our website for the full experience.":"Certaines fonctionnalités décrites dans les présentes CGU peuvent ne pas être encore disponibles dans la version mobile de WIC Doctor. Nous vous invitons à consulter notre site web pour une expérience complète.",
     "View Terms of Use": "Voir les CGU",
     "Resend the code again": "Renvoyer le code",
-    "Email or phone number": "Email ou numéro de téléphone"
+    "Email or phone number": "Email ou numéro de téléphone",
+    "Previous Conditions": "Antécédents",
+    "Allergies": "Allergies",
+    "Blood Group": "Groupe sanguin",
+    "You": "Vous",
+    "Attachments": "Pièces jointes"
 }
