@@ -151,6 +151,12 @@ public function login(Request $request)//v3 syncronisation avec web
             return $this->sendError(__('auth.failed'), 200);
         }
 
+
+        if(empty($user->api_token)){
+            $user->api_token = Str::random(60);
+            $user->save();
+        }
+
         // Authentifier manuellement
         auth()->login($user);
 
