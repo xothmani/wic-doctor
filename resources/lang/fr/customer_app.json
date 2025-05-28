@@ -474,5 +474,7 @@
     "Allergies": "Allergies",
     "Blood Group": "Groupe sanguin",
     "You": "Vous",
-    "Attachments": "Pièces jointes"
+    "Attachments": "Pièces jointes",
+    "Prescriptions" : "Ordonnances",
+    "No files available at the moment.":"Aucun fichier disponible pour le moment."
 }

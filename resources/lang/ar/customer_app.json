@@ -473,5 +473,7 @@
     "Allergies": "الحساسية",
     "Blood Group": "فصيلة الدم",
     "You":"أنت",
-    "Attachments":"المرفقات"
+    "Attachments":"المرفقات",
+    "Prescriptions" : "الوصفات الطبية",
+    "No files available at the moment.":"لا يوجد ملفات متاحة حاليا."
 }
