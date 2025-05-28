@@ -7,6 +7,7 @@
 use App\Http\Controllers\API\PayPalAPIController;
 use App\Http\Controllers\API\DoctorAPIController;
 use App\Http\Controllers\API\NotificationAPIController;
+use App\Http\Controllers\API\PrescriptionsApiController;
 use App\Http\Controllers\API\RoomAPIController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\API\TranslationAPIController;
@@ -36,6 +37,7 @@ Route::prefix('rooms')->middleware('auth:api')->group(function () {
 Route::middleware('auth:api')->post('/set-locale', [TranslationAPIController::class, 'setUserLocale']);
 Route::get('/get-type-consultation/{id}', [AvailabilityHourAPIController::class, 'getTypeConsultation']);
 Route::put('update-user-email/{id}', [UserAPIController::class, 'updateUserEmail']);
+Route::get('/consultations/prescriptions/{id}', [PrescriptionsApiController::class, 'show']);
 
 /*********************** End Route ajouté par Hamza ********************* */
 
