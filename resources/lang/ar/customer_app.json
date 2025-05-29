@@ -473,5 +473,10 @@
     "Allergies": "الحساسية",
     "Blood Group": "فصيلة الدم",
     "You":"أنت",
-    "Attachments":"المرفقات"
+    "Attachments":"المرفقات",
+    "Prescriptions" : "الوصفات الطبية",
+    "No files available at the moment.":"لا يوجد ملفات متاحة حاليا.",
+    "Pay for your appointment": "ادفع مقابل موعدك",
+    "Payment completed successfully.": "تم الدفع بنجاح",
+    "An error occurred. Please try again.": "حدث خطأ ما. يرجى المحاولة مرة أخرى"
 }
