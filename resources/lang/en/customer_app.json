@@ -441,5 +441,8 @@
     "You": "You",
     "Attachments": "Attachments",
     "Prescriptions" : "Prescriptions",
-    "No files available at the moment.":"No files available at the moment."
+    "No files available at the moment.":"No files available at the moment.",
+    "Pay for your appointment": "Pay for your appointment",
+    "Payment completed successfully.": "Payment completed successfully.",
+    "An error occurred. Please try again.": "An error occurred. Please try again."
 }

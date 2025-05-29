@@ -476,5 +476,8 @@
     "You": "Vous",
     "Attachments": "Pièces jointes",
     "Prescriptions" : "Ordonnances",
-    "No files available at the moment.":"Aucun fichier disponible pour le moment."
+    "No files available at the moment.":"Aucun fichier disponible pour le moment.",
+    "Pay for your appointment": "Payer votre rendez-vous",
+    "Payment completed successfully.": "Paiement effectué avec succès.",
+    "An error occurred. Please try again.": "Une erreur s'est produite. Veuillez réessayer."
 }
