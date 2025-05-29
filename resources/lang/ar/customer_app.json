@@ -478,5 +478,8 @@
     "No files available at the moment.":"لا يوجد ملفات متاحة حاليا.",
     "Pay for your appointment": "ادفع مقابل موعدك",
     "Payment completed successfully.": "تم الدفع بنجاح",
-    "An error occurred. Please try again.": "حدث خطأ ما. يرجى المحاولة مرة أخرى"
+    "An error occurred. Please try again.": "حدث خطأ ما. يرجى المحاولة مرة أخرى",
+    "Failed to download the PDF.": "فشل في تحميل الملف PDF.",
+    "File saved": "تم حفظ الملف بنجاح.",
+    "Storage permission denied.": "تم رفض الصلاحية."
 }
