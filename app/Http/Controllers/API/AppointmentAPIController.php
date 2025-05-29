@@ -486,7 +486,7 @@ class AppointmentAPIController extends Controller
 
 
             //If the appointment is remote, create a room for it
-            if ($data['online'] == 'teleconsultation') {
+            /*if ($data['online'] == 'teleconsultation') {
                 try {
                     $startAt = Carbon::parse($request->input('start_at'), $utc)->setTimezone($tunis);
                     // Heure donnée (10:11:00)
@@ -523,7 +523,7 @@ class AppointmentAPIController extends Controller
                     return response()->json("Room not created {$e}", 400);
                 }
 
-            }
+            }*/
 
 
             // Check if the doctor-patient relationship exists
