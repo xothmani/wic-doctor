@@ -600,6 +600,7 @@ class AppointmentAPIController extends Controller
                 $this->appointmentRepository->update([
                     'start_at' => $request->input('start_at'),
                     'appointment_at' => $request->input('start_at'),
+                    'ends_at' => $request->input('ends_at')
                 ], $id);
                 return response()->json(true);
                 //return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
