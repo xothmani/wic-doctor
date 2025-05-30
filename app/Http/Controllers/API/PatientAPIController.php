@@ -62,6 +62,9 @@ class PatientAPIController extends Controller
             return $this->sendError($e->getMessage());
         }
         $patients = $this->patientRepository->all();
+        foreach ($patients as $patient) {
+            $patient->total_appointment = Appointment::where('patient_id', $patient->id)->count();
+        }
         return $this->sendResponse($patients->toArray(), 'Patients retrieved successfully');
     }
 
@@ -87,6 +90,7 @@ class PatientAPIController extends Controller
             if ($request->has('user_id')){
                 $user_id =  $request->only('user_id');
                 $patient  = $this->patientRepository->findWhere('user_id',$user_id);
+                $patient->total_appointment = Appointment::where('patient_id', $patient->id)->count();
             }
 
             else
@@ -194,10 +198,7 @@ class PatientAPIController extends Controller
 public function totalAppointments($patient_id)
 {
     try {
-        // Query the appointments table to count the number of appointments
-        // Excluding appointment_status_id = 7
         $totalAppointments = Appointment::where('patient_id', $patient_id)
-            ->where('appointment_status_id', '!=', 7)  // Exclude status 7
             ->count();  // Count the number of records
 
         return $this->sendResponse($totalAppointments, 'Total appointments retrieved successfully.');
