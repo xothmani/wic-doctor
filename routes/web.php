@@ -3,6 +3,7 @@
 use App\Http\Controllers\AppointmentController;
 //use App\Http\Controllers\PharmacyController;
 //use App\Http\Controllers\PharmacyTypeController;
+use App\Http\Controllers\DrugController;
 use App\Http\Controllers\MessagerieController;
 use App\Http\Controllers\PatientDoctorChatController;
 use App\Http\Controllers\TeleseceteriatDoctorsController;
@@ -686,6 +687,9 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         }
         return view('components.active-doctor', compact('activeDoctor'));
     })->middleware('auth');
+
+    // Drug-drug interactions page (requires login)
+    Route::get('/drug_drug_interactions', [DrugController::class, 'index'])->name('drug_drug_interactions.index');
 });
 Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
 Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
