@@ -23,61 +23,67 @@
 
 <div class="container py-4">
     <div class="row align-items-stretch">
-        <!-- Partie gauche avec le message de bienvenue -->
-        <div class="col-md-6 d-flex">
-            <div class="position-relative w-100" style="min-height: 200px;">
-                <div class="card p-4 shadow-sm h-100" style="position: relative; background-color: #fff; border: none; z-index: 1;">
+        <!-- Partie gauche -->
+        <div class="col-lg-6 col-md-12 d-flex mb-4 mb-lg-0">
+            <div class="position-relative w-100">
+                <div class="card p-4 shadow-sm h-100" style="background-color: #fff; border: none; z-index: 1;">
                     <h2 class="mb-1">
-@php
-    $userName = Auth::user()->name;
-    $decodedName = json_decode($userName);
-
-    if (json_last_error() === JSON_ERROR_NONE && is_object($decodedName) && isset($decodedName->fr)) {
-        $displayName = $decodedName->fr;
-    } else {
-        $displayName = $userName;
-    }
-@endphp
-
-👨‍⚕️ Bonjour, <strong>Dr. {{ $displayName }}</strong>
+                        @php
+                            $userName = Auth::user()->name;
+                            $decodedName = json_decode($userName);
+                            $displayName = (json_last_error() === JSON_ERROR_NONE && is_object($decodedName) && isset($decodedName->fr)) 
+                                           ? $decodedName->fr 
+                                           : $userName;
+                        @endphp
+                        👨‍⚕️ Bonjour, <strong>Dr. {{ $displayName }}</strong>
                     </h2>
-                    <p class="text-muted mb-3 text-left ml-2" style="font-size: 1.25rem; font-weight: 500;">Ravi de vous revoir aujourd'hui !</p>            
-                    <!-- Conteneur pour les deux cartes alignées horizontalement -->
-                    <div class="d-flex" style="gap: 15px; width: 60%; margin-top: 20px">
-                        <!-- Première carte agrandie -->
-                        <div class="card shadow-sm" style="border-left: 4px solid #4e73df; width: 200px; height: 80px;">
+                    <p class="text-muted mb-3 text-left ml-2" style="font-size: 1.1rem; font-weight: 500;">
+                        Ravi de vous revoir aujourd'hui !
+                    </p>
+
+                    <!-- Cartes infos -->
+                    <div class="d-flex flex-wrap gap-3 mt-3">
+                        <div class="card shadow-sm flex-fill" style="border-left: 4px solid #4e73df; min-width: 140px;">
                             <div class="card-body d-flex flex-column justify-content-center">
-                                <h6 class="mb-1 text-primary"><b>Derniere connexion</b></h6>
+                                <h6 class="mb-1 text-primary"><b>Dernière connexion</b></h6>
                                 <h6 class="mb-0">{{ $user->last_login_at->format('Y-m-d H:i') }}</h6>
                             </div>
                         </div>
-                        
-                        <!-- Deuxième carte agrandie -->
-                        <div class="card shadow-sm" style="border-left: 4px solid #1cc88a; width: 200px; height: 80px;">
+
+                        <div class="card shadow-sm flex-fill" style="border-left: 4px solid #1cc88a; min-width: 140px;">
                             <div class="card-body d-flex flex-column justify-content-center">
                                 <h6 class="mb-1 text-success"><b>Activation abonnement</b></h6>
                                 <h6 class="mb-0">{{ $doctor->created_at->format('Y-m-d H:i') }}</h6>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Image mise en avant -->
                     <img src="{{ asset('images/dashboard-icon.png')}}" 
-                         alt="Welcome Image" 
-                         class="position-absolute" 
-                         style="left: 55%; height: 320px; z-index: 10; top: -45px;">
+     alt="Welcome Image" 
+     class="position-absolute d-none d-md-block dashboard-image" 
+     style="left: 58%; height: 320px; z-index: 10; top: -45px;">
+
+
                 </div>
             </div>
         </div>
-        
-        <!-- Partie droite avec les 4 cartes en grille -->
-        <div class="col-md-6 mt-2">
-            <div class="row h-100">
-                <!-- Consultations ce mois -->
-                <div class="col-md-6 mb-3">
+<style>
+@media (min-width: 992px) and (max-width: 1606px) {
+    .dashboard-image {
+        display: none !important;
+    }
+}
+
+
+</style>
+        <!-- Partie droite -->
+        <div class="col-lg-6 col-md-12">
+            <div class="row">
+                <div class="col-sm-6 mb-3">
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex align-items-center">
-                            <i class="fas fa-calendar-check fa-2x text-primary" style="margin-right: 15px;"></i>
+                            <i class="fas fa-calendar-check fa-2x text-primary me-3 mr-2"></i>
                             <div>
                                 <h6 class="mb-1"><b>Consultations ce mois</b></h6>
                                 <h2 class="mb-0">{{ $consultationCount }}</h2>
@@ -86,24 +92,22 @@
                     </div>
                 </div>
 
-                <!-- Rendez-vous cette semaine -->
-                <div class="col-md-6 mb-3">
+                <div class="col-sm-6 mb-3">
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex align-items-center">
-                            <i class="fas fa-user-clock fa-2x text-info" style="margin-right: 15px;"></i>
+                            <i class="fas fa-user-clock fa-2x text-info me-3 mr-2"></i>
                             <div>
                                 <h6 class="mb-1"><b>Rendez-vous cette semaine</b></h6>
-                                <h2 class="mb-0"> {{ $appointmentsThisWeek }}</h2>
+                                <h2 class="mb-0">{{ $appointmentsThisWeek }}</h2>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Rendez-vous aujourd'hui -->
-                <div class="col-md-6 mb-3">
+                <div class="col-sm-6 mb-3">
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex align-items-center">
-                            <i class="fas fa-calendar-day fa-2x text-warning" style="margin-right: 15px;"></i>
+                            <i class="fas fa-calendar-day fa-2x text-warning me-3 mr-2"></i>
                             <div>
                                 <h6 class="mb-1"><b>Rendez-vous du jour</b></h6>
                                 <h2 class="mb-0">{{ $appointmentsToday }}</h2>
@@ -112,28 +116,28 @@
                     </div>
                 </div>
 
-                <!-- Total patients -->
-                <div class="col-md-6 mb-3">
+                <div class="col-sm-6 mb-3">
                     <div class="card shadow-sm h-100">
                         <div class="card-body d-flex align-items-center">
-                            <i class="fas fa-users fa-2x text-success" style="margin-right: 15px;"></i>
+                            <i class="fas fa-users fa-2x text-success me-3 mr-2"></i>
                             <div>
                                 <h6 class="mb-1"><b>Total patients</b></h6>
-                                <h2 class="mb-0"> {{ $totalPatients }}</h2>
+                                <h2 class="mb-0">{{ $totalPatients }}</h2>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div> <!-- Fermeture du container py-4 -->
+    </div> 
+</div>
+
 
 <!-- Nouvelle ligne pour les cartes Patients par âge et genre -->
 <div class="container">
     <div class="row">
-        <!-- Carte Patients par âge (1/3) -->
-        <div class="col-md-4 mb-4">
+        <!-- Carte Patients par âge -->
+        <div class="col-12 col-sm-6 col-lg-4 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0">
@@ -142,12 +146,9 @@
                 </div>
                 <div class="card-body">
                     <div class="row align-items-center">
-                        <!-- Donut chart à gauche -->
                         <div class="col-6 text-center">
                             <canvas id="ageDonutChart" width="75" height="75" style="max-width: 100%; height: auto;"></canvas>
                         </div>
-
-                        <!-- Légendes et pourcentages à droite -->
                         <div class="col-6">
                             <div class="row">
                                 <div class="col-6 text-center mb-4">
@@ -158,7 +159,6 @@
                                     <div style="color: #36b9cc; font-size: 1.2rem;"><strong>{{ $agePercentages['1-17'] ?? 0 }}%</strong></div>
                                     <div>1-17</div>
                                 </div>
-
                                 <div class="col-6 text-center mb-4">
                                     <div style="color: #4e73df; font-size: 1.2rem;"><strong>{{ $agePercentages['18-39'] ?? 0 }}%</strong></div>
                                     <div>18-39</div>
@@ -167,7 +167,6 @@
                                     <div style="color: #f6c23e; font-size: 1.2rem;"><strong>{{ $agePercentages['40-59'] ?? 0 }}%</strong></div>
                                     <div>40-59</div>
                                 </div>
-
                                 <div class="col-6 text-center">
                                     <div style="color: #e74a3b; font-size: 1.2rem;"><strong>{{ $agePercentages['60-99'] ?? 0 }}%</strong></div>
                                     <div>60-99</div>
@@ -183,8 +182,8 @@
             </div>
         </div>
 
-        <!-- Carte Patients par genre (1/3) -->
-        <div class="col-md-4 mb-4">
+        <!-- Carte Patients par genre -->
+        <div class="col-12 col-sm-6 col-lg-4 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0">
@@ -193,12 +192,9 @@
                 </div>
                 <div class="card-body">
                     <div class="row align-items-center">
-                        <!-- Donut chart à gauche -->
                         <div class="col-6 text-center">
                             <canvas id="genderDonutChart" width="75" height="75" style="max-width: 100%; height: auto;"></canvas>
                         </div>
-
-                        <!-- Pourcentages à droite -->
                         <div class="col-6">
                             <div class="text-center mb-3">
                                 <div style="color: #4e73df; font-size: 1.5rem;"><strong>{{ $genderPercentages['Homme'] }}%</strong></div>
@@ -214,8 +210,8 @@
             </div>
         </div>
 
-        <!-- Carte RDV du jour par statut (1/3) -->
-        <div class="col-md-4 mb-4">
+        <!-- Carte RDV du jour par statut -->
+        <div class="col-12 col-sm-6 col-lg-4 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0">
@@ -224,12 +220,9 @@
                 </div>
                 <div class="card-body">
                     <div class="row align-items-center">
-                        <!-- Donut chart à gauche -->
                         <div class="col-6 text-center">
                             <canvas id="rdvStatusDonutChart" width="75" height="75" style="max-width: 100%; height: auto;"></canvas>
                         </div>
-
-                        <!-- Pourcentages à droite -->
                         <div class="col-6">
                             <div class="row">
                                 <div class="col-6 text-center mb-4">
@@ -254,14 +247,16 @@
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
+
 <!-- Section inférieures -->
 <div class="container">
-    <div class="row g-0">
+    <div class="row g-4">
         <!-- Colonne gauche -->
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0">
@@ -286,7 +281,7 @@
         </div>
 
         <!-- Colonne droite -->
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0">
@@ -300,6 +295,94 @@
         </div>
     </div>
 </div>
+<!-- 
+@php
+    // Convertir la durée moyenne en secondes
+    $currentDurationInSeconds = ($hours * 3600) + ($minutes * 60) + $seconds;
+
+    // Seuil max de 15 minutes = 900 secondes
+    $maxDurationInSeconds = 15 * 60;
+
+    // Calcul du pourcentage (limité à 100 max)
+    $percentage = min(100, round(($currentDurationInSeconds / $maxDurationInSeconds) * 100));
+@endphp -->
+<!-- <div class="container mt-4 mb-2">
+  <div class="row">
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">
+            <i class="fas fa-hourglass-half mr-2 text-primary"></i> Durée moyenne 
+          </h5>
+        </div>
+        <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+          <div style="position: relative; width: 80px; height: 80px; margin-bottom: 15px;">
+            <div style="
+              width: 100%;
+              height: 100%;
+              border-radius: 50%;
+              background: conic-gradient(#3c50e0 {{ $percentage }}%, #e5e7eb {{ $percentage }}%);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <div style="
+                position: absolute;
+                width: 60%;
+                height: 60%;
+                background: white;
+                border-radius: 50%;
+                z-index: 1;
+              "></div>
+
+              <i class="fas fa-hourglass-half" style="
+                font-size: 22px;
+                color: #3c50e0;
+                position: absolute;
+                z-index: 2;
+              "></i>
+            </div>
+          </div>
+
+          <p class="text-muted mb-1" style="font-size: 14px;">Durée moyenne d'une consultation</p>
+          <p class="text-primary font-weight-bold mb-0" style="font-size: 24px;">
+            {{ $formattedAverageDuration }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card shadow-sm h-100">
+      <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">
+            <i class="fas fa-hourglass-half mr-2 text-primary"></i> Prochain rendez-vous dans
+          </h5>
+        </div>
+        <div class="card-body text-center">
+          Contenu de la carte 2
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-bar text-warning mr-2"></i> Les récents RDV
+          </h5>
+        </div>
+        <div class="card-body text-center">
+          Contenu de la carte large droite
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+
+
+
 
 <style>
     .progress {

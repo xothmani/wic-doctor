@@ -91,12 +91,12 @@
     </div>
 
     <!-- Main Footer -->
-    <footer class="main-footer border-0 shadow-sm">
+<!--     <footer class="main-footer border-0 shadow-sm">
         <div class="float-sm-right d-none d-sm-block">
             <b>Version</b> {{implode('.',str_split(substr(config('installer.currentVersion','v100'),1,3)))}}
         </div>
         <strong>Copyright © {{date('Y')}} <a href="{{url('/')}}">{{setting('app_name')}}</a>.</strong> All rights reserved.
-    </footer>
+    </footer> -->
 
 </div>
 
