@@ -19,6 +19,7 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
+    'select_time_first' => 'Choisir l\'heure d\'abord',
     'time_slot_already_exists' => 'Il y a déjà un créneau à cet horaire',
     'no_patterns_for_this_type' => 'Pas de motif disponible ,Il faut aller à la section motif pour créer motif de ce type de consultation.',
     'type_required' => 'Le type de rendez-vous est requis',
@@ -279,16 +280,16 @@ return [
     'appointment_desc' => 'Gestion des rendez-vous et des consultations',
     'dashboard' => 'Tableau de bord',
     'appointment_details' => 'Détails du rendez-vous',
-   
+
     'patient_name' => 'Nom du patient',
-    
+
     'mark_as_failed' => 'Marquer comme échoué',
     'mark_as_ready' => 'Marquer comme prêt',
     'patient_type' => 'Type de patient',
     'patient_referenced' => 'Patient référencé',
     'patient_walk_in' => 'Patient de passage',
     'select_patient' => 'Sélectionner un patient',
-    
+
     'first_name' => 'Prénom',
     'last_name' => 'Nom',
     'phone_number' => 'Numéro de téléphone',
