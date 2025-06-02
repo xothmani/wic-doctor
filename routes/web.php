@@ -585,6 +585,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
     Route::post('/appointmentsEvent/store', [AppointmentEventController::class, 'store'])
         ->name('appointmentsEvent.store');
+    Route::get('/get-available-time-slots-for-update', [AppointmentEventController::class, 'getAvailableTimeSlotsForUpdate']);
+
     Route::get('/get-pattern-for-time-slot-without-type', [AppointmentEventController::class, 'getPatternForTimeSlotWithoutType'])->name('get.slot.no.type');
     Route::post('/appointmentsEvent/storeForced', [AppointmentEventController::class, 'storeForced'])
         ->name('appointmentsEvent.storeForced');
@@ -618,7 +620,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
     Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
     Route::get('/chat', [ChatController::class, 'showForm']);
-    
+
     Route::get('storage/{file}', function ($file) {
         $path = storage_path('app/public/' . $file);
 
@@ -690,11 +692,11 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
 Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
-->name('chatT.show');
+    ->name('chatT.show');
 // Routes
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
-     ->name('chatT.show')
-->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
+    ->name('chatT.show')
+    ->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
@@ -722,8 +724,8 @@ Route::post('patients/store-secondary-profile', [PatientController::class, 'stor
 Route::get('/patients/related/{mainPatientId}/{relation}', [PatientController::class, 'getRelatedPatients']);
 Route::post('/sms/send', [PersonalizedMessageController::class, 'store'])->name('sms.store');
 Route::get('/patients/{patientId}/messages/history', [PersonalizedMessageController::class, 'history'])
-    ->name('messages.history'); 
-    Route::post('/doctors/edit-param', [DoctorController::class, 'editParam'])->name('doctors.editParam');
+    ->name('messages.history');
+Route::post('/doctors/edit-param', [DoctorController::class, 'editParam'])->name('doctors.editParam');
 
 
 Route::get('/get-slots-for-pattern', 'AppointmentEventController@getSlotsForPattern');
