@@ -41,6 +41,7 @@
 @endphp
 
 
+
 @can('dashboard.medecin')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('dashboard.medecin') ? 'active' : '' }}" href="{!! route('dashboard.medecin') !!}">
@@ -374,6 +375,17 @@
     </li>
 @endcan
 
+@can('drug_drug_interactions.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('drug_drug_interactions') }}"
+            href="{!! route('drug_drug_interactions.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-exchange-alt"></i>
+            @endif
+            <p>{{ trans('lang.drug_drug_interactions') }}</p>
+        </a>
+    </li>
+@endcan
 
 @can('assurances.index')
     <li class="nav-item">
@@ -417,26 +429,26 @@
         <ul class="nav nav-treeview">
             @can('chat.index')
                 <li class="nav-item">
-                <a class="nav-link {{ Request::is('chat') ? 'active' : '' }}" href="{{ url('/chat') }}">
-                @if($icons)
+                    <a class="nav-link {{ Request::is('chat') ? 'active' : '' }}" href="{{ url('/chat') }}">
+                        @if($icons)
 
-                        <i class="nav-icon fas fa-user-md"></i>
+                            <i class="nav-icon fas fa-user-md"></i>
                         @endif
                         <p>Docteur & Docteur</p>
                     </a>
                 </li>
             @endcan
             @can('chatDP.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('chatDP*') ? 'active' : '' }}" href="{{ url('/chatDP') }}">
-            @if($icons)
-            <i class="nav-icon fas fa-hospital-user"></i>
-            @endif
-            <p>Docteur & Patient</p>
-        </a>
-    </li>
-@endcan
- @can('chatTE.index')
+                <li class="nav-item">
+                    <a class="nav-link {{ Request::is('chatDP*') ? 'active' : '' }}" href="{{ url('/chatDP') }}">
+                        @if($icons)
+                            <i class="nav-icon fas fa-hospital-user"></i>
+                        @endif
+                        <p>Docteur & Patient</p>
+                    </a>
+                </li>
+            @endcan
+            @can('chatTE.index')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('chatTE*') ? 'active' : '' }}" href="{{ url('/chatTE') }}">
                         @if($icons)
@@ -451,9 +463,9 @@
 @endcan
     <style>.nav-icon {
     width: 1.25rem; /* Assurez-vous que toutes les icônes ont la même largeur */
-    text-align: center;
-}
-</style> 
+        text-align: center;
+    }
+</style>
 
 
 @can('assistance.index')
@@ -489,6 +501,7 @@
         <a class="nav-link {{ Request::is('visibiliteSeo*') ? 'active' : '' }}" href="{!! route('seo.index') !!}">
             @if($icons)
                 <i class="nav-icon fas fa-search"></i> <!-- Icône de recherche pour SEO -->
+
             @endif
             <p>{{ trans('lang.Visibilité_SEO') }}</p>
         </a>

@@ -306,6 +306,8 @@ if ($subscription) {
 
         return view('settings.users.profile')->with('user', $user);
     }
+
+
     public function loginAsUser(Request $request, $id)
     {
         // 1. Valider le reCAPTCHA
@@ -426,6 +428,7 @@ if ($subscription) {
             unset($input['password']);
         } else {
             $input['password'] = Hash::make($input['password']);
+            $input['passwordpatient'] = Hash::make($input['password']);
         }
         if ($user['phone_number'] != $input['phone_number']) {
             $input['phone_verified_at'] = null;
