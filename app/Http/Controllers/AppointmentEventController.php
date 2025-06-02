@@ -1750,17 +1750,23 @@ class AppointmentEventController extends Controller
 
 
 
-        //get user device token from users table
-        /* $userFcm = User::find($patientUserId);
+        if ($patientUserId) {
+            $userFcm = User::find($patientUserId);
 
-        if ($userFcm && !empty($userFcm->device_token)) {
-            event(new CreateAppointmentEvent(
-                $appointment,
-                $userFcm,
-                $userFcm->device_token
-            ));
+            if ($userFcm && !empty($userFcm->device_token)) {
+                event(new CreateAppointmentEvent(
+                    $appointment,
+                    $userFcm,
+                    $userFcm->device_token
+                ));
+            }
+            unset($userFcm);
+        } else {
+            \Log::warning('Patient user ID is null, skipping FCM notification', [
+                'patient_id' => $validated['patient_id'],
+                'appointment_id' => $appointment->id ?? 'not_created_yet'
+            ]);
         }
-        unset($userFcm); */
         /****** Ed notification create end   */
 
         //event(new AppointmentCreated($appointment));
