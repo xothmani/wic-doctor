@@ -2217,5 +2217,27 @@ return [
     'medicament_prescription_created_at' => 'Crée le',
     'liste_medicament' => 'Liste médicaments',
 
-    
+    'drug_drug_interactions' => 'Interactions',
+    'interactions_results' => 'Résultats des interactions',
+    'ddi-checker' => 'Vérificateur d\'interactions médicamenteuses',
+    'search-drugs-placeholder' => 'Rechercher un médicament...',
+    'no-drugs-found' => 'Aucun médicament trouvé.',
+    'check' => 'Vérifier',
+    'checking-interactions' => 'Vérification des interactions...',
+    'interaction-results' => 'Résultats des interactions',
+    "no-interactions"=> "Aucune interaction connue détectée",
+    "safe-combination"=> "Les médicaments sélectionnés peuvent être pris ensemble en toute sécurité.",
+    'error-interactions' => 'Erreur lors de la vérification des interactions',
+    'details' => 'Détails',
+    'management' => 'Gestion',
+    'effect' => 'Effet',
+    'recommendation' => 'Recommandation',
+    'drugs-involved' => 'Médicaments impliqués',
+    'severity-low' => 'Faible',
+    'severity-moderate' => 'Modérée',
+    'severity-high' => 'Élevée',
+    'severity-critical' => 'Critique',
+    'severity-minor' => 'Mineure',
+    'severity-major' => 'Majeure',
+
 ];

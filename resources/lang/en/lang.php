@@ -1553,5 +1553,28 @@ return [
     'prescription_medicament_number' => 'Durée/',
     'prescription' => 'Préscription',
 
+    'drug_drug_interactions' => 'drug interactions',
+    'interactions_results' => 'Interaction Results',
+    'ddi-checker' => 'Drug Interaction Checker',
+    'search-drugs-placeholder' => 'Search for a drug...',
+    'no-drugs-found' => 'No drugs found.',
+    'check' => 'Check',
+    'checking-interactions' => 'Checking interactions',
+    'interaction-results' => 'Interaction Results',
+    'no-interactions' => 'No known interactions found.',
+    "safe-combination"=> "The medications selected can be taken together without any danger.",
+    'error-interactions' => 'Error checking interactions',
+    'details' => 'Details',
+    'management' => 'Management',
+    'effect' => 'Effect',
+    'recommendation' => 'Recommendation',
+    'drugs-involved' => 'Drugs involved',
+    'severity-low' => 'Low',
+    'severity-moderate' => 'Moderate',
+    'severity-high' => 'High',
+    'severity-critical' => 'Critical',
+    'severity-minor' => 'Minor',
+    'severity-major' => 'Major',
+
 
 ];
