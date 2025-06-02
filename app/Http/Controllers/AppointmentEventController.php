@@ -1751,6 +1751,7 @@ class AppointmentEventController extends Controller
 
 
         if ($patientUserId) {
+            \Log::info('Patient user ID is not null, sending FCM notification');
             $userFcm = User::find($patientUserId);
 
             if ($userFcm && !empty($userFcm->device_token)) {
