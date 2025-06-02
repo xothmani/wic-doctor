@@ -331,7 +331,7 @@ return [
     'appointment_status' => 'Statut du rendez-vous',
     'mark_failed' => 'Marquer comme annuler',
     'mark_ready' => 'Créer une consultation',
-    'agenda' => 'Calendrier',
+    'agenda' => 'Mon agenda',
     'calendar_view' => 'Vue du calendrier',
     'availability_date' => 'Date de disponibilité',
     'select_patient_type' => 'Sélectionner le type de patient',
@@ -1403,7 +1403,7 @@ return [
     'award_clinic_id_placeholder' => 'Sélectionnez une clinique',
     'award_updated_at' => 'Mis à jour à',
     'experience' => 'De l\'expérience',
-    'experience_plural' => 'Expériences',
+    'experience_plural' => 'Mes Expériences',
     'experience_desc' => 'Gestion des expériences',
     'experience_edit' => 'Modifier l\'expérience',
     'experience_table' => 'Liste des expériences',
@@ -1534,7 +1534,7 @@ return [
     'address_user_id_placeholder' => 'Insérer l\'identifiant de l\'utilisateur',
     'address_updated_at' => 'Mis à jour à',
     'availability_hour' => 'Heure de disponibilité',
-    'availability_hour_plural' => 'Heures de disponibilité',
+    'availability_hour_plural' => 'Mes horaires',
     'availability_hour_desc' => 'Gestion des heures de disponibilité',
     'availability_hour_edit' => 'Modifier l\'heure de disponibilité',
     'availability_hour_table' => 'Liste des heures de disponibilité',
@@ -1732,7 +1732,7 @@ return [
     'module_already_installed' => 'Module déjà installé',
     'module_buy' => 'Acheter maintenant',
     'patient' => 'Patient',
-    'patient_plural' => 'Les patients',
+    'patient_plural' => 'Mes patients',
     'patient_desc' => 'Gestion des patients',
     'patient_edit' => 'Modifier le patient',
     'patient_table' => 'Liste des patients',
@@ -2050,7 +2050,7 @@ return [
 
 
 
-    'my_blog_plural' => 'Blogs',
+    'my_blog_plural' => 'Mes Blogs',
     'my_blog' => 'blog',
 
     'blog_desc' => 'Gestion des blogs',
