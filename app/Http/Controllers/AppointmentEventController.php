@@ -1588,7 +1588,7 @@ class AppointmentEventController extends Controller
         $patternId = $request->input('pattern_id');
         $date = $request->input('date');
         $type = $request->input('type');
-        $time = $request->input('time', now()->format('H:i'));
+        $time = $request->input('time', Carbon::now('Africa/Tunis')->format('H:i')); // ✅ Use Tunis timezone
 
         \Log::info('Fetching slots for pattern;;;;:', [
             'pattern_id' => $patternId,
@@ -1642,7 +1642,7 @@ class AppointmentEventController extends Controller
             $availableSlots[] = $slotTime;
 
             // Check if slot is in the past
-            $slotDateTime = Carbon::parse($date . ' ' . $slotTime);
+            $slotDateTime = Carbon::parse($date . ' ' . $slotTime, 'Africa/Tunis'); // ✅ Parse in Tunis timezone
             if ($slotDateTime->isPast()) {
                 $pastSlots[] = $slotTime;
             }
