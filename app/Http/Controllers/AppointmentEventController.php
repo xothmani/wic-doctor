@@ -1316,6 +1316,7 @@ class AppointmentEventController extends Controller
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
         $selectedType = $request->input('type');
+        \Log::info('Selected Date:', ['date' => $selectedDate]);
 
         if (!$doctorId || !$selectedDate || !$selectedType) {
             return response()->json(['error' => 'Missing data'], 400);
@@ -1394,7 +1395,7 @@ class AppointmentEventController extends Controller
                 return $slotDateTime->isAfter($now);
             });
         }
-
+        \Log::info('Available Slots:', ['slots' => array_values($availableSlots)]);
         return response()->json([
             'vacation' => false,
             'available_slots' => array_values($availableSlots),
