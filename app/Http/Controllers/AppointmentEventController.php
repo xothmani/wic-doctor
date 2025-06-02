@@ -1177,7 +1177,7 @@ class AppointmentEventController extends Controller
         }
 
         $dayName = Carbon::parse($selectedDate)->format('l');
-        $now = Carbon::now();
+        $now = Carbon::now('Africa/Tunis'); // ✅ Use Tunis timezone
 
         // Get all availabilities for the selected time slot
         $availabilityQuery = DB::table('availability_hours')
@@ -1220,7 +1220,7 @@ class AppointmentEventController extends Controller
             $availableSlots[] = $slotTime;
 
             // Check if slot is in the past
-            $slotDateTime = Carbon::parse($selectedDate . ' ' . $slotTime);
+            $slotDateTime = Carbon::parse($selectedDate . ' ' . $slotTime, 'Africa/Tunis'); // ✅ Parse in Tunis timezone
             if ($slotDateTime->isPast()) {
                 $pastSlots[] = $slotTime;
             }
