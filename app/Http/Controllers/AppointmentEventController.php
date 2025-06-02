@@ -1385,17 +1385,20 @@ class AppointmentEventController extends Controller
             ->pluck('time')
             ->toArray();
 
-        // Remove past slots if it's today
-        $now = Carbon::now();
-        $currentDate = Carbon::parse($selectedDate);
+        // Remove past slots if it's today - FIX: Use Tunis timezone
+        $now = Carbon::now('Africa/Tunis'); // ✅ Use Tunis timezone instead of UTC
+        $currentDate = Carbon::parse($selectedDate, 'Africa/Tunis');
 
         if ($currentDate->isToday()) {
             $availableSlots = array_filter($availableSlots, function ($slot) use ($now, $selectedDate) {
-                $slotDateTime = Carbon::parse($selectedDate . ' ' . $slot);
+                $slotDateTime = Carbon::parse($selectedDate . ' ' . $slot, 'Africa/Tunis'); // ✅ Parse in Tunis timezone
                 return $slotDateTime->isAfter($now);
             });
         }
+
         \Log::info('Available Slots:', ['slots' => array_values($availableSlots)]);
+        \Log::info('Current time in Tunis:', ['now' => $now->format('Y-m-d H:i:s')]);
+
         return response()->json([
             'vacation' => false,
             'available_slots' => array_values($availableSlots),
