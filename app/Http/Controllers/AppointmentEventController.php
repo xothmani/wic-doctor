@@ -1751,7 +1751,7 @@ class AppointmentEventController extends Controller
 
 
         //get user device token from users table
-        $userFcm = User::find($patientUserId);
+        /* $userFcm = User::find($patientUserId);
 
         if ($userFcm && !empty($userFcm->device_token)) {
             event(new CreateAppointmentEvent(
@@ -1760,7 +1760,7 @@ class AppointmentEventController extends Controller
                 $userFcm->device_token
             ));
         }
-        unset($userFcm);
+        unset($userFcm); */
         /****** Ed notification create end   */
 
         //event(new AppointmentCreated($appointment));
