@@ -19,6 +19,7 @@ return [
     "reports_list" => "Liste des rapports",
     ///////////translation from rayen
     ///
+    'select_time_first' => 'Choisir l\'heure d\'abord',
     'time_slot_already_exists' => 'Il y a déjà un créneau à cet horaire',
     'no_patterns_for_this_type' => 'Pas de motif disponible ,Il faut aller à la section motif pour créer motif de ce type de consultation.',
     'type_required' => 'Le type de rendez-vous est requis',
@@ -279,16 +280,16 @@ return [
     'appointment_desc' => 'Gestion des rendez-vous et des consultations',
     'dashboard' => 'Tableau de bord',
     'appointment_details' => 'Détails du rendez-vous',
-   
+
     'patient_name' => 'Nom du patient',
-    
+
     'mark_as_failed' => 'Marquer comme échoué',
     'mark_as_ready' => 'Marquer comme prêt',
     'patient_type' => 'Type de patient',
     'patient_referenced' => 'Patient référencé',
     'patient_walk_in' => 'Patient de passage',
     'select_patient' => 'Sélectionner un patient',
-    
+
     'first_name' => 'Prénom',
     'last_name' => 'Nom',
     'phone_number' => 'Numéro de téléphone',
@@ -330,7 +331,7 @@ return [
     'appointment_status' => 'Statut du rendez-vous',
     'mark_failed' => 'Marquer comme annuler',
     'mark_ready' => 'Créer une consultation',
-    'agenda' => 'Calendrier',
+    'agenda' => 'Mon agenda',
     'calendar_view' => 'Vue du calendrier',
     'availability_date' => 'Date de disponibilité',
     'select_patient_type' => 'Sélectionner le type de patient',
@@ -1402,7 +1403,7 @@ return [
     'award_clinic_id_placeholder' => 'Sélectionnez une clinique',
     'award_updated_at' => 'Mis à jour à',
     'experience' => 'De l\'expérience',
-    'experience_plural' => 'Expériences',
+    'experience_plural' => 'Mes Expériences',
     'experience_desc' => 'Gestion des expériences',
     'experience_edit' => 'Modifier l\'expérience',
     'experience_table' => 'Liste des expériences',
@@ -1533,7 +1534,7 @@ return [
     'address_user_id_placeholder' => 'Insérer l\'identifiant de l\'utilisateur',
     'address_updated_at' => 'Mis à jour à',
     'availability_hour' => 'Heure de disponibilité',
-    'availability_hour_plural' => 'Heures de disponibilité',
+    'availability_hour_plural' => 'Mes horaires',
     'availability_hour_desc' => 'Gestion des heures de disponibilité',
     'availability_hour_edit' => 'Modifier l\'heure de disponibilité',
     'availability_hour_table' => 'Liste des heures de disponibilité',
@@ -1731,7 +1732,7 @@ return [
     'module_already_installed' => 'Module déjà installé',
     'module_buy' => 'Acheter maintenant',
     'patient' => 'Patient',
-    'patient_plural' => 'Les patients',
+    'patient_plural' => 'Mes patients',
     'patient_desc' => 'Gestion des patients',
     'patient_edit' => 'Modifier le patient',
     'patient_table' => 'Liste des patients',
@@ -2049,7 +2050,7 @@ return [
 
 
 
-    'my_blog_plural' => 'Blogs',
+    'my_blog_plural' => 'Mes Blogs',
     'my_blog' => 'blog',
 
     'blog_desc' => 'Gestion des blogs',
@@ -2216,5 +2217,27 @@ return [
     'medicament_prescription_created_at' => 'Crée le',
     'liste_medicament' => 'Liste médicaments',
 
-    
+    'drug_drug_interactions' => 'Interactions',
+    'interactions_results' => 'Résultats des interactions',
+    'ddi-checker' => 'Vérificateur d\'interactions médicamenteuses',
+    'search-drugs-placeholder' => 'Rechercher un médicament...',
+    'no-drugs-found' => 'Aucun médicament trouvé.',
+    'check' => 'Vérifier',
+    'checking-interactions' => 'Vérification des interactions...',
+    'interaction-results' => 'Résultats des interactions',
+    "no-interactions"=> "Aucune interaction connue détectée",
+    "safe-combination"=> "Les médicaments sélectionnés peuvent être pris ensemble en toute sécurité.",
+    'error-interactions' => 'Erreur lors de la vérification des interactions',
+    'details' => 'Détails',
+    'management' => 'Gestion',
+    'effect' => 'Effet',
+    'recommendation' => 'Recommandation',
+    'drugs-involved' => 'Médicaments impliqués',
+    'severity-low' => 'Faible',
+    'severity-moderate' => 'Modérée',
+    'severity-high' => 'Élevée',
+    'severity-critical' => 'Critique',
+    'severity-minor' => 'Mineure',
+    'severity-major' => 'Majeure',
+
 ];

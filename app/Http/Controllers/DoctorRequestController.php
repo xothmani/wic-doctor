@@ -589,16 +589,19 @@ class DoctorRequestController extends Controller
 
     private function createPatient($user, $doctorRequest)
     {
+        $decodedName = json_decode($user->name, true);
+        $decodedLastname = json_decode($user->lastname, true);
+    
         Patient::create([
             'user_id' => $user->id,
-            'first_name' => $user->name,
-            'last_name' => $user->lastname,
+            'first_name' => json_encode($decodedName),
+            'last_name' => json_encode($decodedLastname),
             'email' => $doctorRequest->email,
             'date_naissance' => $doctorRequest->date_naissance ?? null,
             'phone_number' => $doctorRequest->Phone,
-
         ]);
     }
+    
 
     public function destroy(string $id)
     {

@@ -234,6 +234,58 @@ $monthlyAppointmentsLabels = json_encode([
 ]);
 $monthlyAppointmentsData = json_encode(array_values($monthlyAppointments));
 
+
+
+// Récupérer les consultations de ce médecin
+$consultations = Consultation::where('user_id', $user->id)->get();
+
+$totalSeconds = 0;
+$consultationCountWithDuration = 0;
+
+foreach ($consultations as $consultation) {
+    $duration = strtolower(trim($consultation->duree)); // exemple : "1h 20min 23s"
+
+    if (empty($duration)) continue; // Ignorer les durées vides
+
+    // Initialisation
+    $hours = $minutes = $seconds = 0;
+
+    // Extraction des unités
+    if (preg_match('/(\d+)\s*h/', $duration, $match)) {
+        $hours = (int)$match[1];
+    }
+    if (preg_match('/(\d+)\s*min/', $duration, $match)) {
+        $minutes = (int)$match[1];
+    }
+    if (preg_match('/(\d+)\s*s/', $duration, $match)) {
+        $seconds = (int)$match[1];
+    }
+
+    // Convertir en secondes
+    $total = $hours * 3600 + $minutes * 60 + $seconds;
+
+    // Ajouter au total si durée valide
+    if ($total > 0) {
+        $totalSeconds += $total;
+        $consultationCountWithDuration++;
+    }
+}
+
+// Calcul de la moyenne
+$averageDurationInSeconds = $consultationCountWithDuration > 0 ? floor($totalSeconds / $consultationCountWithDuration) : 0;
+
+// Conversion h:min:s
+$hours = floor($averageDurationInSeconds / 3600);
+$minutes = floor(($averageDurationInSeconds % 3600) / 60);
+$seconds = $averageDurationInSeconds % 60;
+
+// Formatage du résultat
+$formattedAverageDuration = '';
+if ($hours > 0) $formattedAverageDuration .= $hours . 'h ';
+if ($minutes > 0) $formattedAverageDuration .= $minutes . 'min ';
+if ($seconds > 0 || $formattedAverageDuration === '') $formattedAverageDuration .= $seconds . 's';
+
+
     
         return view('dashboardmedecin.index', compact(
             'user',
@@ -249,7 +301,11 @@ $monthlyAppointmentsData = json_encode(array_values($monthlyAppointments));
             'statusDataToday',
             'topMotifs',
             'monthlyAppointmentsLabels',
-            'monthlyAppointmentsData'
+            'monthlyAppointmentsData',
+            'formattedAverageDuration',
+            'hours',
+            'minutes',
+            'seconds'
 
 
 

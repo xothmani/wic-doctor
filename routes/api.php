@@ -9,6 +9,7 @@ use App\Http\Controllers\API\DoctorAPIController;
 use App\Http\Controllers\API\NotificationAPIController;
 use App\Http\Controllers\API\PrescriptionsApiController;
 use App\Http\Controllers\API\RoomAPIController;
+use App\Http\Controllers\DrugController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\API\TranslationAPIController;
 use App\Http\Controllers\API\AvailabilityHourAPIController;
@@ -236,3 +237,11 @@ Route::middleware('auth:api')->group(function () {
 
 // Analyze compatibility, a proxy route in ordre to make dispatching bd from dev to prod dynamic
 Route::post('/proxy/analyze-compatibility', [PrescriptionController::class, 'proxyAnalyzeCompatibility']);
+
+// Drug API routes
+Route::prefix('/drugs')->group(function () {
+    Route::get('/', [DrugController::class, 'index']);
+    Route::get('/search', [DrugController::class, 'search']);
+    Route::get('/{medicament_id}', [DrugController::class, 'show']);
+    Route::post('/check-interactions', [DrugController::class, 'checkInteractions']);
+});
