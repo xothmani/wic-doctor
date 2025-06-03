@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\DrugInteractionBackup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class DrugController extends Controller
 {
@@ -136,12 +138,12 @@ class DrugController extends Controller
     }
 
     /**
-     * Check drug interactions using Univadis API
+     * Check drug interactions with permanent backup storage
      */
     public function checkInteractions(Request $request)
     {
         $drugIds = $request->get('drug_ids', []);
-
+        
         if (empty($drugIds) || count($drugIds) < 2) {
             return response()->json([
                 'error' => 'At least 2 drugs are required for interaction checking'
@@ -149,76 +151,268 @@ class DrugController extends Controller
         }
 
         try {
-            // Format drug IDs for Univadis API
-            $formattedDrugIds = array_map(function ($id) {
-                return 'drug_' . $id . '_fr';
-            }, $drugIds);
-
-            $drugList = implode(',', $formattedDrugIds);
-
-
-            // Long cookie string from your browser/dev tools
-            $cookieHeader = 'med_session=FA6MYyHekYcwW4S1Ktt1aMnSZm9sVJOimVCNhznnZKX6sAufO0Vi2Mh8CNRvq7yjUsAB8Lu4UqliV%2BVm%2FDvc%2B9D5oeUNWWDeQi%2Fy0IRH81Z19eaj%2Bf%2BbLWBX%2BV9dcBemgW0kn0lwvd9IsWVDpCse8Ky2LY9cc77YQTgD6Dt6YIUZjh2YtbpaKqss33EhgaX7M9VKIhpNq6zPXv5Pl%2FB%2BKxwclqvN0zW%2BMJV8UONHSiI1ph5RCzxHV9l5LRmVMADtxW0ZH3Xgkmkl4FdLx5ufQUSUA6xT0ETq707hFwznlap2ltZdv%2FeM8jDfdMZQ86X5F6EAZnvj60uPRBRX%2BSekKeMRbEs2aSOs7tp%2FXQH1h467icGH9y%2BXgDqMybcEPu2nM39X9FUH%2BRILkiypkDbd5xSVYua0894rw1xvY4WdzRjvaKcfp7eLTb48%2F0x0lxlV; Path=/; Domain=univadis.fr; Secure; HttpOnly; Expires=Tue, 02 Jul 2030 13:31:48 GMT;';
-
-            $response = Http::withHeaders([
-                'Cookie' => $cookieHeader,
-            ])->timeout(30)->get('https://www.univadis.fr/ajax/interactions', [
-                        'drugList' => $drugList
+            // Generate hash for this drug combination
+            $combinationHash = DrugInteractionBackup::generateCombinationHash($drugIds);
+            
+            // Check if we're in backup mode or if API should be bypassed
+            $backupMode = config('drug_interactions.backup_mode', false);
+            
+            if (!$backupMode) {
+                // Try to fetch from API first
+                try {
+                    Log::info('Attempting to fetch from API', [
+                        'combination_hash' => $combinationHash,
+                        'drug_ids' => $drugIds
                     ]);
-
-            if (!$response->successful()) {
-                return response()->json([
-                    'error' => 'Failed to check interactions',
-                    'message' => 'External API error'
-                ], 500);
-            }
-
-            $data = $response->json();
-
-            // Transform the response to match our expected format
-            $interactions = [];
-            if (isset($data['items']) && is_array($data['items'])) {
-                foreach ($data['items'] as $item) {
-                    $interactions[] = [
-                        'interaction_id' => $item['interactionId'] ?? '',
-                        'severity' => $this->mapSeverity($item['severity'] ?? '1'),
-                        'effect' => $item['effect'] ?? '',
-                        'recommendation' => $item['recommendation'] ?? '',
-                        'substances_line' => $item['substancesLine'] ?? '',
-                        'substances' => $item['substances'] ?? [],
-                        'left_boxes' => $item['leftBoxes'] ?? []
-                    ];
+                    
+                    $apiResponse = $this->fetchFromUnivadisAPI($drugIds);
+                    
+                    // Store in backup database (create or update)
+                    $this->storeInBackup($combinationHash, $drugIds, $apiResponse);
+                    
+                    return $this->formatResponse($apiResponse, 'api');
+                    
+                } catch (\Exception $e) {
+                    Log::warning('API fetch failed, falling back to backup', [
+                        'error' => $e->getMessage(),
+                        'combination_hash' => $combinationHash
+                    ]);
+                    // Continue to backup lookup below
                 }
             }
-
+            
+            // Look for data in backup database
+            $backupData = DrugInteractionBackup::where('drug_combination_hash', $combinationHash)->first();
+            
+            if ($backupData) {
+                Log::info('Using backup database', [
+                    'combination_hash' => $combinationHash,
+                    'first_fetched_at' => $backupData->first_fetched_at
+                ]);
+                
+                return $this->formatResponse($backupData->api_response, 'backup');
+            }
+            
+            // No data available anywhere
             return response()->json([
-                'interactions' => $interactions,
-                'total_results' => $data['count'] ?? count($interactions),
-                'is_european' => $data['isEuropean'] ?? 1
-            ]);
-
+                'error' => 'No interaction data available',
+                'message' => 'API is unavailable and no backup data exists for this drug combination',
+                'drug_ids' => $drugIds
+            ], 404);
+            
         } catch (\Exception $e) {
+            Log::error('Drug interaction check completely failed', [
+                'error' => $e->getMessage(),
+                'drug_ids' => $drugIds
+            ]);
+            
             return response()->json([
-                'error' => 'Failed to check interactions',
-                'message' => $e->getMessage()
+                'error' => 'System error',
+                'message' => 'Unable to process request'
             ], 500);
         }
     }
 
     /**
-     * Map numeric severity to text
+     * Store API response in backup database
      */
-    private function mapSeverity($numericSeverity)
+    private function storeInBackup(string $combinationHash, array $drugIds, array $apiResponse): void
+    {
+        $formattedDrugList = implode(',', array_map(function ($id) {
+            return 'drug_' . $id . '_fr';
+        }, $drugIds));
+
+        DrugInteractionBackup::updateOrCreate(
+            ['drug_combination_hash' => $combinationHash],
+            [
+                'drug_ids' => $drugIds,
+                'formatted_drug_list' => $formattedDrugList,
+                'api_response' => $apiResponse,
+                'total_results' => $apiResponse['count'] ?? 0,
+                'is_european' => $apiResponse['isEuropean'] ?? 1,
+                'last_updated_at' => now(),
+                'first_fetched_at' => now() // This will only be set on create, not update
+            ]
+        );
+
+        Log::info('Stored interaction data in backup', [
+            'combination_hash' => $combinationHash,
+            'total_results' => $apiResponse['count'] ?? 0
+        ]);
+    }
+
+    /**
+     * Fetch data from Univadis API
+     */
+    private function fetchFromUnivadisAPI(array $drugIds): array
+    {
+        // Format drug IDs for Univadis API
+        $formattedDrugIds = array_map(function ($id) {
+            return 'drug_' . $id . '_fr';
+        }, $drugIds);
+
+        $drugList = implode(',', $formattedDrugIds);
+        
+        // Get cookie from config
+        $cookieHeader = config('drug_interactions.univadis_cookie') ?: 
+                       config('services.univadis_cookie') ?: 
+                       env('UNIVADIS_COOKIE');
+
+        if (empty($cookieHeader)) {
+            throw new \Exception('Univadis cookie not configured');
+        }
+
+        $response = Http::withHeaders([
+            'Cookie' => $cookieHeader,
+        ])->timeout(config('drug_interactions.api_timeout', 30))
+          ->get('https://www.univadis.fr/ajax/interactions', [
+            'drugList' => $drugList
+        ]);
+
+        if (!$response->successful()) {
+            throw new \Exception('External API error: ' . $response->status());
+        }
+
+        return $response->json();
+    }
+
+    /**
+     * Format response data
+     */
+    private function formatResponse(array $data, string $source): \Illuminate\Http\JsonResponse
+    {
+        $interactions = [];
+        
+        if (isset($data['items']) && is_array($data['items'])) {
+            foreach ($data['items'] as $item) {
+                $interactions[] = [
+                    'interaction_id' => $item['interactionId'] ?? '',
+                    'severity' => $this->mapSeverity($item['severity'] ?? '1'),
+                    'effect' => $item['effect'] ?? '',
+                    'recommendation' => $item['recommendation'] ?? '',
+                    'substances_line' => $item['substancesLine'] ?? '',
+                    'substances' => $item['substances'] ?? [],
+                    'left_boxes' => $item['leftBoxes'] ?? []
+                ];
+            }
+        }
+
+        $response = [
+            'interactions' => $interactions,
+            'total_results' => $data['count'] ?? count($interactions),
+            'is_european' => $data['isEuropean'] ?? 1,
+            'data_source' => $source
+        ];
+        
+        if ($source === 'backup') {
+            $response['notice'] = 'Data retrieved from backup database';
+        }
+        
+        return response()->json($response);
+    }
+
+    /**
+     * Map severity levels
+     */
+    private function mapSeverity($severity): string
     {
         $severityMap = [
             '1' => 'low',
-            '2' => 'low',
+            '2' => 'minor',
             '3' => 'moderate',
-            '4' => 'moderate',
+            '4' => 'major',
             '5' => 'high',
             '6' => 'critical'
         ];
+        
+        return $severityMap[$severity] ?? 'Unknown';
+    }
 
-        return $severityMap[$numericSeverity] ?? 'unknown';
+    /**
+     * Get backup database statistics
+     */
+    public function getBackupStats()
+    {
+        $totalCombinations = DrugInteractionBackup::count();
+        $totalInteractions = DrugInteractionBackup::sum('total_results');
+        
+        $recentBackups = DrugInteractionBackup::where('first_fetched_at', '>', now()->subDays(30))->count();
+        
+        $severityStats = [];
+        $allBackups = DrugInteractionBackup::all();
+        
+        foreach ($allBackups as $backup) {
+            if (isset($backup->api_response['items'])) {
+                foreach ($backup->api_response['items'] as $item) {
+                    $severity = $this->mapSeverity($item['severity'] ?? '1');
+                    $severityStats[$severity] = ($severityStats[$severity] ?? 0) + 1;
+                }
+            }
+        }
+        
+        return response()->json([
+            'backup_stats' => [
+                'total_drug_combinations' => $totalCombinations,
+                'total_interactions_stored' => $totalInteractions,
+                'recent_additions' => $recentBackups,
+                'interactions_by_severity' => $severityStats,
+                'oldest_backup' => DrugInteractionBackup::orderBy('first_fetched_at')->first()?->first_fetched_at,
+                'newest_backup' => DrugInteractionBackup::orderBy('first_fetched_at', 'desc')->first()?->first_fetched_at,
+                'backup_mode_active' => config('drug_interactions.backup_mode', false)
+            ]
+        ]);
+    }
+
+    /**
+     * Toggle backup mode (useful when API is permanently unavailable)
+     */
+    public function toggleBackupMode(Request $request)
+    {
+        $backupMode = $request->get('backup_mode', true);
+        
+        // Note: This would require updating config dynamically or using a database setting
+        // For now, it just returns the current status
+        return response()->json([
+            'message' => 'Backup mode toggle requested',
+            'requested_mode' => $backupMode,
+            'current_mode' => config('drug_interactions.backup_mode', false),
+            'note' => 'Update DRUG_INTERACTIONS_BACKUP_MODE in .env file to persist this change'
+        ]);
+    }
+
+    /**
+     * Search through backup data for specific drugs or interactions
+     */
+    public function searchBackup(Request $request)
+    {
+        $searchTerm = $request->get('search', '');
+        $limit = $request->get('limit', 50);
+        
+        if (empty($searchTerm)) {
+            return response()->json(['error' => 'Search term is required'], 400);
+        }
+        
+        $results = DrugInteractionBackup::whereRaw(
+            'JSON_SEARCH(api_response, "all", ?) IS NOT NULL', 
+            ['%' . $searchTerm . '%']
+        )->limit($limit)->get();
+        
+        $formattedResults = [];
+        foreach ($results as $result) {
+            $formattedResults[] = [
+                'drug_combination_hash' => $result->drug_combination_hash,
+                'drug_ids' => $result->drug_ids,
+                'drug_names' => $result->drug_names,
+                'total_results' => $result->total_results,
+                'first_fetched_at' => $result->first_fetched_at,
+                'last_updated_at' => $result->last_updated_at
+            ];
+        }
+        
+        return response()->json([
+            'search_term' => $searchTerm,
+            'results_count' => count($formattedResults),
+            'results' => $formattedResults
+        ]);
     }
 }

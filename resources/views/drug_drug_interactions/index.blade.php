@@ -337,6 +337,113 @@
             margin-top: 20px;
         }
 
+        .backup-status {
+            margin-bottom: 20px;
+        }
+
+        .backup-status .alert {
+            padding: 10px 15px;
+            border: 1px solid #d1ecf1;
+            border-radius: 4px;
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .backup-notice {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: #004085;
+        }
+
+        .backup-notice i {
+            margin-right: 5px;
+        }
+
+        .results-header {
+            margin-bottom: 15px;
+        }
+
+        .results-header h3 {
+            margin: 0 0 10px 0;
+        }
+
+        .admin-controls {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .admin-controls h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+        }
+
+        .admin-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .admin-buttons button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-info:hover {
+            background-color: #138496;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .stat-item {
+            padding: 8px;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+
+        .loading small {
+            color: #666;
+            font-style: italic;
+        }
+
+        .error {
+            padding: 15px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            color: #721c24;
+        }
+
+        .error i {
+            margin-right: 8px;
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -375,6 +482,14 @@
         <div class="container">
             <h1>@lang('lang.ddi-checker')</h1>
 
+            <!-- Backup Mode Indicator -->
+            <div class="backup-status" id="backupStatus" style="display: none;">
+                <div class="alert alert-info">
+                    <i class="fas fa-database"></i>
+                    <span id="backupStatusText">@lang('lang.backup-mode-active')</span>
+                </div>
+            </div>
+
             <div class="search-section">
                 <div class="search-container">
                     <input type="text" class="search-input" placeholder="@lang('lang.search-drugs-placeholder')"
@@ -388,6 +503,21 @@
             </div>
 
             <div class="results-section" id="resultsSection"></div>
+
+            <!-- Admin Controls (if user has admin privileges) -->
+            @if(auth()->user() && auth()->user()->hasRole('admin'))
+                <div class="admin-controls"
+                    style="margin-top: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                    <h4>@lang('lang.admin-controls')</h4>
+                    <div class="admin-buttons">
+                        <button class="btn btn-secondary" id="toggleBackupMode">
+                            <span id="backupModeText">@lang('lang.toggle-backup-mode')</span>
+                        </button>
+                        <button class="btn btn-info" id="getBackupStats">@lang('lang.backup-stats')</button>
+                    </div>
+                    <div class="backup-stats" id="backupStatsSection" style="display: none; margin-top: 15px;"></div>
+                </div>
+            @endif
         </div>
     </div>
 @endsection
@@ -398,12 +528,14 @@
             constructor() {
                 this.drugs = [];
                 this.selectedDrugs = [];
+                this.backupMode = false;
 
                 this.searchInput = document.getElementById('drugSearch');
                 this.searchResults = document.getElementById('searchResults');
                 this.selectedContainer = document.getElementById('selectedDrugs');
                 this.checkButton = document.getElementById('checkButton');
                 this.resultsSection = document.getElementById('resultsSection');
+                this.backupStatus = document.getElementById('backupStatus');
 
                 this.debounceTimer = null;
 
@@ -413,6 +545,8 @@
             async init() {
                 await this.loadDrugs();
                 this.bindEvents();
+                await this.checkBackupStatus();
+                this.initAdminControls();
             }
 
             async loadDrugs() {
@@ -429,7 +563,7 @@
                     }
 
                     const data = await response.json();
-                    console.log('Loaded drugs:', data); // Debug log
+                    console.log('Loaded drugs:', data);
 
                     this.drugs = data.map(drug => ({
                         id: drug.id,
@@ -461,6 +595,34 @@
                 }
             }
 
+            async checkBackupStatus() {
+                try {
+                    const response = await fetch('/api/drug-interactions/backup-stats', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.backupMode = data.backup_mode || false;
+                        this.updateBackupStatusDisplay();
+                    }
+                } catch (e) {
+                    console.log('Could not check backup status:', e);
+                }
+            }
+
+            updateBackupStatusDisplay() {
+                if (this.backupMode) {
+                    this.backupStatus.style.display = 'block';
+                    document.getElementById('backupStatusText').textContent = '@lang("lang.backup-mode-active")';
+                } else {
+                    this.backupStatus.style.display = 'none';
+                }
+            }
+
             bindEvents() {
                 // Search input events
                 this.searchInput.addEventListener('input', (e) => {
@@ -489,7 +651,7 @@
 
             showResults(query) {
                 query = query.toLowerCase().trim();
-                console.log('Searching for:', query); // Debug log
+                console.log('Searching for:', query);
 
                 if (query.length < 2) {
                     this.searchResults.style.display = 'none';
@@ -497,15 +659,15 @@
                 }
 
                 const results = this.fuzzySearch(query);
-                console.log('Search results:', results); // Debug log
+                console.log('Search results:', results);
 
                 if (results.length > 0) {
                     this.searchResults.innerHTML = results.map(d => `
-                                                        <div class="search-result" data-drug-id="${d.id}">
-                                                            <div class="drug-name">${d.name}</div>
-                                                            ${d.subtext ? `<div class="drug-subtext">${d.subtext}</div>` : ''}
-                                                        </div>
-                                                    `).join('');
+                                    <div class="search-result" data-drug-id="${d.id}">
+                                        <div class="drug-name">${d.name}</div>
+                                        ${d.subtext ? `<div class="drug-subtext">${d.subtext}</div>` : ''}
+                                    </div>
+                                `).join('');
                 } else {
                     this.searchResults.innerHTML = `<div class="search-result">@lang('lang.no-drugs-found')</div>`;
                 }
@@ -515,7 +677,7 @@
                 // Add click event listeners to search results
                 this.searchResults.querySelectorAll('.search-result[data-drug-id]').forEach(el => {
                     el.addEventListener('click', (e) => {
-                        console.log('Clicked drug:', el.dataset.drugId); // Debug log
+                        console.log('Clicked drug:', el.dataset.drugId);
                         this.addDrug(el.dataset.drugId);
                         this.searchInput.value = '';
                         this.searchResults.style.display = 'none';
@@ -575,37 +737,37 @@
             }
 
             addDrug(id) {
-                console.log('Adding drug with ID:', id); // Debug log
-                const drug = this.drugs.find(d => d.id == id); // Use == for type coercion
+                console.log('Adding drug with ID:', id);
+                const drug = this.drugs.find(d => d.id == id);
 
                 if (drug && !this.selectedDrugs.some(d => d.id == id)) {
                     this.selectedDrugs.push(drug);
-                    console.log('Drug added:', drug); // Debug log
-                    console.log('Selected drugs:', this.selectedDrugs); // Debug log
+                    console.log('Drug added:', drug);
+                    console.log('Selected drugs:', this.selectedDrugs);
                     this.renderSelectedDrugs();
                     this.updateCheckButton();
                 } else {
-                    console.log('Drug not found or already selected:', id); // Debug log
+                    console.log('Drug not found or already selected:', id);
                 }
             }
 
             removeDrug(id) {
-                console.log('Removing drug with ID:', id); // Debug log
-                this.selectedDrugs = this.selectedDrugs.filter(d => d.id != id); // Use != for type coercion
+                console.log('Removing drug with ID:', id);
+                this.selectedDrugs = this.selectedDrugs.filter(d => d.id != id);
                 this.renderSelectedDrugs();
                 this.updateCheckButton();
             }
 
             renderSelectedDrugs() {
-                console.log('Rendering selected drugs:', this.selectedDrugs); // Debug log
+                console.log('Rendering selected drugs:', this.selectedDrugs);
 
                 this.selectedContainer.innerHTML = this.selectedDrugs.map(d => `
-                                                    <div class="drug-chip">
-                                                        <span class="drug-name">${d.name}</span>
-                                                        ${d.subtext ? `<span class="drug-subtext">${d.subtext}</span>` : ''}
-                                                        <div class="remove" data-id="${d.id}">&times;</div>
-                                                    </div>
-                                                `).join('');
+                                <div class="drug-chip">
+                                    <span class="drug-name">${d.name}</span>
+                                    ${d.subtext ? `<span class="drug-subtext">${d.subtext}</span>` : ''}
+                                    <div class="remove" data-id="${d.id}">&times;</div>
+                                </div>
+                            `).join('');
 
                 // Add event listeners to remove buttons
                 this.selectedContainer.querySelectorAll('.remove').forEach(btn => {
@@ -618,14 +780,19 @@
 
             updateCheckButton() {
                 this.checkButton.disabled = this.selectedDrugs.length < 2;
-                console.log('Check button disabled:', this.checkButton.disabled); // Debug log
+                console.log('Check button disabled:', this.checkButton.disabled);
             }
 
             async checkInteractions() {
                 const ids = this.selectedDrugs.map(d => d.id);
-                console.log('Checking interactions for IDs:', ids); // Debug log
+                console.log('Checking interactions for IDs:', ids);
 
-                this.resultsSection.innerHTML = `<div class="loading"><div class="spinner"></div> @lang('lang.checking-interactions')...</div>`;
+                this.resultsSection.innerHTML = `
+                                <div class="loading">
+                                    <div class="spinner"></div> 
+                                    @lang('lang.checking-interactions')...
+                                    ${this.backupMode ? '<br><small>@lang("lang.using-backup-data")</small>' : ''}
+                                </div>`;
 
                 try {
                     const response = await fetch('/api/drugs/check-interactions', {
@@ -641,7 +808,7 @@
                     });
 
                     const data = await response.json();
-                    console.log('Interaction response:', data); // Debug log
+                    console.log('Interaction response:', data);
 
                     if (!response.ok) {
                         throw new Error(data.message || 'Failed to check interactions');
@@ -649,49 +816,67 @@
 
                     this.renderResults(data);
                 } catch (e) {
-                    console.error('Error checking interactions:', e); // Debug log
-                    this.resultsSection.innerHTML = `<div class="error">@lang('lang.error-interactions'): ${e.message}</div>`;
+                    console.error('Error checking interactions:', e);
+                    this.resultsSection.innerHTML = `
+                                    <div class="error">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        @lang('lang.error-interactions'): ${e.message}
+                                        <br><small>@lang('lang.try-again-later')</small>
+                                    </div>`;
                 }
             }
 
             renderResults(data) {
+                const isFromBackup = data.from_backup || false;
+                const backupDate = data.backup_date ? new Date(data.backup_date).toLocaleDateString() : null;
+
                 if (!data.interactions || !data.interactions.length) {
                     this.resultsSection.innerHTML = `
-                            <div class="interaction no-interactions">
-                                <div class="icon">✔️</div>
-                                <h3>@lang('lang.no-interactions')</h3>
-                                <p>@lang('lang.safe-combination')</p>
-                            </div>
-                        `;
+                                    <div class="interaction no-interactions">
+                                        <div class="icon">✔️</div>
+                                        <h3>@lang('lang.no-interactions')</h3>
+                                        <p>@lang('lang.safe-combination')</p>
+                                        ${isFromBackup ? `<div class="backup-notice">
+                                            <i class="fas fa-database"></i>
+                                            @lang('lang.data-from-backup')${backupDate ? ` (${backupDate})` : ''}
+                                        </div>` : ''}
+                                    </div>
+                                `;
                     return;
                 }
 
                 this.resultsSection.innerHTML = `
-                                                    <h3>@lang('lang.interaction-results') (${data.total_results || data.interactions.length})</h3>
-                                                    ${data.interactions.map(i => `
-                                                        <div class="interaction">
-                                                            <div class="interaction-header">
-                                                                <div>${i.substances_line || 'Drug Interaction'}</div>
-                                                                <div class="severity ${i.severity || 'moderate'}">${this.getSeverityText(i.severity)}</div>
-                                                            </div>
-                                                            <div class="interaction-description">
-                                                                <strong>@lang('lang.effect'):</strong> ${i.effect || 'No effect information available'}
-                                                            </div>
-                                                            ${i.recommendation ? `<div class="interaction-management">
-                                                                <strong>@lang('lang.recommendation'):</strong> ${i.recommendation}
-                                                            </div>` : ''}
-                                                            ${this.renderLeftBoxes(i.left_boxes)}
-                                                        </div>
-                                                    `).join('')}
-                                                `;
+                                <div class="results-header">
+                                    <h3>@lang('lang.interaction-results') (${data.total_results || data.interactions.length})</h3>
+                                    ${isFromBackup ? `<div class="backup-notice">
+                                        <i class="fas fa-database"></i>
+                                        @lang('lang.data-from-backup')${backupDate ? ` (${backupDate})` : ''}
+                                    </div>` : ''}
+                                </div>
+                                ${data.interactions.map(i => `
+                                    <div class="interaction">
+                                        <div class="interaction-header">
+                                            <div class="interaction-title">${i.substances_line || 'Drug Interaction'}</div>
+                                            <div class="severity ${i.severity || 'moderate'}">${this.getSeverityText(i.severity)}</div>
+                                        </div>
+                                        <div class="interaction-description">
+                                            <strong>@lang('lang.effect'):</strong> ${i.effect || 'No effect information available'}
+                                        </div>
+                                        ${i.recommendation ? `<div class="interaction-management">
+                                            <strong>@lang('lang.recommendation'):</strong> ${i.recommendation}
+                                        </div>` : ''}
+                                        ${this.renderLeftBoxes(i.left_boxes)}
+                                    </div>
+                                `).join('')}
+                            `;
             }
 
             renderLeftBoxes(leftBoxes) {
                 if (!leftBoxes || !leftBoxes.length) return '';
 
                 return `<div class="drugs-involved">
-                                                        <strong>@lang('lang.drugs-involved'):</strong>
-                                                        ${leftBoxes.map(box => {
+                                <strong>@lang('lang.drugs-involved'):</strong>
+                                ${leftBoxes.map(box => {
                     if (box.drug) {
                         return `<span class="involved-drug">${box.drug.name}${box.drug.dosage ? ` (${box.drug.dosage})` : ''}</span>`;
                     } else if (box.substances && box.substances.length) {
@@ -701,7 +886,7 @@
                     }
                     return '';
                 }).filter(Boolean).join(' + ')}
-                                                    </div>`;
+                            </div>`;
             }
 
             getSeverityText(severity) {
@@ -715,11 +900,92 @@
                 };
                 return severityMap[severity] || severity;
             }
+
+            // Admin Controls
+            initAdminControls() {
+                const toggleBackupBtn = document.getElementById('toggleBackupMode');
+                const getStatsBtn = document.getElementById('getBackupStats');
+
+                if (toggleBackupBtn) {
+                    toggleBackupBtn.addEventListener('click', () => this.toggleBackupMode());
+                }
+
+                if (getStatsBtn) {
+                    getStatsBtn.addEventListener('click', () => this.getBackupStats());
+                }
+            }
+
+            async toggleBackupMode() {
+                try {
+                    const response = await fetch('/api/drug-interactions/toggle-backup-mode', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.backupMode = data.backup_mode;
+                        this.updateBackupStatusDisplay();
+
+                        const statusText = this.backupMode ? '@lang("lang.backup-mode-enabled")' : '@lang("lang.backup-mode-disabled")';
+                        alert(statusText);
+                    } else {
+                        alert('@lang("lang.error-toggle-backup"): ' + data.message);
+                    }
+                } catch (e) {
+                    console.error('Error toggling backup mode:', e);
+                    alert('@lang("lang.error-toggle-backup"): ' + e.message);
+                }
+            }
+
+            async getBackupStats() {
+                try {
+                    const response = await fetch('/api/drug-interactions/backup-stats', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        const statsSection = document.getElementById('backupStatsSection');
+                        statsSection.innerHTML = `
+                                        <div class="stats-grid">
+                                            <div class="stat-item">
+                                                <strong>@lang('lang.total-combinations'):</strong> ${data.total_combinations || 0}
+                                            </div>
+                                            <div class="stat-item">
+                                                <strong>@lang('lang.backup-mode'):</strong> ${data.backup_mode ? '@lang("lang.enabled")' : '@lang("lang.disabled")'}
+                                            </div>
+                                            <div class="stat-item">
+                                                <strong>@lang('lang.last-updated'):</strong> ${data.last_backup_date || '@lang("lang.never")'}
+                                            </div>
+                                            <div class="stat-item">
+                                                <strong>@lang('lang.oldest-backup'):</strong> ${data.oldest_backup_date || '@lang("lang.none")'}
+                                            </div>
+                                        </div>
+                                    `;
+                        statsSection.style.display = 'block';
+                    } else {
+                        alert('@lang("lang.error-fetch-stats"): ' + data.message);
+                    }
+                } catch (e) {
+                    console.error('Error fetching backup stats:', e);
+                    alert('@lang("lang.error-fetch-stats"): ' + e.message);
+                }
+            }
         }
 
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded, initializing DrugSearchEngine...'); // Debug log
+            console.log('DOM loaded, initializing DrugSearchEngine...');
             new DrugSearchEngine();
         });
     </script>
