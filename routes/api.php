@@ -7,9 +7,14 @@
 use App\Http\Controllers\API\PayPalAPIController;
 use App\Http\Controllers\API\DoctorAPIController;
 use App\Http\Controllers\API\NotificationAPIController;
+use App\Http\Controllers\API\PrescriptionsApiController;
 use App\Http\Controllers\API\RoomAPIController;
+use App\Http\Controllers\DrugController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\API\TranslationAPIController;
+use App\Http\Controllers\API\AvailabilityHourAPIController;
+use App\Http\Controllers\API\UserAPIController;
+use Google\Service\Doubleclicksearch\Availability;
 
 
 /*********************** Route ajouté par Hamza ********************* */
@@ -31,6 +36,9 @@ Route::prefix('rooms')->middleware('auth:api')->group(function () {
     Route::delete('/{id}', [RoomAPIController::class, 'destroy']); // DELETE a room
 });
 Route::middleware('auth:api')->post('/set-locale', [TranslationAPIController::class, 'setUserLocale']);
+Route::get('/get-type-consultation/{id}', [AvailabilityHourAPIController::class, 'getTypeConsultation']);
+Route::put('update-user-email/{id}', [UserAPIController::class, 'updateUserEmail']);
+Route::get('/consultations/prescriptions/{id}', [PrescriptionsApiController::class, 'show']);
 
 /*********************** End Route ajouté par Hamza ********************* */
 
@@ -229,3 +237,11 @@ Route::middleware('auth:api')->group(function () {
 
 // Analyze compatibility, a proxy route in ordre to make dispatching bd from dev to prod dynamic
 Route::post('/proxy/analyze-compatibility', [PrescriptionController::class, 'proxyAnalyzeCompatibility']);
+
+// Drug API routes
+Route::prefix('/drugs')->group(function () {
+    Route::get('/', [DrugController::class, 'index']);
+    Route::get('/search', [DrugController::class, 'search']);
+    Route::get('/{medicament_id}', [DrugController::class, 'show']);
+    Route::post('/check-interactions', [DrugController::class, 'checkInteractions']);
+});

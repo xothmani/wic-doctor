@@ -207,6 +207,8 @@ class NotificationAPIController extends Controller
             $user = User::find($request->get('notifiable_id'));
             $data = [
                 'appointment_id' => $request->get('appointment_id'),
+                'doctor_name' => $request->get('doctor_name'),
+                'date_appointment' => $request->get('date_appointment')
             ];
 
             Log::info("Store notification reminder now");

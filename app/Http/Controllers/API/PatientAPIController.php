@@ -6,6 +6,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Requests\CreatePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Models\Patient;
+use App\Models\User;
 use App\Repositories\CustomFieldRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\UploadRepository;
@@ -61,6 +62,9 @@ class PatientAPIController extends Controller
             return $this->sendError($e->getMessage());
         }
         $patients = $this->patientRepository->all();
+        foreach ($patients as $patient) {
+            $patient->total_appointment = Appointment::where('patient_id', $patient->id)->count();
+        }
         return $this->sendResponse($patients->toArray(), 'Patients retrieved successfully');
     }
 
@@ -86,6 +90,7 @@ class PatientAPIController extends Controller
             if ($request->has('user_id')){
                 $user_id =  $request->only('user_id');
                 $patient  = $this->patientRepository->findWhere('user_id',$user_id);
+                $patient->total_appointment = Appointment::where('patient_id', $patient->id)->count();
             }
 
             else
@@ -106,9 +111,14 @@ class PatientAPIController extends Controller
      */
     function store(Request $request)
     {
+        $user= User::find($request->user_id);
+        
         try {
             $input = $request->all();
+            $input['email'] = $user->email;
             $input['phone_number'] = $input['mobile_number'];
+            $input['mobile_number'] = null;
+            $input['gender'] = strtolower($input['gender']);
             $patient = $this->patientRepository->create($input);
             if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
                 foreach ($input['image'] as $fileUuid) {
@@ -147,6 +157,11 @@ class PatientAPIController extends Controller
                     $mediaItem->copy($patient, 'image');
                 }
             }
+
+            $input['phone_number'] = $input['mobile_number'];
+            $input['mobile_number'] = null;
+            $input['gender'] = strtolower($input['gender']);
+
             $patient = $this->patientRepository->update($input, $id);
 
             foreach (getCustomFieldsValues($customFields, $request) as $value) {
@@ -183,10 +198,7 @@ class PatientAPIController extends Controller
 public function totalAppointments($patient_id)
 {
     try {
-        // Query the appointments table to count the number of appointments
-        // Excluding appointment_status_id = 7
         $totalAppointments = Appointment::where('patient_id', $patient_id)
-            ->where('appointment_status_id', '!=', 7)  // Exclude status 7
             ->count();  // Count the number of records
 
         return $this->sendResponse($totalAppointments, 'Total appointments retrieved successfully.');

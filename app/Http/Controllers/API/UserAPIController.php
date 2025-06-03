@@ -48,7 +48,7 @@ class UserAPIController extends Controller
         parent::__construct();
     }
 
-    function login(Request $request)
+    /*function login(Request $request) v1
     {
         try {
             $this->validate($request, [
@@ -74,8 +74,107 @@ class UserAPIController extends Controller
             return $this->sendError('ERREUURRRRRRRRRR', 200);
         }
 
-    }
+    }*/
 
+
+
+    /*public function login(Request $request)  v2
+    {
+        try {
+            // Vérifie si c’est un login par email ou téléphone
+            if ($request->filled('phone_number')) {
+                $this->validate($request, [
+                    'phone_number' => 'required',
+                    'password' => 'required',
+                ]);
+
+                $credentials = [
+                    'phone_number' => $request->input('phone_number'),
+                    'password' => $request->input('password'),
+                ];
+            } else {
+                $this->validate($request, [
+                    'email' => 'required|email',
+                    'password' => 'required',
+                ]);
+
+                $credentials = [
+                    'email' => $request->input('email'),
+                    'password' => $request->input('password'),
+                ];
+            }
+
+            // Tente l'authentification avec les credentials préparés
+            if (auth()->attempt($credentials)) {
+                $user = auth()->user();
+                $user->device_token = $request->input('device_token', '');
+
+                // Charger les rôles (si relation définie)
+                $user = $user->load('roles');
+
+                $user->save();
+
+                return $this->sendResponse($user, 'User retrieved successfully');
+            } else {
+                return $this->sendError(__('auth.failed'), 200);
+            }
+
+        } catch (ValidationException $e) {
+            return $this->sendError(array_values($e->errors()));
+        } catch (Exception $e) {
+            return $this->sendError('ERREUR', 200);
+        }
+    }*/
+
+
+public function login(Request $request)//v3 syncronisation avec web
+{
+    try {
+        $this->validate($request, [
+            'password' => 'required',
+        ]);
+
+        // Préparer les données d'entrée
+        $loginField = $request->filled('phone_number') ? 'phone_number' : 'email';
+
+        $this->validate($request, [
+            $loginField => $loginField === 'phone_number' ? 'required' : 'required|email',
+        ]);
+
+        $identifier = $request->input($loginField);
+        $passwordInput = $request->input('password');
+
+        // Trouver l'utilisateur avec le champ correspondant
+        $user = \App\Models\User::where($loginField, $identifier)->first();
+
+        if (!$user || !Hash::check($passwordInput, $user->passwordpatient)) {
+            return $this->sendError(__('auth.failed'), 200);
+        }
+
+
+        if(empty($user->api_token)){
+            $user->api_token = Str::random(60);
+            $user->save();
+        }
+
+        // Authentifier manuellement
+        auth()->login($user);
+
+        // Mettre à jour le device_token si fourni
+        $user->device_token = $request->input('device_token', '');
+        $user->save();
+
+        // Charger les relations nécessaires
+        $user->load('roles');
+
+        return $this->sendResponse($user, 'User retrieved successfully');
+
+    } catch (ValidationException $e) {
+        return $this->sendError(array_values($e->errors()));
+    } catch (\Exception $e) {
+        return $this->sendError('ERREUR', 200);
+    }
+}
 
 
     function decodeIfJson($value) {
@@ -115,7 +214,7 @@ class UserAPIController extends Controller
             $user->phone_number = $request->input('phone_number');
             $user->phone_verified_at = $request->input('phone_verified_at');
             $user->device_token = $request->input('device_token', '');
-            $user->password = Hash::make($request->input('passwordpatient'));
+            //$user->password = Hash::make($request->input('passwordpatient'));
             $user->passwordpatient = Hash::make($request->input('passwordpatient'));
             $user->api_token = Str::random(60);
             $user->save();
@@ -130,7 +229,7 @@ class UserAPIController extends Controller
                 'last_name'      => $this->decodeIfJson($request->input('lastname')),
                 'email'          => $request->input('email'),
                 'phone_number'   => $request->input('phone_number'),
-                'mobile_number'  => $request->input('phone_number'),
+                //'mobile_number'  => $request->input('phone_number'),
                 'is_main_profil' => true,
             ];
 
@@ -186,6 +285,7 @@ class UserAPIController extends Controller
         try {
             // Update the user's password
             $user->password = Hash::make($request->input('new_password'));
+            $user->passwordpatient = Hash::make($request->input('new_password'));
             $user->save();
 
             return $this->sendResponse($user, __('Password updated successfully.'));
@@ -316,7 +416,12 @@ class UserAPIController extends Controller
                 $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->userRepository->model());
                 if (isset($input['password'])) {
                     $input['password'] = Hash::make($request->input('password'));
+                    $input['passwordpatient'] = Hash::make($request->input('password'));
                 }
+
+                
+
+
                 if (isset($input['avatar']) && $input['avatar']) {
                     $cacheUpload = $this->uploadRepository->getByUuid($input['avatar']);
                     $mediaItem = $cacheUpload->getMedia('avatar')->first();
@@ -336,6 +441,21 @@ class UserAPIController extends Controller
             return $this->sendError($e->getMessage(), 200);
         }
 
+        return $this->sendResponse($user, __('lang.updated_successfully', ['operator' => __('lang.user')]));
+    }
+
+
+    public function updateUserEmail($id, Request $request): JsonResponse{
+        $user = User::find($id);
+        if (empty($user) || !empty($user->email)) {
+            return $this->sendError('User not found or email already exists');
+        }
+
+        $user->email = $request->input('email');
+        Log::info("user email: {$user->email}");
+        Log::info("request email: {$request->input('email')}");
+        $user->save();
+        //$user = $this->userRepository->update($request->only('email'), $id);
         return $this->sendResponse($user, __('lang.updated_successfully', ['operator' => __('lang.user')]));
     }
 

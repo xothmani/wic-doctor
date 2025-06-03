@@ -53,6 +53,35 @@ class FavoriteAPIController extends Controller
             return $this->sendError($e->getMessage());
         }
         $favorites = $this->favoriteRepository->all();
+        // For each doctor, merge media from doctor and user models
+        foreach ($favorites as $favorite) {
+            $doctor= $favorite->doctor;
+            // Get doctor media
+            $doctorMedia = $doctor->getMedia();
+            
+            // Get user media if the user relationship exists
+            $userMedia = $doctor->user ? $doctor->user->getMedia() : collect();
+            
+            // Merge the media collections
+            $mergedMedia = $doctorMedia->merge($userMedia);
+            
+            // Format media for response
+            $formattedMedia = $mergedMedia->map(function ($media) {
+                return [
+                    'id' => $media->id,
+                    'uuid' => $media->uuid,
+                    'name' => $media->name,
+                    'url' => $media->getUrl(),
+                    'thumb' => $media->getUrl('thumb'),
+                    'icon' => $media->getUrl('icon'),
+                    'formated_size' => $media->human_readable_size,
+                    'model_type' => $media->model_type, // Shows if it's from Doctor or User
+                ];
+            });
+            
+            // Replace the doctor's media with the merged media
+            $doctor->setRelation('media', $formattedMedia);
+        }
 
         return $this->sendResponse($favorites->toArray(), 'Favorites retrieved successfully');
     }
