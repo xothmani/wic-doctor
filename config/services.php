@@ -80,5 +80,8 @@ return [
     ],
     'firebaseKey' => [
         'key'=>env('FCM_SERVER_KEY'),
-    ]
+    ],
+    'api_timeout' => env('DRUG_INTERACTIONS_API_TIMEOUT', 30),
+    'univadis_cookie' => env('UNIVADIS_COOKIE', ''),
+    'backup_mode' => env('DRUG_INTERACTIONS_BACKUP_MODE', false),
 ];
