@@ -245,3 +245,10 @@ Route::prefix('/drugs')->group(function () {
     Route::get('/{medicament_id}', [DrugController::class, 'show']);
     Route::post('/check-interactions', [DrugController::class, 'checkInteractions']);
 });
+
+Route::prefix('/drug-interactions')->group(function () {
+    Route::post('/check', [DrugController::class, 'checkInteractions']);
+    Route::get('/backup-stats', [DrugController::class, 'getBackupStats']);
+    Route::post('/toggle-backup-mode', [DrugController::class, 'toggleBackupMode']);
+    Route::get('/search-backup', [DrugController::class, 'searchBackup']);
+});
