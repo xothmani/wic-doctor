@@ -149,28 +149,6 @@
             </p></a>
     </li>
 @endcan
-@can('appointments.today.completed')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('appointments/today/completed*') ? 'active' : '' }}"
-            href="{!! route('appointments.today.completed') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-calendar-check"></i>
-            @endif
-            <p>{{ trans('lang.appointments_completed_today') }}</p>
-        </a>
-    </li>
-@endcan
-@can('teleconsultation.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('teleconsultations*') ? 'active' : '' }}"
-            href="{!! route('teleconsultations.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-video"></i> <!-- Remplacez ici par la nouvelle classe d'icône -->
-            @endif
-            <p>{{ trans('lang.teleconsultation_plural') }}</p>
-        </a>
-    </li>
-@endcan
 @can('profile.index')
     <li
         class="nav-item has-treeview {{ Request::is('profile_management/Doctors_roles*') || Request::is('profile_management/Doctors_permissions*') || Request::is('profile_management/Doctors_users*') ? 'menu-open' : '' }}">
@@ -207,6 +185,29 @@
         </ul>
     </li>
 @endcan
+@can('appointments.today.completed')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('appointments/today/completed*') ? 'active' : '' }}"
+            href="{!! route('appointments.today.completed') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-calendar-check"></i>
+            @endif
+            <p>{{ trans('lang.appointments_completed_today') }}</p>
+        </a>
+    </li>
+@endcan
+@can('teleconsultation.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('teleconsultations*') ? 'active' : '' }}"
+            href="{!! route('teleconsultations.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-video"></i> <!-- Remplacez ici par la nouvelle classe d'icône -->
+            @endif
+            <p>{{ trans('lang.teleconsultation_plural') }}</p>
+        </a>
+    </li>
+@endcan
+
 @can('doctor_requests.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('doctor_requests') ? 'active' : '' }}"
@@ -351,28 +352,7 @@
     </li>
 @endcan
 
-@can('tags.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('tags') ? 'active' : '' }}" href="{!! route('tags.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-tags"></i>
-            @endif
-            <p>{{ trans('lang.tag_plural') }}</p>
-        </a>
-    </li>
-@endcan
 
-@can('doctor_tag.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctor_tag') && !Request::is('doctor_tag/create') ? 'active' : '' }}"
-            href="{!! route('doctor_tag.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-tags"></i>
-            @endif
-            <p>{{ trans('lang.my_tag_plural') }}</p>
-        </a>
-    </li>
-@endcan
 
 
 @can('assurances.index')
@@ -394,16 +374,7 @@
 
 
 
-@can('parrainers.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('parrainer*') ? 'active' : '' }}" href="{!! route('parrainers.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-users"></i> <!-- Remplacez par l'icône de votre choix -->
-            @endif
-            <p>Parrainage</p> <!-- Texte directement modifié ici -->
-        </a>
-    </li>
-@endcan
+
 
 
 @can('chatA.index')
@@ -474,6 +445,28 @@
             <i class="nav-icon fas fa-map-marked-alt"></i>@endif<p>{{trans('lang.address_plural')}}</p></a>
     </li>
 @endcan -->
+@can('tags.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('tags') ? 'active' : '' }}" href="{!! route('tags.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-tags"></i>
+            @endif
+            <p>{{ trans('lang.tag_plural') }}</p>
+        </a>
+    </li>
+@endcan
+
+@can('doctor_tag.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('doctor_tag') && !Request::is('doctor_tag/create') ? 'active' : '' }}"
+            href="{!! route('doctor_tag.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-tags"></i>
+            @endif
+            <p>{{ trans('lang.my_tag_plural') }}</p>
+        </a>
+    </li>
+@endcan
 @can('doctor_blog.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('doctor_blog') ? 'active' : '' }}" href="{!! route('doctor_blog.index') !!}">
@@ -495,7 +488,16 @@
     </li>
 @endcan
 
-
+@can('parrainers.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('parrainer*') ? 'active' : '' }}" href="{!! route('parrainers.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-users"></i> <!-- Remplacez par l'icône de votre choix -->
+            @endif
+            <p>Parrainage</p> <!-- Texte directement modifié ici -->
+        </a>
+    </li>
+@endcan
 
 @can('photos_cabinet.index')
     <li class="nav-item">
