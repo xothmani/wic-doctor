@@ -143,7 +143,7 @@
     "PayPal Payment": "الدفع باي بال",
     "PayStack Payment": "دفع PayStack",
     "Payment Confirmation": "تأكيد الدفعة",
-    "Payment Method": "طريقة الدفع او السداد",
+    "Payment Method": "طريقة الدفع",
     "Payment Option": "خيار الدفع",
     "Payment Status": "حالة السداد",
     "Payment Successful": "تم الدفع بنجاح",
@@ -481,5 +481,8 @@
     "An error occurred. Please try again.": "حدث خطأ ما. يرجى المحاولة مرة أخرى",
     "Failed to download the PDF.": "فشل في تحميل الملف PDF.",
     "File saved": "تم حفظ الملف بنجاح.",
-    "Storage permission denied.": "تم رفض الصلاحية."
+    "Storage permission denied.": "تم رفض الصلاحية.",
+    "Phone number does not exist.": "رقم الجوال غير موجود.",
+    "Payment": "الدفع",
+    "Select your preferred payment method": "حدد طريقة الدفع المفضلة"
 }

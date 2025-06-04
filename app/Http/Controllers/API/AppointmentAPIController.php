@@ -15,6 +15,7 @@ use App\Models\Address;
 
 use App\Models\Doctor;
 
+use App\Models\Pattern;
 use App\Notifications\NewAppointment;
 use App\Notifications\StatusChangedAppointment;
 use App\Repositories\AddressRepository;
@@ -396,9 +397,11 @@ class AppointmentAPIController extends Controller
         $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
         $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
         $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
+        $motif = Pattern::find($appointment->motif_id);
         $appointment->doctor = $doctor; // solution pour doctor cast
         $appointment->patient = $patient; // solution pour doctor cast
         $appointment->clinic = $clinic; // solution pour doctor cast
+        $appointment->motif = $motif; // solution pour doctor cast
         Log::info("Clinic cast error", [$clinic]);
         //Log::info($appointment->doctor_id);
 
