@@ -142,7 +142,7 @@
     "PayPal Payment": "Paiement PayPal",
     "PayStack Payment": "Paiement PayStack",
     "Payment Confirmation": "Confirmation de paiement",
-    "Payment Method": "Mode de paiement",
+    "Payment Method": "Méthode de paiement",
     "Payment Option": "Modalité de paiement",
     "Payment Status": "Statut de paiement",
     "Payment Successful": "Paiement réussi",
@@ -482,5 +482,8 @@
     "An error occurred. Please try again.": "Une erreur s'est produite. Veuillez réessayer.",
     "Failed to download the PDF.": "Erreur de téléchargement du PDF.",
     "File saved": "Fichier sauvegardé",
-    "Storage permission denied.": "Permission de stockage refusée"
+    "Storage permission denied.": "Permission de stockage refusée",
+    "Phone number does not exist.": "Le numéro de téléphone n'existe pas.",
+    "Payment": "Paiement",
+    "Select your preferred payment method": "Sélectionner votre méthode de paiement préférée"
 }
