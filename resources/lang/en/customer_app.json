@@ -447,5 +447,8 @@
     "An error occurred. Please try again.": "An error occurred. Please try again.",
     "Failed to download the PDF.": "Failed to download the PDF.",
     "File saved": "File saved",
-    "Storage permission denied.": "Storage permission denied."
+    "Storage permission denied.": "Storage permission denied.",
+    "Phone number does not exist.": "Phone number does not exist.",
+    "Payment": "Payment",
+    "Select your preferred payment method": "Select your preferred payment method"
 }
