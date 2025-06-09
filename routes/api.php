@@ -13,6 +13,7 @@ use App\Http\Controllers\DrugController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\API\TranslationAPIController;
 use App\Http\Controllers\API\AvailabilityHourAPIController;
+use App\Http\Controllers\API\AppointmentAPIController ;
 use App\Http\Controllers\API\UserAPIController;
 use Google\Service\Doubleclicksearch\Availability;
 
@@ -39,7 +40,7 @@ Route::middleware('auth:api')->post('/set-locale', [TranslationAPIController::cl
 Route::get('/get-type-consultation/{id}', [AvailabilityHourAPIController::class, 'getTypeConsultation']);
 Route::put('update-user-email/{id}', [UserAPIController::class, 'updateUserEmail']);
 Route::get('/consultations/prescriptions/{id}', [PrescriptionsApiController::class, 'show']);
-
+Route::delete('appointments/delete/{id}', [AppointmentApiController::class, 'delete']);
 /*********************** End Route ajouté par Hamza ********************* */
 
 
