@@ -450,5 +450,10 @@
     "Storage permission denied.": "Storage permission denied.",
     "Phone number does not exist.": "Phone number does not exist.",
     "Payment": "Payment",
-    "Select your preferred payment method": "Select your preferred payment method"
+    "Select your preferred payment method": "Select your preferred payment method",
+    "The code is incorrect. Please try again.": "The code is incorrect. Please try again.",
+    "The code has expired. Request a new one.": "The code has expired. Request a new one.",
+    "Too many attempts. Please try again later.": "Too many attempts. Please try again later.",
+    "Resend in (%s) seconds": "Resend in (%s) seconds",
+    "Confirm & Checkout":"Confirm & Checkout"
 }

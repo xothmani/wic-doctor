@@ -484,5 +484,10 @@
     "Storage permission denied.": "تم رفض الصلاحية.",
     "Phone number does not exist.": "رقم الجوال غير موجود.",
     "Payment": "الدفع",
-    "Select your preferred payment method": "حدد طريقة الدفع المفضلة"
+    "Select your preferred payment method": "حدد طريقة الدفع المفضلة",
+    "The code is incorrect. Please try again.": "رمز التحقق غير صحيح. حاول مرة أخرى.",
+    "The code has expired. Request a new one.": "انتهت صلاحية الرمز. اطلب رمزًا جديدًا.",
+    "Too many attempts. Please try again later.": "عدد كبير جدًا من المحاولات. حاول مرة أخرى لاحقًا.",
+    "Resend in (%s) seconds": "إعادة الإرسال خلال (%s) ثانية",
+    "Confirm & Checkout": "التأكيد وإتمام الحجز"
 }
