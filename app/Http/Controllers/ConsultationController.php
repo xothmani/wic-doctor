@@ -68,8 +68,7 @@ class ConsultationController extends Controller
             DB::table('doctor_patients')->insert([
                 'doctor_id' => $doctor->id,
                 'patient_id' => $patient_id,
-                'created_at' => now(),
-                'updated_at' => now(),
+              
             ]);
         }
 
