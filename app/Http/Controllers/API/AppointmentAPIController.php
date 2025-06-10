@@ -617,6 +617,14 @@ class AppointmentAPIController extends Controller
 
 
 
+    public function delete(int $id): JsonResponse
+    {
+        $this->appointmentRepository->delete($id);
+        return $this->sendResponse($id, __('lang.deleted_successfully', ['operator' => __('lang.appointment')]));
+    }
+
+
+
     //Ajouter une méthode pour update seulement status( ajouté par hamza )
     public function updateStatus(int $id, Request $request): JsonResponse
     {

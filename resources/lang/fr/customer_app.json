@@ -485,5 +485,10 @@
     "Storage permission denied.": "Permission de stockage refusée",
     "Phone number does not exist.": "Le numéro de téléphone n'existe pas.",
     "Payment": "Paiement",
-    "Select your preferred payment method": "Sélectionner votre méthode de paiement préférée"
+    "Select your preferred payment method": "Sélectionner votre méthode de paiement préférée",
+    "The code is incorrect. Please try again.": "Le code est incorrect. Veuillez réessayer.",
+    "The code has expired. Request a new one.": "Le code a expiré. Demandez un nouveau code.",
+    "Too many attempts. Please try again later.": "Trop de tentatives. Veuillez réessayer plus tard.",
+    "Resend in (%s) seconds": "Renvoyer dans (%s) secondes",
+    "Confirm & Checkout": "Confirmer et payer"
 }
