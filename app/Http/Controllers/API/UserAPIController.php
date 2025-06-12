@@ -408,6 +408,8 @@ public function login(Request $request)//v3 syncronisation avec web
         if (empty($user)) {
             return $this->sendError('User not found');
         }
+
+        
         $input = $request->except(['api_token']);
         try {
             if ($request->has('device_token')) {
@@ -420,16 +422,38 @@ public function login(Request $request)//v3 syncronisation avec web
                 }
 
                 
+                Log::info($input);
 
-
-                if (isset($input['avatar']) && $input['avatar']) {
+                /*if (isset($input['avatar']) && $input['avatar']) {
                     $cacheUpload = $this->uploadRepository->getByUuid($input['avatar']);
                     $mediaItem = $cacheUpload->getMedia('avatar')->first();
                     if ($user->hasMedia('avatar')) {
                         $user->getFirstMedia('avatar')->delete();
                     }
                     $mediaItem->copy($user, 'avatar');
+                }*/
+                
+
+                if (!empty($input['avatar'])) {
+                    $medias_user = $user->getMedia('avatar');
+                    $avatarUuidToKeep = $input['avatar'];
+                    foreach ($medias_user as $media) {
+                        if ($media->uuid !== $avatarUuidToKeep) {
+                            Log::info("[AVATAR CLEANUP] Suppression du média non désiré", [
+                                'media_uuid' => $media->uuid,
+                                'media_name' => $media->name
+                            ]);
+                            $media->delete();
+                        } else {
+                            Log::info("[AVATAR CLEANUP] Média conservé (match UUID)", [
+                                'media_uuid' => $media->uuid
+                            ]);
+                        }
+                    }
+                    Log::info("medias_user: " . $medias_user);
                 }
+
+
                 $user = $this->userRepository->update($input, $id);
 
                 foreach (getCustomFieldsValues($customFields, $request) as $value) {

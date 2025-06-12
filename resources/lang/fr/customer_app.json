@@ -52,10 +52,10 @@
     "Checkout": "Vérifier",
     "Click on the stars to rate this doctor": "Cliquez sur les étoiles pour noter ce médecin",
     "Confirm": "Confirmer",
-    "Confirm & Appointment Now": "Confirmez et rendez-vous maintenant",
-    "Confirm & Pay Now": "Confirmez et payez maintenant",
+    "Confirm & Appointment Now": "Confirmer et rendez-vous maintenant",
+    "Confirm & Pay Now": "Confirmer et payez maintenant",
     "Confirm New Password": "Confirmer le nouveau mot de passe",
-    "Confirm Password": "Confirmez le mot de passe",
+    "Confirm Password": "Confirmer le mot de passe",
     "Confirmation": "Confirmation",
     "Contact Clinic": "Contacter la clinique",
     "Contact Doctor": "Contacter le médecin",
@@ -490,5 +490,7 @@
     "The code has expired. Request a new one.": "Le code a expiré. Demandez un nouveau code.",
     "Too many attempts. Please try again later.": "Trop de tentatives. Veuillez réessayer plus tard.",
     "Resend in (%s) seconds": "Renvoyer dans (%s) secondes",
-    "Confirm & Checkout": "Confirmer et payer"
+    "Confirm & Checkout": "Confirmer et payer",
+    "Code sent to %s": "Code envoyé à %s",
+    "View in Google Maps": "Voir sur Google Maps"
 }
