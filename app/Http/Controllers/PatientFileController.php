@@ -53,7 +53,7 @@ class PatientFileController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file|mimes:pdf,doc,docx,jpg,png|max:20480',
+            'file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,webp,svg,txt,csv,xls,xlsx,ppt,pptx,zip,rar,7z,tar,gz,bz2,xml,hl7,dcm,nii,ecg|max:20480',
             'description' => 'nullable|string|max:255',
         ]);
 
@@ -152,16 +152,18 @@ class PatientFileController extends Controller
             'doctor_id' => 'required|exists:doctors,id',
         ]);
 
-        $newDoctor = Doctor::findOrFail($request->doctor_id);
-        \Log::info('Assigned to be doctor ID: ' . $newDoctor->id);
+        $selectedDoctor = Doctor::findOrFail($request->doctor_id);
+        \Log::info('Associate; doctor: ' . $selectedDoctor->name . ' ' . $selectedDoctor->id . '  Patient: ' . $patient->name . ' ' . $patient->id);
+
         // Check if the doctor is already associated
-        if ($patient->doctors()->where('doctors.id', $newDoctor->id)->exists()) {
+        if ($patient->doctors()->where('doctors.id', $selectedDoctor->id)->exists()) {
+            \Log::info('Already associated; doctor: ' . $selectedDoctor->name . ' ' . $selectedDoctor->id . '  Patient: ' . $patient->name . ' ' . $patient->id);
             return redirect()->route('patient_files.index', $patient)
                 ->with('error', trans('lang.doctor_already_associated'));
         }
 
-        // Associate the doctor with the patient
-        $patient->doctors()->attach($newDoctor->id);
+        // Associate the doctor with the patient (add ids to table doctor_patients)
+        $patient->doctors()->attach($selectedDoctor);
 
         return redirect()->route('patient_files.index', $patient)
             ->with('success', trans('lang.doctor_assigned_success'));

@@ -33,7 +33,8 @@
                                 <a href="{{ route('patients.index') }}">{{trans('lang.patients_plural')}}</a>
                             </li>
                             <li class="breadcrumb-item">
-                                <a href="{{ route('patient_files.index', $patient) }}">{{trans('lang.patient_files_plural')}}</a>
+                                <a
+                                    href="{{ route('patient_files.index', $patient) }}">{{trans('lang.patient_files_plural')}}</a>
                             </li>
                             <li class="breadcrumb-item active">{{trans('lang.patient_files_create')}}</li>
                         </ol>
@@ -68,19 +69,21 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
-                                    <label for="file" class="text-color">{{trans('lang.file')}} <span class="required-field"></span></label>
+                                    <label for="file" class="text-color">{{trans('lang.file')}} <span
+                                            class="required-field"></span></label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <div class="input-group-text"><i class="fas fa-file"></i></div>
                                         </div>
                                         <input type="file" name="file" class="form-control" required>
                                     </div>
-                                    @error('file')
-                                        <div class="text-danger">{{ $message }}</div>
-                                    @enderror
+                                    <div class="text-danger">The file must be a file of type: pdf, doc, docx, jpg, jpeg, png,
+                                        gif, webp, svg, txt, csv, xls, xlsx, ppt, pptx, zip, rar, 7z, tar, gz, bz2, xml, hl7,
+                                        dcm, nii, ecg.</div>
+
                                 </div>
                             </div>
-                            
+
                             <div class="col-12">
                                 <div class="form-group">
                                     <label for="description" class="text-color">{{trans('lang.description')}}</label>
@@ -88,7 +91,8 @@
                                         <div class="input-group-prepend">
                                             <div class="input-group-text"><i class="fas fa-comment"></i></div>
                                         </div>
-                                        <textarea name="description" class="form-control" rows="4" placeholder="{{trans('lang.patient_file_description_placeholder')}}">{{ old('description') }}</textarea>
+                                        <textarea name="description" class="form-control" rows="4"
+                                            placeholder="{{trans('lang.patient_file_description_placeholder')}}">{{ old('description') }}</textarea>
                                     </div>
                                     @error('description')
                                         <div class="text-danger">{{ $message }}</div>
@@ -96,9 +100,10 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="form-group col-12 text-right">
-                            <button type="submit" class="btn bg-{{setting('theme_color')}} mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2">
+                            <button type="submit"
+                                class="btn bg-{{setting('theme_color')}} mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2">
                                 <i class="fas fa-save"></i> {{trans('lang.save')}}
                             </button>
                             <a href="{{ route('patient_files.index', $patient) }}" class="btn btn-default">

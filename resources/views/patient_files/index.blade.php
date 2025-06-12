@@ -76,11 +76,12 @@
 
                     <!-- Doctors List (Right Sidebar) -->
                     <div class="col-lg-4 col-md-12">
-                        <div class="card shadow-sm">
+                        <div class="card shadow-sm" style="min-width: 350px!important;">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h3 class="card-title">{{ trans('lang.doctors_associated') }}</h3>
                                 @if(auth()->user()->hasPermissionInContext('patient_files.assign_doctor', $doctorId))
-                                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                                    <button type="button" class="btn btn-sm btn-primary"
+                                        style="position: absolute;right: 20px !important; " data-toggle="modal"
                                         data-target="#assignDoctorModal">
                                         <i class="fas fa-user-plus"></i> {{ trans('lang.assign_doctor') }}
                                     </button>
@@ -92,19 +93,29 @@
                                 @else
                                     <ul class="list-group list-group-flush">
                                         @foreach($patient->doctors as $doctor)
-                                            <li class="list-group-item">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <strong>{{ $doctor->name }}</strong>
-                                                        @if($doctor->specialities->isNotEmpty())
-                                                            <br>
-                                                            <small class="text-muted">
-                                                                {{ $doctor->specialities->pluck('name')->join(', ') }}
-                                                            </small>
-                                                        @endif
+                                            @if($doctor->name && $doctor->name)
+                                                <li class="list-group-item">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <strong>{{ $doctor->name }}</strong>
+                                                            @if($doctor->specialities->isNotEmpty())
+                                                                <br>
+                                                                <small class="text-muted">
+                                                                    {{ $doctor->specialities->pluck('name')->join(', ') }}
+                                                                </small>
+                                                            @endif
+                                                        </div>
+                                                        <a href="mailto:{{ $doctor->user->email ?? '#' }}"
+                                                            class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-envelope"></i> {{ trans('lang.contact') }}
+                                                        </a>
                                                     </div>
-                                                </div>
-                                            </li>
+                                                </li>
+                                            @else
+                                                <li class="list-group-item text-muted">
+                                                    Invalid doctor (ID: {{ $doctor->id }})
+                                                </li>
+                                            @endif
                                         @endforeach
                                     </ul>
                                 @endif
@@ -138,25 +149,27 @@
                                 @csrf
                                 <div class="list-group" id="doctorList" style="max-height: 400px; overflow-y: auto;">
                                     @foreach($allDoctors as $doctor)
-                                        <a href="javascript:void(0)" class="list-group-item list-group-item-action doctor-item"
-                                            data-value="{{ $doctor->id }}"
-                                            data-display="{{ $doctor->name }} ({{ $doctor->specialities->pluck('name')->join(', ') }})"
-                                            onclick="selectDoctor(this)">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <strong>{{ $doctor->name }}</strong>
-                                                    @if($doctor->specialities->isNotEmpty())
-                                                        <br>
-                                                        <small class="text-muted">
-                                                            {{ $doctor->specialities->pluck('name')->join(', ') }}
-                                                        </small>
+                                        @if($doctor->name && $doctor->name)
+                                            <a href="javascript:void(0)" class="list-group-item list-group-item-action doctor-item"
+                                                data-value="{{ $doctor->id }}"
+                                                data-display="{{ $doctor->name }} ({{ $doctor->specialities->pluck('name')->join(', ') }})"
+                                                onclick="selectDoctor(this)">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>{{ $doctor->name }}</strong>
+                                                        @if($doctor->specialities->isNotEmpty())
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                {{ $doctor->specialities->pluck('name')->join(', ') }}
+                                                            </small>
+                                                        @endif
+                                                    </div>
+                                                    @if($patient->doctors->contains('id', $doctor->id))
+                                                        <span class="badge badge-success">{{ trans('lang.already_assigned') }}</span>
                                                     @endif
                                                 </div>
-                                                @if($patient->doctors->contains('id', $doctor->id))
-                                                    <span class="badge badge-success">{{ trans('lang.already_assigned') }}</span>
-                                                @endif
-                                            </div>
-                                        </a>
+                                            </a>
+                                        @endif
                                     @endforeach
                                 </div>
                                 <input type="hidden" name="doctor_id" id="selectedDoctorId" required>
