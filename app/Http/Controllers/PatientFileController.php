@@ -62,7 +62,7 @@ class PatientFileController extends Controller
 
         Storage::disk('patient_files')->put($filePath, $encryptedContent);
 
-        PatientFile::create([
+        $f = PatientFile::create([
             'patient_id' => $patient->id,
             'uploaded_by' => Auth::id(),
             'file_name' => $fileName,
@@ -73,7 +73,7 @@ class PatientFileController extends Controller
         ]);
 
         PatientFileLog::create([
-            'patient_file_id' => $file->id,
+            'patient_file_id' => $f->id,
             'user_id' => Auth::id(),
             'action' => 'upload',
         ]);
@@ -94,14 +94,14 @@ class PatientFileController extends Controller
             abort(404, 'File not found.');
         }
 
-        $encryptedContent = Storage::disk('patient_files')->get($file->file_path);
-        $decryptedContent = Crypt::decrypt($encryptedContent);
-
         PatientFileLog::create([
             'patient_file_id' => $file->id,
             'user_id' => Auth::id(),
             'action' => 'download',
         ]);
+
+        $encryptedContent = Storage::disk('patient_files')->get($file->file_path);
+        $decryptedContent = Crypt::decrypt($encryptedContent);
 
         return response($decryptedContent)
             ->header('Content-Type', $file->file_type)
@@ -120,14 +120,14 @@ class PatientFileController extends Controller
             abort(404, 'File not found.');
         }
 
-        Storage::disk('patient_files')->delete($file->file_path);
-        $file->delete();
-
         PatientFileLog::create([
             'patient_file_id' => $file->id,
             'user_id' => Auth::id(),
             'action' => 'delete',
         ]);
+
+        Storage::disk('patient_files')->delete($file->file_path);
+        $file->delete();
 
         return redirect()->route('patient_files.index', $patient)
             ->with('success', 'File deleted successfully.');

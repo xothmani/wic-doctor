@@ -1611,4 +1611,7 @@ return [
     'view_patient_files' => 'View Patient shared Files',
     'patients_plural' => 'Patients',
     'download' => 'Download',
+    'doctors_associated' => 'Associated Doctors',
+    'no_doctors_associated' => 'No doctors are associated with this patient.',
+    'contact' => 'Contact',
 ];

@@ -2228,5 +2228,8 @@ return [
     'view_patient_files' => 'Visualizza i file del paziente',
     'patients_plural' => 'Pazienti',
     'download' => 'Scarica',
+    'doctors_associated' => 'Dottori associati',
+    'no_doctors_associated' => 'Nessun dottore associato',
+    'contact' => 'Contatti',
 
 ];

@@ -2275,5 +2275,8 @@ return [
     'view_patient_files' => 'Voir les fichiers partagés du patient',
     'patients_plural' => 'Patients',
     'download' => 'Télécharger',
+    'doctors_associated' => 'Les docteurs associés',
+    'no_doctors_associated' => 'Aucun docteur associé',
+    'contact' => 'Contacter',
 
 ];

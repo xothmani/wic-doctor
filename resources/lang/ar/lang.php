@@ -1532,5 +1532,8 @@ return [
     'view_patient_files' => 'عرض الملفات المشتركة للمريض',
     'patients_plural' => 'مرضى',
     'download' => 'تحميل',
+    'doctors_associated' => 'الطبيبون المرتبطون بهذا المريض',
+    'no_doctors_associated' => 'لا يوجد طبيبون مرتبطون بهذا المريض',
+    'contact' => 'اتصل',
 
 ];
