@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Patient;
 use App\Models\PatientFile;
+use App\Models\PatientFileLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -71,6 +72,12 @@ class PatientFileController extends Controller
             'description' => $request->description,
         ]);
 
+        PatientFileLog::create([
+            'patient_file_id' => $file->id,
+            'user_id' => Auth::id(),
+            'action' => 'upload',
+        ]);
+
         return redirect()->route('patient_files.index', $patient)
             ->with('success', 'File uploaded successfully.');
     }
@@ -89,6 +96,12 @@ class PatientFileController extends Controller
 
         $encryptedContent = Storage::disk('patient_files')->get($file->file_path);
         $decryptedContent = Crypt::decrypt($encryptedContent);
+
+        PatientFileLog::create([
+            'patient_file_id' => $file->id,
+            'user_id' => Auth::id(),
+            'action' => 'download',
+        ]);
 
         return response($decryptedContent)
             ->header('Content-Type', $file->file_type)
@@ -109,6 +122,12 @@ class PatientFileController extends Controller
 
         Storage::disk('patient_files')->delete($file->file_path);
         $file->delete();
+
+        PatientFileLog::create([
+            'patient_file_id' => $file->id,
+            'user_id' => Auth::id(),
+            'action' => 'delete',
+        ]);
 
         return redirect()->route('patient_files.index', $patient)
             ->with('success', 'File deleted successfully.');
