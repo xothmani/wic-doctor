@@ -2231,5 +2231,10 @@ return [
     'doctors_associated' => 'Dottori associati',
     'no_doctors_associated' => 'Nessun dottore associato',
     'contact' => 'Contatti',
+    'assign_doctor' => 'Assegna dottore',
+    'select_doctor' => 'Seleziona dottore',
+    'choose' => 'Scegli...',
+    'assign' => 'Assegna',
+    'cancel' => 'Annulla',
 
 ];

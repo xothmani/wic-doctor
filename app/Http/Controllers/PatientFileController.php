@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Patient;
 use App\Models\PatientFile;
 use App\Models\PatientFileLog;
+use App\Models\Doctor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -20,14 +21,26 @@ class PatientFileController extends Controller
     // List files for a patient
     public function index(Patient $patient)
     {
-        // Check if the authenticated doctor is associated with the patient
         $doctor = Auth::user()->doctor;
         if (!$doctor || !$doctor->patients()->where('patient_id', $patient->id)->exists()) {
             abort(403, 'Unauthorized access to patient files.');
         }
 
         $files = $patient->files()->with('uploader')->get();
-        return view('patient_files.index', compact('patient', 'files'));
+        $patient->load('doctors.specialities', 'doctors.user');
+
+        // Get available doctors (not associated with the patient)
+        $associatedDoctorIds = $patient->doctors->pluck('id')->toArray();
+        $availableDoctors = Doctor::with('specialities')
+            ->whereNotIn('id', $associatedDoctorIds)
+            ->whereHas('user', function ($query) {
+                $query->whereHas('permissions', function ($p) {
+                    $p->where('name', 'patient_files.index');
+                });
+            })
+            ->get();
+
+        return view('patient_files.index', compact('patient', 'files', 'availableDoctors'));
     }
 
     // Show upload form
@@ -62,7 +75,7 @@ class PatientFileController extends Controller
 
         Storage::disk('patient_files')->put($filePath, $encryptedContent);
 
-        $f = PatientFile::create([
+        $patientFile = PatientFile::create([
             'patient_id' => $patient->id,
             'uploaded_by' => Auth::id(),
             'file_name' => $fileName,
@@ -73,7 +86,7 @@ class PatientFileController extends Controller
         ]);
 
         PatientFileLog::create([
-            'patient_file_id' => $f->id,
+            'patient_file_id' => $patientFile->id,
             'user_id' => Auth::id(),
             'action' => 'upload',
         ]);
@@ -82,7 +95,7 @@ class PatientFileController extends Controller
             ->with('success', 'File uploaded successfully.');
     }
 
-    // In download method
+    // Download a file
     public function download(Patient $patient, PatientFile $file)
     {
         $doctor = Auth::user()->doctor;
@@ -131,5 +144,39 @@ class PatientFileController extends Controller
 
         return redirect()->route('patient_files.index', $patient)
             ->with('success', 'File deleted successfully.');
+    }
+
+    // Assign a doctor to the patient
+    public function assignDoctor(Request $request, Patient $patient)
+    {
+        $doctor = Auth::user()->doctor;
+        if (!$doctor || !$doctor->patients()->where('patient_id', $patient->id)->exists()) {
+            abort(403, 'Unauthorized access to patient.');
+        }
+
+        if (!auth()->user()->hasPermissionInContext('patient_files.assign_doctor', $doctor->id)) {
+            abort(403, 'Unauthorized to assign doctors.');
+        }
+
+        $request->validate([
+            'doctor_id' => 'required|exists:doctors,id',
+        ]);
+
+        $newDoctor = Doctor::findOrFail($request->doctor_id);
+
+        // Check if the doctor is already associated
+        if ($patient->doctors()->where('doctors.id', $newDoctor->id)->exists()) {
+            return redirect()->route('patient_files.index', $patient)
+                ->with('error', trans('lang.doctor_already_associated'));
+        }
+
+        // Associate the doctor with the patient
+        $patient->doctors()->create([
+            'doctor_id' => $newDoctor->id,
+            'patient_id' => $patient->id,
+        ]);
+
+        return redirect()->route('patient_files.index', $patient)
+            ->with('success', trans('lang.doctor_assigned_success'));
     }
 }

@@ -1614,4 +1614,8 @@ return [
     'doctors_associated' => 'Associated Doctors',
     'no_doctors_associated' => 'No doctors are associated with this patient.',
     'contact' => 'Contact',
+    'assign_doctor' => 'Assign Doctor',
+    'select_doctor' => 'Select Doctor',
+    'choose' => 'Choose...',
+    'assign' => 'Assign',
 ];

@@ -303,7 +303,7 @@ return [
     'app_setting_check_for' => 'تحقق من وجود تحديثات',
     'back' => 'الرجوع للقائمة',
     'boolean' => 'قيمة منطقية',
-    'cancel' => 'يلغي',
+    'cancel' => 'الغاء',
     'checkbox' => 'خانة اختيار',
     'close' => 'يغلق',
     'columns' => 'الأعمدة',
@@ -1535,5 +1535,9 @@ return [
     'doctors_associated' => 'الطبيبون المرتبطون بهذا المريض',
     'no_doctors_associated' => 'لا يوجد طبيبون مرتبطون بهذا المريض',
     'contact' => 'اتصل',
+    'assign_doctor' => 'أضف طبيب',
+    'select_doctor' => 'أختر طبيب',
+    'choose' => 'اختر...',
+    'assign' => 'ائضافة',
 
 ];

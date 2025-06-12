@@ -77,8 +77,14 @@
                     <!-- Doctors List (Right Sidebar) -->
                     <div class="col-lg-4 col-md-12">
                         <div class="card shadow-sm">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h3 class="card-title">{{ trans('lang.doctors_associated') }}</h3>
+                                @if(auth()->user()->hasPermissionInContext('patient_files.assign_doctor', $doctorId))
+                                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                                        data-target="#assignDoctorModal">
+                                        <i class="fas fa-user-plus"></i> {{ trans('lang.assign_doctor') }}
+                                    </button>
+                                @endif
                             </div>
                             <div class="card-body">
                                 @if($patient->doctors->isEmpty())
@@ -111,6 +117,46 @@
                 </div>
             </div>
         </div>
+
+        <!-- Assign Doctor Modal -->
+        @if(auth()->user()->hasPermissionInContext('patient_files.assign_doctor', $doctorId))
+            <div class="modal fade" id="assignDoctorModal" tabindex="-1" role="dialog" aria-labelledby="assignDoctorModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="assignDoctorModalLabel">{{ trans('lang.assign_doctor') }}</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form action="{{ route('patient_files.assign_doctor', $patient) }}" method="POST">
+                            @csrf
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label for="doctor_id">{{ trans('lang.select_doctor') }}</label>
+                                    <select name="doctor_id" id="doctor_id" class="form-control select2" required>
+                                        <option value="">{{ trans('lang.choose') }}</option>
+                                        @foreach($availableDoctors as $doctor)
+                                            <option value="{{ $doctor->id }}">{{ $doctor->name }}
+                                                ({{ $doctor->specialities->pluck('name')->join(', ') }})</option>
+                                        @endforeach
+                                    </select>
+                                    @error('doctor_id')
+                                        <div class="text-danger">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary"
+                                    data-dismiss="modal">{{ trans('lang.cancel') }}</button>
+                                <button type="submit" class="btn btn-primary">{{ trans('lang.assign') }}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
     @else
         <div class="content-header">
             <div class="container-fluid">
@@ -120,4 +166,20 @@
             </div>
         </div>
     @endif
+
+    @push('scripts')
+        <script>
+            console.log('{{ $patient }}');
+            console.log('-------------- SELECT DOCTORS --------------');
+            console.log('{{ $patient->doctors }}');
+
+
+            $(document).ready(function () {
+                $('.select2').select2({
+                    placeholder: "{{ trans('lang.choose') }}",
+                    allowClear: true
+                });
+            });
+        </script>
+    @endpush
 @endsection
