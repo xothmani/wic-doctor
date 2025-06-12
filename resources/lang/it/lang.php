@@ -2236,5 +2236,8 @@ return [
     'choose' => 'Scegli...',
     'assign' => 'Assegna',
     'cancel' => 'Annulla',
+    'already_assigned' => 'Già assegnato',
+    'doctor_already_assigned' => 'Questo dottore appartiene gia al paziente.',
+    'doctor_assigned_success' => 'Dottore assegnato con successo.',
 
 ];

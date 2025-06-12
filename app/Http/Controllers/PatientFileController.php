@@ -29,18 +29,8 @@ class PatientFileController extends Controller
         $files = $patient->files()->with('uploader')->get();
         $patient->load('doctors.specialities', 'doctors.user');
 
-        // Get available doctors (not associated with the patient)
-        $associatedDoctorIds = $patient->doctors->pluck('id')->toArray();
-        $availableDoctors = Doctor::with('specialities')
-            ->whereNotIn('id', $associatedDoctorIds)
-            ->whereHas('user', function ($query) {
-                $query->whereHas('permissions', function ($p) {
-                    $p->where('name', 'patient_files.index');
-                });
-            })
-            ->get();
-
-        return view('patient_files.index', compact('patient', 'files', 'availableDoctors'));
+        $allDoctors = Doctor::with('specialities', 'user')->get();
+        return view('patient_files.index', compact('patient', 'files', 'allDoctors'));
     }
 
     // Show upload form
@@ -163,7 +153,7 @@ class PatientFileController extends Controller
         ]);
 
         $newDoctor = Doctor::findOrFail($request->doctor_id);
-
+        \Log::info('Assigned to be doctor ID: ' . $newDoctor->id);
         // Check if the doctor is already associated
         if ($patient->doctors()->where('doctors.id', $newDoctor->id)->exists()) {
             return redirect()->route('patient_files.index', $patient)
@@ -171,10 +161,7 @@ class PatientFileController extends Controller
         }
 
         // Associate the doctor with the patient
-        $patient->doctors()->create([
-            'doctor_id' => $newDoctor->id,
-            'patient_id' => $patient->id,
-        ]);
+        $patient->doctors()->attach($newDoctor->id);
 
         return redirect()->route('patient_files.index', $patient)
             ->with('success', trans('lang.doctor_assigned_success'));

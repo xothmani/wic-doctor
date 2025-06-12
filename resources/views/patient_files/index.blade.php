@@ -103,9 +103,6 @@
                                                             </small>
                                                         @endif
                                                     </div>
-                                                    <a href="mailto:{{ $doctor->user->email }}" class="btn btn-sm btn-outline-primary">
-                                                        <i class="fas fa-envelope"></i> {{ trans('lang.contact') }}
-                                                    </a>
                                                 </div>
                                             </li>
                                         @endforeach
@@ -122,37 +119,54 @@
         @if(auth()->user()->hasPermissionInContext('patient_files.assign_doctor', $doctorId))
             <div class="modal fade" id="assignDoctorModal" tabindex="-1" role="dialog" aria-labelledby="assignDoctorModalLabel"
                 aria-hidden="true">
-                <div class="modal-dialog" role="document">
+                <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="assignDoctorModalLabel">{{ trans('lang.assign_doctor') }}</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
+                                <span aria-hidden="true">×</span>
                             </button>
                         </div>
-                        <form action="{{ route('patient_files.assign_doctor', $patient) }}" method="POST">
-                            @csrf
-                            <div class="modal-body">
-                                <div class="form-group">
-                                    <label for="doctor_id">{{ trans('lang.select_doctor') }}</label>
-                                    <select name="doctor_id" id="doctor_id" class="form-control select2" required>
-                                        <option value="">{{ trans('lang.choose') }}</option>
-                                        @foreach($availableDoctors as $doctor)
-                                            <option value="{{ $doctor->id }}">{{ $doctor->name }}
-                                                ({{ $doctor->specialities->pluck('name')->join(', ') }})</option>
-                                        @endforeach
-                                    </select>
-                                    @error('doctor_id')
-                                        <div class="text-danger">{{ $message }}</div>
-                                    @enderror
+                        <div class="modal-body">
+                            <!-- Search Input -->
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="doctorSearch"
+                                    placeholder="{{ trans('lang.search') }}...">
+                            </div>
+                            <!-- Doctors List -->
+                            <form action="{{ route('patient_files.assign_doctor', $patient) }}" method="POST" id="assignDoctorForm">
+                                @csrf
+                                <div class="list-group" id="doctorList" style="max-height: 400px; overflow-y: auto;">
+                                    @foreach($allDoctors as $doctor)
+                                        <a href="javascript:void(0)" class="list-group-item list-group-item-action doctor-item"
+                                            data-value="{{ $doctor->id }}"
+                                            data-display="{{ $doctor->name }} ({{ $doctor->specialities->pluck('name')->join(', ') }})"
+                                            onclick="selectDoctor(this)">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>{{ $doctor->name }}</strong>
+                                                    @if($doctor->specialities->isNotEmpty())
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            {{ $doctor->specialities->pluck('name')->join(', ') }}
+                                                        </small>
+                                                    @endif
+                                                </div>
+                                                @if($patient->doctors->contains('id', $doctor->id))
+                                                    <span class="badge badge-success">{{ trans('lang.already_assigned') }}</span>
+                                                @endif
+                                            </div>
+                                        </a>
+                                    @endforeach
                                 </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary"
-                                    data-dismiss="modal">{{ trans('lang.cancel') }}</button>
-                                <button type="submit" class="btn btn-primary">{{ trans('lang.assign') }}</button>
-                            </div>
-                        </form>
+                                <input type="hidden" name="doctor_id" id="selectedDoctorId" required>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.close') }}</button>
+                            <button type="submit" class="btn btn-primary"
+                                form="assignDoctorForm">{{ trans('lang.assign') }}</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -169,17 +183,55 @@
 
     @push('scripts')
         <script>
-            console.log('{{ $patient }}');
-            console.log('-------------- SELECT DOCTORS --------------');
-            console.log('{{ $patient->doctors }}');
-
+            console.log('Patient ID:', {{ $patient->id }});
+            // console.log('doctors associated: {{$patient->doctors}}');
+            console.log('all doctors: {{$allDoctors}}');
 
             $(document).ready(function () {
-                $('.select2').select2({
-                    placeholder: "{{ trans('lang.choose') }}",
-                    allowClear: true
+                // Initialize modal
+                $('#assignDoctorModal').on('show.bs.modal', function () {
+                    const searchField = document.getElementById('doctorSearch');
+                    if (searchField) {
+                        // Reset search field
+                        searchField.value = '';
+                        // Remove old events and add new one
+                        const newSearchField = searchField.cloneNode(true);
+                        searchField.parentNode.replaceChild(newSearchField, searchField);
+                        newSearchField.addEventListener('input', function () {
+                            filterDoctorList(this);
+                        });
+                        // Focus on search field
+                        newSearchField.focus();
+                        // Show all items initially
+                        document.querySelectorAll('#doctorList a').forEach(item => {
+                            item.style.display = '';
+                        });
+                    }
+                });
+
+                // Clear selected doctor on modal close
+                $('#assignDoctorModal').on('hidden.bs.modal', function () {
+                    document.getElementById('selectedDoctorId').value = '';
                 });
             });
+
+            function filterDoctorList(input) {
+                const searchTerm = input.value.toLowerCase();
+                document.querySelectorAll('#doctorList a').forEach(item => {
+                    const text = item.getAttribute('data-display').toLowerCase();
+                    item.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            }
+
+            function selectDoctor(element) {
+                const doctorId = element.getAttribute('data-value');
+                document.getElementById('selectedDoctorId').value = doctorId;
+                // Highlight selected item
+                document.querySelectorAll('#doctorList a').forEach(item => {
+                    item.classList.remove('active');
+                });
+                element.classList.add('active');
+            }
         </script>
     @endpush
 @endsection

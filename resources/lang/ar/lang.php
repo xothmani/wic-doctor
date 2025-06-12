@@ -1539,5 +1539,8 @@ return [
     'select_doctor' => 'أختر طبيب',
     'choose' => 'اختر...',
     'assign' => 'ائضافة',
+    'already_assigned' => 'مرتبطة',
+    'doctor_already_assigned' => 'هذا الطبيب مرتبط مع هذا المريض.',
+    'doctor_assigned_success' => 'تم اضافة الطبيب بنجاح.',
 
 ];

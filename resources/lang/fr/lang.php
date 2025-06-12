@@ -2282,5 +2282,7 @@ return [
     'select_doctor' => 'Sélectionnez un docteur',
     'choose' => 'Choisir...',
     'assign' => 'Assigner',
-
+    'already_assigned' => 'Associé',
+    'doctor_already_assigned' => 'Ce docteur est deja assigné au patient.',
+    'doctor_assigned_success' => 'Docteur assigné avec successe.',
 ];

@@ -671,7 +671,7 @@ return [
     'appointment_appointment_status_id' => 'Appointment Status',
     'appointment_appointment_status_id_help' => 'Insert Appointment Status',
     'appointment_appointment_status_id_placeholder' => 'Insert Appointment Status',
-    'appointment_online'=>'Online',
+    'appointment_online' => 'Online',
     'appointment_paid' => 'Paid',
     'appointment_plural' => 'Appointments',
     'appointment_status' => 'Appointment Status',
@@ -1562,7 +1562,7 @@ return [
     'checking-interactions' => 'Checking interactions',
     'interaction-results' => 'Interaction Results',
     'no-interactions' => 'No known interactions found.',
-    "safe-combination"=> "The medications selected can be taken together without any danger.",
+    "safe-combination" => "The medications selected can be taken together without any danger.",
     'error-interactions' => 'Error checking interactions',
     'details' => 'Details',
     'management' => 'Management',
@@ -1618,4 +1618,8 @@ return [
     'select_doctor' => 'Select Doctor',
     'choose' => 'Choose...',
     'assign' => 'Assign',
+    'already_assigned' => 'Already Assigned',
+    'doctor_already_assigned' => 'This doctor is already associated with the patient.',
+    'doctor_assigned_success' => 'Doctor assigned successfully.',
+
 ];
