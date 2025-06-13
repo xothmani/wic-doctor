@@ -1,8 +1,9 @@
+<!-- resources/views/patient_files/index.blade.php -->
 @extends('layouts.app')
 
 @php
     $doctorId = auth()->user()->getDoctorId();
-    $permissionKey = 'patient_files.index';
+    $permissionKey = 'patient_files.create';
     // Retrieve the permission with its related readable record
     $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
         ->with('readable')
@@ -19,20 +20,28 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0 text-bold">{{ trans('lang.patient_files_plural') }}
-                            <small class="mx-3">|</small><small>{{ $patient->first_name }} {{ $patient->last_name }}</small>
+                        <h1 class="m-0 text-bold">
+                            {{trans('lang.patient_files_plural')}}
+                            <small class="mx-3 text-muted">|</small>
+                            <small class="badge badge-soft-info px-3 py-1">
+                                <i class="fas fa-user-injured mr-1"></i>
+                                {{ $patient->first_name }} {{ $patient->last_name }}
+                            </small>
                         </h1>
                     </div>
                     <div class="col-sm-6">
-                        <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
+                        <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex shadow-sm">
                             <li class="breadcrumb-item">
-                                <a href="{{ url('/dashboard') }}"><i class="fas fa-tachometer-alt"></i>
-                                    {{ trans('lang.dashboard') }}</a>
+                                <a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt"></i>
+                                    {{trans('lang.dashboard')}}</a>
                             </li>
                             <li class="breadcrumb-item">
-                                <a href="{{ route('patients.index') }}">{{ trans('lang.patients_plural') }}</a>
+                                <a href="{{ route('patients.index') }}">{{trans('lang.patients_plural')}}</a>
                             </li>
-                            <li class="breadcrumb-item active">{{ trans('lang.patient_files_table') }}</li>
+                            <li class="breadcrumb-item">
+                                <a
+                                    href="{{ route('patient_files.index', $patient) }}">{{trans('lang.patient_files_plural')}}</a>
+                            </li>
                         </ol>
                     </div>
                 </div>
@@ -184,6 +193,25 @@
                 </div>
             </div>
         @endif
+
+        <!-- Custom Styles -->
+        <style>
+            .bg-gradient-primary {
+                background: linear-gradient(135deg, var(--primary, #007bff) 0%, var(--info, #17a2b8) 100%);
+            }
+
+            .badge-soft-primary {
+                color: var(--primary, #007bff);
+                background-color: rgba(0, 123, 255, 0.1);
+                border: 1px solid rgba(0, 123, 255, 0.2);
+            }
+
+            .badge-soft-info {
+                color: var(--info, #17a2b8);
+                background-color: rgba(23, 162, 184, 0.1);
+                border: 1px solid rgba(23, 162, 184, 0.2);
+            }
+        </style>
     @else
         <div class="content-header">
             <div class="container-fluid">

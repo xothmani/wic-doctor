@@ -697,6 +697,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::prefix('patient_files')->name('patient_files.')->group(function () {
         Route::get('/{patient}', [PatientFileController::class, 'index'])->name('index');
         Route::get('/{patient}/create', [PatientFileController::class, 'create'])->name('create');
+        Route::get('/{patient}/{file}', [PatientFileController::class, 'show'])->name('show');
         Route::post('/{patient}', [PatientFileController::class, 'store'])->name('store');
         Route::get('/{patient}/{file}/download', [PatientFileController::class, 'download'])->name('download');
         Route::delete('/{patient}/{file}', [PatientFileController::class, 'destroy'])->name('destroy');

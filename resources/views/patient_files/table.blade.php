@@ -1,3 +1,4 @@
+<!-- resources/views/patient_files/table.blade.php -->
 <div class="table-responsive">
     <table class="table table-striped table-bordered" id="patient-files-table">
         <thead class="thead-light">

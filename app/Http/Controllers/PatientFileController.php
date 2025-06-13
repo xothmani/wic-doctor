@@ -33,6 +33,25 @@ class PatientFileController extends Controller
         return view('patient_files.index', compact('patient', 'files', 'allDoctors'));
     }
 
+    // Show a specific file
+    public function show(Patient $patient, PatientFile $file)
+    {
+        $doctor = Auth::user()->doctor;
+        if (!$doctor || !$doctor->patients()->where('patient_id', $patient->id)->exists()) {
+            abort(403, 'Unauthorized access to patient files.');
+        }
+
+        if (!auth()->user()->hasPermissionInContext('patient_files.show', $doctor->id)) {
+            abort(403, 'Unauthorized to view file details.');
+        }
+
+        if ($file->patient_id !== $patient->id) {
+            abort(404, 'File not found.');
+        }
+
+        return view('patient_files.show', compact('patient', 'file'));
+    }
+
     // Show upload form
     public function create(Patient $patient)
     {
