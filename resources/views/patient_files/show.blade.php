@@ -186,6 +186,14 @@
                                                 <span>{{ trans('lang.download_file') }}</span>
                                             </button>
                                         @endif
+                                        @if(auth()->user()->hasPermissionInContext('patient_files.destroy', $doctorId))
+                                            <button
+                                                onclick="confirmDelete('{{ route('patient_files.destroy', [$patient, $file]) }}')"
+                                                data-toggle="tooltip" class="action-button delete-btn">
+                                                <i class="fas fa-trash"></i>
+                                                <span>{{ trans('lang.delete_file') }}</span>
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -329,6 +337,46 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            // Download file function
+            function downloadFile(url) {
+                window.open(url, '_blank');
+            }
+
+            // Confirm delete function
+            function confirmDelete(url) {
+                if (confirm('{{trans("lang.confirm_delete_file")}}')) {
+                    // Create a form to submit DELETE request
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = url;
+
+                    // Add CSRF token
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfInput);
+
+                    // Add method spoofing for DELETE
+                    const methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
+                    form.appendChild(methodInput);
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }
+
+            // Initialize tooltips
+            $(document).ready(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+        </script>
+
     @else
         <div class="content">
             <div class="container-fluid">
@@ -567,6 +615,7 @@
         cursor: pointer;
         box-shadow: var(--shadow-soft);
     }
+
     .header-button {
         display: flex;
         align-items: center;
@@ -595,10 +644,17 @@
         background: var(--info-gradient);
         color: white;
     }
-    .header-download-btn {
-        background:rgba(0, 0, 0, 0.2);
+
+    .delete-btn {
+        background: var(--danger-gradient);
         color: white;
     }
+
+    .header-download-btn {
+        background: rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+
     .header-edit-btn {
         background: var(--success-color);
         color: white;
@@ -727,6 +783,12 @@
         --font-size-xl: 1.5rem;
 
         --transition: all 0.3s ease;
+    }
+
+    .badge-soft-info {
+        color: var(--info, #17a2b8);
+        background-color: rgba(23, 162, 184, 0.1);
+        border: 1px solid rgba(23, 162, 184, 0.2);
     }
 
     /* Content Header */

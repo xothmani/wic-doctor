@@ -72,7 +72,7 @@ class PatientFileController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,webp,svg,txt,csv,xls,xlsx,ppt,pptx,zip,rar,7z,tar,gz,bz2,xml,hl7,dcm,nii,ecg|max:20480',
+            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,xml,hl7,dcm,nii,ecg,jpg,jpeg,png,gif,webp,svg,bmp,tiff,mp3,wav,aac,ogg,mp4,mkv,avi,mov,wmv,flv,zip,rar,7z,tar,gz,bz2|max:102400',
             'description' => 'nullable|string|max:255',
         ]);
 

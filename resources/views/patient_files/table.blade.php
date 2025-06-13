@@ -5,7 +5,7 @@
             <div class="file-icon-container">
                 @php
                     $extension = pathinfo($file->file_name, PATHINFO_EXTENSION);
-                    $iconClass = match(strtolower($extension)) {
+                    $iconClass = match (strtolower($extension)) {
                         'pdf' => 'fas fa-file-pdf text-danger',
                         'doc', 'docx' => 'fas fa-file-word text-primary',
                         'xls', 'xlsx' => 'fas fa-file-excel text-success',
@@ -19,7 +19,7 @@
                 <i class="{{ $iconClass }} file-icon"></i>
                 <div class="file-type-badge">{{ strtoupper($extension ?? 'FILE') }}</div>
             </div>
-            
+
             <div class="file-content">
                 <div class="file-header">
                     <h6 class="file-name">{{ $file->file_name }}</h6>
@@ -31,18 +31,19 @@
                         @endif
                     </div>
                 </div>
-                
+
                 <div class="file-description">
                     <p class="description-text">
                         {{ $file->description ?? trans('lang.no_description') }}
                     </p>
                 </div>
-                
+
                 <div class="file-meta">
                     <div class="uploader-info">
                         <div class="uploader-avatar">
                             @if($file->uploader && $file->uploader->media->isNotEmpty())
-                                <img src="{{ $file->uploader->media->first()->getUrl() }}" alt="{{ $file->uploader->name }}" class="avatar-img">
+                                <img src="{{ $file->uploader->media->first()->getUrl() }}" alt="{{ $file->uploader->name }}"
+                                    class="avatar-img">
                             @else
                                 <div class="avatar-placeholder">
                                     <i class="fas fa-user-md"></i>
@@ -59,40 +60,39 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="file-actions">
                 @if(auth()->user()->hasPermissionInContext('patient_files.show', auth()->user()->getDoctorId()))
-                    <button class="action-btn view-btn" 
-                            onclick="window.location.href='{{ route('patient_files.show', [$patient, $file]) }}'" 
-                            data-toggle="tooltip" 
-                            title="{{trans('lang.view_details')}}">
+                    <button class="action-btn view-btn"
+                        onclick="window.location.href='{{ route('patient_files.show', [$patient, $file]) }}'"
+                        data-toggle="tooltip" title="{{trans('lang.view_details')}}">
                         <i class="fas fa-eye"></i>
                     </button>
                 @endif
-                
+
                 @if(auth()->user()->hasPermissionInContext('patient_files.download', auth()->user()->getDoctorId()))
-                    <button class="action-btn download-btn" 
-                            onclick="downloadFile('{{ route('patient_files.download', [$patient, $file]) }}')" 
-                            data-toggle="tooltip" 
-                            title="{{trans('lang.download')}}">
+                    <button class="action-btn download-btn"
+                        onclick="downloadFile('{{ route('patient_files.download', [$patient, $file]) }}')" data-toggle="tooltip"
+                        title="{{trans('lang.download')}}">
                         <i class="fas fa-download"></i>
                     </button>
                 @endif
-                
+
                 @if(auth()->user()->hasPermissionInContext('patient_files.edit', auth()->user()->getDoctorId()))
-                    <button class="action-btn edit-btn" 
-                            onclick="window.location.href='{{ route('patient_files.edit', [$patient, $file]) }}'" 
-                            data-toggle="tooltip" 
-                            title="{{trans('lang.edit')}}">
+                    <button class="action-btn edit-btn"
+                        onclick="window.location.href='{{ route('patient_files.edit', [$patient, $file]) }}'"
+                        data-toggle="tooltip" title="{{trans('lang.edit')}}">
                         <i class="fas fa-edit"></i>
                     </button>
                 @endif
-                
-                @if(auth()->user()->hasPermissionInContext('patient_files.destroy', auth()->user()->getDoctorId()))
-                    <button class="action-btn delete-btn" 
-                            onclick="confirmDelete('{{ route('patient_files.destroy', [$patient, $file]) }}')" 
-                            data-toggle="tooltip" 
-                            title="{{trans('lang.delete')}}">
+
+                @if(
+                        auth()->user()->hasPermissionInContext('patient_files.destroy', auth()->user()->getDoctorId()) &&
+                        $file->uploader && $file->uploader->id === auth()->user()->id
+                    )
+                    <button class="action-btn delete-btn"
+                        onclick="confirmDelete('{{ route('patient_files.destroy', [$patient, $file]) }}')" data-toggle="tooltip"
+                        title="{{trans('lang.delete')}}">
                         <i class="fas fa-trash"></i>
                     </button>
                 @endif
@@ -113,6 +113,45 @@
         </div>
     @endforelse
 </div>
+
+<script>
+    // Download file function
+    function downloadFile(url) {
+        window.open(url, '_blank');
+    }
+
+    // Confirm delete function
+    function confirmDelete(url) {
+        if (confirm('{{trans("lang.confirm_delete_file")}}')) {
+            // Create a form to submit DELETE request
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+
+            // Add CSRF token
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = '{{ csrf_token() }}';
+            form.appendChild(csrfInput);
+
+            // Add method spoofing for DELETE
+            const methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            methodInput.value = 'DELETE';
+            form.appendChild(methodInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    // Initialize tooltips
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
 
 <!-- Enhanced Table Styles -->
 <style>
@@ -410,6 +449,7 @@
             opacity: 0;
             transform: translateY(30px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -473,42 +513,3 @@
         }
     }
 </style>
-
-<script>
-    // Download file function
-    function downloadFile(url) {
-        window.open(url, '_blank');
-    }
-
-    // Confirm delete function
-    function confirmDelete(url) {
-        if (confirm('{{trans("lang.confirm_delete_file")}}')) {
-            // Create a form to submit DELETE request
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-            
-            // Add CSRF token
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '_token';
-            csrfInput.value = '{{ csrf_token() }}';
-            form.appendChild(csrfInput);
-            
-            // Add method spoofing for DELETE
-            const methodInput = document.createElement('input');
-            methodInput.type = 'hidden';
-            methodInput.name = '_method';
-            methodInput.value = 'DELETE';
-            form.appendChild(methodInput);
-            
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-
-    // Initialize tooltips
-    $(document).ready(function() {
-        $('[data-toggle="tooltip"]').tooltip();
-    });
-</script>
