@@ -78,55 +78,95 @@
                                 </ul>
                             </div>
                             <div class="card-body">
-                                @include('patient_files.table')
+                                <div class="files-container">
+                                    @include('patient_files.table')
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Doctors List (Right Sidebar) -->
                     <div class="col-lg-4 col-md-12">
-                        <div class="card shadow-sm" style="min-width: 350px!important;">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h3 class="card-title">{{ trans('lang.doctors_associated') }}</h3>
+                        <div class="card shadow-lg border-0 doctors-card">
+                            <div class="card-header bg-gradient-info text-white position-relative">
+                                <h3 class="card-title mb-0">
+                                    <i class="fas fa-user-md mr-2"></i>
+                                    {{ trans('lang.doctors_associated') }}
+                                </h3>
                                 @if(auth()->user()->hasPermissionInContext('patient_files.assign_doctor', $doctorId))
-                                    <button type="button" class="btn btn-sm btn-primary"
-                                        style="position: absolute;right: 20px !important; " data-toggle="modal"
+                                    <button type="button" class="btn btn-light btn-sm floating-btn" data-toggle="modal"
                                         data-target="#assignDoctorModal">
-                                        <i class="fas fa-user-plus"></i> {{ trans('lang.assign_doctor') }}
+                                        <i class="fas fa-user-plus mr-1"></i> {{ trans('lang.assign_doctor') }}
                                     </button>
                                 @endif
                             </div>
-                            <div class="card-body">
+                            <div class="card-body p-0">
                                 @if($patient->doctors->isEmpty())
-                                    <p class="text-muted">{{ trans('lang.no_doctors_associated') }}</p>
+                                    <div class="empty-state text-center py-5">
+                                        <div class="empty-icon mb-3">
+                                            <i class="fas fa-user-md text-muted"></i>
+                                        </div>
+                                        <p class="text-muted mb-3">{{ trans('lang.no_doctors_associated') }}</p>
+                                        @if(auth()->user()->hasPermissionInContext('patient_files.assign_doctor', $doctorId))
+                                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                                                data-target="#assignDoctorModal">
+                                                <i class="fas fa-plus mr-1"></i>{{ trans('lang.assign_first_doctor') }}
+                                            </button>
+                                        @endif
+                                    </div>
                                 @else
-                                    <ul class="list-group list-group-flush">
-                                        @foreach($patient->doctors as $doctor)
+                                    <div class="doctors-list">
+                                        @foreach($patient->doctors as $index => $doctor)
                                             @if($doctor->name && $doctor->name)
-                                                <li class="list-group-item">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong>{{ $doctor->name }}</strong>
-                                                            @if($doctor->specialities->isNotEmpty())
-                                                                <br>
-                                                                <small class="text-muted">
-                                                                    {{ $doctor->specialities->pluck('name')->join(', ') }}
-                                                                </small>
-                                                            @endif
-                                                        </div>
-                                                        <a href="mailto:{{ $doctor->user->email ?? '#' }}"
-                                                            class="btn btn-sm btn-outline-primary">
-                                                            <i class="fas fa-envelope"></i> {{ trans('lang.contact') }}
-                                                        </a>
+                                                <div class="doctor-item" style="animation-delay: {{ $index * 0.1 }}s">
+                                                    <div class="doctor-avatar">
+                                                        @if($doctor->user && $doctor->user->media->isNotEmpty())
+                                                            <img src="{{ $doctor->user->media->first()->getUrl() }}" alt="{{ $doctor->name }}" class="avatar-img">
+                                                        @else
+                                                            <div class="avatar-placeholder">
+                                                                <i class="fas fa-user-md"></i>
+                                                            </div>
+                                                        @endif
+                                                        <div class="status-indicator online"></div>
                                                     </div>
-                                                </li>
+                                                    <div class="doctor-info">
+                                                        <h6 class="doctor-name">{{ $doctor->name }}</h6>
+                                                        @if($doctor->specialities->isNotEmpty())
+                                                            <div class="specialities">
+                                                                @foreach($doctor->specialities->take(2) as $speciality)
+                                                                    <span class="speciality-badge">{{ $speciality->name }}</span>
+                                                                @endforeach
+                                                                @if($doctor->specialities->count() > 2)
+                                                                    <span
+                                                                        class="speciality-badge more">+{{ $doctor->specialities->count() - 2 }}</span>
+                                                                @endif
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                    <div class="doctor-actions">
+                                                        <a href="mailto:{{ $doctor->user->email ?? '#' }}" class="action-btn email-btn"
+                                                            title="{{ trans('lang.contact') }}">
+                                                            <i class="fas fa-envelope"></i>
+                                                        </a>
+                                                        <button class="action-btn info-btn" title="{{ trans('lang.view_details') }}">
+                                                            <i class="fas fa-info-circle"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             @else
-                                                <li class="list-group-item text-muted">
-                                                    Invalid doctor (ID: {{ $doctor->id }})
-                                                </li>
+                                                <div class="doctor-item error">
+                                                    <div class="doctor-avatar">
+                                                        <div class="avatar-placeholder error">
+                                                            <i class="fas fa-exclamation-triangle"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="doctor-info">
+                                                        <span class="text-muted">Invalid doctor (ID: {{ $doctor->id }})</span>
+                                                    </div>
+                                                </div>
                                             @endif
                                         @endforeach
-                                    </ul>
+                                    </div>
                                 @endif
                             </div>
                         </div>
@@ -135,81 +175,432 @@
             </div>
         </div>
 
-        <!-- Assign Doctor Modal -->
+        <!-- Enhanced Assign Doctor Modal -->
         @if(auth()->user()->hasPermissionInContext('patient_files.assign_doctor', $doctorId))
             <div class="modal fade" id="assignDoctorModal" tabindex="-1" role="dialog" aria-labelledby="assignDoctorModalLabel"
                 aria-hidden="true">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="assignDoctorModalLabel">{{ trans('lang.assign_doctor') }}</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-gradient-primary text-white border-0">
+                            <h5 class="modal-title" id="assignDoctorModalLabel">
+                                <i class="fas fa-user-plus mr-2"></i>{{ trans('lang.assign_doctor') }}
+                            </h5>
+                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">×</span>
                             </button>
                         </div>
-                        <div class="modal-body">
+                        <div class="modal-body p-0">
                             <!-- Search Input -->
-                            <div class="form-group">
-                                <input type="text" class="form-control" id="doctorSearch"
-                                    placeholder="{{ trans('lang.search') }}...">
+                            <div class="search-section p-4 bg-light">
+                                <div class="search-input-group">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" class="form-control search-input" id="doctorSearch"
+                                        placeholder="{{ trans('lang.search_doctors') }}...">
+                                </div>
                             </div>
+
                             <!-- Doctors List -->
                             <form action="{{ route('patient_files.assign_doctor', $patient) }}" method="POST" id="assignDoctorForm">
                                 @csrf
-                                <div class="list-group" id="doctorList" style="max-height: 400px; overflow-y: auto;">
+                                <div class="doctors-modal-list" id="doctorList">
                                     @foreach($allDoctors as $doctor)
                                         @if($doctor->name && $doctor->name)
-                                            <a href="javascript:void(0)" class="list-group-item list-group-item-action doctor-item"
-                                                data-value="{{ $doctor->id }}"
+                                            <div class="modal-doctor-item doctor-item-modal" data-value="{{ $doctor->id }}"
                                                 data-display="{{ $doctor->name }} ({{ $doctor->specialities->pluck('name')->join(', ') }})"
                                                 onclick="selectDoctor(this)">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <strong>{{ $doctor->name }}</strong>
-                                                        @if($doctor->specialities->isNotEmpty())
-                                                            <br>
-                                                            <small class="text-muted">
-                                                                {{ $doctor->specialities->pluck('name')->join(', ') }}
-                                                            </small>
+                                                <div class="modal-doctor-avatar">
+                                                    @if($doctor->user && $doctor->user->media->isNotEmpty())
+                                                            <img src="{{ $doctor->user->media->first()->getUrl() }}" alt="{{ $doctor->name }}" class="avatar-img">
+                                                        @else
+                                                            <div class="avatar-placeholder">
+                                                                <i class="fas fa-user-md"></i>
+                                                            </div>
                                                         @endif
-                                                    </div>
-                                                    @if($patient->doctors->contains('id', $doctor->id))
-                                                        <span class="badge badge-success">{{ trans('lang.already_assigned') }}</span>
+                                                </div>
+                                                <div class="modal-doctor-info">
+                                                    <h6 class="doctor-name">{{ $doctor->name }}</h6>
+                                                    @if($doctor->specialities->isNotEmpty())
+                                                        <div class="specialities">
+                                                            @foreach($doctor->specialities->take(3) as $speciality)
+                                                                <span class="speciality-badge">{{ $speciality->name }}</span>
+                                                            @endforeach
+                                                        </div>
                                                     @endif
                                                 </div>
-                                            </a>
+                                                <div class="modal-doctor-status">
+                                                    @if($patient->doctors->contains('id', $doctor->id))
+                                                        <span class="badge badge-success">{{ trans('lang.already_assigned') }}</span>
+                                                    @else
+                                                        <div class="select-indicator">
+                                                            <i class="fas fa-check"></i>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         @endif
                                     @endforeach
                                 </div>
                                 <input type="hidden" name="doctor_id" id="selectedDoctorId" required>
                             </form>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.close') }}</button>
-                            <button type="submit" class="btn btn-primary"
-                                form="assignDoctorForm">{{ trans('lang.assign') }}</button>
+                        <div class="modal-footer border-0 bg-light">
+                            <button type="button" class="btn btn-light" data-dismiss="modal">{{ trans('lang.close') }}</button>
+                            <button type="submit" class="btn btn-primary" form="assignDoctorForm">
+                                <i class="fas fa-user-plus mr-1"></i>{{ trans('lang.assign') }}
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         @endif
 
-        <!-- Custom Styles -->
+        <!-- Enhanced Custom Styles -->
         <style>
-            .bg-gradient-primary {
-                background: linear-gradient(135deg, var(--primary, #007bff) 0%, var(--info, #17a2b8) 100%);
+            :root {
+                --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                --info-gradient: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+                --success-gradient: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+                --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.1);
+                --shadow-medium: 0 15px 50px rgba(0, 0, 0, 0.15);
             }
 
-            .badge-soft-primary {
-                color: var(--primary, #007bff);
-                background-color: rgba(0, 123, 255, 0.1);
-                border: 1px solid rgba(0, 123, 255, 0.2);
+            .bg-gradient-primary {
+                background: var(--primary-gradient);
+            }
+
+            .bg-gradient-info {
+                background: var(--info-gradient);
+            }
+
+            .files-card,
+            .doctors-card {
+                border-radius: 20px;
+                overflow: hidden;
+                transition: all 0.3s ease;
+            }
+
+            .files-card:hover,
+            .doctors-card:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-medium);
+            }
+
+            .card-header {
+                border: none;
+                position: relative;
+            }
+
+            .nav-link.hover-glow:hover {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                transition: all 0.3s ease;
+            }
+
+            .floating-btn {
+                position: absolute;
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                border-radius: 20px;
+                transition: all 0.3s ease;
+                font-weight: 600;
+            }
+
+            .floating-btn:hover {
+                transform: translateY(-50%) scale(1.05);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            /* Doctors List Styles */
+            .doctors-list {
+                padding: 0;
+            }
+
+            .doctor-item {
+                display: flex;
+                align-items: center;
+                padding: 20px;
+                border-bottom: 1px solid #f1f3f4;
+                transition: all 0.3s ease;
+                opacity: 0;
+                animation: slideInUp 0.6s ease forwards;
+                position: relative;
+            }
+
+            .doctor-item:hover {
+                background: linear-gradient(90deg, rgba(116, 185, 255, 0.05) 0%, rgba(162, 155, 254, 0.05) 100%);
+                transform: translateX(5px);
+            }
+
+            .doctor-item:last-child {
+                border-bottom: none;
+            }
+
+            .doctor-avatar {
+                position: relative;
+                margin-right: 15px;
+                flex-shrink: 0;
+                height: 50px;
+                width: 50px;
+                overflow: hidden;
+            }
+
+            .avatar-img {
+                width: 50px;
+                height: 50px;
+                border-radius: 15px;
+                object-fit: cover;
+                border: 3px solid #fff;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .avatar-placeholder {
+                width: 50px;
+                height: 50px;
+                border-radius: 15px;
+                background: var(--info-gradient);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.2rem;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .avatar-placeholder.error {
+                background: linear-gradient(135deg, #ff7675 0%, #d63031 100%);
+            }
+
+            .status-indicator {
+                position: absolute;
+                bottom: -2px;
+                right: -2px;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                border: 3px solid white;
+            }
+
+            .status-indicator.online {
+                background: #00b894;
+                box-shadow: 0 0 10px rgba(0, 184, 148, 0.5);
+            }
+
+            .doctor-info {
+                flex-grow: 1;
+                min-width: 0;
+            }
+
+            .doctor-name {
+                margin: 0 0 5px 0;
+                font-weight: 600;
+                color: #2d3436;
+                font-size: 1rem;
+            }
+
+            .specialities {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .speciality-badge {
+                display: inline-block;
+                padding: 3px 8px;
+                background: linear-gradient(135deg, rgba(116, 185, 255, 0.1) 0%, rgba(162, 155, 254, 0.1) 100%);
+                color: #5a67d8;
+                border-radius: 12px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                border: 1px solid rgba(116, 185, 255, 0.2);
+            }
+
+            .speciality-badge.more {
+                background: #f1f3f4;
+                color: #636e72;
+            }
+
+            .doctor-actions {
+                display: flex;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+
+            .action-btn {
+                width: 35px;
+                height: 35px;
+                border: none;
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+
+            .email-btn {
+                background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+                color: white;
+            }
+
+            .info-btn {
+                background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+                color: white;
+            }
+
+            .action-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+                color: white;
+                text-decoration: none;
+            }
+
+            /* Empty State */
+            .empty-state {
+                margin: 40px 0;
+            }
+
+            .empty-icon i {
+                font-size: 4rem;
+                opacity: 0.3;
+            }
+
+            /* Modal Styles */
+            .modal-content {
+                border-radius: 20px;
+                overflow: hidden;
+            }
+
+            .search-section {
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .search-input-group {
+                position: relative;
+            }
+
+            .search-icon {
+                position: absolute;
+                left: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #74b9ff;
+                z-index: 2;
+            }
+
+            .search-input {
+                padding-left: 45px;
+                border: 2px solid #e9ecef;
+                border-radius: 15px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+            }
+
+            .search-input:focus {
+                border-color: #74b9ff;
+                box-shadow: 0 0 20px rgba(116, 185, 255, 0.2);
+            }
+
+            .doctors-modal-list {
+                max-height: 400px;
+                overflow-y: auto;
+            }
+
+            .modal-doctor-item {
+                display: flex;
+                align-items: center;
+                padding: 15px 20px;
+                border-bottom: 1px solid #f1f3f4;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .modal-doctor-item:hover {
+                background: rgba(116, 185, 255, 0.05);
+            }
+
+            .modal-doctor-item.active {
+                background: linear-gradient(90deg, rgba(116, 185, 255, 0.1) 0%, rgba(162, 155, 254, 0.1) 100%);
+                border-left: 4px solid #74b9ff;
+            }
+
+            .modal-doctor-avatar {
+                margin-right: 15px;
+                height: 45px;
+                width: 45px;
+                border-radius: 15px;
+                overflow: hidden;
+                flex-shrink: 0
+            }
+
+            .modal-doctor-avatar .avatar-img,
+            .modal-doctor-avatar .avatar-placeholder {
+                width: 45px;
+                height: 45px;
+            }
+
+            .modal-doctor-info {
+                flex-grow: 1;
+            }
+
+            .modal-doctor-status {
+                flex-shrink: 0;
+            }
+
+            .select-indicator {
+                width: 25px;
+                height: 25px;
+                border: 2px solid #ddd;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            }
+
+            .modal-doctor-item.active .select-indicator {
+                background: var(--info-gradient);
+                border-color: #74b9ff;
+                color: white;
+            }
+
+            /* Animations */
+            @keyframes slideInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
 
             .badge-soft-info {
                 color: var(--info, #17a2b8);
                 background-color: rgba(23, 162, 184, 0.1);
                 border: 1px solid rgba(23, 162, 184, 0.2);
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .floating-btn {
+                    position: static;
+                    transform: none;
+                    margin-top: 10px;
+                }
+
+                .doctor-item {
+                    padding: 15px;
+                }
+
+                .action-btn {
+                    width: 30px;
+                    height: 30px;
+                    font-size: 0.8rem;
+                }
             }
         </style>
     @else
@@ -225,7 +616,6 @@
     @push('scripts')
         <script>
             console.log('Patient ID:', {{ $patient->id }});
-            // console.log('doctors associated: {{$patient->doctors}}');
             console.log('all doctors: {{$allDoctors}}');
 
             $(document).ready(function () {
@@ -242,9 +632,9 @@
                             filterDoctorList(this);
                         });
                         // Focus on search field
-                        newSearchField.focus();
+                        setTimeout(() => newSearchField.focus(), 300);
                         // Show all items initially
-                        document.querySelectorAll('#doctorList a').forEach(item => {
+                        document.querySelectorAll('.modal-doctor-item').forEach(item => {
                             item.style.display = '';
                         });
                     }
@@ -253,12 +643,15 @@
                 // Clear selected doctor on modal close
                 $('#assignDoctorModal').on('hidden.bs.modal', function () {
                     document.getElementById('selectedDoctorId').value = '';
+                    document.querySelectorAll('.modal-doctor-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
                 });
             });
 
             function filterDoctorList(input) {
                 const searchTerm = input.value.toLowerCase();
-                document.querySelectorAll('#doctorList a').forEach(item => {
+                document.querySelectorAll('.modal-doctor-item').forEach(item => {
                     const text = item.getAttribute('data-display').toLowerCase();
                     item.style.display = text.includes(searchTerm) ? '' : 'none';
                 });
@@ -268,7 +661,7 @@
                 const doctorId = element.getAttribute('data-value');
                 document.getElementById('selectedDoctorId').value = doctorId;
                 // Highlight selected item
-                document.querySelectorAll('#doctorList a').forEach(item => {
+                document.querySelectorAll('.modal-doctor-item').forEach(item => {
                     item.classList.remove('active');
                 });
                 element.classList.add('active');
