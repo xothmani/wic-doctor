@@ -492,5 +492,8 @@
     "Resend in (%s) seconds": "Renvoyer dans (%s) secondes",
     "Confirm & Checkout": "Confirmer et payer",
     "Code sent to %s": "Code envoyé à %s",
-    "View in Google Maps": "Voir sur Google Maps"
+    "View in Google Maps": "Voir sur Google Maps",
+    "Payment Required": "Paiement requis",
+    "This doctor requires advance payment to confirm the appointment. Please proceed with the payment now or cancel the request.": "Ce médecin exige un paiement en avance pour confirmer le rendez-vous. Veuillez procéder au paiement maintenant ou annuler la demande.",
+    "Pay Now": "Payer maintenant"
 }

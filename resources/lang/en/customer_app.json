@@ -457,5 +457,8 @@
     "Resend in (%s) seconds": "Resend in (%s) seconds",
     "Confirm & Checkout":"Confirm & Checkout",
     "Code sent to %s": "Code sent to %s",
-    "View in Google Maps": "View in Google Maps"
+    "View in Google Maps": "View in Google Maps",
+    "Payment Required": "Payment Required",
+    "This doctor requires advance payment to confirm the appointment. Please proceed with the payment now or cancel the request.": "This doctor requires advance payment to confirm the appointment. Please proceed with the payment now or cancel the request.",
+    "Pay Now": "Pay Now"
 }
