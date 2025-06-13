@@ -421,7 +421,7 @@
     "How do you feel this doctor?": "Comment vous sentez-vous ce docteur?",
     "Swipe item left or right to delete it.": "Faites glisser l'objet vers la gauche ou la droite pour le supprimer.",
     "Should be a valid phone number": "Doit etre un numero de telephone valide",
-    "Invalid Mobile Number": "Numero de telephone invalide",
+    "Invalid Mobile Number": "Numéro de téléphone invalide",
     "No available times found.": "Aucune heure disponible.",
     "Sorry, this doctor is not available on the selected date.": "Dommage, ce docteur n'est pas disponible sur la date choisie.",
     "politique de confidentialité" : "Politique de confidentialité",
@@ -492,5 +492,8 @@
     "Resend in (%s) seconds": "Renvoyer dans (%s) secondes",
     "Confirm & Checkout": "Confirmer et payer",
     "Code sent to %s": "Code envoyé à %s",
-    "View in Google Maps": "Voir sur Google Maps"
+    "View in Google Maps": "Voir sur Google Maps",
+    "Payment Required": "Paiement requis",
+    "This doctor requires advance payment to confirm the appointment. Please proceed with the payment now or cancel the request.": "Ce médecin exige un paiement en avance pour confirmer le rendez-vous. Veuillez procéder au paiement maintenant ou annuler la demande.",
+    "Pay Now": "Payer maintenant"
 }

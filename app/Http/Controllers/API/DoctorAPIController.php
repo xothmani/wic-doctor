@@ -32,6 +32,8 @@ use Carbon\Carbon;
 use App\Models\Speciality;
 use App\Models\DoctorSpeciality;
 use App\Criteria\FilterByGouvernoratCriteria;
+use Illuminate\Support\Facades\Artisan;
+
 
 /**
  * Class DoctorController
@@ -106,6 +108,7 @@ class DoctorAPIController extends Controller
 public function index(Request $request): JsonResponse
 {
     try {
+        $this->clearCache();
         // Push existing criteria
         $this->doctorRepository->pushCriteria(new RequestCriteria($request));
         $this->doctorRepository->pushCriteria(new DoctorsOfUserCriteria(auth()->id()));
@@ -177,6 +180,7 @@ public function index(Request $request): JsonResponse
 public function recommandedDoctor(Request $request): JsonResponse
 {
     try {
+        $this->clearCache();
         // Appliquer les critères initiaux
         $this->doctorRepository->pushCriteria(new RequestCriteria($request));
         $this->doctorRepository->pushCriteria(new DoctorsOfUserCriteria(auth()->id()));
@@ -682,6 +686,16 @@ public function getUrgencyHours(int $id, Request $request): JsonResponse
 
     // Return the formatted urgency hours with success response
     return $this->sendResponse($urgencyHours, 'Urgency hours retrieved successfully');
+}
+
+
+
+
+private function clearCache(): void
+{
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+        Artisan::call('route:clear');
 }
 
 
