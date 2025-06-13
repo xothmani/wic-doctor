@@ -489,5 +489,7 @@
     "The code has expired. Request a new one.": "انتهت صلاحية الرمز. اطلب رمزًا جديدًا.",
     "Too many attempts. Please try again later.": "عدد كبير جدًا من المحاولات. حاول مرة أخرى لاحقًا.",
     "Resend in (%s) seconds": "إعادة الإرسال خلال (%s) ثانية",
-    "Confirm & Checkout": "التأكيد وإتمام الحجز"
+    "Confirm & Checkout": "التأكيد وإتمام الحجز",
+    "Code sent to %s": "تم ارسال الرمز ل %s",
+    "View in Google Maps": "اظهار في خريطة جوجل"
 }

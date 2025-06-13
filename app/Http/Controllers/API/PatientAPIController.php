@@ -5,11 +5,13 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Requests\CreatePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
+use App\Models\Media;
 use App\Models\Patient;
 use App\Models\User;
 use App\Repositories\CustomFieldRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\UploadRepository;
+use App\Services\MediaUploadService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,11 +40,14 @@ class PatientAPIController extends Controller
     /** @var  UploadRepository */
     private UploadRepository $uploadRepository;
 
-    public function __construct(PatientRepository $patientRepo, CustomFieldRepository $customFieldRepo, UploadRepository $uploadRepo)
+    private MediaUploadService $uploadService;
+
+    public function __construct(PatientRepository $patientRepo, CustomFieldRepository $customFieldRepo, UploadRepository $uploadRepo, MediaUploadService $uploadService)
     {
         $this->patientRepository = $patientRepo;
         $this->customFieldRepository = $customFieldRepo;
         $this->uploadRepository = $uploadRepo;
+        $this->uploadService = $uploadService;
         parent::__construct();
     }
 
@@ -111,21 +116,25 @@ class PatientAPIController extends Controller
      */
     function store(Request $request)
     {
+        Log::info("request: " . json_encode($request->all()));
+        Log::info($request->file('image'));
+
         $user= User::find($request->user_id);
         
         try {
             $input = $request->all();
+            unset($input['image']);
+            Log::info("input: " . json_encode($input));
             $input['email'] = $user->email;
             $input['phone_number'] = $input['mobile_number'];
             $input['mobile_number'] = null;
             $input['gender'] = strtolower($input['gender']);
             $patient = $this->patientRepository->create($input);
-            if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
-                foreach ($input['image'] as $fileUuid) {
-                    $cacheUpload = $this->uploadRepository->getByUuid($fileUuid);
-                    $mediaItem = $cacheUpload->getMedia('image')->first();
-                    $mediaItem->copy($patient, 'image');
-                }
+            if ($request->hasFile('image')) {
+                $media = $request->file('image');
+                $this->uploadService->upload($media, 'App\Models\Patient', $patient->id);
+            }else{
+                Log::info("no image");
             }
         } catch (Exception $e) {
             return $this->sendError($e->getMessage());
@@ -150,13 +159,15 @@ class PatientAPIController extends Controller
         $input = $request->all();
         try {
             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->patientRepository->model());
-            if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
+            /*if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
                 foreach ($input['image'] as $fileUuid) {
                     $cacheUpload = $this->uploadRepository->getByUuid($fileUuid);
                     $mediaItem = $cacheUpload->getMedia('image')->first();
                     $mediaItem->copy($patient, 'image');
                 }
-            }
+            }*/
+
+
 
             $input['phone_number'] = $input['mobile_number'];
             $input['mobile_number'] = null;

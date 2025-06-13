@@ -15,7 +15,7 @@ use App\Http\Controllers\API\TranslationAPIController;
 use App\Http\Controllers\API\AvailabilityHourAPIController;
 use App\Http\Controllers\API\AppointmentAPIController ;
 use App\Http\Controllers\API\UserAPIController;
-use Google\Service\Doubleclicksearch\Availability;
+use App\Http\Controllers\API\CustomMediaApiController;
 
 
 /*********************** Route ajouté par Hamza ********************* */
@@ -41,6 +41,8 @@ Route::get('/get-type-consultation/{id}', [AvailabilityHourAPIController::class,
 Route::put('update-user-email/{id}', [UserAPIController::class, 'updateUserEmail']);
 Route::get('/consultations/prescriptions/{id}', [PrescriptionsApiController::class, 'show']);
 Route::delete('appointments/delete/{id}', [AppointmentApiController::class, 'delete']);
+Route::post('/media/upload', [CustomMediaApiController::class, 'upload']);
+Route::delete('/media/delete/{id}', [CustomMediaApiController::class, 'destroy']);
 /*********************** End Route ajouté par Hamza ********************* */
 
 

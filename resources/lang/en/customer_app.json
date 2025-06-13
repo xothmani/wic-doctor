@@ -455,5 +455,7 @@
     "The code has expired. Request a new one.": "The code has expired. Request a new one.",
     "Too many attempts. Please try again later.": "Too many attempts. Please try again later.",
     "Resend in (%s) seconds": "Resend in (%s) seconds",
-    "Confirm & Checkout":"Confirm & Checkout"
+    "Confirm & Checkout":"Confirm & Checkout",
+    "Code sent to %s": "Code sent to %s",
+    "View in Google Maps": "View in Google Maps"
 }
