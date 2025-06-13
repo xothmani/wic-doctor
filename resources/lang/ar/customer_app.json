@@ -491,5 +491,8 @@
     "Resend in (%s) seconds": "إعادة الإرسال خلال (%s) ثانية",
     "Confirm & Checkout": "التأكيد وإتمام الحجز",
     "Code sent to %s": "تم ارسال الرمز ل %s",
-    "View in Google Maps": "اظهار في خريطة جوجل"
+    "View in Google Maps": "اظهار في خريطة جوجل",
+    "Payment Required": "مطلوب الدفع",
+    "This doctor requires advance payment to confirm the appointment. Please proceed with the payment now or cancel the request." : "هذا الطبيب يشترط الدفع المسبق لتأكيد الموعد. يرجى إتمام عملية الدفع الآن أو إلغاء الطلب",
+    "Pay Now": "ادفع الان"
 }
