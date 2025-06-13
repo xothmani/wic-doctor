@@ -58,7 +58,7 @@
                         <div class="card shadow-lg border-0 file-details-card">
                             <div class="card-header bg-gradient-primary text-white position-relative">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <div class="header-info d-flex flex-column"  style="margin: 0 1vw;">
+                                    <div class="header-info d-flex flex-column" style="margin: 0 1vw;">
                                         <h3 class="card-title mb-1 d-flex align-items-center">
                                             <i class="fas fa-file-medical mr-2"></i>
                                             {{ trans('lang.file_details') }}
@@ -193,21 +193,22 @@
                     </div>
 
                     <!-- File Metadata & Related Info -->
+                    <!-- Sidebar -->
                     <div class="col-lg-4 col-md-12">
                         <!-- Uploader Information -->
-                        <div class="card shadow-lg border-0 uploader-card mb-4">
-                            <div class="card-header bg-gradient-info text-white">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-user-md mr-2"></i>
+                        <div class="card sidebar-card">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    <i class="fas fa-user-md"></i>
                                     {{ trans('lang.uploaded_by') }}
                                 </h5>
                             </div>
-                            <div class="card-body p-0">
+                            <div class="card-body">
                                 <div class="uploader-profile">
-                                    <div class="uploader-avatar-large">
+                                    <div class="uploader-avatar">
                                         @if($file->uploader && $file->uploader->media->isNotEmpty())
-                                            <img src="{{ $file->uploader->media->first()->getUrl() }}" alt="{{ $file->uploader->name }}"
-                                                class="avatar-img">
+                                            <img src="{{ $file->uploader->media->first()->getUrl() }}"
+                                                alt="{{ $file->uploader->name }}" class="avatar-img">
                                         @else
                                             <div class="avatar-placeholder">
                                                 <i class="fas fa-user-md"></i>
@@ -215,29 +216,31 @@
                                         @endif
                                     </div>
                                     <div class="uploader-info">
-                                        <h6 class="uploader-name">{{ $file->uploader->name ?? trans('lang.unknown_uploader') }}
+                                        <h6 class="uploader-name">
+                                            {{ $file->uploader->name ?? trans('lang.unknown_uploader') }}
                                         </h6>
-                                        @if($file->uploader->doctor->specialities && $file->uploader->doctor->specialities->isNotEmpty())
+                                        @if($file->uploader && $file->uploader->doctor && $file->uploader->doctor->specialities && $file->uploader->doctor->specialities->isNotEmpty())
                                             <div class="specialities">
                                                 @foreach($file->uploader->doctor->specialities->take(2) as $speciality)
                                                     <span class="speciality-badge">{{ $speciality->name }}</span>
                                                 @endforeach
                                                 @if($file->uploader->doctor->specialities->count() > 2)
-                                                    <span
-                                                        class="speciality-badge more">+{{ $file->uploader->doctor->specialities->count() - 2 }}</span>
+                                                    <span class="speciality-badge more">
+                                                        +{{ $file->uploader->doctor->specialities->count() - 2 }}
+                                                    </span>
                                                 @endif
                                             </div>
                                         @endif
-                                        <div class="uploader-contact">
+                                        <div class="contact-info">
                                             @if($file->uploader && $file->uploader->email)
                                                 <div class="contact-item">
-                                                    <i class="fas fa-envelope text-primary mr-2"></i>
+                                                    <i class="fas fa-envelope"></i>
                                                     <span>{{ $file->uploader->email }}</span>
                                                 </div>
                                             @endif
                                             @if($file->uploader && $file->uploader->phone)
                                                 <div class="contact-item">
-                                                    <i class="fas fa-phone text-success mr-2"></i>
+                                                    <i class="fas fa-phone"></i>
                                                     <span>{{ $file->uploader->phone }}</span>
                                                 </div>
                                             @endif
@@ -248,10 +251,10 @@
                         </div>
 
                         <!-- File Metadata -->
-                        <div class="card shadow-lg border-0 metadata-card mb-4">
-                            <div class="card-header bg-gradient-secondary text-white">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-info-circle mr-2"></i>
+                        <div class="card sidebar-card">
+                            <div class="card-header">
+                                <h5 class="card-title">
+                                    <i class="fas fa-info-circle"></i>
                                     {{ trans('lang.file_information') }}
                                 </h5>
                             </div>
@@ -259,17 +262,16 @@
                                 <div class="metadata-list">
                                     <div class="metadata-item">
                                         <div class="metadata-icon">
-                                            <i class="fas fa-file-signature text-primary"></i>
+                                            <i class="fas fa-file-signature"></i>
                                         </div>
                                         <div class="metadata-content">
                                             <span class="metadata-label">{{ trans('lang.file_name') }}</span>
                                             <span class="metadata-value">{{ $file->file_name }}</span>
                                         </div>
                                     </div>
-
                                     <div class="metadata-item">
                                         <div class="metadata-icon">
-                                            <i class="fas fa-weight text-info"></i>
+                                            <i class="fas fa-weight"></i>
                                         </div>
                                         <div class="metadata-content">
                                             <span class="metadata-label">{{ trans('lang.file_size') }}</span>
@@ -282,41 +284,37 @@
                                             </span>
                                         </div>
                                     </div>
-
                                     <div class="metadata-item">
                                         <div class="metadata-icon">
-                                            <i class="fas fa-file-code text-warning"></i>
+                                            <i class="fas fa-file-code"></i>
                                         </div>
                                         <div class="metadata-content">
                                             <span class="metadata-label">{{ trans('lang.file_type') }}</span>
                                             <span class="metadata-value">{{ strtoupper($extension ?? 'Unknown') }}</span>
                                         </div>
                                     </div>
-
                                     <div class="metadata-item">
                                         <div class="metadata-icon">
-                                            <i class="fas fa-calendar-plus text-success"></i>
+                                            <i class="fas fa-calendar-plus"></i>
                                         </div>
                                         <div class="metadata-content">
                                             <span class="metadata-label">{{ trans('lang.upload_date') }}</span>
                                             <span class="metadata-value">{{ $file->created_at->format('M d, Y') }}</span>
                                         </div>
                                     </div>
-
                                     <div class="metadata-item">
                                         <div class="metadata-icon">
-                                            <i class="fas fa-clock text-secondary"></i>
+                                            <i class="fas fa-clock"></i>
                                         </div>
                                         <div class="metadata-content">
                                             <span class="metadata-label">{{ trans('lang.upload_time') }}</span>
                                             <span class="metadata-value">{{ $file->created_at->format('g:i A') }}</span>
                                         </div>
                                     </div>
-
                                     @if($file->updated_at != $file->created_at)
                                         <div class="metadata-item">
                                             <div class="metadata-icon">
-                                                <i class="fas fa-edit text-warning"></i>
+                                                <i class="fas fa-edit"></i>
                                             </div>
                                             <div class="metadata-content">
                                                 <span class="metadata-label">{{ trans('lang.last_modified') }}</span>
@@ -327,7 +325,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -680,7 +677,7 @@
 
     .card-subtitle {
         font-size: 0.9rem;
-        color:rgb(212, 222, 226);
+        color: rgb(212, 222, 226);
         margin: 0;
     }
 </style>
