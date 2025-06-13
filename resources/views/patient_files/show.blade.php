@@ -186,8 +186,11 @@
                                                 <span>{{ trans('lang.download_file') }}</span>
                                             </button>
                                         @endif
-                                        @if(auth()->user()->hasPermissionInContext('patient_files.destroy', $doctorId))
-                                            <button
+                                        @if(
+                                            auth()->user()->hasPermissionInContext('patient_files.destroy', auth()->user()->getDoctorId()) &&
+                                            $file->uploader && $file->uploader->id === auth()->user()->id
+                                        )
+                                        <button
                                                 onclick="confirmDelete('{{ route('patient_files.destroy', [$patient, $file]) }}')"
                                                 data-toggle="tooltip" class="action-button delete-btn">
                                                 <i class="fas fa-trash"></i>
