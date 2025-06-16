@@ -465,7 +465,7 @@
             @if($icons)
                 <i class="nav-icon fas fa-file-alt"></i>
             @endif
-            <p>{{ trans('lang.shares_files_plural') }}</p>
+            <p>{{ trans('lang.shared_files_plural') }}</p>
         </a>
     </li>
 @endcan

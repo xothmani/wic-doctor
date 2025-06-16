@@ -1659,6 +1659,6 @@ return [
     'file_actions' => 'File actions',
     'download_to_device' => 'Download to device',
     'view_all_files' => 'View all files',
-    'shares_files_plural' => 'Shares files',
+    'shared_files_plural' => 'Shared files',
     'enter_doctor_email' => 'Enter the email address of the doctor you wish to share files with',
 ];
