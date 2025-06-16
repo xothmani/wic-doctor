@@ -496,5 +496,8 @@
     "View in Google Maps": "Voir sur Google Maps",
     "Payment Required": "Paiement requis",
     "This doctor requires advance payment to confirm the appointment. Please proceed with the payment now or cancel the request.": "Ce médecin exige un paiement en avance pour confirmer le rendez-vous. Veuillez procéder au paiement maintenant ou annuler la demande.",
-    "Pay Now": "Payer maintenant"
+    "Pay Now": "Payer maintenant",
+    "The code has been resent.": "Le code a été renvoyé.",
+    "Account created successfully, you can log in now.": "Compte créé avec succès, tu peux te connecter maintenant.",
+    "Try with a valid phone number.": "Essayez avec un numéro de téléphone valide."
 }
