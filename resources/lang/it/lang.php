@@ -2277,4 +2277,5 @@ return [
     'download_to_device' => 'Scarica sul dispositivo',
     'view_all_files' => 'Visualizza tutti i file',
     'shares_files_plural' => 'File condivisi',
+    'enter_doctor_email' => 'Inserisci l\'indirizzo email del medico che desideri condividere i file',
 ];

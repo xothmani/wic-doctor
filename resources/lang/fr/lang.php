@@ -2324,4 +2324,5 @@ return [
     'download_to_device' => 'Télécharger sur l\'appareil',
     'view_all_files' => 'Voir tous les fichiers',
     'shares_files_plural' => 'Fichiers partagés',
+    'enter_doctor_email' => 'Entrez l\'adresse email du médecin souhaité',
 ];

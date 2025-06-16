@@ -195,7 +195,7 @@
                                 <div class="search-input-group">
                                     <i class="fas fa-search search-icon"></i>
                                     <input type="text" class="form-control search-input" id="doctorSearch"
-                                        placeholder="{{ trans('lang.search_doctors') }}...">
+                                        placeholder="{{ trans('lang.enter_doctor_email') }}...">
                                 </div>
                             </div>
 
@@ -204,21 +204,22 @@
                                 @csrf
                                 <div class="doctors-modal-list" id="doctorList">
                                     @foreach($allDoctors as $doctor)
-                                        @if($doctor->name && $doctor->name)
+                                        @if($doctor->name && $doctor->user && $doctor->user->email)
                                             <div class="modal-doctor-item doctor-item-modal" data-value="{{ $doctor->id }}"
-                                                data-display="{{ $doctor->name }} ({{ $doctor->specialities->pluck('name')->join(', ') }})"
+                                                data-email="{{ $doctor->user->email }}" style="display: none;"
                                                 onclick="selectDoctor(this)">
                                                 <div class="modal-doctor-avatar">
                                                     @if($doctor->user && $doctor->user->media->isNotEmpty())
-                                                            <img src="{{ $doctor->user->media->first()->getUrl() }}" alt="{{ $doctor->name }}" class="avatar-img">
-                                                        @else
-                                                            <div class="avatar-placeholder">
-                                                                <i class="fas fa-user-md"></i>
-                                                            </div>
-                                                        @endif
+                                                        <img src="{{ $doctor->user->media->first()->getUrl() }}" alt="{{ $doctor->name }}" class="avatar-img">
+                                                    @else
+                                                        <div class="avatar-placeholder">
+                                                            <i class="fas fa-user-md"></i>
+                                                        </div>
+                                                    @endif
                                                 </div>
                                                 <div class="modal-doctor-info">
                                                     <h6 class="doctor-name">{{ $doctor->name }}</h6>
+                                                    <small class="text-muted">{{ $doctor->user->email }}</small>
                                                     @if($doctor->specialities->isNotEmpty())
                                                         <div class="specialities">
                                                             @foreach($doctor->specialities->take(3) as $speciality)
@@ -633,9 +634,9 @@
                         });
                         // Focus on search field
                         setTimeout(() => newSearchField.focus(), 300);
-                        // Show all items initially
+                        // Hide all items initially
                         document.querySelectorAll('.modal-doctor-item').forEach(item => {
-                            item.style.display = '';
+                            item.style.display = 'none';
                         });
                     }
                 });
@@ -645,15 +646,16 @@
                     document.getElementById('selectedDoctorId').value = '';
                     document.querySelectorAll('.modal-doctor-item').forEach(item => {
                         item.classList.remove('active');
+                        item.style.display = 'none';
                     });
                 });
             });
 
             function filterDoctorList(input) {
-                const searchTerm = input.value.toLowerCase();
+                const searchTerm = input.value.toLowerCase().trim();
                 document.querySelectorAll('.modal-doctor-item').forEach(item => {
-                    const text = item.getAttribute('data-display').toLowerCase();
-                    item.style.display = text.includes(searchTerm) ? '' : 'none';
+                    const email = item.getAttribute('data-email').toLowerCase();
+                    item.style.display = (searchTerm && email === searchTerm) ? '' : 'none';
                 });
             }
 

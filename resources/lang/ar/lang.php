@@ -1581,4 +1581,5 @@ return [
     'download_to_device' => 'تحميل إلى الجهاز',
     'view_all_files' => 'عرض جميع الملفات',
     'shares_files_plural' => 'مشاركة الملفات',
+    'enter_doctor_email' => 'ادخل عنوان بريد الكتروني للطبيب الذي ترغب في مشاركة الملفات',
 ];
