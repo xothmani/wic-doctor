@@ -66,28 +66,30 @@
                                 @else
                                     <div class="patients-list">
                                         @foreach($myPatients as $index => $patient)
-                                            <div class="patient-item" style="animation-delay: {{ $index * 0.1 }}s">
-                                                <div class="patient-avatar">
-                                                    @if($patient->user && $patient->user->media->isNotEmpty())
-                                                        <img src="{{ $patient->user->media->first()->getUrl() }}" alt="{{ $patient->first_name }} {{ $patient->last_name }}" class="avatar-img">
-                                                    @else
-                                                        <div class="avatar-placeholder">
-                                                            <i class="fas fa-user-injured"></i>
-                                                        </div>
-                                                    @endif
+                                            <a href="{{ route('patient_files.index', $patient) }}" style="text-decoration: none; display: flex; flex: 1;">
+                                                <div class="patient-item" style="animation-delay: {{ $index * 0.1 }}s">
+                                                    <div class="patient-avatar">
+                                                        @if($patient->user && $patient->user->media->isNotEmpty())
+                                                            <img src="{{ $patient->user->media->first()->getUrl() }}" alt="{{ $patient->first_name }} {{ $patient->last_name }}" class="avatar-img">
+                                                        @else
+                                                            <div class="avatar-placeholder">
+                                                                <i class="fas fa-user-injured"></i>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                    <div class="patient-info">
+                                                        <h6 class="patient-name">{{ $patient->first_name }} {{ $patient->last_name }}</h6>
+                                                        @if($patient->user && $patient->user->email)
+                                                            <small class="text-muted">{{ $patient->user->email }}</small>
+                                                        @endif
+                                                    </div>
+                                                    <div class="patient-actions">
+                                                        <a href="{{ route('patient_files.index', $patient) }}" class="action-btn view-btn" title="{{ trans('lang.view_files') }}">
+                                                            <i class="fas fa-folder-open"></i>
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                                <div class="patient-info">
-                                                    <h6 class="patient-name">{{ $patient->first_name }} {{ $patient->last_name }}</h6>
-                                                    @if($patient->user && $patient->user->email)
-                                                        <small class="text-muted">{{ $patient->user->email }}</small>
-                                                    @endif
-                                                </div>
-                                                <div class="patient-actions">
-                                                    <a href="{{ route('patient_files.index', $patient) }}" class="action-btn view-btn" title="{{ trans('lang.view_files') }}">
-                                                        <i class="fas fa-folder-open"></i>
-                                                    </a>
-                                                </div>
-                                            </div>
+                                            </a>
                                         @endforeach
                                     </div>
                                 @endif
