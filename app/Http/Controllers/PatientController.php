@@ -746,8 +746,15 @@ return false;
             }
     
             // Mise à jour du patient
-            $patient = $this->patientRepository->update($input, $id);
-    
+  // Mise à jour du patient
+        $patient = $this->patientRepository->update($input, $id);
+
+        // Mise à jour du numéro de fiche si présent dans la requête
+        if ($patient->fiche && isset($input['numFiche'])) {
+            $patient->fiche->update([
+                'numFiche' => $input['numFiche']
+            ]);
+        }    
             // Mise à jour des images
             if (isset($input['image']) && is_array($input['image'])) {
                 foreach ($input['image'] as $fileUuid) {
