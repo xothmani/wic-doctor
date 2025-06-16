@@ -43,8 +43,9 @@
         <div class="content">
             <div class="container-fluid">
                 @include('flash::message')
-                <div class="row">
-                    <div class="col-lg-8 col-md-12">
+                <!-- center column -->
+                <div class="row justify-content-center align-items-center">
+                    <div class="col-lg-6 col-md-12 col-sm-12">
                         <div class="card shadow-sm patients-card">
                             <!-- <div class="card-header bg-gradient-info text-white">
                                 <h3 class="card-title mb-0">

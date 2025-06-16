@@ -286,11 +286,6 @@
                 box-shadow: var(--shadow-medium);
             }
 
-            .card-header {
-                border: none;
-                position: relative;
-            }
-
             .nav-link.hover-glow:hover {
                 background: rgba(255, 255, 255, 0.1);
                 border-radius: 10px;
