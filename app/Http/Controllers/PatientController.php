@@ -745,16 +745,28 @@ return false;
                 }
             }
     
-            // Mise à jour du patient
   // Mise à jour du patient
         $patient = $this->patientRepository->update($input, $id);
 
-        // Mise à jour du numéro de fiche si présent dans la requête
-        if ($patient->fiche && isset($input['numFiche'])) {
-            $patient->fiche->update([
-                'numFiche' => $input['numFiche']
-            ]);
-        }    
+        // Gestion de la fiche (création si n'existe pas)
+        if (isset($input['numFiche'])) {
+            if ($patient->fiche) {
+                // Mise à jour si la fiche existe
+                $patient->fiche->update([
+                    'numFiche' => $input['numFiche']
+                ]);
+            } else {
+                // Création si la fiche n'existe pas
+                $fiche = new Fiche();
+                $fiche->numFiche = $input['numFiche'];
+                $fiche->patient_id = $patient->id;
+                $fiche->user_id = auth()->id(); // ou autre logique pour user_id
+                $fiche->save();
+                
+                // Rafraîchir la relation
+                $patient->load('fiche');
+            }
+        } 
             // Mise à jour des images
             if (isset($input['image']) && is_array($input['image'])) {
                 foreach ($input['image'] as $fileUuid) {
