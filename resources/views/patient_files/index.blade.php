@@ -88,7 +88,7 @@
                     <!-- Doctors List (Right Sidebar) -->
                     <div class="col-lg-4 col-md-12">
                         <div class="card shadow-lg border-0 doctors-card">
-                            <div class="card-header bg-gradient-info text-white position-relative">
+                            <div class="card-header text-bold position-relative py-3 border-bottom">
                                 <h3 class="card-title mb-0">
                                     <i class="fas fa-user-md mr-2"></i>
                                     {{ trans('lang.doctors_associated') }}

@@ -46,13 +46,24 @@
                 <div class="row">
                     <div class="col-lg-8 col-md-12">
                         <div class="card shadow-sm patients-card">
-                            <div class="card-header bg-gradient-info text-white">
+                            <!-- <div class="card-header bg-gradient-info text-white">
                                 <h3 class="card-title mb-0">
                                     <i class="fas fa-user-injured mr-2"></i>
                                     {{ trans('lang.patients_plural') }}
                                 </h3>
-                            </div>
+                            </div> -->
                             <div class="card-body p-0">
+                                <!-- Search Input -->
+                                <div class="search-section p-4 bg-light">
+                                    <div class="search-input-group d-flex align-items-center">
+                                        <span class="search-icon-wrapper mr-2">
+                                            <i class="fas fa-search search-icon"></i>
+                                        </span>
+                                        <input type="text" class="form-control search-input" id="patientSearch"
+                                            placeholder="{{ trans('lang.search_patients') }}...">
+                                    </div>
+                                </div>
+
                                 @if($myPatients->isEmpty())
                                     <div class="empty-state text-center py-5">
                                         <div class="empty-icon mb-3">
@@ -64,31 +75,32 @@
                                         </a>
                                     </div>
                                 @else
-                                    <div class="patients-list">
+                                    <div class="patients-list" id="patientList">
                                         @foreach($myPatients as $index => $patient)
-                                            <a href="{{ route('patient_files.index', $patient) }}" style="text-decoration: none; display: flex; flex: 1;">
-                                                <div class="patient-item" style="animation-delay: {{ $index * 0.1 }}s">
-                                                    <div class="patient-avatar">
-                                                        @if($patient->user && $patient->user->media->isNotEmpty())
-                                                            <img src="{{ $patient->user->media->first()->getUrl() }}" alt="{{ $patient->first_name }} {{ $patient->last_name }}" class="avatar-img">
-                                                        @else
-                                                            <div class="avatar-placeholder">
-                                                                <i class="fas fa-user-injured"></i>
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                    <div class="patient-info">
-                                                        <h6 class="patient-name">{{ $patient->first_name }} {{ $patient->last_name }}</h6>
-                                                        @if($patient->user && $patient->user->email)
-                                                            <small class="text-muted">{{ $patient->user->email }}</small>
-                                                        @endif
-                                                    </div>
-                                                    <div class="patient-actions">
-                                                        <a href="{{ route('patient_files.index', $patient) }}" class="action-btn view-btn" title="{{ trans('lang.view_files') }}">
-                                                            <i class="fas fa-folder-open"></i>
-                                                        </a>
-                                                    </div>
+                                                                                    <a href="{{ route('patient_files.index', $patient) }}" style="text-decoration: none; display: flex; flex: 1;">
+                                            <div class="patient-item" style="animation-delay: {{ $index * 0.1 }}s"
+                                                data-display="{{ $patient->first_name }} {{ $patient->last_name }} {{ $patient->user && $patient->user->email ? $patient->user->email : '' }}">
+                                                <div class="patient-avatar">
+                                                    @if($patient->user && $patient->user->media->isNotEmpty())
+                                                        <img src="{{ $patient->user->media->first()->getUrl() }}" alt="{{ $patient->first_name }} {{ $patient->last_name }}" class="avatar-img">
+                                                    @else
+                                                        <div class="avatar-placeholder">
+                                                            <i class="fas fa-user-injured"></i>
+                                                        </div>
+                                                    @endif
                                                 </div>
+                                                <div class="patient-info">
+                                                    <h6 class="patient-name">{{ $patient->first_name }} {{ $patient->last_name }}</h6>
+                                                    @if($patient->user && $patient->user->email)
+                                                        <small class="text-muted">{{ $patient->user->email }}</small>
+                                                    @endif
+                                                </div>
+                                                <div class="patient-actions">
+                                                    <a href="{{ route('patient_files.index', $patient) }}" class="action-btn view-btn" title="{{ trans('lang.view_files') }}">
+                                                        <i class="fas fa-folder-open"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
                                             </a>
                                         @endforeach
                                     </div>
@@ -265,6 +277,37 @@
                     font-size: 0.8rem;
                 }
             }
+
+            .search-section {
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .search-input-group {
+                display: flex;
+                align-items: center;
+                position: relative;
+            }
+
+            .search-icon-wrapper {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #74b9ff;
+                font-size: 1.2rem;
+            }
+
+            .search-input {
+                border: 2px solid #e9ecef;
+                border-radius: 15px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+                flex-grow: 1;
+            }
+
+            .search-input:focus {
+                border-color: #74b9ff;
+                box-shadow: 0 0 20px rgba(116, 185, 255, 0.2);
+            }
         </style>
     @else
         <div class="content-header">
@@ -276,3 +319,27 @@
         </div>
     @endif
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function () {
+            const searchField = document.getElementById('patientSearch');
+            if (searchField) {
+                // Add search event listener
+                searchField.addEventListener('input', function () {
+                    filterPatientList(this);
+                });
+                // Focus on search field on page load
+                setTimeout(() => searchField.focus(), 300);
+            }
+        });
+
+        function filterPatientList(input) {
+            const searchTerm = input.value.toLowerCase().trim();
+            document.querySelectorAll('.patient-item').forEach(item => {
+                const text = item.getAttribute('data-display').toLowerCase();
+                item.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+    </script>
+@endpush

@@ -1661,4 +1661,5 @@ return [
     'view_all_files' => 'View all files',
     'shared_files_plural' => 'Shared files',
     'enter_doctor_email' => 'Enter the email address of the doctor you wish to share files with',
+    'search_patients' => 'Search patients',
 ];

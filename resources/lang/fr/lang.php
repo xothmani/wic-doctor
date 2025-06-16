@@ -2325,4 +2325,5 @@ return [
     'view_all_files' => 'Voir tous les fichiers',
     'shared_files_plural' => 'Fichiers partagés',
     'enter_doctor_email' => 'Entrez l\'adresse email du médecin souhaité',
+    'search_patients' => 'Rechercher des patients',
 ];
