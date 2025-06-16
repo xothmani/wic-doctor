@@ -71,6 +71,13 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
         ],
 
+        'patient_files' => [
+        'driver' => 'local',
+        // 'root' => '/mnt/patient_files',
+        'root' => storage_path('app/patient_files'),
+        'visibility' => 'private',
+    ],
+
     ],
 
     /*

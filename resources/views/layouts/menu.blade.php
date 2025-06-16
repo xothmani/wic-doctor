@@ -44,9 +44,10 @@
 
 @can('dashboard.medecin')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('dashboard.medecin') ? 'active' : '' }}" href="{!! route('dashboard.medecin') !!}">
+        <a class="nav-link {{ Request::is('dashboard.medecin') ? 'active' : '' }}"
+            href="{!! route('dashboard.medecin') !!}">
             @if($icons)
-            <i class="nav-icon fas fa-chart-line"></i> <!-- Icône de statistiques -->
+                <i class="nav-icon fas fa-chart-line"></i> <!-- Icône de statistiques -->
             @endif
             <p>{{ trans('lang.stat') }}</p>
         </a>
@@ -55,8 +56,7 @@
 {{-- Médecins --}}
 @can('doctor.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctors*') ? 'active' : '' }}"
-            href="{!! route('doctors.index') !!}">
+        <a class="nav-link {{ Request::is('doctors*') ? 'active' : '' }}" href="{!! route('doctors.index') !!}">
             @if($icons)
                 <i class="nav-icon fas fa-user-md"></i>
             @endif
@@ -92,8 +92,7 @@
 {{-- Avis des médecins --}}
 @can('doctorReviews.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('doctorReviews*') ? 'active' : '' }}"
-            href="{!! route('doctorReviews.index') !!}">
+        <a class="nav-link {{ Request::is('doctorReviews*') ? 'active' : '' }}" href="{!! route('doctorReviews.index') !!}">
             @if($icons)
                 <i class="nav-icon fas fa-comments"></i>
             @endif
@@ -105,8 +104,7 @@
 {{-- Expériences --}}
 @can('experiences.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('experiences*') ? 'active' : '' }}"
-            href="{!! route('experiences.index') !!}">
+        <a class="nav-link {{ Request::is('experiences*') ? 'active' : '' }}" href="{!! route('experiences.index') !!}">
             @if($icons)
                 <i class="nav-icon fas fa-briefcase"></i>
             @endif
@@ -131,8 +129,7 @@
 {{-- Modèles (patterns) --}}
 @can('patterns.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('patterns*') ? 'active' : '' }}"
-            href="{!! route('patterns.index') !!}">
+        <a class="nav-link {{ Request::is('patterns*') ? 'active' : '' }}" href="{!! route('patterns.index') !!}">
             @if($icons)
                 <i class="nav-icon fas fa-stethoscope"></i>
             @endif
@@ -390,8 +387,10 @@
 
 
 @can('chatA.index')
-    <li class="nav-item has-treeview {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'menu-open' : '' }}">
-        <a href="#" class="nav-link {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'active' : '' }}">
+    <li
+        class="nav-item has-treeview {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'menu-open' : '' }}">
+        <a href="#"
+            class="nav-link {{ Request::is('chat*') || Request::is('chatDP*') || Request::is('chatTE*') ? 'active' : '' }}">
             @if($icons)
                 <i class="nav-icon fas fa-comments"></i>
             @endif
@@ -432,8 +431,10 @@
         </ul>
     </li>
 @endcan
-    <style>.nav-icon {
-    width: 1.25rem; /* Assurez-vous que toutes les icônes ont la même largeur */
+<style>
+    .nav-icon {
+        width: 1.25rem;
+        /* Assurez-vous que toutes les icônes ont la même largeur */
         text-align: center;
     }
 </style>
@@ -457,6 +458,18 @@
             <i class="nav-icon fas fa-map-marked-alt"></i>@endif<p>{{trans('lang.address_plural')}}</p></a>
     </li>
 @endcan -->
+
+@can('patient_files.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('patient_files') ? 'active' : '' }}" href="{!! route('patient_files.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-archive"></i>
+            @endif
+            <p>{{ trans('lang.shared_files_plural') }}</p>
+        </a>
+    </li>
+@endcan
+
 @can('tags.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('tags') ? 'active' : '' }}" href="{!! route('tags.index') !!}">
@@ -536,7 +549,8 @@
 @endcan
 @can('medicament_prescriptions.index')
     <li class="nav-item">
-        <a class="nav-link {{ Request::is('medicament_prescriptions') ? 'active' : '' }}" href="{!! route('medicament_prescriptions.index') !!}">
+        <a class="nav-link {{ Request::is('medicament_prescriptions') ? 'active' : '' }}"
+            href="{!! route('medicament_prescriptions.index') !!}">
             @if($icons)
                 <!-- Icône de pilule pour représenter les médicaments -->
                 <i class="nav-icon fas fa-pills"></i>
