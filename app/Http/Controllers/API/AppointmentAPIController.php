@@ -236,7 +236,8 @@ class AppointmentAPIController extends Controller
                 )->where('appointments.user_id', '=', $userId)
                 ->orderBy('appointments.start_at', 'desc') // Sort by closest appointment time
                 ->get();
-            Log::info("test get price doctor id", ['appointments' => $appointments[0]]);
+
+
             // Format the appointments to include nested objects
             $formattedAppointments = $appointments->map(function ($appointment) {
                 $decodedFirstName = json_decode($appointment->patient_first_name, true);
@@ -327,21 +328,17 @@ class AppointmentAPIController extends Controller
 
 
 
-            Log::info("Formatted Appointments Type:", ['type' => gettype($formattedAppointments)]);
 
 
             $formattedAppointments = $formattedAppointments->map(function ($app) {
-                Log::info("Appointment foreach = ", ["json data" => json_encode($app)]);
 
                 // Recherche du docteur
                 $doc = Doctor::find($app['doctor_id']);
                 $user = User::find($doc['user_id']);
                 $doc->user = $user;
-                Log::info("Appointment Doctor", ["Doctor" => $doc]);
+
                 if ($doc) {
-                    Log::info("Appointment foreach avant = ", ["Doctor" => json_encode($app)]);
-                    $app['doctor'] = $doc; // Ajouter le rate
-                    Log::info("Appointment foreach après = ", ["Doctor" => json_encode($app)]);
+                    $app['doctor'] = $doc; 
                 }
 
                 return $app; // Retourner l'élément modifié
@@ -349,8 +346,6 @@ class AppointmentAPIController extends Controller
 
 
 
-            // Log the formatted data
-            Log::info('Appointments retrieved successfully for user ID ' . $userId, ['appointments' => $formattedAppointments->toArray()]);
 
             // Return the response with the formatted appointments
             return response()->json([
@@ -359,8 +354,6 @@ class AppointmentAPIController extends Controller
                 'data' => $formattedAppointments
             ], 200);
         } catch (Exception $e) {
-            // Log the error message
-            Log::error('Error retrieving appointments:', ['message' => $e->getMessage()]);
 
             return response()->json([
                 'status' => 500,
@@ -530,7 +523,7 @@ class AppointmentAPIController extends Controller
 
 
             // Check if the doctor-patient relationship exists
-            $existingRecord = DB::table('doctor_patients')
+            /*$existingRecord = DB::table('doctor_patients')
                 ->where('doctor_id', $data['doctor_id'])
                 ->where('patient_id', $data['patient_id'])
                 ->first();
@@ -545,7 +538,7 @@ class AppointmentAPIController extends Controller
                     'doctor_id' => $data['doctor_id'],
                     'patient_id' => $data['patient_id']
                 ]);
-            }
+            }*/
 
 
             // Return success response with appointment ID
