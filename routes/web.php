@@ -695,7 +695,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/drug_drug_interactions', [DrugController::class, 'index'])->name('drug_drug_interactions.index');
 
     Route::prefix('patient_files')->name('patient_files.')->group(function () {
-        Route::get('/{patient}', [PatientFileController::class, 'index'])->name('index');
+        Route::get('/{patient?}', [PatientFileController::class, 'index'])->name('index');
         Route::get('/{patient}/create', [PatientFileController::class, 'create'])->name('create');
         Route::get('/{patient}/{file}', [PatientFileController::class, 'show'])->name('show');
         Route::post('/{patient}', [PatientFileController::class, 'store'])->name('store');

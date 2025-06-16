@@ -2323,4 +2323,5 @@ return [
     'file_actions' => 'Actions sur le fichier',
     'download_to_device' => 'Télécharger sur l\'appareil',
     'view_all_files' => 'Voir tous les fichiers',
+    'shares_files_plural' => 'Fichiers partagés',
 ];

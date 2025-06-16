@@ -2276,4 +2276,5 @@ return [
     'file_actions' => 'Azioni sul file',
     'download_to_device' => 'Scarica sul dispositivo',
     'view_all_files' => 'Visualizza tutti i file',
+    'shares_files_plural' => 'File condivisi',
 ];

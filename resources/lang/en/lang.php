@@ -1659,4 +1659,5 @@ return [
     'file_actions' => 'File actions',
     'download_to_device' => 'Download to device',
     'view_all_files' => 'View all files',
+    'shares_files_plural' => 'Shares files',
 ];

@@ -18,22 +18,26 @@ class PatientFileController extends Controller
         $this->middleware(['auth', 'check.membership']);
     }
 
-    // List files for a patient
-    public function index(Patient $patient)
+    public function index(Patient $patient = null)
     {
         $doctor = Auth::user()->doctor;
-        if (!$doctor || !$doctor->patients()->where('patient_id', $patient->id)->exists()) {
-            abort(403, 'Unauthorized access to patient files.');
+
+        if ($patient) {
+            if (!$doctor || !$doctor->patients()->where('patient_id', $patient->id)->exists()) {
+                abort(403, 'Unauthorized access to patient files.');
+            }
+
+            $files = $patient->files()->with('uploader')->get();
+            $patient->load('doctors.specialities', 'doctors.user');
+            $allDoctors = Doctor::with('specialities', 'user')->get();
+
+            return view('patient_files.index', compact('patient', 'files', 'allDoctors'));
         }
 
-        $files = $patient->files()->with('uploader')->get();
-        $patient->load('doctors.specialities', 'doctors.user');
-
-        $allDoctors = Doctor::with('specialities', 'user')->get();
-        return view('patient_files.index', compact('patient', 'files', 'allDoctors'));
+        $myPatients = $doctor ? $doctor->patients()->with('user')->get() : [];
+        return view('patient_files.select_patient', compact('myPatients'));
     }
 
-    // Show a specific file
     public function show(Patient $patient, PatientFile $file)
     {
         $doctor = Auth::user()->doctor;
@@ -52,7 +56,6 @@ class PatientFileController extends Controller
         return view('patient_files.show', compact('patient', 'file'));
     }
 
-    // Show upload form
     public function create(Patient $patient)
     {
         $doctor = Auth::user()->doctor;
@@ -63,7 +66,6 @@ class PatientFileController extends Controller
         return view('patient_files.create', compact('patient'));
     }
 
-    // Store a new file
     public function store(Request $request, Patient $patient)
     {
         $doctor = Auth::user()->doctor;
@@ -104,7 +106,6 @@ class PatientFileController extends Controller
             ->with('success', 'File uploaded successfully.');
     }
 
-    // Download a file
     public function download(Patient $patient, PatientFile $file)
     {
         $doctor = Auth::user()->doctor;
@@ -130,7 +131,6 @@ class PatientFileController extends Controller
             ->header('Content-Disposition', 'attachment; filename="' . $file->file_name . '"');
     }
 
-    // Delete a file
     public function destroy(Patient $patient, PatientFile $file)
     {
         $doctor = Auth::user()->doctor;
@@ -155,7 +155,6 @@ class PatientFileController extends Controller
             ->with('success', 'File deleted successfully.');
     }
 
-    // Assign a doctor to the patient
     public function assignDoctor(Request $request, Patient $patient)
     {
         $doctor = Auth::user()->doctor;
@@ -174,14 +173,12 @@ class PatientFileController extends Controller
         $selectedDoctor = Doctor::findOrFail($request->doctor_id);
         \Log::info('Associate; doctor: ' . $selectedDoctor->name . ' ' . $selectedDoctor->id . '  Patient: ' . $patient->name . ' ' . $patient->id);
 
-        // Check if the doctor is already associated
         if ($patient->doctors()->where('doctors.id', $selectedDoctor->id)->exists()) {
             \Log::info('Already associated; doctor: ' . $selectedDoctor->name . ' ' . $selectedDoctor->id . '  Patient: ' . $patient->name . ' ' . $patient->id);
             return redirect()->route('patient_files.index', $patient)
                 ->with('error', trans('lang.doctor_already_associated'));
         }
 
-        // Associate the doctor with the patient (add ids to table doctor_patients)
         $patient->doctors()->attach($selectedDoctor);
 
         return redirect()->route('patient_files.index', $patient)

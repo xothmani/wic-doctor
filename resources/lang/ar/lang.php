@@ -1580,4 +1580,5 @@ return [
     'file_actions' => 'إجراءات الملف',
     'download_to_device' => 'تحميل إلى الجهاز',
     'view_all_files' => 'عرض جميع الملفات',
+    'shares_files_plural' => 'مشاركة الملفات',
 ];
