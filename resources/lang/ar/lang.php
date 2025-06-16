@@ -1583,4 +1583,5 @@ return [
     'shared_files_plural' => 'مشاركة الملفات',
     'enter_doctor_email' => 'ادخل عنوان بريد الكتروني للطبيب الذي ترغب في مشاركة الملفات',
     'search_patients' => 'بحث عن المرضى',
+    'view_patient_files' => 'عرض ملفات المرضى',
 ];

@@ -381,10 +381,16 @@
     </li>
 @endcan -->
 
-
-
-
-
+@can('patient_files.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('patient_files') ? 'active' : '' }}" href="{!! route('patient_files.index') !!}">
+            @if($icons)
+                <i class="nav-icon fas fa-archive"></i>
+            @endif
+            <p>{{ trans('lang.shared_files_plural') }}</p>
+        </a>
+    </li>
+@endcan
 
 @can('chatA.index')
     <li
@@ -459,16 +465,6 @@
     </li>
 @endcan -->
 
-@can('patient_files.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('patient_files') ? 'active' : '' }}" href="{!! route('patient_files.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-archive"></i>
-            @endif
-            <p>{{ trans('lang.shared_files_plural') }}</p>
-        </a>
-    </li>
-@endcan
 
 @can('tags.index')
     <li class="nav-item">

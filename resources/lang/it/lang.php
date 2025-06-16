@@ -2279,4 +2279,5 @@ return [
     'shared_files_plural' => 'File condivisi',
     'enter_doctor_email' => 'Inserisci l\'indirizzo email del medico che desideri condividere i file',
     'search_patients' => 'Cerca pazienti',
+    'view_patient_files' => 'Visualizza file del paziente',
 ];
