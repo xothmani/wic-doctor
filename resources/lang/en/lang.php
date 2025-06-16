@@ -1663,4 +1663,5 @@ return [
     'enter_doctor_email' => 'Enter the email address of the doctor you wish to share files with',
     'search_patients' => 'Search patients',
     'view_patient_files' => 'View patient files',
+    'select_patient' => 'Select patient',
 ];
