@@ -84,7 +84,7 @@
                     <!-- Doctors List (Right Sidebar) -->
                     <div class="col-lg-4 col-md-12">
                         <div class="card shadow-lg border-0 doctors-card">
-                            <div class="card-header text-bold position-relative py-3 border-bottom">
+                            <div class="card-header text-bold position-relative border-bottom" style="padding: 16px 20px">
                                 <h3 class="card-title mb-0">
                                     <i class="fas fa-user-md mr-2"></i>
                                     {{ trans('lang.doctors_associated') }}
@@ -269,7 +269,6 @@
 
             .files-card,
             .doctors-card {
-                border-radius: 20px;
                 overflow: hidden;
                 transition: all 0.3s ease;
             }
