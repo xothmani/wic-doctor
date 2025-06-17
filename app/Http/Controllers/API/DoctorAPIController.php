@@ -316,7 +316,7 @@ public function indexFiltreHamza(Request $request): JsonResponse
 
         // Liste des médecins filtrés
         $filteredListDoctors = [];
-
+        
         if(($request->has('hours') && !empty($request->input('hours'))) && 
         ($request->has('date') && !empty($request->input('date')))
         ){
@@ -333,48 +333,42 @@ public function indexFiltreHamza(Request $request): JsonResponse
             // Vérifiez que les heures sont valides
             $requestedHours = array_map('intval', $requestedHours); // Convertir les valeurs en entiers
 
-            
             // Parcourir chaque médecin et vérifier sa disponibilité
             foreach ($doctors as $doctor) {
                 // Appel de la fonction getAvailibilityHoursHamza pour récupérer les disponibilités
                 $availabilities = app(AvailabilityHourAPIController::class)->getAvailibilityHoursHamza($doctor->id, $date);
-                //Log::info("Request data felifhoursdate: ", $request->all());
-                Log::info("Availabilities indexFiltreHamza", ["availabilities"=>$availabilities]);
+
                 
                 // Vérifiez si les disponibilités sont valides
                 if (is_array($availabilities) && !empty($availabilities)) {
                     // Filtrer les créneaux horaires selon les heures demandées
                     $filteredAvailabilities = array_filter($availabilities, function ($slot) use ($requestedHours) {
-                        
+                        //slot de availibilities : [8, true (is open), false (is passed)]
                         if (count($slot) < 2) {
-                            return false; // Ignorer si la structure du créneau est invalide
+                            return false; 
                         }
 
 
                         if(!is_string($slot[0])){
-                            Log::info("Slot Not String", ["slot"=>$slot]);
                             return false;
                         }
                         
 
                         $requestedHours = array_map('intval', $requestedHours); // Convertir en entiers
-                        $slotHour = (int) Carbon::parse($slot[0])->hour; // Convertir en entier
+                        $slotHour = (int) Carbon::parse($slot[0])->hour; // Convertir start time slot de availibilities en entier
 
-                        if (in_array($slotHour, $requestedHours)) {
-                            $position = array_search($slotHour, $requestedHours);
-                        } else {
-                            $position = false;
-                        }
 
-                        //Log::info("Position hour", ["pos"=>$position, "slot"=>$slot]);
+                        $position = in_array($slotHour, $requestedHours);
+
                         
-                        return $position >= 0 && $slot[1] === true && $slot[2] === false;
+                        return $position && $slot[1] === true && $slot[2] === false;
                     });
-                    //return response()->json($filteredAvailabilities); // ici j'ai vérifier que l'heures demandée disponible => elle marche bien jusqu'à ici (1)
-                    // Si des créneaux horaires sont valides, ajouter ce médecin à la liste filtrée => ce code ne marche pas (2)
+
                     if (!empty($filteredAvailabilities)) {
                         //return response()->json($filteredAvailabilities);
-                        $filteredListDoctors[] = $doctor; // Ajouter le médecin à la liste filtrée
+                        $filteredListDoctors[] = $doctor; 
+                    }else{
+                        continue;
                     }
                 }else{
                     continue;
