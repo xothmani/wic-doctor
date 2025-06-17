@@ -1,15 +1,12 @@
-<!-- resources/views/patient_files/show.blade.php -->
 @extends('layouts.app')
 
 @php
     $doctorId = auth()->user()->getDoctorId();
     $permissionKey = 'patient_files.show';
-    // Retrieve the permission with its related readable record
     $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
         ->with('readable')
         ->first();
 
-    // Use the dynamic attribute for the display name; fall back to the key if not found
     $readablePermission = $permission ? $permission->display_name : $permissionKey;
 @endphp
 
@@ -159,46 +156,15 @@
                                 </div>
 
                                 <!-- File Navigation -->
-                                <div class="file-navigation-section">
-                                    <div class="section-header">
-                                        <h5 class="section-title">
-                                            <i class="fas fa-exchange-alt text-info mr-2"></i>
-                                            {{ trans('lang.quick_actions') }}
-                                        </h5>
-                                    </div>
-                                    <div class="action-buttons">
-                                        <a href="{{ route('patient_files.index', $patient) }}" class="action-button back-btn">
-                                            <i class="fas fa-arrow-left"></i>
-                                            <span>{{ trans('lang.back_to_files') }}</span>
-                                        </a>
-                                        @if(auth()->user()->hasPermissionInContext('patient_files.create', $doctorId))
-                                            <a href="{{ route('patient_files.create', $patient) }}"
-                                                class="action-button upload-btn">
-                                                <i class="fas fa-plus"></i>
-                                                <span>{{ trans('lang.upload_new') }}</span>
-                                            </a>
-                                        @endif
-                                        @if(auth()->user()->hasPermissionInContext('patient_files.download', $doctorId))
-                                            <button
-                                                onclick="downloadFile('{{ route('patient_files.download', [$patient, $file]) }}')"
-                                                class="action-button download-btn">
-                                                <i class="fas fa-download"></i>
-                                                <span>{{ trans('lang.download_file') }}</span>
-                                            </button>
-                                        @endif
-                                        @if(
-                                            auth()->user()->hasPermissionInContext('patient_files.destroy', auth()->user()->getDoctorId()) &&
-                                            $file->uploader && $file->uploader->id === auth()->user()->id
-                                        )
-                                        <button
-                                                onclick="confirmDelete('{{ route('patient_files.destroy', [$patient, $file]) }}')"
-                                                data-toggle="tooltip" class="action-button delete-btn">
-                                                <i class="fas fa-trash"></i>
-                                                <span>{{ trans('lang.delete_file') }}</span>
-                                            </button>
-                                        @endif
-                                    </div>
-                                </div>
+                                <!-- <div class="file-navigation-section">
+                                                            <div class="section-header">
+                                                                <h5 class="section-title">
+                                                                    <i class="fas fa-exchange-alt text-info mr-2"></i>
+                                                                    {{ trans('lang.quick_actions') }}
+                                                                </h5>
+                                                            </div>
+
+                                                        </div> -->
                             </div>
                         </div>
                     </div>
@@ -262,79 +228,102 @@
                         </div>
 
                         <!-- File Metadata -->
-                        <div class="card sidebar-card">
-                            <div class="card-header">
-                                <h5 class="card-title">
-                                    <i class="fas fa-info-circle"></i>
-                                    {{ trans('lang.file_information') }}
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="metadata-list">
-                                    <div class="metadata-item">
-                                        <div class="metadata-icon">
-                                            <i class="fas fa-file-signature"></i>
-                                        </div>
-                                        <div class="metadata-content">
-                                            <span class="metadata-label">{{ trans('lang.file_name') }}</span>
-                                            <span class="metadata-value">{{ $file->file_name }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="metadata-item">
-                                        <div class="metadata-icon">
-                                            <i class="fas fa-weight"></i>
-                                        </div>
-                                        <div class="metadata-content">
-                                            <span class="metadata-label">{{ trans('lang.file_size') }}</span>
-                                            <span class="metadata-value">
-                                                @if(isset($file->file_size) && $file->file_size)
-                                                    {{ number_format($file->file_size / 1024, 1) }} KB
-                                                @else
-                                                    {{ trans('lang.unknown') }}
-                                                @endif
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="metadata-item">
-                                        <div class="metadata-icon">
-                                            <i class="fas fa-file-code"></i>
-                                        </div>
-                                        <div class="metadata-content">
-                                            <span class="metadata-label">{{ trans('lang.file_type') }}</span>
-                                            <span class="metadata-value">{{ strtoupper($extension ?? 'Unknown') }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="metadata-item">
-                                        <div class="metadata-icon">
-                                            <i class="fas fa-calendar-plus"></i>
-                                        </div>
-                                        <div class="metadata-content">
-                                            <span class="metadata-label">{{ trans('lang.upload_date') }}</span>
-                                            <span class="metadata-value">{{ $file->created_at->format('M d, Y') }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="metadata-item">
-                                        <div class="metadata-icon">
-                                            <i class="fas fa-clock"></i>
-                                        </div>
-                                        <div class="metadata-content">
-                                            <span class="metadata-label">{{ trans('lang.upload_time') }}</span>
-                                            <span class="metadata-value">{{ $file->created_at->format('g:i A') }}</span>
-                                        </div>
-                                    </div>
-                                    @if($file->updated_at != $file->created_at)
-                                        <div class="metadata-item">
-                                            <div class="metadata-icon">
-                                                <i class="fas fa-edit"></i>
-                                            </div>
-                                            <div class="metadata-content">
-                                                <span class="metadata-label">{{ trans('lang.last_modified') }}</span>
-                                                <span class="metadata-value">{{ $file->updated_at->diffForHumans() }}</span>
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
+                        <!-- <div class="card sidebar-card">
+                                                    <div class="card-header">
+                                                        <h5 class="card-title">
+                                                            <i class="fas fa-info-circle"></i>
+                                                            {{ trans('lang.file_information') }}
+                                                        </h5>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="metadata-list">
+                                                            <div class="metadata-item">
+                                                                <div class="metadata-icon">
+                                                                    <i class="fas fa-file-signature"></i>
+                                                                </div>
+                                                                <div class="metadata-content">
+                                                                    <span class="metadata-label">{{ trans('lang.file_name') }}</span>
+                                                                    <span class="metadata-value">{{ $file->file_name }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="metadata-item">
+                                                                <div class="metadata-icon">
+                                                                    <i class="fas fa-weight"></i>
+                                                                </div>
+                                                                <div class="metadata-content">
+                                                                    <span class="metadata-label">{{ trans('lang.file_size') }}</span>
+                                                                    <span class="metadata-value">
+                                                                        @if(isset($file->file_size) && $file->file_size)
+                                                                            {{ number_format($file->file_size / 1024, 1) }} KB
+                                                                        @else
+                                                                            {{ trans('lang.unknown') }}
+                                                                        @endif
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="metadata-item">
+                                                                <div class="metadata-icon">
+                                                                    <i class="fas fa-file-code"></i>
+                                                                </div>
+                                                                <div class="metadata-content">
+                                                                    <span class="metadata-label">{{ trans('lang.file_type') }}</span>
+                                                                    <span class="metadata-value">{{ strtoupper($extension ?? 'Unknown') }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="metadata-item">
+                                                                <div class="metadata-icon">
+                                                                    <i class="fas fa-calendar-plus"></i>
+                                                                </div>
+                                                                <div class="metadata-content">
+                                                                    <span class="metadata-label">{{ trans('lang.upload_date') }}</span>
+                                                                    <span class="metadata-value">{{ $file->created_at->format('M d, Y') }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="metadata-item">
+                                                                <div class="metadata-icon">
+                                                                    <i class="fas fa-clock"></i>
+                                                                </div>
+                                                                <div class="metadata-content">
+                                                                    <span class="metadata-label">{{ trans('lang.upload_time') }}</span>
+                                                                    <span class="metadata-value">{{ $file->created_at->format('g:i A') }}</span>
+                                                                </div>
+                                                            </div>
+                                                            @if($file->updated_at != $file->created_at)
+                                                                <div class="metadata-item">
+                                                                    <div class="metadata-icon">
+                                                                        <i class="fas fa-edit"></i>
+                                                                    </div>
+                                                                    <div class="metadata-content">
+                                                                        <span class="metadata-label">{{ trans('lang.last_modified') }}</span>
+                                                                        <span class="metadata-value">{{ $file->updated_at->diffForHumans() }}</span>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div> -->
+
+                        <div class="action-buttons">
+                            <!-- <a href="{{ route('patient_files.index', $patient) }}" class="action-button back-btn">
+                                                                    <i class="fas fa-arrow-left"></i>
+                                                                    <span>{{ trans('lang.back_to_files') }}</span>
+                                                                </a> -->
+                            @if(auth()->user()->hasPermissionInContext('patient_files.create', $doctorId))
+                                <a href="{{ route('patient_files.create', $patient) }}" class="action-button upload-btn">
+                                    <i class="fas fa-plus"></i>
+                                    <span>{{ trans('lang.upload_new') }}</span>
+                                </a>
+                            @endif
+                            @if(
+                                    auth()->user()->hasPermissionInContext('patient_files.destroy', auth()->user()->getDoctorId()) &&
+                                    $file->uploader && $file->uploader->id === auth()->user()->id
+                                )
+                                <a onclick="confirmDelete('{{ route('patient_files.destroy', [$patient, $file]) }}')"
+                                    data-toggle="tooltip" class="action-button delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                    <span>{{ trans(key: 'lang.delete_file') }}</span>
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -342,27 +331,22 @@
         </div>
 
         <script>
-            // Download file function
             function downloadFile(url) {
                 window.open(url, '_blank');
             }
 
-            // Confirm delete function
             function confirmDelete(url) {
                 if (confirm('{{trans("lang.confirm_delete_file")}}')) {
-                    // Create a form to submit DELETE request
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = url;
 
-                    // Add CSRF token
                     const csrfInput = document.createElement('input');
                     csrfInput.type = 'hidden';
                     csrfInput.name = '_token';
                     csrfInput.value = '{{ csrf_token() }}';
                     form.appendChild(csrfInput);
 
-                    // Add method spoofing for DELETE
                     const methodInput = document.createElement('input');
                     methodInput.type = 'hidden';
                     methodInput.name = '_method';
@@ -374,7 +358,6 @@
                 }
             }
 
-            // Initialize tooltips
             $(document).ready(function () {
                 $('[data-toggle="tooltip"]').tooltip();
             });
@@ -418,7 +401,6 @@
         --shadow-hover: 0 20px 60px rgba(0, 0, 0, 0.2);
     }
 
-    /* Card Styles */
     .file-details-card,
     .uploader-card,
     .metadata-card,
@@ -438,7 +420,6 @@
         box-shadow: var(--shadow-hover);
     }
 
-    /* Card Headers */
     .card-header.bg-gradient-primary {
         background: var(--primary-gradient) !important;
     }
@@ -455,7 +436,6 @@
         background: var(--dark-gradient) !important;
     }
 
-    /* File Preview Section */
     .file-preview-section {
         padding: 40px;
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -510,25 +490,25 @@
     }
 
     .file-title {
-        font-size: 1.8rem;
+        font-size: 1.2rem;
         font-weight: 700;
         color: #2d3436;
-        margin-bottom: 20px;
-        line-height: 1.3;
+        margin-bottom: 10px;
+        line-height: 1;
         word-break: break-word;
     }
 
     .file-stats {
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 10px;
     }
 
     .stat-item {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 15px 20px;
+        padding: 10px 15px;
         background: white;
         border-radius: 15px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
@@ -541,8 +521,8 @@
     }
 
     .stat-item i {
-        font-size: 1.2rem;
-        width: 20px;
+        font-size: 1rem;
+        width: 15px;
         text-align: center;
     }
 
@@ -564,13 +544,13 @@
     }
 
     .section-header {
-        margin-bottom: 20px;
-        padding-bottom: 15px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
         border-bottom: 2px solid #f1f3f4;
     }
 
     .section-title {
-        font-size: 1.3rem;
+        font-size: 1rem;
         font-weight: 700;
         color: #2d3436;
         margin: 0;
@@ -598,18 +578,12 @@
         font-style: italic;
     }
 
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-    }
-
     .action-button {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 15px 20px;
+        margin: 20px 20 0 20;
         border-radius: 15px;
         text-decoration: none;
         font-weight: 600;
@@ -757,7 +731,6 @@
 </style>
 
 <style>
-    /* CSS Custom Properties for consistent theming */
     :root {
         --primary-color: #0d6efd;
         --secondary-color: #6c757d;
@@ -794,7 +767,6 @@
         border: 1px solid rgba(23, 162, 184, 0.2);
     }
 
-    /* Content Header */
     .content-header {
         margin-bottom: var(--spacing-lg);
     }
@@ -827,13 +799,11 @@
         gap: var(--spacing-xs);
     }
 
-    /* Breadcrumb */
     .breadcrumb-nav {
         display: flex;
         justify-content: flex-end;
     }
 
-    /* Uploader Contact */
     .uploader-contact {
         margin-top: 15px;
     }
@@ -847,7 +817,6 @@
         color: var(--dark-color);
     }
 
-    /* Metadata List */
     .metadata-list {
         display: flex;
         flex-direction: column;
@@ -908,7 +877,6 @@
         word-break: break-word;
     }
 
-    /* File Icon Color Variations */
     .file-icon-danger {
         background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
         border: 2px solid rgba(220, 53, 69, 0.2);
@@ -944,10 +912,9 @@
         border: 2px solid rgba(33, 37, 41, 0.2);
     }
 
-    /* File Icon Wrapper */
     .file-icon-wrapper {
-        width: 120px;
-        height: 120px;
+        width: 80px;
+        height: 80px;
         border-radius: var(--border-radius-lg);
         display: flex;
         align-items: center;
@@ -982,7 +949,6 @@
         border: 2px solid var(--light-color);
     }
 
-    /* File Preview Section */
     .file-preview-section {
         padding: var(--spacing-xl);
         background: linear-gradient(135deg, var(--light-color) 0%, #e9ecef 100%);
@@ -1067,7 +1033,6 @@
         color: var(--dark-color);
     }
 
-    /* Section Containers */
     .section-container {
         padding: var(--spacing-xl);
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -1113,13 +1078,6 @@
         gap: var(--spacing-sm);
         font-style: italic;
         color: var(--secondary-color);
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: var(--spacing-md);
-        flex-wrap: wrap;
     }
 
     .btn {
@@ -1194,7 +1152,6 @@
         }
     }
 
-    /* Card Styles */
     .file-details-card,
     .sidebar-card,
     .permission-denied-card {
@@ -1255,7 +1212,6 @@
         padding: 0;
     }
 
-    /* Uploader Profile */
     .uploader-profile {
         text-align: center;
     }
@@ -1330,7 +1286,6 @@
         gap: var(--spacing-sm);
     }
 
-    /* Permission Denied */
     .permission-denied-card {
         max-width: 500px;
         margin: 0 auto;
@@ -1355,7 +1310,6 @@
         margin-bottom: var(--spacing-lg);
     }
 
-    /* Responsive Design */
     @media (max-width: 1200px) {
         .header-content {
             flex-direction: column;
@@ -1378,12 +1332,12 @@
         }
 
         .file-icon-wrapper {
-            width: 100px;
-            height: 100px;
+            width: 70px;
+            height: 70px;
         }
 
         .file-icon-wrapper i {
-            font-size: 2.5rem;
+            font-size: 2rem;
         }
 
         .file-title {
@@ -1436,7 +1390,6 @@
         }
     }
 
-    /* Animations */
     @keyframes slideInUp {
         from {
             opacity: 0;
@@ -1468,7 +1421,6 @@
         animation: fadeIn 0.8s ease forwards;
     }
 
-    /* Loading States */
     .btn:disabled {
         opacity: 0.6;
         cursor: not-allowed;
@@ -1488,7 +1440,6 @@
         }
     }
 
-    /* Focus States for Accessibility */
     .btn:focus {
         outline: 2px solid var(--primary-color);
         outline-offset: 2px;
@@ -1498,7 +1449,6 @@
         outline-color: white;
     }
 
-    /* Modal Styles */
     .modal-content {
         border-radius: var(--border-radius-lg);
         border: none;
@@ -1533,7 +1483,6 @@
         border-left: 4px solid var(--warning-color);
     }
 
-    /* Print Styles */
     @media print {
 
         .header-actions,

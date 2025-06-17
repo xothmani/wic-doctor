@@ -1,4 +1,3 @@
-<!-- resources/views/patient_files/table.blade.php -->
 <div class="modern-table-container">
     @forelse ($files as $file)
         <div class="file-card" style="animation-delay: {{ $loop->index * 0.1 }}s">
@@ -115,27 +114,22 @@
 </div>
 
 <script>
-    // Download file function
     function downloadFile(url) {
         window.open(url, '_blank');
     }
 
-    // Confirm delete function
     function confirmDelete(url) {
         if (confirm('{{trans("lang.confirm_delete_file")}}')) {
-            // Create a form to submit DELETE request
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = url;
 
-            // Add CSRF token
             const csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';
             csrfInput.name = '_token';
             csrfInput.value = '{{ csrf_token() }}';
             form.appendChild(csrfInput);
 
-            // Add method spoofing for DELETE
             const methodInput = document.createElement('input');
             methodInput.type = 'hidden';
             methodInput.name = '_method';
@@ -147,13 +141,11 @@
         }
     }
 
-    // Initialize tooltips
     $(document).ready(function () {
         $('[data-toggle="tooltip"]').tooltip();
     });
 </script>
 
-<!-- Enhanced Table Styles -->
 <style>
     :root {
         --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -416,7 +408,6 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
-    /* Empty State */
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -443,7 +434,6 @@
         font-size: 1rem;
     }
 
-    /* Animations */
     @keyframes slideInUp {
         from {
             opacity: 0;
@@ -456,7 +446,6 @@
         }
     }
 
-    /* Responsive */
     @media (max-width: 768px) {
         .file-card {
             flex-direction: column;

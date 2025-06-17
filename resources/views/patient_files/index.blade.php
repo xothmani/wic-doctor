@@ -1,21 +1,17 @@
-<!-- resources/views/patient_files/index.blade.php -->
 @extends('layouts.app')
 
 @php
     $doctorId = auth()->user()->getDoctorId();
     $permissionKey = 'patient_files.create';
-    // Retrieve the permission with its related readable record
     $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
         ->with('readable')
         ->first();
 
-    // Use the dynamic attribute for the display name; fall back to the key if not found
     $readablePermission = $permission ? $permission->display_name : $permissionKey;
 @endphp
 
 @section('content')
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
-        <!-- Content Header (Page header) -->
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
@@ -175,7 +171,6 @@
             </div>
         </div>
 
-        <!-- Enhanced Assign Doctor Modal -->
         @if(auth()->user()->hasPermissionInContext('patient_files.assign_doctor', $doctorId))
             <div class="modal fade" id="assignDoctorModal" tabindex="-1" role="dialog" aria-labelledby="assignDoctorModalLabel"
                 aria-hidden="true">
@@ -255,7 +250,6 @@
             </div>
         @endif
 
-        <!-- Enhanced Custom Styles -->
         <style>
             :root {
                 --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -307,7 +301,6 @@
                 box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             }
 
-            /* Doctors List Styles */
             .doctors-list {
                 padding: 0;
             }
@@ -452,7 +445,6 @@
                 text-decoration: none;
             }
 
-            /* Empty State */
             .empty-state {
                 margin: 40px 0;
             }
@@ -462,7 +454,6 @@
                 opacity: 0.3;
             }
 
-            /* Modal Styles */
             .modal-content {
                 border-radius: 20px;
                 overflow: hidden;
@@ -561,7 +552,6 @@
                 color: white;
             }
 
-            /* Animations */
             @keyframes slideInUp {
                 from {
                     opacity: 0;
@@ -580,7 +570,6 @@
                 border: 1px solid rgba(23, 162, 184, 0.2);
             }
 
-            /* Responsive */
             @media (max-width: 768px) {
                 .floating-btn {
                     position: static;
@@ -615,28 +604,22 @@
             console.log('all doctors: {{$allDoctors}}');
 
             $(document).ready(function () {
-                // Initialize modal
                 $('#assignDoctorModal').on('show.bs.modal', function () {
                     const searchField = document.getElementById('doctorSearch');
                     if (searchField) {
-                        // Reset search field
                         searchField.value = '';
-                        // Remove old events and add new one
                         const newSearchField = searchField.cloneNode(true);
                         searchField.parentNode.replaceChild(newSearchField, searchField);
                         newSearchField.addEventListener('input', function () {
                             filterDoctorList(this);
                         });
-                        // Focus on search field
                         setTimeout(() => newSearchField.focus(), 300);
-                        // Hide all items initially
                         document.querySelectorAll('.modal-doctor-item').forEach(item => {
                             item.style.display = 'none';
                         });
                     }
                 });
 
-                // Clear selected doctor on modal close
                 $('#assignDoctorModal').on('hidden.bs.modal', function () {
                     document.getElementById('selectedDoctorId').value = '';
                     document.querySelectorAll('.modal-doctor-item').forEach(item => {
@@ -657,7 +640,6 @@
             function selectDoctor(element) {
                 const doctorId = element.getAttribute('data-value');
                 document.getElementById('selectedDoctorId').value = doctorId;
-                // Highlight selected item
                 document.querySelectorAll('.modal-doctor-item').forEach(item => {
                     item.classList.remove('active');
                 });

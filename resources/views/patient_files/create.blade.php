@@ -1,21 +1,17 @@
-<!-- resources/views/patient_files/create.blade.php -->
 @extends('layouts.app')
 
 @php
     $doctorId = auth()->user()->getDoctorId();
     $permissionKey = 'patient_files.create';
-    // Retrieve the permission with its related readable record
     $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
         ->with('readable')
         ->first();
 
-    // Use the dynamic attribute for the display name; fall back to the key if not found
     $readablePermission = $permission ? $permission->display_name : $permissionKey;
 @endphp
 
 @section('content')
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
-        <!-- Content Header (Page header) -->
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
@@ -187,7 +183,6 @@
             </div>
         </div>
 
-        <!-- Custom Styles -->
         <style>
             .bg-gradient-primary {
                 background: linear-gradient(135deg, var(--primary, #007bff) 0%, var(--info, #17a2b8) 100%);
@@ -232,7 +227,6 @@
                 background-size: 20px 20px;
                 background-position: 0 0, 10px 10px;
                 cursor: pointer;
-                /* Ensure proper stacking */
                 z-index: 1;
             }
 
@@ -251,7 +245,6 @@
                 opacity: 0;
                 cursor: pointer;
                 z-index: 1;
-                /* Remove pointer-events to prevent interference */
                 pointer-events: none;
             }
 
@@ -278,7 +271,6 @@
                 pointer-events: auto;
             }
 
-            /* Ensure button is clickable */
             #browseBtn {
                 position: relative;
                 z-index: 4;
@@ -365,21 +357,18 @@
                 const uploadBtn = document.querySelector('.upload-btn');
                 const browseBtn = document.getElementById('browseBtn');
 
-                // Click handlers for opening file dialog
                 browseBtn.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     fileInput.click();
                 });
 
-                // Make the entire upload area clickable (except when dragging)
                 uploadArea.addEventListener('click', function (e) {
                     if (!uploadArea.classList.contains('dragover') && e.target !== browseBtn) {
                         fileInput.click();
                     }
                 });
 
-                // Drag and drop functionality
                 uploadArea.addEventListener('dragover', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -395,7 +384,6 @@
                 uploadArea.addEventListener('dragleave', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Only remove dragover class if we're actually leaving the upload area
                     if (!uploadArea.contains(e.relatedTarget)) {
                         uploadArea.classList.remove('dragover');
                     }
@@ -407,7 +395,6 @@
                     uploadArea.classList.remove('dragover');
                     const files = e.dataTransfer.files;
                     if (files.length > 0) {
-                        // Create a new FileList-like object and assign it to the input
                         const dt = new DataTransfer();
                         dt.items.add(files[0]);
                         fileInput.files = dt.files;
@@ -415,14 +402,12 @@
                     }
                 });
 
-                // File input change
                 fileInput.addEventListener('change', function (e) {
                     if (e.target.files.length > 0) {
                         handleFileSelect(e.target.files[0]);
                     }
                 });
 
-                // Handle file selection
                 function handleFileSelect(file) {
                     fileName.textContent = file.name;
                     fileSize.textContent = formatFileSize(file.size);
@@ -430,14 +415,12 @@
                     uploadArea.style.display = 'none';
                 }
 
-                // Remove file
-                window.removeFile = function () {
+                window.removeFile = function () {j
                     fileInput.value = '';
                     filePreview.style.display = 'none';
                     uploadArea.style.display = 'block';
                 };
 
-                // Format file size
                 function formatFileSize(bytes) {
                     if (bytes === 0) return '0 Bytes';
                     const k = 1024;
@@ -446,7 +429,6 @@
                     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
                 }
 
-                // Form submission with loading state
                 uploadForm.addEventListener('submit', function () {
                     const btnText = uploadBtn.querySelector('.btn-text');
                     const btnLoading = uploadBtn.querySelector('.btn-loading');

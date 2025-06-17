@@ -1,21 +1,17 @@
-<!-- resources/views/patient_files/select_patient.blade.php -->
 @extends('layouts.app')
 
 @php
     $doctorId = auth()->user()->getDoctorId();
     $permissionKey = 'patient_files.view';
-    // Retrieve the permission with its related readable record
     $permission = Spatie\Permission\Models\Permission::where('name', $permissionKey)
         ->with('readable')
         ->first();
 
-    // Use the dynamic attribute for the display name; fall back to the key if not found
     $readablePermission = $permission ? $permission->display_name : $permissionKey;
 @endphp
 
 @section('content')
     @if(auth()->user()->hasPermissionInContext($permissionKey, $doctorId))
-        <!-- Content Header (Page header) -->
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2">
@@ -43,7 +39,6 @@
         <div class="content">
             <div class="container-fluid">
                 @include('flash::message')
-                <!-- center column -->
                 <div class="row justify-content-center align-items-center">
                     <div class="col-lg-6 col-md-12 col-sm-12">
                         <div class="card shadow-sm patients-card">
@@ -248,7 +243,6 @@
                 opacity: 0.3;
             }
 
-            /* Animations */
             @keyframes slideInUp {
                 from {
                     opacity: 0;
@@ -266,7 +260,6 @@
                 border: 1px solid rgba(23, 162, 184, 0.2);
             }
 
-            /* Responsive */
             @media (max-width: 768px) {
                 .patient-item {
                     padding: 15px;
@@ -326,11 +319,9 @@
         $(document).ready(function () {
             const searchField = document.getElementById('patientSearch');
             if (searchField) {
-                // Add search event listener
                 searchField.addEventListener('input', function () {
                     filterPatientList(this);
                 });
-                // Focus on search field on page load
                 setTimeout(() => searchField.focus(), 300);
             }
         });
