@@ -42,6 +42,7 @@ Route::get('/consultations/prescriptions/{id}', [PrescriptionsApiController::cla
 Route::delete('appointments/delete/{id}', [AppointmentApiController::class, 'delete']);
 Route::post('/media/upload', [CustomMediaApiController::class, 'upload']);
 Route::delete('/media/delete/{id}', [CustomMediaApiController::class, 'destroy']);
+Route::delete('doctor_reviews/{id}', 'API\DoctorReviewAPIController@delete');
 /*********************** End Route ajouté par Hamza ********************* */
 
 
@@ -208,6 +209,7 @@ Route::middleware('auth:api')->group(function () {
         'index'
     ]);
     Route::post('doctor_reviews', 'API\DoctorReviewAPIController@store')->name('doctor_reviews.store');
+    
     Route::post('clinic_reviews', 'API\ClinicReviewAPIController@store')->name('clinic_reviews.store');
 
 
