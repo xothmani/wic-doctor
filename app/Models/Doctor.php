@@ -487,6 +487,39 @@ public function openingHours(): OpeningHours
         return $dates;
     }
 
+
+
+
+
+
+    public function weekCalendarRangeForFilter(Carbon $date): array
+    {
+       $doctorDurationMinutes = 60; // Par défaut
+       $filteredAvailability = collect($this->availabilityHours)->first();
+
+       if ($filteredAvailability && $filteredAvailability->session_duration > 0) {
+            $doctorDurationMinutes = $this->parseTime($filteredAvailability->session_duration);
+        }
+
+
+        $period = CarbonPeriod::since($date->subDay()->ceilDay()->setTimezone('Africa/Tunis'))
+            ->minutes($doctorDurationMinutes)
+            ->until($date->addDay()->ceilDay()->setTimezone('Africa/Tunis')->subMinutes($doctorDurationMinutes));
+
+        $dates = [];
+        // Obtenir l'heure actuelle en Tunisie et enlever les secondes
+        $now = Carbon::now('Africa/Tunis')->setTime(Carbon::now('Africa/Tunis')->hour, Carbon::now('Africa/Tunis')->minute, 0);
+
+        foreach ($period as $d) {
+            $isOpen = $this->openingHours()->isOpenAt($d);
+            $times = $d->locale('en')->toIso8601String();
+            $isPast = $d->lessThan($now);
+            $dates[] = [$times, $isOpen, $isPast];
+        }
+
+        return $dates;
+    }
+
     
 
 

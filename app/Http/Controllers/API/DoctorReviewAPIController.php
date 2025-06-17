@@ -53,7 +53,7 @@ class DoctorReviewAPIController extends Controller
             return $this->sendError($e->getMessage());
         }
         $doctorReviews = $this->doctorReviewRepository->all();
-        $this->filterCollection($request, $doctorReviews);
+
 
         return $this->sendResponse($doctorReviews->toArray(), 'Doctor Reviews retrieved successfully');
     }
@@ -102,5 +102,17 @@ class DoctorReviewAPIController extends Controller
         }
 
         return $this->sendResponse($review->toArray(), __('lang.saved_successfully', ['operator' => __('lang.doctor_review')]));
+    }
+
+
+
+    public function delete(int $id): JsonResponse
+    {
+        $doctorReview = $this->doctorReviewRepository->findWithoutFail($id);
+        if (empty($doctorReview)) {
+            return $this->sendError(__('lang.not_found', ['operator' => __('lang.doctor_review')]));
+        }
+        $this->doctorReviewRepository->delete($id);
+        return $this->sendResponse($doctorReview->toArray(), __('lang.deleted_successfully', ['operator' => __('lang.doctor_review')]));
     }
 }

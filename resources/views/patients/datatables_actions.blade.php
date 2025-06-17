@@ -18,6 +18,13 @@
         </a>
     @endif
 
+     @if(auth()->user()->hasPermissionInContext('patient_files.index', $doctorId))
+        <a data-toggle="tooltip" title="{{ trans('lang.view_patient_files') }}"
+           href="{{ route('patient_files.index', $id) }}" class='btn btn-link'>
+            <i class="fas fa-cloud-upload-alt"></i>
+        </a>
+    @endif
+
     @if(auth()->user()->hasPermissionInContext('patients.edit', $doctorId))
         <a data-toggle="tooltip" title="{{ trans('lang.patient_edit') }}"
            href="{{ route('patients.edit', $id) }}" class='btn btn-link'>
