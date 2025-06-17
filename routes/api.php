@@ -253,3 +253,12 @@ Route::prefix('/drug-interactions')->group(function () {
     Route::post('/toggle-backup-mode', [DrugController::class, 'toggleBackupMode']);
     Route::get('/search-backup', [DrugController::class, 'searchBackup']);
 });
+
+Route::prefix('patient_files')->name('api.patient_files.')->group(function () {
+    Route::get('/{patient}', [PatientFileController::class, 'apiIndex'])->name('index');
+    Route::get('/{patient}/{file}', [PatientFileController::class, 'apiShow'])->name('show');
+    Route::get('/{patient}/{file}/download', [PatientFileController::class, 'apiDownload'])->name('download');
+    Route::delete('/{patient}/{file}', [PatientFileController::class, 'apiDestroy'])->name('destroy');
+    Route::post('/{patient}/{file}/give-access', [PatientFileController::class, 'apiGiveAccess'])->name('give_access');
+    Route::post('/{patient}/upload', [PatientFileController::class, 'apiUpload'])->name('upload');
+});

@@ -1,3 +1,4 @@
+<!-- resources/views/patient_files/select_patient.blade.php -->
 @extends('layouts.app')
 
 @php
@@ -108,7 +109,41 @@
             </div>
         </div>
 
-        <!-- Enhanced Custom Styles -->
+        
+    @else
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="alert alert-danger">
+                    {{ __('Vous n\'avez pas la permission d\'accéder à cette page.', ['permission' => $readablePermission]) }}
+                </div>
+            </div>
+        </div>
+    @endif
+@endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function () {
+            const searchField = document.getElementById('patientSearch');
+            if (searchField) {
+                searchField.addEventListener('input', function () {
+                    filterPatientList(this);
+                });
+                setTimeout(() => searchField.focus(), 300);
+            }
+        });
+
+        function filterPatientList(input) {
+            const searchTerm = input.value.toLowerCase().trim();
+            document.querySelectorAll('.patient-item').forEach(item => {
+                const text = item.getAttribute('data-display').toLowerCase();
+                item.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+    </script>
+@endpush
+
+<!-- Enhanced Custom Styles -->
         <style>
             :root {
                 --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -303,35 +338,3 @@
                 box-shadow: 0 0 20px rgba(116, 185, 255, 0.2);
             }
         </style>
-    @else
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="alert alert-danger">
-                    {{ __('Vous n\'avez pas la permission d\'accéder à cette page.', ['permission' => $readablePermission]) }}
-                </div>
-            </div>
-        </div>
-    @endif
-@endsection
-
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-            const searchField = document.getElementById('patientSearch');
-            if (searchField) {
-                searchField.addEventListener('input', function () {
-                    filterPatientList(this);
-                });
-                setTimeout(() => searchField.focus(), 300);
-            }
-        });
-
-        function filterPatientList(input) {
-            const searchTerm = input.value.toLowerCase().trim();
-            document.querySelectorAll('.patient-item').forEach(item => {
-                const text = item.getAttribute('data-display').toLowerCase();
-                item.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        }
-    </script>
-@endpush

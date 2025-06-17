@@ -1,3 +1,4 @@
+<!-- resources/views/patient_files/show.blade.php -->
 @extends('layouts.app')
 
 @php
@@ -79,6 +80,13 @@
                                                 <i class="fas fa-edit mr-1"></i> {{ trans('lang.edit') }}
                                             </button>
                                         @endif
+                                        @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', $doctorId))
+                                            <button class="header-button header-assign-btn" data-toggle="modal"
+                                                data-target="#assignAccessModal" data-toggle="tooltip"
+                                                title="{{trans('lang.assign_access')}}">
+                                                <i class="fas fa-user-plus mr-1"></i> {{ trans('lang.assign_access') }}
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -155,21 +163,72 @@
                                     </div>
                                 </div>
 
-                                <!-- File Navigation -->
-                                <!-- <div class="file-navigation-section">
-                                                            <div class="section-header">
-                                                                <h5 class="section-title">
-                                                                    <i class="fas fa-exchange-alt text-info mr-2"></i>
-                                                                    {{ trans('lang.quick_actions') }}
-                                                                </h5>
-                                                            </div>
-
-                                                        </div> -->
+                                <!-- Assigned Users -->
+                                <div class="assigned-users-section">
+                                    <div class="section-header">
+                                        <h5 class="section-title">
+                                            <i class="fas fa-users text-info mr-2"></i>
+                                            {{ trans('lang.users_with_access') }}
+                                        </h5>
+                                        @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', $doctorId))
+                                            <button type="button" class="btn btn-light btn-sm" data-toggle="modal"
+                                                data-target="#assignAccessModal">
+                                                <i class="fas fa-user-plus mr-1"></i> {{ trans('lang.assign_access') }}
+                                            </button>
+                                        @endif
+                                    </div>
+                                    <div class="users-list">
+                                        @php
+                                            $fileUsers = \App\Models\PatientFileUser::where('patient_file_id', $file->id)
+                                                ->where('patient_id', $patient->id)
+                                                ->where(function ($query) {
+                                                    $query->whereNull('expiration_date')
+                                                          ->orWhere('expiration_date', '>', now());
+                                                })
+                                                ->with('user')
+                                                ->get();
+                                        @endphp
+                                        @if($fileUsers->isEmpty())
+                                            <div class="empty-state text-center py-4">
+                                                <div class="empty-icon mb-3">
+                                                    <i class="fas fa-users text-muted"></i>
+                                                </div>
+                                                <p class="text-muted mb-0">{{ trans('lang.no_users_with_access') }}</p>
+                                            </div>
+                                        @else
+                                            @foreach($fileUsers as $fileUser)
+                                                @if($fileUser->user)
+                                                    <div class="user-item">
+                                                        <div class="user-avatar">
+                                                            @if($fileUser->user->media->isNotEmpty())
+                                                                <img src="{{ $fileUser->user->media->first()->getUrl() }}"
+                                                                    alt="{{ $fileUser->user->name }}" class="avatar-img">
+                                                            @else
+                                                                <div class="avatar-placeholder">
+                                                                    <i class="fas fa-user"></i>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                        <div class="user-info">
+                                                            <h6 class="user-name">{{ $fileUser->user->name }}</h6>
+                                                            <small class="text-muted">{{ $fileUser->user->email }}</small>
+                                                            @if($fileUser->expiration_date)
+                                                                <div class="expiration-info">
+                                                                    <span
+                                                                        class="badge badge-warning">{{ trans('lang.expires') }} {{ $fileUser->expiration_date->diffForHumans() }}</span>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- File Metadata & Related Info -->
                     <!-- Sidebar -->
                     <div class="col-lg-4 col-md-12">
                         <!-- Uploader Information -->
@@ -227,87 +286,7 @@
                             </div>
                         </div>
 
-                        <!-- File Metadata -->
-                        <!-- <div class="card sidebar-card">
-                                                    <div class="card-header">
-                                                        <h5 class="card-title">
-                                                            <i class="fas fa-info-circle"></i>
-                                                            {{ trans('lang.file_information') }}
-                                                        </h5>
-                                                    </div>
-                                                    <div class="card-body">
-                                                        <div class="metadata-list">
-                                                            <div class="metadata-item">
-                                                                <div class="metadata-icon">
-                                                                    <i class="fas fa-file-signature"></i>
-                                                                </div>
-                                                                <div class="metadata-content">
-                                                                    <span class="metadata-label">{{ trans('lang.file_name') }}</span>
-                                                                    <span class="metadata-value">{{ $file->file_name }}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="metadata-item">
-                                                                <div class="metadata-icon">
-                                                                    <i class="fas fa-weight"></i>
-                                                                </div>
-                                                                <div class="metadata-content">
-                                                                    <span class="metadata-label">{{ trans('lang.file_size') }}</span>
-                                                                    <span class="metadata-value">
-                                                                        @if(isset($file->file_size) && $file->file_size)
-                                                                            {{ number_format($file->file_size / 1024, 1) }} KB
-                                                                        @else
-                                                                            {{ trans('lang.unknown') }}
-                                                                        @endif
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="metadata-item">
-                                                                <div class="metadata-icon">
-                                                                    <i class="fas fa-file-code"></i>
-                                                                </div>
-                                                                <div class="metadata-content">
-                                                                    <span class="metadata-label">{{ trans('lang.file_type') }}</span>
-                                                                    <span class="metadata-value">{{ strtoupper($extension ?? 'Unknown') }}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="metadata-item">
-                                                                <div class="metadata-icon">
-                                                                    <i class="fas fa-calendar-plus"></i>
-                                                                </div>
-                                                                <div class="metadata-content">
-                                                                    <span class="metadata-label">{{ trans('lang.upload_date') }}</span>
-                                                                    <span class="metadata-value">{{ $file->created_at->format('M d, Y') }}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div class="metadata-item">
-                                                                <div class="metadata-icon">
-                                                                    <i class="fas fa-clock"></i>
-                                                                </div>
-                                                                <div class="metadata-content">
-                                                                    <span class="metadata-label">{{ trans('lang.upload_time') }}</span>
-                                                                    <span class="metadata-value">{{ $file->created_at->format('g:i A') }}</span>
-                                                                </div>
-                                                            </div>
-                                                            @if($file->updated_at != $file->created_at)
-                                                                <div class="metadata-item">
-                                                                    <div class="metadata-icon">
-                                                                        <i class="fas fa-edit"></i>
-                                                                    </div>
-                                                                    <div class="metadata-content">
-                                                                        <span class="metadata-label">{{ trans('lang.last_modified') }}</span>
-                                                                        <span class="metadata-value">{{ $file->updated_at->diffForHumans() }}</span>
-                                                                    </div>
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </div> -->
-
                         <div class="action-buttons">
-                            <!-- <a href="{{ route('patient_files.index', $patient) }}" class="action-button back-btn">
-                                                                    <i class="fas fa-arrow-left"></i>
-                                                                    <span>{{ trans('lang.back_to_files') }}</span>
-                                                                </a> -->
                             @if(auth()->user()->hasPermissionInContext('patient_files.create', $doctorId))
                                 <a href="{{ route('patient_files.create', $patient) }}" class="action-button upload-btn">
                                     <i class="fas fa-plus"></i>
@@ -329,6 +308,91 @@
                 </div>
             </div>
         </div>
+
+        @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', $doctorId))
+            <div class="modal fade" id="assignAccessModal" tabindex="-1" role="dialog" aria-labelledby="assignAccessModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-gradient-primary text-white border-0">
+                            <h5 class="modal-title" id="assignAccessModalLabel">
+                                <i class="fas fa-user-plus mr-2"></i>{{ trans('lang.assign_access') }}
+                            </h5>
+                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body p-0">
+                            <!-- Search Input -->
+                            <div class="search-section p-4 bg-light">
+                                <div class="search-input-group">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" class="form-control search-input" id="userSearch"
+                                        placeholder="{{ trans('lang.enter_user_email') }}...">
+                                </div>
+                            </div>
+
+                            <!-- Users List -->
+                            <form action="{{ route('patient_files.assign_access', $patient) }}" method="POST" id="assignAccessForm">
+                                @csrf
+                                <div class="users-modal-list" id="userList">
+                                    @foreach($allUsers as $user)
+                                        @if($user->name && $user->email)
+                                            <div class="modal-user-item user-item-modal" data-value="{{ $user->id }}"
+                                                data-email="{{ $user->email }}" style="display: none;"
+                                                onclick="selectUser(this)">
+                                                <div class="modal-user-avatar">
+                                                    @if($user->media->isNotEmpty())
+                                                        <img src="{{ $user->media->first()->getUrl() }}" alt="{{ $user->name }}"
+                                                            class="avatar-img">
+                                                    @else
+                                                        <div class="avatar-placeholder">
+                                                            <i class="fas fa-user"></i>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="modal-user-info">
+                                                    <h6 class="user-name">{{ $user->name }}</h6>
+                                                    <small class="text-muted">{{ $user->email }}</small>
+                                                    @if($user->doctor && $user->doctor->specialities->isNotEmpty())
+                                                        <div class="specialities">
+                                                            @foreach($user->doctor->specialities->take(3) as $speciality)
+                                                                <span class="speciality-badge">{{ $speciality->name }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="modal-user-status">
+                                                    @if($fileUsers->pluck('user_id')->contains($user->id))
+                                                        <span class="badge badge-success">{{ trans('lang.already_assigned') }}</span>
+                                                    @else
+                                                        <div class="select-indicator">
+                                                            <i class="fas fa-check"></i>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                                <div class="form-group p-4">
+                                    <label for="expiration_date">{{ trans('lang.expiration_date') }}</label>
+                                    <input type="date" name="expiration_date" id="expiration_date" class="form-control">
+                                </div>
+                                <input type="hidden" name="user_id" id="selectedUserId" required>
+                                <input type="hidden" name="patient_file_id" value="{{ $file->id }}">
+                            </form>
+                        </div>
+                        <div class="modal-footer border-0 bg-light">
+                            <button type="button" class="btn btn-light" data-dismiss="modal">{{ trans('lang.close') }}</button>
+                            <button type="submit" class="btn btn-primary" form="assignAccessForm">
+                                <i class="fas fa-user-plus mr-1"></i>{{ trans('lang.assign') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <script>
             function downloadFile(url) {
@@ -360,9 +424,50 @@
 
             $(document).ready(function () {
                 $('[data-toggle="tooltip"]').tooltip();
-            });
-        </script>
 
+                $('#assignAccessModal').on('show.bs.modal', function () {
+                    const searchField = document.getElementById('userSearch');
+                    if (searchField) {
+                        searchField.value = '';
+                        const newSearchField = searchField.cloneNode(true);
+                        searchField.parentNode.replaceChild(newSearchField, searchField);
+                        newSearchField.addEventListener('input', function () {
+                            filterUserList(this);
+                        });
+                        setTimeout(() => newSearchField.focus(), 300);
+                        document.querySelectorAll('.modal-user-item').forEach(item => {
+                            item.style.display = 'none';
+                        });
+                    }
+                });
+
+                $('#assignAccessModal').on('hidden.bs.modal', function () {
+                    document.getElementById('selectedUserId').value = '';
+                    document.getElementById('expiration_date').value = '';
+                    document.querySelectorAll('.modal-user-item').forEach(item => {
+                        item.classList.remove('active');
+                        item.style.display = 'none';
+                    });
+                });
+            });
+
+            function filterUserList(input) {
+                const searchTerm = input.value.toLowerCase().trim();
+                document.querySelectorAll('.modal-user-item').forEach(item => {
+                    const email = item.getAttribute('data-email').toLowerCase();
+                    item.style.display = (searchTerm && email.includes(searchTerm)) ? '' : 'none';
+                });
+            }
+
+            function selectUser(element) {
+                const userId = element.getAttribute('data-value');
+                document.getElementById('selectedUserId').value = userId;
+                document.querySelectorAll('.modal-user-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                element.classList.add('active');
+            }
+        </script>
     @else
         <div class="content">
             <div class="container-fluid">
