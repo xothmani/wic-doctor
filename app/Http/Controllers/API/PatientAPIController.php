@@ -150,12 +150,14 @@ class PatientAPIController extends Controller
      * @param UpdatePatientRequest $request
      * @return JsonResponse
      */
-    public function update(int $id, UpdatePatientRequest $request): JsonResponse
+    public function update(int $id, Request $request): JsonResponse
     {
         $patient = $this->patientRepository->findWithoutFail($id);
         if (empty($patient)) {
             return $this->sendError('Patient not found');
         }
+
+
         $input = $request->all();
         try {
             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->patientRepository->model());
@@ -167,9 +169,12 @@ class PatientAPIController extends Controller
                 }
             }*/
 
-
-
-            $input['phone_number'] = $input['mobile_number'];
+            if(isset($input['mobile_number'])){
+                $input['phone_number'] = $input['mobile_number'];
+            }else{
+                $input['phone_number'] = null;
+            }
+            //$input['phone_number'] = $input['mobile_number'];
             $input['mobile_number'] = null;
             $input['gender'] = strtolower($input['gender']);
 
