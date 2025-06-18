@@ -453,11 +453,23 @@ public function openingHours(): OpeningHours
                 $startTime->setTimezone('Africa/Tunis');  // Forcer la timezone de startTime
                 $endTime = (clone $startTime)->addMinutes($doctorDurationMinutes);
 
-                $appointmentsExist = Appointment::where('doctor_id', $this->id)
+
+                $appointmentsExist = false;
+                if($mode == "open"){
+                   $appointmentsExist = Appointment::where('doctor_id', $this->id)
                     ->where('start_at', '>=', $startTime)
                     ->where('ends_at', '<=', $endTime)
                     ->whereNotIn('appointment_status_id', [6, 7])
+                    ->exists(); 
+                }else{
+                    $appointmentsExist = Appointment::where('doctor_id', $this->id)
+                    ->where('start_at', '>=', $startTime)
+                    ->where('ends_at', '<=', $endTime)
+                    ->where('pattern_id', $pattern_id)
+                    ->whereNotIn('appointment_status_id', [6, 7])
                     ->exists();
+                }
+                
 
 
                 $iSameType = false;
