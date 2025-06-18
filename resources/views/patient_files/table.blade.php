@@ -130,7 +130,7 @@
                             </div>
 
                             <!-- Users List -->
-                            <form action="{{ route('patient_files.assign_access', $patient) }}" method="POST"
+                            <form action="{{ route('patient_files.assign_access', [$patient, $file]) }}" method="POST"
                                 id="assignAccessForm_{{ $file->id }}">
                                 @csrf
                                 <div class="users-modal-list" id="userList_{{ $file->id }}">

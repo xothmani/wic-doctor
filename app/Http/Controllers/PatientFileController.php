@@ -42,9 +42,33 @@ class PatientFileController extends Controller
                 abort(403, 'Unauthorized access to patient files.');
             }
 
-            $files = $patient->files()->with('uploader')->get();
+            // Retrieve only files the user has access to
+            $files = PatientFile::where('patient_id', $patient->id)
+                ->where(function ($query) use ($user, $patient) {
+                    // If user is the patient, include all their files
+                    if ($patient->user_id === $user->id) {
+                        return;
+                    }
+                    // If user is a doctor with a relationship, include files they have access to
+                    if ($user->doctor && $user->doctor->patients()->where('patient_id', $patient->id)->exists()) {
+                        $query->whereExists(function ($subQuery) use ($user) {
+                            $subQuery->select(\DB::raw(1))
+                                ->from('patient_file_users')
+                                ->whereColumn('patient_file_users.patient_file_id', 'patient_files.id')
+                                ->where('patient_file_users.user_id', $user->id)
+                                ->where(function ($q) {
+                                    $q->whereNull('patient_file_users.expiration_date')
+                                        ->orWhere('patient_file_users.expiration_date', '>', now());
+                                });
+                        });
+                    }
+                })
+                ->with('uploader')
+                ->get();
+
             $patient->load('doctors.specialities', 'doctors.user');
             $allDoctors = Doctor::with('specialities', 'user')->get();
+            $allUsers = User::whereNotNull('name')->whereNotNull('email')->get(); // Add this
 
             Log::info('Successfully retrieved patient files', [
                 'user_id' => $user->id,
@@ -52,7 +76,7 @@ class PatientFileController extends Controller
                 'file_count' => $files->count()
             ]);
 
-            return view('patient_files.index', compact('patient', 'files', 'allDoctors'));
+            return view('patient_files.index', compact('patient', 'files', 'allDoctors', 'allUsers')); // Update to include allUsers
         }
 
         $myPatients = $doctor ? $doctor->patients()->with('user')->get() : [];
@@ -67,31 +91,32 @@ class PatientFileController extends Controller
     public function show(Patient $patient, PatientFile $file)
     {
         $user = Auth::user();
-        Log::info('Attempting to view patient file', [
+        Log::info('Accessing patient file details', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
             'file_id' => $file->id
         ]);
 
         if (!$this->hasFileAccess($patient, $user, $file)) {
-            Log::warning('Unauthorized file view attempt', [
+            Log::warning('Unauthorized access attempt to patient file', [
                 'user_id' => $user->id,
                 'patient_id' => $patient->id,
                 'file_id' => $file->id
             ]);
-            abort(403, 'Unauthorized access to patient files.');
+            abort(403, 'Unauthorized access to patient file.');
         }
 
-        if ($file->patient_id !== $patient->id) {
-            Log::error('File not found for patient', [
-                'user_id' => $user->id,
-                'patient_id' => $patient->id,
-                'file_id' => $file->id
-            ]);
-            abort(404, 'File not found.');
-        }
+        $file->load('uploader');
+        $patient->load('doctors.specialities', 'doctors.user');
+        $allUsers = User::whereNotNull('name')->whereNotNull('email')->get(); // Add this
 
-        return view('patient_files.show', compact('patient', 'file'));
+        Log::info('Successfully retrieved patient file details', [
+            'user_id' => $user->id,
+            'patient_id' => $patient->id,
+            'file_id' => $file->id
+        ]);
+
+        return view('patient_files.show', compact('patient', 'file', 'allUsers')); // Include allUsers
     }
 
     public function create(Patient $patient)
@@ -525,9 +550,32 @@ class PatientFileController extends Controller
             return response()->json(['error' => 'Unauthorized access to patient files.'], 403);
         }
 
-        $files = $patient->files()->with('uploader')->get()->map(function ($file) {
-            return $file->makeHidden(['uploader']);
-        });
+        // Retrieve only files the user has access to
+        $files = PatientFile::where('patient_id', $patient->id)
+            ->where(function ($query) use ($user, $patient) {
+                // If user is the patient, include all their files
+                if ($patient->user_id === $user->id) {
+                    return;
+                }
+                // If user is a doctor with a relationship, include files they have access to
+                if ($user->doctor && $user->doctor->patients()->where('patient_id', $patient->id)->exists()) {
+                    $query->whereExists(function ($subQuery) use ($user) {
+                        $subQuery->select(\DB::raw(1))
+                            ->from('patient_file_users')
+                            ->whereColumn('patient_file_users.patient_file_id', 'patient_files.id')
+                            ->where('patient_file_users.user_id', $user->id)
+                            ->where(function ($q) {
+                                $q->whereNull('patient_file_users.expiration_date')
+                                    ->orWhere('patient_file_users.expiration_date', '>', now());
+                            });
+                    });
+                }
+            })
+            ->with('uploader')
+            ->get()
+            ->map(function ($file) {
+                return $file->makeHidden(['uploader']);
+            });
 
         Log::info('API: Successfully retrieved patient files', [
             'user_id' => $user->id,
@@ -1004,7 +1052,6 @@ class PatientFileController extends Controller
     //     return $hasAccess;
     // }
 
-    // Helper method to check file access
     protected function hasFileAccess(Patient $patient, $userOrId, PatientFile $file = null)
     {
         $user = is_numeric($userOrId) ? User::findOrFail($userOrId) : $userOrId;
@@ -1019,6 +1066,10 @@ class PatientFileController extends Controller
 
         // Check doctor-patient relationship
         if ($doctor && $doctor->patients()->where('patient_id', $patient->id)->exists()) {
+
+            if (!$file) {
+                return true;
+            }
 
             // Check specific file access in patient_file_users
             $query = PatientFileUser::where('patient_id', $patient->id)
