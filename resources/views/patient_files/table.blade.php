@@ -1,3 +1,4 @@
+<!-- resources/views/patient_files/table.blade.php -->
 <div class="modern-table-container">
     @forelse ($files as $file)
         <div class="file-card" style="animation-delay: {{ $loop->index * 0.1 }}s">
@@ -85,6 +86,13 @@
                     </button>
                 @endif
 
+                @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', auth()->user()->getDoctorId()))
+                    <button class="action-btn assign-btn" data-toggle="modal" data-target="#assignAccessModal_{{ $file->id }}"
+                        data-toggle="tooltip" title="{{trans('lang.assign_access')}}">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                @endif
+
                 @if(
                         auth()->user()->hasPermissionInContext('patient_files.destroy', auth()->user()->getDoctorId()) &&
                         $file->uploader && $file->uploader->id === auth()->user()->id
@@ -97,6 +105,93 @@
                 @endif
             </div>
         </div>
+
+        @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', auth()->user()->getDoctorId()))
+            <div class="modal fade" id="assignAccessModal_{{ $file->id }}" tabindex="-1" role="dialog"
+                aria-labelledby="assignAccessModalLabel_{{ $file->id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header bg-gradient-primary text-white border-0">
+                            <h5 class="modal-title" id="assignAccessModalLabel_{{ $file->id }}">
+                                <i class="fas fa-user-plus mr-2"></i>{{ trans('lang.assign_access') }}
+                            </h5>
+                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                        </div>
+                        <div class="modal-body p-0">
+                            <!-- Search Input -->
+                            <div class="search-section p-4 bg-light">
+                                <div class="search-input-group">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" class="form-control search-input" id="userSearch_{{ $file->id }}"
+                                        placeholder="{{ trans('lang.enter_user_email') }}...">
+                                </div>
+                            </div>
+
+                            <!-- Users List -->
+                            <form action="{{ route('patient_files.assign_access', [$patient, $file]) }}" method="POST"
+                                id="assignAccessForm_{{ $file->id }}">
+                                @csrf
+                                <div class="users-modal-list" id="userList_{{ $file->id }}">
+                                    @foreach($allUsers as $user)
+                                        @if($user->name && $user->email)
+                                            <div class="modal-user-item user-item-modal" data-value="{{ $user->id }}"
+                                                data-email="{{ $user->email }}" style="display: none;"
+                                                onclick="selectUser(this, '{{ $file->id }}')">
+                                                <div class="modal-user-avatar">
+                                                    @if($user->media->isNotEmpty())
+                                                        <img src="{{ $user->media->first()->getUrl() }}" alt="{{ $user->name }}"
+                                                            class="avatar-img">
+                                                    @else
+                                                        <div class="avatar-placeholder">
+                                                            <i class="fas fa-user"></i>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="modal-user-info">
+                                                    <h6 class="user-name">{{ $user->name }}</h6>
+                                                    <small class="text-muted">{{ $user->email }}</small>
+                                                    @if($user->doctor && $user->doctor->specialities->isNotEmpty())
+                                                        <div class="specialities">
+                                                            @foreach($user->doctor->specialities->take(3) as $speciality)
+                                                                <span class="speciality-badge">{{ $speciality->name }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="modal-user-status">
+                                                    @if(\App\Models\PatientFileUser::where('patient_file_id', $file->id)->where('user_id', $user->id)->exists())
+                                                        <span class="badge badge-success">{{ trans('lang.already_assigned') }}</span>
+                                                    @else
+                                                        <div class="select-indicator">
+                                                            <i class="fas fa-check"></i>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                                <div class="form-group p-4">
+                                    <label for="expiration_date_{{ $file->id }}">{{ trans('lang.expiration_date') }}</label>
+                                    <input type="date" name="expiration_date" id="expiration_date_{{ $file->id }}"
+                                        class="form-control">
+                                </div>
+                                <input type="hidden" name="user_id" id="selectedUserId_{{ $file->id }}" required>
+                                <input type="hidden" name="patient_file_id" value="{{ $file->id }}">
+                            </form>
+                        </div>
+                        <div class="modal-footer border-0 bg-light">
+                            <button type="button" class="btn btn-light" data-dismiss="modal">{{ trans('lang.close') }}</button>
+                            <button type="submit" class="btn btn-primary" form="assignAccessForm_{{ $file->id }}">
+                                <i class="fas fa-user-plus mr-1"></i>{{ trans('lang.assign') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
     @empty
         <div class="empty-state">
             <div class="empty-icon">
@@ -143,7 +238,51 @@
 
     $(document).ready(function () {
         $('[data-toggle="tooltip"]').tooltip();
+
+        @foreach($files as $file)
+            $('#assignAccessModal_{{ $file->id }}').on('show.bs.modal', function () {
+                const searchField = document.getElementById('userSearch_{{ $file->id }}');
+                if (searchField) {
+                    searchField.value = '';
+                    const newSearchField = searchField.cloneNode(true);
+                    searchField.parentNode.replaceChild(newSearchField, searchField);
+                    newSearchField.addEventListener('input', function () {
+                        filterUserList(this, '{{ $file->id }}');
+                    });
+                    setTimeout(() => newSearchField.focus(), 300);
+                    document.querySelectorAll('#userList_{{ $file->id }} .modal-user-item').forEach(item => {
+                        item.style.display = 'none';
+                    });
+                }
+            });
+
+            $('#assignAccessModal_{{ $file->id }}').on('hidden.bs.modal', function () {
+                document.getElementById('selectedUserId_{{ $file->id }}').value = '';
+                document.getElementById('expiration_date_{{ $file->id }}').value = '';
+                document.querySelectorAll('#userList_{{ $file->id }} .modal-user-item').forEach(item => {
+                    item.classList.remove('active');
+                    item.style.display = 'none';
+                });
+            });
+        @endforeach
     });
+
+    function filterUserList(input, fileId) {
+        const searchTerm = input.value.toLowerCase().trim();
+        document.querySelectorAll(`#userList_${fileId} .modal-user-item`).forEach(item => {
+            const email = item.getAttribute('data-email').toLowerCase();
+            item.style.display = (searchTerm && email.includes(searchTerm)) ? '' : 'none';
+        });
+    }
+
+    function selectUser(element, fileId) {
+        const userId = element.getAttribute('data-value');
+        document.getElementById(`selectedUserId_${fileId}`).value = userId;
+        document.querySelectorAll(`#userList_${fileId} .modal-user-item`).forEach(item => {
+            item.classList.remove('active');
+        });
+        element.classList.add('active');
+    }
 </script>
 
 <style>
