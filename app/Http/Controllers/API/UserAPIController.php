@@ -284,7 +284,7 @@ public function login(Request $request)//v3 syncronisation avec web
 
         try {
             // Update the user's password
-            $user->password = Hash::make($request->input('new_password'));
+            //$user->password = Hash::make($request->input('new_password'));
             $user->passwordpatient = Hash::make($request->input('new_password'));
             $user->save();
 
