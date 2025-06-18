@@ -465,7 +465,7 @@ public function openingHours(): OpeningHours
                     $appointmentsExist = Appointment::where('doctor_id', $this->id)
                     ->where('start_at', '>=', $startTime)
                     ->where('ends_at', '<=', $endTime)
-                    ->where('pattern_id', $pattern_id)
+                    ->where('motif_id', $pattern_id)
                     ->whereNotIn('appointment_status_id', [6, 7])
                     ->exists();
                 }
