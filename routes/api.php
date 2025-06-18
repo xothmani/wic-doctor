@@ -262,4 +262,5 @@ Route::prefix('patient_files')->name('api.patient_files.')->group(function () {
     Route::delete('/{patient}/{file}', [PatientFileController::class, 'apiDestroy'])->name('destroy');
     Route::post('/{patient}/{file}/give-access', [PatientFileController::class, 'apiGiveAccess'])->name('give_access');
     Route::post('/{patient}/upload', [PatientFileController::class, 'apiUpload'])->name('upload');
+    Route::post('/{patient}/{file}/revoke-access', [PatientFileController::class, 'apiRevokeAccess'])->name('revoke_access');
 });

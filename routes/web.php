@@ -702,6 +702,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         Route::get('/{patient}/{file}/download', [PatientFileController::class, 'download'])->name('download');
         Route::delete('/{patient}/{file}', [PatientFileController::class, 'destroy'])->name('destroy');
         Route::post('/{patient}/assign-doctor', [PatientFileController::class, 'assignDoctor'])->name('assign_doctor');
+        Route::post('/{patient}/{file}/assign-access', [PatientFileController::class, 'assignAccess'])->name('assign_access');
+        Route::post('/{patient}/{file}/revoke-access', [PatientFileController::class, 'revokeAccess'])->name('revoke_access');
     });
 
 });
