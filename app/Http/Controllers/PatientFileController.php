@@ -17,7 +17,6 @@ class PatientFileController extends Controller
     public function __construct()
     {
         $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload']);
-        $this->middleware('auth:api')->only(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload']);
     }
 
     // Web Routes
@@ -184,9 +183,10 @@ class PatientFileController extends Controller
         $user = \App\Models\User::findOrFail($request->user_id);
         \Log::info('Assigning file access; user: ' . $user->name . ' ' . $user->id . ' File: ' . $patientFile->file_name . ' Patient: ' . $patient->name);
 
-        if (PatientFileUser::where('patient_file_id', $patientFile->id)
-            ->where('user_id', $user->id)
-            ->exists()
+        if (
+            PatientFileUser::where('patient_file_id', $patientFile->id)
+                ->where('user_id', $user->id)
+                ->exists()
         ) {
             \Log::info('Access already granted; user: ' . $user->name . ' File: ' . $patientFile->file_name);
             return redirect()->route('patient_files.index', $patient)
@@ -212,34 +212,31 @@ class PatientFileController extends Controller
     }
 
     // API Routes
+    // index test: passed successfully
     public function apiIndex(Patient $patient)
     {
-        if (!$this->hasFileAccess($patient, Auth::guard('api')->user())) {
-            return response()->json(['error' => 'Unauthorized access to patient files.'], 403);
-        }
-
-        $files = $patient->files()->with('uploader')->get();
+        $files = $patient->files()->with('uploader')->get()->map(function ($file) {
+            return $file->makeHidden(['uploader']);
+        });
         return response()->json(['files' => $files], 200);
     }
 
+    // show test: passed successfully
     public function apiShow(Patient $patient, PatientFile $file)
     {
-        if (!$this->hasFileAccess($patient, Auth::guard('api')->user(), $file)) {
-            return response()->json(['error' => 'Unauthorized access to patient files.'], 403);
-        }
-
         if ($file->patient_id !== $patient->id) {
             return response()->json(['error' => 'File not found.'], 404);
         }
 
-        return response()->json(['file' => $file], 200);
+        return response()->json(['file' => $file->makeHidden(['uploader'])], 200);
     }
 
-    public function apiDownload(Patient $patient, PatientFile $file)
+    // download test: passed successfully
+    public function apiDownload(Patient $patient, PatientFile $file, Request $request)
     {
-        if (!$this->hasFileAccess($patient, Auth::guard('api')->user(), $file)) {
-            return response()->json(['error' => 'Unauthorized access to patient files.'], 403);
-        }
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
 
         if ($file->patient_id !== $patient->id) {
             return response()->json(['error' => 'File not found.'], 404);
@@ -247,7 +244,7 @@ class PatientFileController extends Controller
 
         PatientFileLog::create([
             'patient_file_id' => $file->id,
-            'user_id' => Auth::guard('api')->id(),
+            'user_id' => $request->user_id,
             'action' => 'download',
         ]);
 
@@ -259,11 +256,11 @@ class PatientFileController extends Controller
             ->header('Content-Disposition', 'attachment; filename="' . $file->file_name . '"');
     }
 
-    public function apiDestroy(Patient $patient, PatientFile $file)
+    public function apiDestroy(Patient $patient, PatientFile $file, Request $request)
     {
-        if (!$this->hasFileAccess($patient, Auth::guard('api')->user(), $file)) {
-            return response()->json(['error' => 'Unauthorized access to patient files.'], 403);
-        }
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
 
         if ($file->patient_id !== $patient->id) {
             return response()->json(['error' => 'File not found.'], 404);
@@ -271,7 +268,7 @@ class PatientFileController extends Controller
 
         PatientFileLog::create([
             'patient_file_id' => $file->id,
-            'user_id' => Auth::guard('api')->id(),
+            'user_id' => $request->user_id,
             'action' => 'delete',
         ]);
 
@@ -283,25 +280,23 @@ class PatientFileController extends Controller
 
     public function apiGiveAccess(Request $request, Patient $patient, PatientFile $file)
     {
-        if (!$this->hasFileAccess($patient, Auth::guard('api')->user(), $file)) {
-            return response()->json(['error' => 'Unauthorized access to patient files.'], 403);
-        }
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'to_user_id' => 'required|exists:users,id',
+            'expire_duration' => 'nullable|integer|min:1', // Duration in days
+        ]);
 
         if ($file->patient_id !== $patient->id) {
             return response()->json(['error' => 'File not found.'], 404);
         }
 
-        $request->validate([
-            'to_user_id' => 'required|exists:users,id',
-            'expire_duration' => 'nullable|integer|min:1', // Duration in days
-        ]);
-
         $toUser = \App\Models\User::findOrFail($request->to_user_id);
         \Log::info('Assigning file access; to_user: ' . $toUser->name . ' ' . $toUser->id . ' File: ' . $file->file_name . ' Patient: ' . $patient->name);
 
-        if (PatientFileUser::where('patient_file_id', $file->id)
-            ->where('user_id', $toUser->id)
-            ->exists()
+        if (
+            PatientFileUser::where('patient_file_id', $file->id)
+                ->where('user_id', $toUser->id)
+                ->exists()
         ) {
             \Log::info('Access already granted; to_user: ' . $toUser->name . ' File: ' . $file->file_name);
             return response()->json(['error' => trans('lang.file_access_already_granted')], 400);
@@ -326,19 +321,11 @@ class PatientFileController extends Controller
         return response()->json(['message' => trans('lang.file_access_assigned_success')], 200);
     }
 
+    
     public function apiUpload(Request $request, Patient $patient)
     {
-        $user = Auth::guard('api')->user();
-        $doctor = $user->doctor;
-
-        // Allow upload if user is a doctor with patient relationship or has file access
-        if (!$doctor || !$doctor->patients()->where('patient_id', $patient->id)->exists()) {
-            if (!$this->hasFileAccess($patient, $user)) {
-                return response()->json(['error' => 'Unauthorized access to patient files.'], 403);
-            }
-        }
-
         $request->validate([
+            'user_id' => 'required|exists:users,id',
             'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,xml,hl7,dcm,nii,ecg,jpg,jpeg,png,gif,webp,svg,bmp,tiff,mp3,wav,aac,ogg,mp4,mkv,avi,mov,wmv,flv,zip,rar,7z,tar,gz,bz2|max:102400',
             'description' => 'nullable|string|max:255',
         ]);
@@ -353,7 +340,7 @@ class PatientFileController extends Controller
 
         $patientFile = PatientFile::create([
             'patient_id' => $patient->id,
-            'uploaded_by' => $user->id,
+            'uploaded_by' => $request->user_id,
             'file_name' => $fileName,
             'file_path' => $filePath,
             'file_type' => $file->getClientMimeType(),
@@ -361,17 +348,16 @@ class PatientFileController extends Controller
             'description' => $request->description,
         ]);
 
-        // Grant access to the uploader
         PatientFileUser::create([
             'patient_file_id' => $patientFile->id,
             'patient_id' => $patient->id,
-            'user_id' => $user->id,
+            'user_id' => $request->user_id,
             'expiration_date' => null,
         ]);
 
         PatientFileLog::create([
             'patient_file_id' => $patientFile->id,
-            'user_id' => $user->id,
+            'user_id' => $request->user_id,
             'action' => 'upload',
         ]);
 

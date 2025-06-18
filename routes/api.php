@@ -10,6 +10,7 @@ use App\Http\Controllers\API\NotificationAPIController;
 use App\Http\Controllers\API\PrescriptionsApiController;
 use App\Http\Controllers\API\RoomAPIController;
 use App\Http\Controllers\DrugController;
+use App\Http\Controllers\PatientFileController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\API\TranslationAPIController;
 use App\Http\Controllers\API\AvailabilityHourAPIController;
