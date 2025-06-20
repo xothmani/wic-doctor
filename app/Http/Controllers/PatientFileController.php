@@ -166,7 +166,7 @@ class PatientFileController extends Controller
             $fileName = $file->getClientOriginalName();
             $fileContent = file_get_contents($file->getRealPath());
             $encryptedContent = Crypt::encrypt($fileContent);
-            $filePath = "patient_files/{$patient->id}/" . time() . '_' . Str::slug(pathinfo($fileName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+            $filePath = "{$patient->id}/" . time() . '_' . Str::slug(pathinfo($fileName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
 
             Storage::disk('patient_files')->put($filePath, $encryptedContent);
 
@@ -532,11 +532,13 @@ class PatientFileController extends Controller
     // API Routes
     public function apiIndex(Patient $patient, Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header');
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
 
-        $user = User::findOrFail($request->user_id);
+        $user = User::findOrFail($userId);
         Log::info('API: Accessing patient files index', [
             'user_id' => $user->id,
             'patient_id' => $patient->id
@@ -588,11 +590,16 @@ class PatientFileController extends Controller
 
     public function apiShow(Patient $patient, PatientFile $file, Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
 
-        $user = User::findOrFail($request->user_id);
+        $user = User::findOrFail($userId);
         Log::info('API: Attempting to access patient file show', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
@@ -620,11 +627,16 @@ class PatientFileController extends Controller
 
     public function apiDownload(Patient $patient, PatientFile $file, Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
 
-        $user = User::findOrFail($request->user_id);
+        $user = User::findOrFail($userId);
         Log::info('API: Attempting to download file', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
@@ -682,11 +694,16 @@ class PatientFileController extends Controller
 
     public function apiDestroy(Patient $patient, PatientFile $file, Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
 
-        $user = User::findOrFail($request->user_id);
+        $user = User::findOrFail($userId);
         Log::info('API: Attempting to delete file', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
@@ -742,13 +759,21 @@ class PatientFileController extends Controller
 
     public function apiGiveAccess(Request $request, Patient $patient, PatientFile $file)
     {
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
+
+        $user = User::findOrFail($userId);
         $request->validate([
-            'user_id' => 'required|exists:users,id',
             'to_user_id' => 'required|exists:users,id',
             'expiration_date' => 'nullable|date|after:now',
         ]);
 
-        $user = User::findOrFail($request->user_id);
         Log::info('API: Attempting to assign file access', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
@@ -842,8 +867,16 @@ class PatientFileController extends Controller
 
     public function apiUpload(Request $request, Patient $patient)
     {
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
+
+        $user = User::findOrFail($userId);
         $request->validate([
-            'user_id' => 'required|exists:users,id',
             'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,xml,hl7,dcm,nii,ecg,jpg,jpeg,png,gif,webp,svg,bmp,tiff,mp3,wav,aac,ogg,mp4,mkv,avi,mov,wmv,flv,zip,rar,7z,tar,gz,bz2|max:102400',
             'description' => 'nullable|string|max:255',
         ]);
@@ -867,7 +900,7 @@ class PatientFileController extends Controller
             $fileName = $file->getClientOriginalName();
             $fileContent = file_get_contents($file->getRealPath());
             $encryptedContent = Crypt::encrypt($fileContent);
-            $filePath = "patient_files/{$patient->id}/" . time() . '_' . Str::slug(pathinfo($fileName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+            $filePath = "{$patient->id}/" . time() . '_' . Str::slug(pathinfo($fileName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
 
             Storage::disk('patient_files')->put($filePath, $encryptedContent);
 
@@ -914,12 +947,20 @@ class PatientFileController extends Controller
 
     public function apiRevokeAccess(Request $request, Patient $patient, PatientFile $file)
     {
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
+
+        $user = User::findOrFail($userId);
         $request->validate([
-            'user_id' => 'required|exists:users,id',
             'to_user_id' => 'required|exists:users,id',
         ]);
 
-        $user = User::findOrFail($request->user_id);
         Log::info('API: Attempting to revoke file access', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
@@ -999,59 +1040,6 @@ class PatientFileController extends Controller
     }
 
     // Helper method to check file access
-    // protected function hasFileAccess(Patient $patient, $userOrId, PatientFile $file = null)
-    // {
-    //     $user = is_numeric($userOrId) ? User::findOrFail($userOrId) : $userOrId;
-    //     $doctor = $user->doctor;
-
-    //     Log::info('Checking file access', [
-    //         'user_id' => $user->id,
-    //         'patient_id' => $patient->id,
-    //         'file_id' => $file?->id
-    //     ]);
-
-    //     // Check if user is the patient
-    //     if ($patient->user_id === $user->id) {
-    //         Log::info('Access granted: User is the patient', [
-    //             'user_id' => $user->id,
-    //             'patient_id' => $patient->id
-    //         ]);
-    //         return true;
-    //     }
-
-    //     // Check doctor-patient relationship
-    //     if ($doctor && $doctor->patients()->where('patient_id', $patient->id)->exists()) {
-    //         Log::info('Access granted: Doctor-patient relationship exists', [
-    //             'user_id' => $user->id,
-    //             'patient_id' => $patient->id,
-    //             'doctor_id' => $doctor->id
-    //         ]);
-    //         return true;
-    //     }
-
-    //     // Check specific file access in patient_file_users
-    //     $query = PatientFileUser::where('patient_id', $patient->id)
-    //         ->where('user_id', $user->id)
-    //         ->where(function ($q) {
-    //             $q->whereNull('expiration_date')
-    //                 ->orWhere('expiration_date', '>', now());
-    //         });
-
-    //     if ($file) {
-    //         $query->where('patient_file_id', $file->id);
-    //     }
-
-    //     $hasAccess = $query->exists();
-    //     Log::info('File access check result', [
-    //         'user_id' => $user->id,
-    //         'patient_id' => $patient->id,
-    //         'file_id' => $file?->id,
-    //         'has_access' => $hasAccess
-    //     ]);
-
-    //     return $hasAccess;
-    // }
-
     protected function hasFileAccess(Patient $patient, $userOrId, PatientFile $file = null)
     {
         $user = is_numeric($userOrId) ? User::findOrFail($userOrId) : $userOrId;
