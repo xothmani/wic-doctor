@@ -208,7 +208,10 @@
     @endforelse
 </div>
 
-<script>
+<script>;
+    console.log('allUsers:', {{ json_encode($allUsers) }});
+
+
     function downloadFile(url) {
         window.open(url, '_blank');
     }
@@ -237,6 +240,8 @@
     }
 
     $(document).ready(function () {
+        console.log('check');
+
         $('[data-toggle="tooltip"]').tooltip();
 
         @foreach($files as $file)
@@ -298,6 +303,23 @@
 
     .modern-table-container {
         padding: 0;
+    }
+
+    .search-input-group {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        margin-bottom: 15px;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 15px;
+        /* top: 50%; */
+        /* transform: translateY(-50%); */
+        color: #74b9ff;
+        z-index: 2;
     }
 
     .file-card {

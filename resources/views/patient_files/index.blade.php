@@ -97,8 +97,6 @@
 
     @push('scripts')
         <script>
-            console.log('Patient ID:', {{ $patient->id }});
-            console.log('all doctors: {{$allDoctors}}');
 
             $(document).ready(function () {
                 $('#assignDoctorModal').on('show.bs.modal', function () {
