@@ -198,20 +198,25 @@
         <!-- Sidebar for Appointment Details -->
         <div id="appointmentSidebar" class="appointment-sidebar">
             <div class="sidebar-header d-flex justify-content-between align-items-center">
-                <button id="deleteAppointmentBtn" class="btn delete-btn" title="Delete Appointment">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 448 512" fill="white">
-                        <path
-                            d="M135.2 17.7C141.4 7.1 152.7 0 165.1 0H282.9c12.4 0 23.7 7.1 29.9 17.7L328 32H432c8.8 0 16 7.2 16 16s-7.2 16-16 16H416l-20.6 372.2c-1.8 32.1-28.3 57.8-60.5 57.8H113.1c-32.2 0-58.7-25.7-60.5-57.8L32 64H16C7.2 64 0 56.8 0 48s7.2-16 16-16H120l15.2-14.3zM144 96v336c0 8.8 7.2 16 16 16s16-7.2 16-16V96c0-8.8-7.2-16-16-16s-16 7.2-16 16zm80 0v336c0 8.8 7.2 16 16 16s16-7.2 16-16V96c0-8.8-7.2-16-16-16s-16 7.2-16 16zm96 0v336c0 8.8 7.2 16 16 16s16-7.2 16-16V96c0-8.8-7.2-16-16-16s-16 7.2-16 16z" />
-                    </svg>
-                </button>
+                @if(auth()->user()->hasPermissionInContext('appointments.destroy', $doctorId))
+                    <button id="deleteAppointmentBtn" class="btn delete-btn" title="Delete Appointment">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 448 512" fill="white">
+                            <path
+                                d="M135.2 17.7C141.4 7.1 152.7 0 165.1 0H282.9c12.4 0 23.7 7.1 29.9 17.7L328 32H432c8.8 0 16 7.2 16 16s-7.2 16-16 16H416l-20.6 372.2c-1.8 32.1-28.3 57.8-60.5 57.8H113.1c-32.2 0-58.7-25.7-60.5-57.8L32 64H16C7.2 64 0 56.8 0 48s7.2-16 16-16H120l15.2-14.3zM144 96v336c0 8.8 7.2 16 16 16s16-7.2 16-16V96c0-8.8-7.2-16-16-16s-16 7.2-16 16zm80 0v336c0 8.8 7.2 16 16 16s16-7.2 16-16V96c0-8.8-7.2-16-16-16s-16 7.2-16 16zm96 0v336c0 8.8 7.2 16 16 16s16-7.2 16-16V96c0-8.8-7.2-16-16-16s-16 7.2-16 16z" />
+                        </svg>
+                    </button>
+                @endif
 
                 <h5 class="m-0 flex-grow-1 text-center">{{ trans('lang.appointment_details') }}</h5>
-                <button id="editAppointmentBtn" class="btn update-btn" title="Edit Appointment">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 512 512" fill="white">
-                        <path
-                            d="M362.7 19.3c25.8-25.8 67.6-25.8 93.4 0l36.6 36.6c25.8 25.8 25.8 67.6 0 93.4L177.3 464.7c-9.1 9.1-20.6 15.3-33.1 18L25.3 508.6c-16.3 3.6-31.3-11.5-27.7-27.7l25.9-118.9c2.7-12.5 9-24 18-33.1L362.7 19.3zM388.1 70.6L112.6 346.1c-4.1 4.1-7 9.2-8.4 14.8l-18.4 84.4 84.4-18.4c5.6-1.2 10.7-4.2 14.8-8.4L441.4 123.9 388.1 70.6z" />
-                    </svg>
-                </button>
+
+                @if(auth()->user()->hasPermissionInContext('appointments.update', $doctorId))
+                    <button id="editAppointmentBtn" class="btn update-btn" title="Edit Appointment">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 512 512" fill="white">
+                            <path
+                                d="M362.7 19.3c25.8-25.8 67.6-25.8 93.4 0l36.6 36.6c25.8 25.8 25.8 67.6 0 93.4L177.3 464.7c-9.1 9.1-20.6 15.3-33.1 18L25.3 508.6c-16.3 3.6-31.3-11.5-27.7-27.7l25.9-118.9c2.7-12.5 9-24 18-33.1L362.7 19.3zM388.1 70.6L112.6 346.1c-4.1 4.1-7 9.2-8.4 14.8l-18.4 84.4 84.4-18.4c5.6-1.2 10.7-4.2 14.8-8.4L441.4 123.9 388.1 70.6z" />
+                        </svg>
+                    </button>
+                @endif
 
             </div>
             <div class="sidebar-body">
@@ -356,9 +361,9 @@
                                     <div class="filter-label">Terminé</div>
                                 </div>
                                 <!--  <div class="filter-item" data-status="Prêt">
-                                            <div class="color-box" style="background-color: #90D26D;"></div>
-                                            <div class="filter-label">Prêt</div>
-                                        </div> -->
+                                                    <div class="color-box" style="background-color: #90D26D;"></div>
+                                                    <div class="filter-label">Prêt</div>
+                                                </div> -->
                                 <div class="filter-item" data-status="En cours">
                                     <div class="color-box" style="background-color: #F3D55B;"></div>
                                     <div class="filter-label">En cours</div>
@@ -447,8 +452,8 @@
                     {{ trans('lang.do_you_want_to_end_appointment_and_start_consultation') }}
                 </div>
                 <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-success"
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-success"
                         id="confirmDoneButton">{{ trans('lang.confirm') }}</button>
                 </div>
             </div>
@@ -1027,9 +1032,9 @@
                         render: {
                             option: function (item, escape) {
                                 return `<div>
-                                                                <div class="font-weight-bold">${escape(item.text)}</div>
-                                                                ${item.phone ? `<div class="text-muted small">${escape(item.phone)}</div>` : ''}
-                                                            </div>`;
+                                                                    <div class="font-weight-bold">${escape(item.text)}</div>
+                                                                    ${item.phone ? `<div class="text-muted small">${escape(item.phone)}</div>` : ''}
+                                                                </div>`;
                             },
                             item: function (item, escape) {
                                 return `<div>${escape(item.text)}</div>`;
@@ -1188,137 +1193,137 @@
                 }
             }
             $('#saveAppointmentBtn').on('click', function () {
-    const $btn = $(this);
+                const $btn = $(this);
 
-    // Sauvegarder le contenu original du bouton
-    const originalContent = $btn.html();
+                // Sauvegarder le contenu original du bouton
+                const originalContent = $btn.html();
 
-    // Afficher le spinner et désactiver le bouton
-    $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ trans("lang.loading") }}');
-    $btn.prop('disabled', true);
+                // Afficher le spinner et désactiver le bouton
+                $btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> {{ trans("lang.loading") }}');
+                $btn.prop('disabled', true);
 
-    const type = $('#updateAppointmentType').val();
-    const date = $('#updateappointmentDate').val();
-    const time = $('#updatestartTime').val();
-    let motif = $('#sidebarMotif').val();
+                const type = $('#updateAppointmentType').val();
+                const date = $('#updateappointmentDate').val();
+                const time = $('#updatestartTime').val();
+                let motif = $('#sidebarMotif').val();
 
-    // Gestion du motif placeholder
-    if (motif === 'placeholder' || motif === 'current') {
-        const motifName = $('#sidebarMotif option:selected').text().trim();
+                // Gestion du motif placeholder
+                if (motif === 'placeholder' || motif === 'current') {
+                    const motifName = $('#sidebarMotif option:selected').text().trim();
 
-        let typeId;
-        switch (type) {
-            case 'cabinet': typeId = 1; break;
-            case 'teleconsultation': typeId = 4; break;
-            case 'home_visit': typeId = 3; break;
-            default: typeId = 1;
-        }
+                    let typeId;
+                    switch (type) {
+                        case 'cabinet': typeId = 1; break;
+                        case 'teleconsultation': typeId = 4; break;
+                        case 'home_visit': typeId = 3; break;
+                        default: typeId = 1;
+                    }
 
-        if (patternsByType && patternsByType[typeId]) {
-            let foundId = null;
-            Object.entries(patternsByType[typeId]).forEach(([id, name]) => {
-                if (name.toLowerCase().trim() === motifName.toLowerCase().trim()) {
-                    foundId = id;
+                    if (patternsByType && patternsByType[typeId]) {
+                        let foundId = null;
+                        Object.entries(patternsByType[typeId]).forEach(([id, name]) => {
+                            if (name.toLowerCase().trim() === motifName.toLowerCase().trim()) {
+                                foundId = id;
+                            }
+                        });
+
+                        if (foundId) {
+                            motif = foundId;
+                        } else {
+                            toastr.error('{{ trans("lang.please_select_valid_motif") }}');
+                            $btn.html(originalContent).prop('disabled', false); // 🔁 Restauration ici
+                            return;
+                        }
+                    } else {
+                        toastr.error('{{ trans("lang.motif_data_missing") }}');
+                        $btn.html(originalContent).prop('disabled', false); // 🔁 Restauration ici
+                        return;
+                    }
                 }
+
+                let isValid = true;
+                let errorMessage = '';
+
+                // Réinitialiser les erreurs précédentes
+                $('#updateAppointmentType, #updateappointmentDate, #updatestartTime, #sidebarMotif')
+                    .removeClass('is-invalid')
+                    .parent()
+                    .find('.invalid-feedback')
+                    .remove();
+
+                // --- Validation
+                if (!type) {
+                    $('#updateAppointmentType').addClass('is-invalid')
+                        .parent().append('<div class="invalid-feedback">{{ trans("lang.type_required") }}</div>');
+                    isValid = false;
+                    errorMessage = '{{ trans("lang.type_required") }}';
+                }
+
+                if (!motif) {
+                    $('#sidebarMotif').addClass('is-invalid')
+                        .parent().append('<div class="invalid-feedback">{{ trans("lang.motif_required") }}</div>');
+                    isValid = false;
+                    errorMessage = errorMessage || '{{ trans("lang.motif_required") }}';
+                }
+
+                if (!date) {
+                    $('#updateappointmentDate').addClass('is-invalid')
+                        .parent().append('<div class="invalid-feedback">{{ trans("lang.date_required") }}</div>');
+                    isValid = false;
+                    errorMessage = errorMessage || '{{ trans("lang.date_required") }}';
+                }
+
+                if (!time) {
+                    $('#updatestartTime').addClass('is-invalid')
+                        .parent().append('<div class="invalid-feedback">{{ trans("lang.time_required") }}</div>');
+                    isValid = false;
+                    errorMessage = errorMessage || '{{ trans("lang.time_required") }}';
+                }
+
+                if (!isValid) {
+                    toastr.error(errorMessage);
+                    $btn.html(originalContent).prop('disabled', false); // 🔁 Restauration ici
+                    return;
+                }
+
+                // --- Envoi AJAX
+                const id = $('#sidebarAppointmentId').val();
+
+                $.ajax({
+                    url: `/update-appointments/${id}`,
+                    type: 'PUT',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        appointment_type: type,
+                        motif_id: motif,
+                        date: date,
+                        start_time: time,
+                        note: $('#sidebarNote').val(),
+                        session_duration: updateSessionDuration
+                    },
+                    success: function () {
+                        toastr.success('{{ __("lang.updated_successfully") }}');
+
+                        $('#saveAppointmentBtn').addClass('d-none');
+                        $('#updateAppointmentType, #updatestartTime, #sidebarMotif').prop('disabled', true);
+                        $('#sidebarNote').prop('readonly', true);
+
+                        closeSidebar();
+                        $('#calendar').fullCalendar('refetchEvents');
+                    },
+                    error: function (xhr) {
+                        const errorMsg = xhr.responseJSON && xhr.responseJSON.message
+                            ? xhr.responseJSON.message
+                            : '{{ __("lang.error_updating") }}';
+
+                        toastr.error(errorMsg);
+                    },
+                    complete: function () {
+                        // 🔁 Toujours restaurer le bouton, même après AJAX
+                        $btn.html(originalContent).prop('disabled', false);
+                    }
+                });
             });
-
-            if (foundId) {
-                motif = foundId;
-            } else {
-                toastr.error('{{ trans("lang.please_select_valid_motif") }}');
-                $btn.html(originalContent).prop('disabled', false); // 🔁 Restauration ici
-                return;
-            }
-        } else {
-            toastr.error('{{ trans("lang.motif_data_missing") }}');
-            $btn.html(originalContent).prop('disabled', false); // 🔁 Restauration ici
-            return;
-        }
-    }
-
-    let isValid = true;
-    let errorMessage = '';
-
-    // Réinitialiser les erreurs précédentes
-    $('#updateAppointmentType, #updateappointmentDate, #updatestartTime, #sidebarMotif')
-        .removeClass('is-invalid')
-        .parent()
-        .find('.invalid-feedback')
-        .remove();
-
-    // --- Validation
-    if (!type) {
-        $('#updateAppointmentType').addClass('is-invalid')
-            .parent().append('<div class="invalid-feedback">{{ trans("lang.type_required") }}</div>');
-        isValid = false;
-        errorMessage = '{{ trans("lang.type_required") }}';
-    }
-
-    if (!motif) {
-        $('#sidebarMotif').addClass('is-invalid')
-            .parent().append('<div class="invalid-feedback">{{ trans("lang.motif_required") }}</div>');
-        isValid = false;
-        errorMessage = errorMessage || '{{ trans("lang.motif_required") }}';
-    }
-
-    if (!date) {
-        $('#updateappointmentDate').addClass('is-invalid')
-            .parent().append('<div class="invalid-feedback">{{ trans("lang.date_required") }}</div>');
-        isValid = false;
-        errorMessage = errorMessage || '{{ trans("lang.date_required") }}';
-    }
-
-    if (!time) {
-        $('#updatestartTime').addClass('is-invalid')
-            .parent().append('<div class="invalid-feedback">{{ trans("lang.time_required") }}</div>');
-        isValid = false;
-        errorMessage = errorMessage || '{{ trans("lang.time_required") }}';
-    }
-
-    if (!isValid) {
-        toastr.error(errorMessage);
-        $btn.html(originalContent).prop('disabled', false); // 🔁 Restauration ici
-        return;
-    }
-
-    // --- Envoi AJAX
-    const id = $('#sidebarAppointmentId').val();
-
-    $.ajax({
-        url: `/update-appointments/${id}`,
-        type: 'PUT',
-        data: {
-            _token: $('meta[name="csrf-token"]').attr('content'),
-            appointment_type: type,
-            motif_id: motif,
-            date: date,
-            start_time: time,
-            note: $('#sidebarNote').val(),
-            session_duration: updateSessionDuration
-        },
-        success: function () {
-            toastr.success('{{ __("lang.updated_successfully") }}');
-
-            $('#saveAppointmentBtn').addClass('d-none');
-            $('#updateAppointmentType, #updatestartTime, #sidebarMotif').prop('disabled', true);
-            $('#sidebarNote').prop('readonly', true);
-
-            closeSidebar();
-            $('#calendar').fullCalendar('refetchEvents');
-        },
-        error: function (xhr) {
-            const errorMsg = xhr.responseJSON && xhr.responseJSON.message
-                ? xhr.responseJSON.message
-                : '{{ __("lang.error_updating") }}';
-
-            toastr.error(errorMsg);
-        },
-        complete: function () {
-            // 🔁 Toujours restaurer le bouton, même après AJAX
-            $btn.html(originalContent).prop('disabled', false);
-        }
-    });
-});
 
 
             $('#deleteAppointmentBtn').on('click', function () {
@@ -2173,7 +2178,7 @@
 
 
             $('#saveAppointment').on('click', function (e) {
-                
+
                 e.preventDefault();
 
                 const $btn = $(this);
