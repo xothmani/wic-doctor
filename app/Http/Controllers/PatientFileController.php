@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PatientFileController extends Controller
 {
@@ -64,6 +65,7 @@ class PatientFileController extends Controller
                     }
                 })
                 ->with('uploader')
+                ->orderBy('created_at', 'desc')
                 ->get();
 
             $patient->load('doctors.specialities', 'doctors.user');
@@ -156,17 +158,36 @@ class PatientFileController extends Controller
             abort(403, 'Unauthorized access to patient files.');
         }
 
-        $request->validate([
-            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,xml,hl7,dcm,nii,ecg,jpg,jpeg,png,gif,webp,svg,bmp,tiff,mp3,wav,aac,ogg,mp4,mkv,avi,mov,wmv,flv,zip,rar,7z,tar,gz,bz2|max:102400',
-            'description' => 'nullable|string|max:255',
-        ]);
-
         try {
+            $request->validate([
+                'file' => [
+                    'required',
+                    'file',
+                    'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,xml,hl7,dcm,nii,ecg,jpg,jpeg,png,gif,webp,svg,bmp,tiff,mp3,wav,aac,ogg,mp4,mkv,avi,mov,wmv,flv,zip,rar,7z,tar,gz,bz2,zip,application/octet-stream',
+                    'max:102400',
+                ],
+                'description' => 'nullable|string|max:255',
+            ], [
+                'file.required' => trans('lang.file_required'),
+                'file.mimes' => trans('lang.invalid_file_type'),
+                'file.max' => trans('lang.file_too_large', ['max' => '100MB']), // Update to reflect actual limit
+            ]);
+
             $file = $request->file('file');
+            $file = $request->file('file');
+            Log::info('Detected MIME type', [
+                'file_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getClientMimeType(),
+            ]);
             $fileName = $file->getClientOriginalName();
             $fileContent = file_get_contents($file->getRealPath());
             $encryptedContent = Crypt::encrypt($fileContent);
             $filePath = "{$patient->id}/" . time() . '_' . Str::slug(pathinfo($fileName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+
+            // // Check if storage is writable
+            // if (!Storage::disk('patient_files')->getDriver()->getAdapter()->getPathPrefix()) {
+            //     throw new \Exception('Storage disk is not properly configured.');
+            // }
 
             Storage::disk('patient_files')->put($filePath, $encryptedContent);
 
@@ -201,15 +222,41 @@ class PatientFileController extends Controller
             ]);
 
             return redirect()->route('patient_files.index', $patient)
-                ->with('success', 'File uploaded successfully.');
+                ->with('success', trans('lang.file_uploaded_successfully'));
+        } catch (ValidationException $e) {
+            Log::error('File upload validation failed', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'errors' => $e->errors()
+            ]);
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput()
+                ->with('error', trans('lang.file_upload_failed_validation'));
+        } catch (\Illuminate\Contracts\Encryption\EncryptException $e) {
+            Log::error('File encryption failed', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'error' => $e->getMessage()
+            ]);
+            return redirect()->back()
+                ->with('error', trans('lang.file_upload_failed_encryption'));
+        } catch (\Illuminate\Contracts\Filesystem\FileNotFoundException $e) {
+            Log::error('File not found during upload', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'error' => $e->getMessage()
+            ]);
+            return redirect()->back()
+                ->with('error', trans('lang.file_upload_failed_missing'));
         } catch (\Exception $e) {
             Log::error('File upload failed', [
                 'user_id' => $user->id,
                 'patient_id' => $patient->id,
                 'error' => $e->getMessage()
             ]);
-            return redirect()->route('patient_files.index', $patient)
-                ->with('error', 'File upload failed.');
+            return redirect()->back()
+                ->with('error', trans('lang.file_upload_failed_generic', ['error' => $e->getMessage()]));
         }
     }
 

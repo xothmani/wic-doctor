@@ -2311,4 +2311,12 @@ return [
     'no_permission_message' => 'Non hai il permesso di visualizzare questo file.',
     'go_back' => 'Torna indietro',
     'file_preview' => 'Anteprima del file',
+    'file_uploaded_successfully' => 'File caricato con successo.',
+    'file_upload_failed_validation' => 'Caricamento del file non riuscito a causa di errori di convalida.',
+    'file_upload_failed_encryption' => 'Caricamento del file non riuscito a causa di problemi di crittografia.',
+    'file_upload_failed_missing' => 'Caricamento del file non riuscito: file non trovato.',
+    'file_upload_failed_generic' => 'Caricamento del file non riuscito: :error',
+    'file_required' => 'È richiesto un file.',
+    'invalid_file_type' => 'Il tipo di file selezionato non è supportato.',
+    'file_too_large' => 'La dimensione del file supera il limite massimo di :max.',
 ];

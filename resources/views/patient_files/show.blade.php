@@ -1,3 +1,4 @@
+<!-- resources/views/patient_files/show.blade.php -->
 @extends('layouts.app')
 
 @php

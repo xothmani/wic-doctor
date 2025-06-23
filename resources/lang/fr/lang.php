@@ -2358,4 +2358,12 @@ return [
     'no_permission_message' => 'Vous n’avez pas la permission de voir ce fichier.',
     'go_back' => 'Retour',
     'file_preview' => 'Aperçu du fichier',
+    'file_uploaded_successfully' => 'Fichier téléversé avec succès.',
+    'file_upload_failed_validation' => 'Échec du téléversement en raison d’erreurs de validation.',
+    'file_upload_failed_encryption' => 'Échec du téléversement en raison de problèmes de chiffrement.',
+    'file_upload_failed_missing' => 'Échec du téléversement : fichier introuvable.',
+    'file_upload_failed_generic' => 'Échec du téléversement : :error',
+    'file_required' => 'Un fichier est requis.',
+    'invalid_file_type' => 'Le type de fichier sélectionné n’est pas pris en charge.',
+    'file_too_large' => 'La taille du fichier dépasse la limite maximale de :max.',
 ];
