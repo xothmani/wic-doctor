@@ -902,17 +902,20 @@ class AppointmentEventController extends Controller
         \Log::info('Calculated all slots', ['allSlots' => $allSlots]);
 
         // Check if selected date is today and filter out past time slots
-        $isToday = Carbon::parse($selectedDate)->isToday();
-        $currentTime = now();
+        $tunisiaTimezone = 'Africa/Tunis';
+        $selectedDateCarbon = Carbon::parse($selectedDate, $tunisiaTimezone);
+        $isToday = $selectedDateCarbon->isToday();
+        $currentTime = now($tunisiaTimezone);
 
         if ($isToday) {
-            $allSlots = array_filter($allSlots, function ($slot) use ($currentTime, $selectedDate) {
-                $slotDateTime = Carbon::parse($selectedDate . ' ' . $slot);
+            $allSlots = array_filter($allSlots, function ($slot) use ($currentTime, $selectedDate, $tunisiaTimezone) {
+                $slotDateTime = Carbon::parse($selectedDate . ' ' . $slot, $tunisiaTimezone);
                 return $slotDateTime->greaterThan($currentTime);
             });
 
             \Log::info('Filtered past slots for today', [
                 'currentTime' => $currentTime->format('Y-m-d H:i:s'),
+                'tunisiaTime' => $currentTime->format('Y-m-d H:i:s'),
                 'filteredSlots' => array_values($allSlots)
             ]);
         }
