@@ -209,7 +209,7 @@
 
                 <h5 class="m-0 flex-grow-1 text-center">{{ trans('lang.appointment_details') }}</h5>
 
-                @if(auth()->user()->hasPermissionInContext('appointments.update', $doctorId))
+                @if(auth()->user()->hasPermissionInContext('updateStatus', $doctorId))
                     <button id="editAppointmentBtn" class="btn update-btn" title="Edit Appointment">
                         <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 512 512" fill="white">
                             <path
@@ -361,9 +361,9 @@
                                     <div class="filter-label">Terminé</div>
                                 </div>
                                 <!--  <div class="filter-item" data-status="Prêt">
-                                                    <div class="color-box" style="background-color: #90D26D;"></div>
-                                                    <div class="filter-label">Prêt</div>
-                                                </div> -->
+                                                                    <div class="color-box" style="background-color: #90D26D;"></div>
+                                                                    <div class="filter-label">Prêt</div>
+                                                                </div> -->
                                 <div class="filter-item" data-status="En cours">
                                     <div class="color-box" style="background-color: #F3D55B;"></div>
                                     <div class="filter-label">En cours</div>
@@ -1032,9 +1032,9 @@
                         render: {
                             option: function (item, escape) {
                                 return `<div>
-                                                                    <div class="font-weight-bold">${escape(item.text)}</div>
-                                                                    ${item.phone ? `<div class="text-muted small">${escape(item.phone)}</div>` : ''}
-                                                                </div>`;
+                                                                            <div class="font-weight-bold">${escape(item.text)}</div>
+                                                                            ${item.phone ? `<div class="text-muted small">${escape(item.phone)}</div>` : ''}
+                                                                        </div>`;
                             },
                             item: function (item, escape) {
                                 return `<div>${escape(item.text)}</div>`;
