@@ -122,7 +122,7 @@
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-info-circle text-info mr-3" style="font-size: 1.5rem;"></i>
                                         <div>
-                                            <h6 class="alert-heading mb-2 badge-title">{{trans('lang.supported_file_types')}}
+                                            <h6 class="alert-heading mb-2 badge-title" style="font-size: 1rem; color: #007BFF;">{{trans('lang.supported_file_types')}}
                                             </h6>
                                             <div class="file-types">
                                                 <span class="badge badge-soft-primary mr-1 mb-1">PDF</span>
@@ -427,7 +427,7 @@
             uploadArea.style.display = 'none';
         }
 
-        window.removeFile = function () {j
+        window.removeFile = function () {
             fileInput.value = '';
             filePreview.style.display = 'none';
             uploadArea.style.display = 'block';
