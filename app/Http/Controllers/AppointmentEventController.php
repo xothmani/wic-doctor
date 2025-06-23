@@ -859,8 +859,6 @@ class AppointmentEventController extends Controller
         \Log::info('Day name fetched', ['dayName' => $dayName]);
         \Log::info('Selected type', ['type' => $selectedType]);
 
-
-
         // Fetch availability hours for the selected day, doctor, and type
         $availability = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
@@ -902,6 +900,22 @@ class AppointmentEventController extends Controller
         }
 
         \Log::info('Calculated all slots', ['allSlots' => $allSlots]);
+
+        // Check if selected date is today and filter out past time slots
+        $isToday = Carbon::parse($selectedDate)->isToday();
+        $currentTime = now();
+
+        if ($isToday) {
+            $allSlots = array_filter($allSlots, function ($slot) use ($currentTime, $selectedDate) {
+                $slotDateTime = Carbon::parse($selectedDate . ' ' . $slot);
+                return $slotDateTime->greaterThan($currentTime);
+            });
+
+            \Log::info('Filtered past slots for today', [
+                'currentTime' => $currentTime->format('Y-m-d H:i:s'),
+                'filteredSlots' => array_values($allSlots)
+            ]);
+        }
 
         // Exclude urgent hours
         $urgentHours = DB::table('doctor_urgency')
