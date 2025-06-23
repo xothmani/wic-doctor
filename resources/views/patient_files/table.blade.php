@@ -73,7 +73,7 @@
                 @if(auth()->user()->hasPermissionInContext('patient_files.download', auth()->user()->getDoctorId()))
                     <button class="action-btn download-btn"
                         onclick="downloadFile('{{ route('patient_files.download', [$patient, $file]) }}')" data-toggle="tooltip"
-                        title="{{trans('lang.download')}}">
+                        title="{{trans('lang.download')}}" type="button">
                         <i class="fas fa-download"></i>
                     </button>
                 @endif
@@ -99,7 +99,7 @@
                     )
                     <button class="action-btn delete-btn"
                         onclick="confirmDelete('{{ route('patient_files.destroy', [$patient, $file]) }}')" data-toggle="tooltip"
-                        title="{{trans('lang.delete')}}">
+                        title="{{trans('lang.delete')}}" type="button">
                         <i class="fas fa-trash"></i>
                     </button>
                 @endif
@@ -161,7 +161,15 @@
                                                     @endif
                                                 </div>
                                                 <div class="modal-user-status">
-                                                    @if(\App\Models\PatientFileUser::where('patient_file_id', $file->id)->where('user_id', $user->id)->exists())
+                                                    @if(
+                                                            \App\Models\PatientFileUser::where('patient_file_id', $file->id)
+                                                                ->where('user_id', $user->id)
+                                                                ->where(function ($query) {
+                                                                    $query->whereNull('expiration_date')
+                                                                        ->orWhere('expiration_date', '>', now());
+                                                                })
+                                                                ->exists()
+                                                        )
                                                         <span class="badge badge-success">{{ trans('lang.already_assigned') }}</span>
                                                     @else
                                                         <div class="select-indicator">
@@ -208,16 +216,16 @@
     @endforelse
 </div>
 
-<script>;
+<script>
     console.log('allUsers:', {{ json_encode($allUsers) }});
 
-
     function downloadFile(url) {
+        console.log('Downloading file from:', url);
         window.open(url, '_blank');
     }
 
     function confirmDelete(url) {
-        if (confirm('{{trans("lang.confirm_delete_file")}}')) {
+        if (confirm('{{ trans("lang.confirm_delete_file") }}')) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = url;
@@ -240,28 +248,30 @@
     }
 
     $(document).ready(function () {
-        console.log('check');
+        console.log('Initializing table view');
 
         $('[data-toggle="tooltip"]').tooltip();
 
         @foreach($files as $file)
             $('#assignAccessModal_{{ $file->id }}').on('show.bs.modal', function () {
+                console.log('Opening modal for file ID: {{ $file->id }}');
                 const searchField = document.getElementById('userSearch_{{ $file->id }}');
                 if (searchField) {
                     searchField.value = '';
+                    // Remove existing event listeners to prevent duplicates
                     const newSearchField = searchField.cloneNode(true);
                     searchField.parentNode.replaceChild(newSearchField, searchField);
                     newSearchField.addEventListener('input', function () {
                         filterUserList(this, '{{ $file->id }}');
                     });
                     setTimeout(() => newSearchField.focus(), 300);
-                    document.querySelectorAll('#userList_{{ $file->id }} .modal-user-item').forEach(item => {
-                        item.style.display = 'none';
-                    });
+                    // Show all users initially if search is empty
+                    filterUserList(newSearchField, '{{ $file->id }}');
                 }
             });
 
             $('#assignAccessModal_{{ $file->id }}').on('hidden.bs.modal', function () {
+                console.log('Closing modal for file ID: {{ $file->id }}');
                 document.getElementById('selectedUserId_{{ $file->id }}').value = '';
                 document.getElementById('expiration_date_{{ $file->id }}').value = '';
                 document.querySelectorAll('#userList_{{ $file->id }} .modal-user-item').forEach(item => {
@@ -274,14 +284,16 @@
 
     function filterUserList(input, fileId) {
         const searchTerm = input.value.toLowerCase().trim();
+        console.log('Filtering users for file ID:', fileId, 'with term:', searchTerm);
         document.querySelectorAll(`#userList_${fileId} .modal-user-item`).forEach(item => {
             const email = item.getAttribute('data-email').toLowerCase();
-            item.style.display = (searchTerm && email.includes(searchTerm)) ? '' : 'none';
+            item.style.display = (searchTerm === '' || email.includes(searchTerm)) ? '' : 'none';
         });
     }
 
     function selectUser(element, fileId) {
         const userId = element.getAttribute('data-value');
+        console.log('Selected user ID:', userId, 'for file ID:', fileId);
         document.getElementById(`selectedUserId_${fileId}`).value = userId;
         document.querySelectorAll(`#userList_${fileId} .modal-user-item`).forEach(item => {
             item.classList.remove('active');
@@ -661,5 +673,42 @@
             height: 40px;
             font-size: 0.8rem;
         }
+    }
+
+    .modal-user-status .badge-success {
+        background: var(--success-gradient);
+        color: white;
+    }
+
+    .select-indicator {
+        width: 24px;
+        height: 24px;
+        background: #e2e8f0;
+        color: #667eea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+
+    .modal-user-item.active .select-indicator {
+        background: var(--success-gradient);
+        color: white;
+    }
+
+    .modal-user-item {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .modal-user-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .modal-user-item.active {
+        background: rgba(102, 126, 234, 0.1);
+        border-left: 4px solid #667eea;
     }
 </style>

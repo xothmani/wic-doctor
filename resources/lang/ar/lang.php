@@ -1615,4 +1615,12 @@ return [
     'no_permission_message' => 'ليس لديك الإذن لعرض هذا الملف.',
     'go_back' => 'العودة',
     'file_preview' => 'معاينة الملف',
+    'file_uploaded_successfully' => 'تم تحميل الملف بنجاح.',
+    'file_upload_failed_validation' => 'فشل تحميل الملف بسبب أخطاء في التحقق.',
+    'file_upload_failed_encryption' => 'فشل تحميل الملف بسبب مشاكل في التشفير.',
+    'file_upload_failed_missing' => 'فشل تحميل الملف لأن الملف غير موجود.',
+    'file_upload_failed_generic' => 'فشل تحميل الملف: :error',
+    'file_required' => 'الملف مطلوب.',
+    'invalid_file_type' => 'نوع الملف المحدد غير مدعوم.',
+    'file_too_large' => 'يتجاوز حجم الملف الحد الأقصى المسموح به وهو :max.',
 ];

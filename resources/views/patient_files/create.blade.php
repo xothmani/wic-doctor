@@ -48,7 +48,25 @@
 
         <div class="content">
             <div class="clearfix"></div>
-            @include('flash::message')
+            <!-- Flash Messages -->
+            @if (session('success'))
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    {{ session('success') }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    {{ session('error') }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
             <div class="card shadow-sm">
                 <div class="card-header">
                     <ul class="nav nav-tabs d-flex flex-md-row flex-column-reverse align-items-start card-header-tabs">
@@ -96,6 +114,16 @@
                                     </div>
                                 </div>
 
+                                @error('file')
+                                    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                        {{ $message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                @enderror
+
                                 <!-- File Preview Area -->
                                 <div class="file-preview-container mb-4" id="filePreview" style="display: none;">
                                     <div class="file-preview-item">
@@ -122,7 +150,8 @@
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-info-circle text-info mr-3" style="font-size: 1.5rem;"></i>
                                         <div>
-                                            <h6 class="alert-heading mb-2 badge-title" style="font-size: 1rem; color: #007BFF;">{{trans('lang.supported_file_types')}}
+                                            <h6 class="alert-heading mb-2 badge-title" style="font-size: 1rem; color: #007BFF;">
+                                                {{trans('lang.supported_file_types')}}
                                             </h6>
                                             <div class="file-types">
                                                 <span class="badge badge-soft-primary mr-1 mb-1">PDF</span>
@@ -441,13 +470,21 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        uploadForm.addEventListener('submit', function () {
+        uploadForm.addEventListener('submit', function (e) {
             const btnText = uploadBtn.querySelector('.btn-text');
             const btnLoading = uploadBtn.querySelector('.btn-loading');
 
             btnText.style.display = 'none';
             btnLoading.style.display = 'inline';
             uploadBtn.disabled = true;
+
+            setTimeout(() => {
+                if (document.querySelector('.alert-danger')) {
+                    btnText.style.display = 'inline';
+                    btnLoading.style.display = 'none';
+                    uploadBtn.disabled = false;
+                }
+            }, 1000);
         });
     });
 </script>
