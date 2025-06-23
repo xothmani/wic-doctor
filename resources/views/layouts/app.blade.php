@@ -18,9 +18,22 @@
     @yield('css_custom')
     @stack('styles')
 	@yield('styles')
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <!-- Firebase Initialization -->
+    <script src="{{ asset('js/firebase-init.js') }}"></script>
+
+    <!-- Global Notifications -->
+    <script src="{{ asset('js/global-notifications.js') }}"></script>
 </head>
 
-<body class="@if(in_array(app()->getLocale(), ['ar','ku','fa','ur','he','ha','ks'])) rtl @else ltr @endif layout-fixed {{setting('fixed_header',false) ? "layout-navbar-fixed" : ""}} {{setting('fixed_footer',false) ? "layout-footer-fixed" : ""}} sidebar-mini {{setting('theme_color')}} {{setting('theme_contrast','')}}-mode" data-scrollbar-auto-hide="r" data-scrollbar-theme="os-theme-dark">
+<body class="@if(in_array(app()->getLocale(), ['ar','ku','fa','ur','he','ha','ks'])) rtl @else ltr @endif layout-fixed {{setting('fixed_header',false) ? "layout-navbar-fixed" : ""}} {{setting('fixed_footer',false) ? "layout-footer-fixed" : ""}} sidebar-mini {{setting('theme_color')}} {{setting('theme_contrast','')}}-mode" data-scrollbar-auto-hide="r" data-scrollbar-theme="os-theme-dark" data-user-id="{{ auth()->id() }}">
 @yield('scripts')
 <div class="wrapper">
 <!-- Global Active Doctor Component -->
@@ -48,7 +61,10 @@
             @endcan
             @can('notifications.index')
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('notifications*') ? 'active' : '' }}" href="{!! route('notifications.index') !!}"><i class="fas fa-bell"></i></a>
+                    <a class="nav-link {{ Request::is('notifications*') ? 'active' : '' }}" href="{!! route('notifications.index') !!}">
+                        <i class="fas fa-bell"></i>
+                        <span id="global-unread-count" class="badge badge-danger" style="display: none;">0</span>
+                    </a>
                 </li>
             @endcan
   
@@ -106,7 +122,8 @@
 <script src="{{asset('vendor/bootstrap-v4-rtl/js/bootstrap.bundle.min.js')}}"></script>
 <script src="{{asset('vendor/overlayScrollbars/js/jquery.overlayScrollbars.min.js')}}"></script>
 
-<!-- The core Firebase JS SDK is always required and must be listed first -->
+<!-- Firebase SDK - Temporarily disabled for WIC Messenger -->
+<!--
 <script src="{{asset('https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js')}}"></script>
 
 <script src="{{asset('https://www.gstatic.com/firebasejs/7.2.0/firebase-messaging.js')}}"></script>
@@ -167,12 +184,8 @@
             }
         });
     }
+-->
 
-    function changeLanguage(locale) {
-        event.preventDefault();
-        document.getElementById('current-language').value = locale;
-        document.getElementById('languages-form').submit();
-    }
 </script>
 
 @stack('scripts_lib')

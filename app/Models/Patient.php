@@ -44,15 +44,16 @@ class Patient extends Model implements HasMedia, Castable
         'assurance',
         'groupe_sanguin',
         'allergie',
-	    'antecedent',
-        'date_naissance', 
         'antecedent',
-	    'email',
+        'date_naissance',
+        'antecedent',
+        'email',
         'type_carnet',
         'is_main_profil',
-        'type_of_relationship'
+        'type_of_relationship',
+        'profile_picture'
 
-   ];
+    ];
 
 
     protected $casts = [
@@ -69,7 +70,7 @@ class Patient extends Model implements HasMedia, Castable
         'height' => 'string',
         'medical_history' => 'string',
         'notes' => 'string',
-        'date_naissance' => 'date', 
+        'date_naissance' => 'date',
         'age' => 'string'
 
     ];
@@ -81,10 +82,10 @@ class Patient extends Model implements HasMedia, Castable
         'mobile_number' => 'max:50',
 
         //'gender' => 'required|max:127',
-       // 'weight' => 'required|max:127',
-       // 'height' => 'required|max:127',
+        // 'weight' => 'required|max:127',
+        // 'height' => 'required|max:127',
         //'date_naissance' => 'required|date', 
-     
+
     ];
 
     public array $translatable = [
@@ -100,30 +101,30 @@ class Patient extends Model implements HasMedia, Castable
     ];
 
 
-    
-     // Méthode pour calculer l'âge basé sur la date de naissanc
+
+    // Méthode pour calculer l'âge basé sur la date de naissanc
     public function setAgeAttribute()
-     {
-         if (!empty($this->attributes['date_naissance'])) {
+    {
+        if (!empty($this->attributes['date_naissance'])) {
 
-             $birthDate = Carbon::parse($this->attributes['date_naissance']);
-             $ageInYears = $birthDate->age;
-             $ageInMonths = $birthDate->diffInMonths(Carbon::now());
-             $ageInDays = $birthDate->diffInDays(Carbon::now());
-     
-             if ($ageInYears >= 1) {
-                 $this->attributes['age'] = $ageInYears . ' ans';
-             } elseif ($ageInMonths >= 1) {
-                 $this->attributes['age'] = $ageInMonths . ' mois';
-             } else {
-                 $this->attributes['age'] = $ageInDays . ' jours';
-             }
-         } else {
-             $this->attributes['age'] = 'N/S';
-         }
-     }
+            $birthDate = Carbon::parse($this->attributes['date_naissance']);
+            $ageInYears = $birthDate->age;
+            $ageInMonths = $birthDate->diffInMonths(Carbon::now());
+            $ageInDays = $birthDate->diffInDays(Carbon::now());
 
-         // Mutateur pour nettoyer le champ 'notes'
+            if ($ageInYears >= 1) {
+                $this->attributes['age'] = $ageInYears . ' ans';
+            } elseif ($ageInMonths >= 1) {
+                $this->attributes['age'] = $ageInMonths . ' mois';
+            } else {
+                $this->attributes['age'] = $ageInDays . ' jours';
+            }
+        } else {
+            $this->attributes['age'] = 'N/S';
+        }
+    }
+
+    // Mutateur pour nettoyer le champ 'notes'
     public function setNotesAttribute($value)
     {
         // Supprime les balises HTML du champ 'notes'
@@ -148,18 +149,18 @@ class Patient extends Model implements HasMedia, Castable
         // Supprime les balises HTML du champ 'medical_history'
         $this->attributes['medical_history'] = strip_tags($value);
     }
- 
-     // Appeler cette méthode lors de la création ou de la mise à jour du patient
-     protected static function booted()
-     {
-         static::creating(function ($patient) {
-             $patient->setAgeAttribute(); // Calculer l'âge avant la création
-         });
- 
-         static::updating(function ($patient) {
-             $patient->setAgeAttribute(); // Calculer l'âge avant la mise à jour
-         });
-     }
+
+    // Appeler cette méthode lors de la création ou de la mise à jour du patient
+    protected static function booted()
+    {
+        static::creating(function ($patient) {
+            $patient->setAgeAttribute(); // Calculer l'âge avant la création
+        });
+
+        static::updating(function ($patient) {
+            $patient->setAgeAttribute(); // Calculer l'âge avant la mise à jour
+        });
+    }
 
     public static function castUsing(array $arguments): string
     {
@@ -251,7 +252,7 @@ class Patient extends Model implements HasMedia, Castable
             $ageInYears = $birthDate->age; // Âge en années
             $ageInMonths = $birthDate->diffInMonths(Carbon::now()); // Âge en mois
             $ageInDays = $birthDate->diffInDays(Carbon::now()); // Âge en jours
-    
+
             if ($ageInYears >= 1) {
                 return $ageInYears . ' ans'; // Si l'âge est supérieur ou égal à 1 an
             } elseif ($ageInMonths >= 1) {
@@ -260,10 +261,10 @@ class Patient extends Model implements HasMedia, Castable
                 return $ageInDays . ' jours'; // Si l'âge est inférieur à 1 mois
             }
         }
-    
+
         return 'N/S'; // Retourner 'N/S' si la date de naissance n'est pas définie
     }
-    
+
     public function assurance(): BelongsTo
     {
         return $this->belongsTo(Assurance::class, 'assurance');

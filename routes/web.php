@@ -44,6 +44,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardMedecinController;
+use App\Http\Controllers\MessengerController;
 
 
 
@@ -729,3 +730,86 @@ Route::post('/doctors/edit-param', [DoctorController::class, 'editParam'])->name
 
 
 Route::get('/get-slots-for-pattern', 'AppointmentEventController@getSlotsForPattern');
+
+// ============================================
+// WIC Doctor Messenger System
+// ============================================
+Route::prefix('messenger')->middleware(['auth'])->group(function () {
+    // Main messenger application views
+    Route::get('/', function () {
+        return view('messenger.index');
+    })->name('messenger.index');
+
+    Route::get('/chat', function () {
+        return view('messenger.index');
+    })->name('messenger.chat');
+
+    Route::get('/conversation/{conversationId}', function ($conversationId) {
+        return view('messenger.index', ['conversationId' => $conversationId]);
+    })->name('messenger.conversation');
+
+    Route::get('/group/{groupId}', function ($groupId) {
+        return view('messenger.index', ['groupId' => $groupId]);
+    })->name('messenger.group');
+
+    // Data Loading Routes
+    Route::get('/conversations', 'MessengerController@getConversations')->name('messenger.conversations');
+    Route::get('/user-info/{userId}', 'MessengerController@getUserInfo')->name('messenger.user-info');
+    Route::get('/potential-partners', 'MessengerController@getPotentialPartners')->name('messenger.potential-partners');
+    Route::get('/friends', 'MessengerController@getFriends')->name('messenger.friends');
+    Route::get('/patients', 'MessengerController@getPatients')->name('messenger.patients');
+    Route::get('/groups', 'MessengerController@getGroups')->name('messenger.groups');
+
+    // Conversation Management
+    Route::post('/create-conversation', 'MessengerController@createDirectConversation')->name('messenger.create-conversation');
+    Route::post('/create-group', 'MessengerController@createGroup')->name('messenger.create-group');
+
+    // Search and Invitations
+    Route::get('/search-doctors', 'MessengerController@searchDoctors')->name('messenger.search-doctors');
+    Route::post('/send-invitation', 'MessengerController@sendInvitation')->name('messenger.send-invitation');
+
+    // Notifications
+    Route::get('/notifications/count', 'MessengerController@getNotificationsCount')->name('messemessenger.search-doctorsnger.notifimessenger.search-doctorscations.count');
+
+    // FCM token management
+    Route::post('/save-fcm-token', 'MessengerController@saveFCMToken')->name('messenger.save-fcm-token');
+
+    // Test endpoint for authentication
+    Route::get('/test-auth', 'MessengerController@testAuth')->name('messenger.test-auth');
+});
+
+// ============================================
+// Chat Routes (outside main middleware)
+// ============================================
+Route::middleware(['auth'])->group(function () {
+    // Telesecretary Chat Routes
+    Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
+    Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
+    Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
+        ->name('chatT.show')
+        ->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
+    Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
+    Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
+    Route::get('/chatT/fetch-messages/{receiverId}', [TeleseceteriatDoctorsController::class, 'fetchMessages'])->name('chat.fetch');
+
+    // Help Desk Routes
+    Route::get('/helpdesk', [HelpDeskController::class, 'index'])->name('helpdesk.index');
+    Route::post('/helpdesk', [HelpDeskController::class, 'store'])->name('helpdesk.store');
+
+    // Dashboard Routes
+    Route::get('/dashboard-medecin', [DashboardMedecinController::class, 'index'])->name('dashboard.medecin');
+
+    // Appointment Management
+    Route::put('/update-appointments/{id}', [AppointmentEventController::class, 'update'])->name('appointments.update');
+    Route::delete('/update-appointments/{id}', [AppointmentEventController::class, 'destroy'])->name('appointments.destroy');
+
+    // Patient Management
+    Route::post('patients/store-secondary-profile', [PatientController::class, 'storeSecondaryProfile'])->name('patients.associate');
+    Route::get('/patients/related/{mainPatientId}/{relation}', [PatientController::class, 'getRelatedPatients']);
+    Route::post('/sms/send', [PersonalizedMessageController::class, 'store'])->name('sms.store');
+    Route::get('/patients/{patientId}/messages/history', [PersonalizedMessageController::class, 'history'])
+        ->name('messages.history');
+
+    // Doctor Settings
+    Route::post('/doctors/edit-param', [DoctorController::class, 'editParam'])->name('doctors.editParam');
+});

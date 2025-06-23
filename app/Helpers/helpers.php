@@ -80,7 +80,7 @@ function getPriceColumn($modelObject, string $attributeName = 'price', Currency 
         $currency->decimal_digits = setting('default_currency_decimal_digits', 2);
     }
     if ($modelObject[$attributeName] != null && strlen($modelObject[$attributeName]) > 0) {
-        $modelObject[$attributeName] = number_format((float)$modelObject[$attributeName], $currency->decimal_digits, '.', '');
+        $modelObject[$attributeName] = number_format((float) $modelObject[$attributeName], $currency->decimal_digits, '.', '');
         if (setting('currency_right', false) != false) {
             return $modelObject[$attributeName] . "<span>" . $currency->symbol . "</span>";
         } else {
@@ -97,9 +97,9 @@ function getPriceColumn($modelObject, string $attributeName = 'price', Currency 
 function getPrice(float|int $price = 0): string
 {
     if (setting('currency_right', false) != false) {
-        return number_format((float)$price, setting('default_currency_decimal_digits', 2), '.', '') . "<span>" . setting('default_currency') . "</span>";
+        return number_format((float) $price, setting('default_currency_decimal_digits', 2), '.', '') . "<span>" . setting('default_currency') . "</span>";
     } else {
-        return "<span>" . setting('default_currency') . "</span>" . number_format((float)$price, 2, '.', ' ');
+        return "<span>" . setting('default_currency') . "</span>" . number_format((float) $price, 2, '.', ' ');
     }
 }
 
@@ -255,7 +255,7 @@ function getArrayColumn($array = [], $titleAttribute = 'title', $optionClass = '
     $result = [];
     foreach ($array as $link) {
         $title = $link[$titleAttribute];
-//        $replace = preg_replace('/\$\{href\}/', url($baseUrl, $link[$idAttribute]), $html);
+        //        $replace = preg_replace('/\$\{href\}/', url($baseUrl, $link[$idAttribute]), $html);
 //        $replace = preg_replace('/\$\{title\}/', $link[$titleAttribute], $replace);
         $html = "<span class='{$optionClass}'>{$title}</span>";
         $result[] = $html;
@@ -294,7 +294,7 @@ function getAvailableLanguages(): array
 function getLanguages(): array
 {
 
-    return array('aa' => 'Afar', 'ab' => 'Abkhaz', 'ae' => 'Avestan', 'af' => 'Afrikaans', 'ak' => 'Akan', 'am' => 'Amharic', 'an' => 'Aragonese', 'ar' => 'Arabic', 'as' => 'Assamese', 'av' => 'Avaric', 'ay' => 'Aymara', 'az' => 'Azerbaijani', 'ba' => 'Bashkir', 'be' => 'Belarusian', 'bg' => 'Bulgarian', 'bh' => 'Bihari', 'bi' => 'Bislama', 'bm' => 'Bambara', 'bn' => 'Bengali', 'bo' => 'Tibetan Standard, Tibetan, Central', 'br' => 'Breton', 'bs' => 'Bosnian', 'ca' => 'Catalan; Valencian', 'ce' => 'Chechen', 'ch' => 'Chamorro', 'co' => 'Corsican', 'cr' => 'Cree', 'cs' => 'Czech', 'cu' => 'Old Church Slavonic, Church Slavic, Church Slavonic, Old Bulgarian, Old Slavonic', 'cv' => 'Chuvash', 'cy' => 'Welsh', 'da' => 'Danish', 'de' => 'German', 'dv' => 'Divehi; Dhivehi; Maldivian;', 'dz' => 'Dzongkha', 'ee' => 'Ewe', 'el' => 'Greek, Modern', 'en' => 'English', 'eo' => 'Esperanto', 'es' => 'Spanish; Castilian', 'et' => 'Estonian', 'eu' => 'Basque', 'fa' => 'Persian', 'ff' => 'Fula; Fulah; Pulaar; Pular', 'fi' => 'Finnish', 'fj' => 'Fijian', 'fo' => 'Faroese', 'fr' => 'French', 'fy' => 'Western Frisian', 'ga' => 'Irish', 'gd' => 'Scottish Gaelic; Gaelic', 'gl' => 'Galician', 'gn' => 'GuaranÃƒÂ­', 'gu' => 'Gujarati', 'gv' => 'Manx', 'ha' => 'Hausa', 'he' => 'Hebrew (modern)', 'hi' => 'Hindi', 'ho' => 'Hiri Motu', 'hr' => 'Croatian', 'ht' => 'Haitian; Haitian Creole', 'hu' => 'Hungarian', 'hy' => 'Armenian', 'hz' => 'Herero', 'ia' => 'Interlingua', 'id' => 'Indonesian', 'ie' => 'Interlingue', 'ig' => 'Igbo', 'ii' => 'Nuosu', 'ik' => 'Inupiaq', 'io' => 'Ido', 'is' => 'Icelandic', 'it' => 'Italian', 'iu' => 'Inuktitut', 'ja' => 'Japanese (ja)', 'jv' => 'Javanese (jv)', 'ka' => 'Georgian', 'kg' => 'Kongo', 'ki' => 'Kikuyu, Gikuyu', 'kj' => 'Kwanyama, Kuanyama', 'kk' => 'Kazakh', 'kl' => 'Kalaallisut, Greenlandic', 'km' => 'Khmer', 'kn' => 'Kannada', 'ko' => 'Korean', 'kr' => 'Kanuri', 'ks' => 'Kashmiri', 'ku' => 'Kurdish', 'kv' => 'Komi', 'kw' => 'Cornish', 'ky' => 'Kirghiz, Kyrgyz', 'la' => 'Latin', 'lb' => 'Luxembourgish, Letzeburgesch', 'lg' => 'Luganda', 'li' => 'Limburgish, Limburgan, Limburger', 'ln' => 'Lingala', 'lo' => 'Lao', 'lt' => 'Lithuanian', 'lu' => 'Luba-Katanga', 'lv' => 'Latvian', 'mg' => 'Malagasy', 'mh' => 'Marshallese', 'mi' => 'Maori', 'mk' => 'Macedonian', 'ml' => 'Malayalam', 'mn' => 'Mongolian', 'mr' => 'Marathi (Mara?hi)', 'ms' => 'Malay', 'mt' => 'Maltese', 'my' => 'Burmese', 'na' => 'Nauru', 'nb' => 'Norwegian BokmÃƒÂ¥l', 'nd' => 'North Ndebele', 'ne' => 'Nepali', 'ng' => 'Ndonga', 'nl' => 'Dutch', 'nn' => 'Norwegian Nynorsk', 'no' => 'Norwegian', 'nr' => 'South Ndebele', 'nv' => 'Navajo, Navaho', 'ny' => 'Chichewa; Chewa; Nyanja', 'oc' => 'Occitan', 'oj' => 'Ojibwe, Ojibwa', 'om' => 'Oromo', 'or' => 'Oriya', 'os' => 'Ossetian, Ossetic', 'pa' => 'Panjabi, Punjabi', 'pi' => 'Pali', 'pl' => 'Polish', 'ps' => 'Pashto, Pushto', 'pt' => 'Portuguese', 'qu' => 'Quechua', 'rm' => 'Romansh', 'rn' => 'Kirundi', 'ro' => 'Romanian, Moldavian, Moldovan', 'ru' => 'Russian', 'rw' => 'Kinyarwanda', 'sa' => 'Sanskrit (Sa?sk?ta)', 'sc' => 'Sardinian', 'sd' => 'Sindhi', 'se' => 'Northern Sami', 'sg' => 'Sango', 'si' => 'Sinhala, Sinhalese', 'sk' => 'Slovak', 'sl' => 'Slovene', 'sm' => 'Samoan', 'sn' => 'Shona', 'so' => 'Somali', 'sq' => 'Albanian', 'sr' => 'Serbian', 'ss' => 'Swati', 'st' => 'Southern Sotho', 'su' => 'Sundanese', 'sv' => 'Swedish', 'sw' => 'Swahili', 'ta' => 'Tamil', 'te' => 'Telugu', 'tg' => 'Tajik', 'th' => 'Thai', 'ti' => 'Tigrinya', 'tk' => 'Turkmen', 'tl' => 'Tagalog', 'tn' => 'Tswana', 'to' => 'Tonga (Tonga Islands)', 'tr' => 'Turkish', 'ts' => 'Tsonga', 'tt' => 'Tatar', 'tw' => 'Twi', 'ty' => 'Tahitian', 'ug' => 'Uighur, Uyghur', 'uk' => 'Ukrainian', 'ur' => 'Urdu', 'uz' => 'Uzbek', 've' => 'Venda', 'vi' => 'Vietnamese', 'vo' => 'VolapÃƒÂ¼k', 'wa' => 'Walloon', 'wo' => 'Wolof', 'xh' => 'Xhosa', 'yi' => 'Yiddish', 'yo' => 'Yoruba', 'za' => 'Zhuang, Chuang', 'zh' => 'Chinese', 'zu' => 'Zulu',);
+    return array('aa' => 'Afar', 'ab' => 'Abkhaz', 'ae' => 'Avestan', 'af' => 'Afrikaans', 'ak' => 'Akan', 'am' => 'Amharic', 'an' => 'Aragonese', 'ar' => 'Arabic', 'as' => 'Assamese', 'av' => 'Avaric', 'ay' => 'Aymara', 'az' => 'Azerbaijani', 'ba' => 'Bashkir', 'be' => 'Belarusian', 'bg' => 'Bulgarian', 'bh' => 'Bihari', 'bi' => 'Bislama', 'bm' => 'Bambara', 'bn' => 'Bengali', 'bo' => 'Tibetan Standard, Tibetan, Central', 'br' => 'Breton', 'bs' => 'Bosnian', 'ca' => 'Catalan; Valencian', 'ce' => 'Chechen', 'ch' => 'Chamorro', 'co' => 'Corsican', 'cr' => 'Cree', 'cs' => 'Czech', 'cu' => 'Old Church Slavonic, Church Slavic, Church Slavonic, Old Bulgarian, Old Slavonic', 'cv' => 'Chuvash', 'cy' => 'Welsh', 'da' => 'Danish', 'de' => 'German', 'dv' => 'Divehi; Dhivehi; Maldivian;', 'dz' => 'Dzongkha', 'ee' => 'Ewe', 'el' => 'Greek, Modern', 'en' => 'English', 'eo' => 'Esperanto', 'es' => 'Spanish; Castilian', 'et' => 'Estonian', 'eu' => 'Basque', 'fa' => 'Persian', 'ff' => 'Fula; Fulah; Pulaar; Pular', 'fi' => 'Finnish', 'fj' => 'Fijian', 'fo' => 'Faroese', 'fr' => 'French', 'fy' => 'Western Frisian', 'ga' => 'Irish', 'gd' => 'Scottish Gaelic; Gaelic', 'gl' => 'Galician', 'gn' => 'GuaranÃƒÂ­', 'gu' => 'Gujarati', 'gv' => 'Manx', 'ha' => 'Hausa', 'he' => 'Hebrew (modern)', 'hi' => 'Hindi', 'ho' => 'Hiri Motu', 'hr' => 'Croatian', 'ht' => 'Haitian; Haitian Creole', 'hu' => 'Hungarian', 'hy' => 'Armenian', 'hz' => 'Herero', 'ia' => 'Interlingua', 'id' => 'Indonesian', 'ie' => 'Interlingue', 'ig' => 'Igbo', 'ii' => 'Nuosu', 'ik' => 'Inupiaq', 'io' => 'Ido', 'is' => 'Icelandic', 'it' => 'Italian', 'iu' => 'Inuktitut', 'ja' => 'Japanese (ja)', 'jv' => 'Javanese (jv)', 'ka' => 'Georgian', 'kg' => 'Kongo', 'ki' => 'Kikuyu, Gikuyu', 'kj' => 'Kwanyama, Kuanyama', 'kk' => 'Kazakh', 'kl' => 'Kalaallisut, Greenlandic', 'km' => 'Khmer', 'kn' => 'Kannada', 'ko' => 'Korean', 'kr' => 'Kanuri', 'ks' => 'Kashmiri', 'ku' => 'Kurdish', 'kv' => 'Komi', 'kw' => 'Cornish', 'ky' => 'Kirghiz, Kyrgyz', 'la' => 'Latin', 'lb' => 'Luxembourgish, Letzeburgesch', 'lg' => 'Luganda', 'li' => 'Limburgish, Limburgan, Limburger', 'ln' => 'Lingala', 'lo' => 'Lao', 'lt' => 'Lithuanian', 'lu' => 'Luba-Katanga', 'lv' => 'Latvian', 'mg' => 'Malagasy', 'mh' => 'Marshallese', 'mi' => 'Maori', 'mk' => 'Macedonian', 'ml' => 'Malayalam', 'mn' => 'Mongolian', 'mr' => 'Marathi (Mara?hi)', 'ms' => 'Malay', 'mt' => 'Maltese', 'my' => 'Burmese', 'na' => 'Nauru', 'nb' => 'Norwegian BokmÃƒÂ¥l', 'nd' => 'North Ndebele', 'ne' => 'Nepali', 'ng' => 'Ndonga', 'nl' => 'Dutch', 'nn' => 'Norwegian Nynorsk', 'no' => 'Norwegian', 'nr' => 'South Ndebele', 'nv' => 'Navajo, Navaho', 'ny' => 'Chichewa; Chewa; Nyanja', 'oc' => 'Occitan', 'oj' => 'Ojibwe, Ojibwa', 'om' => 'Oromo', 'or' => 'Oriya', 'os' => 'Ossetian, Ossetic', 'pa' => 'Panjabi, Punjabi', 'pi' => 'Pali', 'pl' => 'Polish', 'ps' => 'Pashto, Pushto', 'pt' => 'Portuguese', 'qu' => 'Quechua', 'rm' => 'Romansh', 'rn' => 'Kirundi', 'ro' => 'Romanian, Moldavian, Moldovan', 'ru' => 'Russian', 'rw' => 'Kinyarwanda', 'sa' => 'Sanskrit (Sa?sk?ta)', 'sc' => 'Sardinian', 'sd' => 'Sindhi', 'se' => 'Northern Sami', 'sg' => 'Sango', 'si' => 'Sinhala, Sinhalese', 'sk' => 'Slovak', 'sl' => 'Slovene', 'sm' => 'Samoan', 'sn' => 'Shona', 'so' => 'Somali', 'sq' => 'Albanian', 'sr' => 'Serbian', 'ss' => 'Swati', 'st' => 'Southern Sotho', 'su' => 'Sundanese', 'sv' => 'Swedish', 'sw' => 'Swahili', 'ta' => 'Tamil', 'te' => 'Telugu', 'tg' => 'Tajik', 'th' => 'Thai', 'ti' => 'Tigrinya', 'tk' => 'Turkmen', 'tl' => 'Tagalog', 'tn' => 'Tswana', 'to' => 'Tonga (Tonga Islands)', 'tr' => 'Turkish', 'ts' => 'Tsonga', 'tt' => 'Tatar', 'tw' => 'Twi', 'ty' => 'Tahitian', 'ug' => 'Uighur, Uyghur', 'uk' => 'Ukrainian', 'ur' => 'Urdu', 'uz' => 'Uzbek', 've' => 'Venda', 'vi' => 'Vietnamese', 'vo' => 'VolapÃƒÂ¼k', 'wa' => 'Walloon', 'wo' => 'Wolof', 'xh' => 'Xhosa', 'yi' => 'Yiddish', 'yo' => 'Yoruba', 'za' => 'Zhuang, Chuang', 'zh' => 'Chinese', 'zu' => 'Zulu', );
 
 }
 
@@ -313,7 +313,14 @@ function generateCustomField($fields, $fieldsValues = null): string
     $startSeparator = '<div style="flex: 50%;max-width: 50%;padding: 0 4px;" class="column">';
     $endSeparator = '</div>';
     foreach ($fields as $field) {
-        $dynamicVars = ['$RANDOM_VARIABLE$' => 'var' . time() . rand() . 'ble', '$FIELD_NAME$' => $field->name, '$DISABLED$' => $field->disabled === true ? '"disabled" => "disabled",' : '', '$REQUIRED$' => $field->required === true ? '"required" => "required",' : '', '$MODEL_NAME_SNAKE$' => getOnlyClassName($field->custom_field_model), '$FIELD_VALUE$' => 'null', '$INPUT_ARR_SELECTED$' => '[]',
+        $dynamicVars = [
+            '$RANDOM_VARIABLE$' => 'var' . time() . rand() . 'ble',
+            '$FIELD_NAME$' => $field->name,
+            '$DISABLED$' => $field->disabled === true ? '"disabled" => "disabled",' : '',
+            '$REQUIRED$' => $field->required === true ? '"required" => "required",' : '',
+            '$MODEL_NAME_SNAKE$' => getOnlyClassName($field->custom_field_model),
+            '$FIELD_VALUE$' => 'null',
+            '$INPUT_ARR_SELECTED$' => '[]',
 
         ];
         $gf = new GeneratorField();
@@ -344,7 +351,7 @@ function generateCustomField($fields, $fieldsValues = null): string
             }
             $htmlFields[] = $fieldTemplate;
         }
-//    dd($fieldTemplate);
+        //    dd($fieldTemplate);
     }
     foreach ($htmlFields as $index => $field) {
         if (round(count($htmlFields) / 2) == $index + 1) {
@@ -353,11 +360,11 @@ function generateCustomField($fields, $fieldsValues = null): string
     }
     $htmlFieldsString = implode("\n\n", $htmlFields);
     $htmlFieldsString = $startSeparator . "\n" . $htmlFieldsString . "\n" . $endSeparator;
-//    dd($htmlFieldsString);
+    //    dd($htmlFieldsString);
     $renderedHtml = "";
     try {
         $renderedHtml = render(Blade::compileString($htmlFieldsString));
-//        dd($renderedHtml);
+        //        dd($renderedHtml);
     } catch (FatalError $e) {
     }
     return $renderedHtml;
@@ -379,12 +386,14 @@ function render($__php, $__data = null): string
         optionct($__data, EXTR_SKIP);
     }
     try {
-        eval('?' . '>' . $__php);
+        eval ('?' . '>' . $__php);
     } catch (Exception $e) {
-        while (ob_get_level() > $obLevel) ob_end_clean();
+        while (ob_get_level() > $obLevel)
+            ob_end_clean();
         throw $e;
     } catch (Throwable $e) {
-        while (ob_get_level() > $obLevel) ob_end_clean();
+        while (ob_get_level() > $obLevel)
+            ob_end_clean();
         throw new FatalError($e->getMessage(), 500, []);
     }
     return ob_get_clean();
