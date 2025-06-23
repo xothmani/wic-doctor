@@ -922,13 +922,23 @@ class PatientFileController extends Controller
             return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
         }
 
+        \Log::info('API: Attempting to upload file', [
+            'user_id' => $userId,
+            'patient_id' => $patient->id
+        ]);
+
         $user = User::findOrFail($userId);
+
+        \Log::info('found user', [
+            'user_id' => $user->email
+        ]);
+
         $request->validate([
             'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,xml,hl7,dcm,nii,ecg,jpg,jpeg,png,gif,webp,svg,bmp,tiff,mp3,wav,aac,ogg,mp4,mkv,avi,mov,wmv,flv,zip,rar,7z,tar,gz,bz2|max:102400',
             'description' => 'nullable|string|max:255',
         ]);
 
-        $user = User::findOrFail($request->user_id);
+        $user = User::findOrFail($userId);
         Log::info('API: Attempting to upload file', [
             'user_id' => $user->id,
             'patient_id' => $patient->id
