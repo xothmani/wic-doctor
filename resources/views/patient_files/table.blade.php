@@ -94,7 +94,7 @@
                         </button>
                     @endif
                     @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', auth()->user()->getDoctorId()))
-                        <button class="action-btn assign-btn" onclick="fileManager.openAssignModal('{{ $file->id }}', '{{ $file->file_name }}')"
+                        <button class="action-btn assign-btn" onclick="fileManager.openAssignModal('{{ $file->id }}', '{{ addslashes($file->file_name) }}')" data-toggle="tooltip" title="{{ trans('lang.assign_access') }}"
                             data-toggle="tooltip" title="{{ trans('lang.assign_access') }}">
                             <i class="fas fa-user-plus"></i>
                         </button>
@@ -662,9 +662,9 @@
         }
     </style>
 
+@section('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
-
     <script>
         class FileManager {
             constructor() {
@@ -672,14 +672,13 @@
                 this.selectedUserId = null;
                 this.assignedUsers = new Set();
                 this.searchTimeout = null;
-                this.assignRoute = "{{ route('patient_files.assign_access', [$patient, ':id']) }}";
+                this.assignRoute = "{{ route('patient_files.assign_access', [$patient, $file]) }}";
 
                 this.initializeElements();
                 this.bindEvents();
                 this.initializeTooltips();
 
                 window.fileManager = this;
-                console.log('FileManager initialized successfully');
             }
 
             initializeElements() {
@@ -753,6 +752,15 @@
 
             filterUsers(searchEmail) {
                 if (!this.userList) return;
+
+                // If searchEmail is empty, don't show any users
+                if (searchEmail === '') {
+                    this.userList.querySelectorAll('.modal-user-item').forEach(item => {
+                        this.hideUserItem(item);
+                    });
+                    this.updateNoResultsMessage('', false);
+                    return;
+                }
 
                 const userItems = this.userList.querySelectorAll('.modal-user-item');
                 let hasVisibleUsers = false;
@@ -877,13 +885,14 @@
                 this.currentFileId = fileId;
 
                 if (this.selectedFileName) {
-                    this.selectedFileName.textContent = fileName;
+                    // Decode the filename to display special characters correctly
+                    this.selectedFileName.textContent = decodeURIComponent(fileName.replace(/\+/g, ' '));
                 }
                 if (this.selectedFileIdInput) {
                     this.selectedFileIdInput.value = fileId;
                 }
                 if (this.assignForm) {
-                    this.assignForm.action = this.assignRoute.replace(':id', fileId);
+                    this.assignForm.action = this.assignRoute;
                 }
 
                 this.resetModal();
@@ -920,33 +929,27 @@
             loadAssignedUsers() {
                 if (!this.currentFileId || !this.userList) return;
 
-                @if(isset($files))
-                    @foreach($files as &$file)
-                        if (this.currentFileId === '{{ $file->id }}') {
-                            @php
-                                $assignedUserIds = \App\Models\PatientFileUser::where('patient_file_id', $file->id)
-                                    ->where('patient_id', $patient->id)
-                                    ->where(function ($query) {
-                                        $query->whereNull('expiration_date')
-                                            ->orWhere('expiration_date', '>', now());
-                                    })
-                                    ->pluck('user_id')
-                                    ->toArray();
-                            @endphp
-                            const assignedUsers = @json($assignedUserIds);
-                            assignedUsers.forEach(userId => {
-                                const userItem = this.userList.querySelector(`[data-user-id="${userId}"]`);
-                                if (userItem) {
-                                    userItem.classList.add('already-assigned');
-                                    const assignedIndicator = userItem.querySelector('.assigned-indicator');
-                                    if (assignedIndicator) {
-                                        assignedIndicator.style.display = 'block';
-                                    }
-                                }
-                            });
+                @php
+                    $assignedUserIds = \App\Models\PatientFileUser::where('patient_file_id', $file->id)
+                        ->where('patient_id', $patient->id)
+                        ->where(function ($query) {
+                            $query->whereNull('expiration_date')
+                                ->orWhere('expiration_date', '>', now());
+                        })
+                        ->pluck('user_id')
+                        ->toArray();
+                @endphp
+                const assignedUsers = @json($assignedUserIds);
+                assignedUsers.forEach(userId => {
+                    const userItem = this.userList.querySelector(`[data-user-id="${userId}"]`);
+                    if (userItem) {
+                        userItem.classList.add('already-assigned');
+                        const assignedIndicator = userItem.querySelector('.assigned-indicator');
+                        if (assignedIndicator) {
+                            assignedIndicator.style.display = 'block';
                         }
-                    @endforeach
-                @endif
+                    }
+                });
             }
 
             handleFormSubmit(event) {
@@ -972,7 +975,7 @@
                     success: (response) => {
                         this.showSuccessMessage();
                         $(this.modal).modal('hide');
-                        this.loadAssignedUsers();
+                        location.reload();
                     },
                     error: (xhr) => {
                         console.error('Error assigning access:', xhr.responseText);
@@ -992,7 +995,7 @@
             }
 
             downloadFile(url) {
-                window.open(url, '_blank');
+                window.location.href = url;
             }
 
             confirmDelete(url) {
@@ -1027,3 +1030,4 @@
             window.confirmDelete = (url) => fileManager.confirmDelete(url);
         });
     </script>
+@endsection

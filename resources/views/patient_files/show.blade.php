@@ -105,9 +105,9 @@
                                 </a>
                             @endif
                             @if(auth()->user()->hasPermissionInContext('patient_files.destroy', $doctorId) && $file->uploader && $file->uploader->id === auth()->user()->id)
-                                <button onclick="fileManager.confirmDelete('{{ route('patient_files.destroy', [$patient, $file]) }}')" class="action-btn delete-btn">
+                                <a onclick="fileManager.confirmDelete('{{ route('patient_files.destroy', [$patient, $file]) }}')" class="action-btn delete-btn">
                                     <i class="fas fa-trash mr-2"></i>{{ trans('lang.delete_file') }}
-                                </button>
+                                </a>
                             @endif
                         </div>
                     </div>
@@ -126,19 +126,19 @@
                                     </div>
                                     <div class="header-actions d-flex gap-2">
                                         @if(auth()->user()->hasPermissionInContext('patient_files.download', $doctorId))
-                                            <button class="action-btn download-btn" onclick="fileManager.downloadFile('{{ route('patient_files.download', [$patient, $file]) }}')" data-toggle="tooltip" title="{{ trans('lang.download') }}">
+                                            <a class="action-btn download-btn" onclick="fileManager.downloadFile('{{ route('patient_files.download', [$patient, $file]) }}')" data-toggle="tooltip" title="{{ trans('lang.download') }}">
                                                 <i class="fas fa-download"></i>
-                                            </button>
+                                            </a>
                                         @endif
                                         @if(auth()->user()->hasPermissionInContext('patient_files.edit', $doctorId))
-                                            <button class="action-btn edit-btn" onclick="window.location.href='{{ route('patient_files.edit', [$patient, $file]) }}'" data-toggle="tooltip" title="{{ trans('lang.edit') }}">
+                                            <a class="action-btn edit-btn" onclick="window.location.href='{{ route('patient_files.edit', [$patient, $file]) }}'" data-toggle="tooltip" title="{{ trans('lang.edit') }}">
                                                 <i class="fas fa-edit"></i>
-                                            </button>
+                                            </a>
                                         @endif
                                         @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', $doctorId))
-                                            <button class="action-btn assign-btn" onclick="fileManager.openAssignModal('{{ $file->id }}', '{{ $file->file_name }}')" data-toggle="tooltip" title="{{ trans('lang.assign_access') }}">
+                                            <a class="action-btn assign-btn" onclick="fileManager.openAssignModal('{{ $file->id }}', '{{ $file->file_name }}')" data-toggle="tooltip" title="{{ trans('lang.assign_access') }}">
                                                 <i class="fas fa-user-plus"></i>
-                                            </button>
+                                            </a>
                                         @endif
                                     </div>
                                 </div>
@@ -215,9 +215,9 @@
                                             <i class="fas fa-users text-info mr-2"></i>{{ trans('lang.users_with_access') }}
                                         </h2>
                                         @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', $doctorId))
-                                            <button class="action-btn assign-btn" onclick="fileManager.openAssignModal('{{ $file->id }}', '{{ $file->file_name }}')">
+                                            <a class="action-btn assign-btn" onclick="fileManager.openAssignModal('{{ $file->id }}', '{{ $file->file_name }}')">
                                                 <i class="fas fa-user-plus mr-1"></i>{{ trans('lang.assign_access') }}
-                                            </button>
+                                            </a>
                                         @endif
                                     </div>
                                     <div class="users-list">
@@ -284,9 +284,9 @@
                             <h5 class="modal-title" id="assignAccessModalLabel">
                                 <i class="fas fa-user-plus mr-2"></i>{{ trans('lang.assign_access') }}
                             </h5>
-                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <a type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">×</span>
-                            </button>
+                            </a>
                         </div>
                         <div class="modal-body p-0">
                             <div class="selected-file-info p-3 bg-light border-bottom">
@@ -367,10 +367,10 @@
                             </form>
                         </div>
                         <div class="modal-footer border-0 bg-light">
-                            <button type="button" class="btn btn-light" data-dismiss="modal">{{ trans('lang.close') }}</button>
-                            <button type="submit" class="btn btn-primary" form="assignAccessForm" id="assignButton" disabled>
+                            <a type="button" class="btn btn-light" data-dismiss="modal">{{ trans('lang.close') }}</a>
+                            <a type="submit" class="btn btn-primary" form="assignAccessForm" id="assignButton" disabled>
                                 <i class="fas fa-user-plus mr-1"></i>{{ trans('lang.assign') }}
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -586,7 +586,6 @@
         }
 
         .action-btn {
-            width: 100%;
             height: 48px;
             border-radius: 10px;
             display: flex;
@@ -597,11 +596,13 @@
             cursor: pointer;
             color: white;
             font-weight: 600;
+            padding: 0 1rem;
         }
 
         .action-btn:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-medium);
+            color: var(--border-color);
         }
 
         .upload-btn {
@@ -910,7 +911,7 @@
                     this.noResultsMessage.style.display = 'block';
                     this.noResultsMessage.innerHTML = searchEmail ? `
                         <i class="fas fa-user-slash mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-                        <p>{{ trans('lang.no_user_found') }}: <strong>${this.escapeContent(searchEmail)}</strong></p>
+                        <p>{{ trans('lang.no_user_found') }}: <strong>${this.escapeHtml(searchEmail)}</strong></p>
                     ` : `
                         <i class="fas fa-search mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
                         <p>{{ trans('lang.enter_email_to_search') }}</p>
@@ -973,7 +974,8 @@
                 this.currentFileId = fileId;
 
                 if (this.selectedFileName) {
-                    this.selectedFileName.textContent = fileName;
+                    // Decode the filename to display special characters correctly
+                    this.selectedFileName.textContent = decodeURIComponent(fileName.replace(/\+/g, ' '));
                 }
                 if (this.selectedFileIdInput) {
                     this.selectedFileIdInput.value = fileId;
@@ -1010,7 +1012,7 @@
                     });
                 }
 
-                this.updateNoResultsMessage(null, false);
+                this.updateNoResultsMessage('', false);
             }
 
             loadAssignedUsers() {
@@ -1052,7 +1054,7 @@
                     user_id: formData.get('user_id'),
                     patient_file_id: formData.get('patient_file_id'),
                     expiration_date: formData.get('expiration_date'),
-                    _token: '{{ csrf_token() }}'
+                    _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 };
 
                 $.ajax({
@@ -1075,14 +1077,14 @@
                 alert('{{ trans('lang.access_assigned_successfully') }}');
             }
 
-            escapeContent(text) {
+            escapeHtml(text) {
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
             }
 
             downloadFile(url) {
-                window.open(url, '_blank');
+                window.location.href = url;
             }
 
             confirmDelete(url) {
