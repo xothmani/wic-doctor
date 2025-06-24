@@ -576,6 +576,20 @@ class PatientFileController extends Controller
         }
     }
 
+    public function getAssignedUsers($patientId, $fileId)
+    {
+        $assignedUserIds = PatientFileUser::where('patient_file_id', $fileId)
+            ->where('patient_id', $patientId)
+            ->where(function ($query) {
+                $query->whereNull('expiration_date')
+                    ->orWhere('expiration_date', '>', now());
+            })
+            ->pluck('user_id')
+            ->toArray();
+
+        return response()->json(['user_ids' => $assignedUserIds]);
+    }
+
     // API Routes
     public function apiIndex(Patient $patient, Request $request)
     {
