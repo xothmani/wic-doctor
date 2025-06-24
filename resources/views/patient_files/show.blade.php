@@ -136,7 +136,8 @@
                                             </a>
                                         @endif
                                         @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', $doctorId))
-                                            <a class="action-btn assign-btn" onclick="fileManager.openAssignModal('{{ $file->id }}', '{{ $file->file_name }}')" data-toggle="tooltip" title="{{ trans('lang.assign_access') }}">
+                                            <a class="action-btn assign-btn" 
+                                            onclick="fileManager.openAssignModal('{{ $file->id }}', {{ json_encode($file->file_name) }})">
                                                 <i class="fas fa-user-plus"></i>
                                             </a>
                                         @endif
@@ -215,7 +216,8 @@
                                             <i class="fas fa-users text-info mr-2"></i>{{ trans('lang.users_with_access') }}
                                         </h2>
                                         @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', $doctorId))
-                                            <a class="action-btn assign-btn" onclick="fileManager.openAssignModal('{{ $file->id }}', '{{ $file->file_name }}')">
+                                            <a class="action-btn assign-btn" 
+                                            onclick="fileManager.openAssignModal('{{ $file->id }}', {{ json_encode($file->file_name) }})">
                                                 <i class="fas fa-user-plus mr-1"></i>{{ trans('lang.assign_access') }}
                                             </a>
                                         @endif
@@ -368,9 +370,9 @@
                         </div>
                         <div class="modal-footer border-0 bg-light">
                             <a type="button" class="btn btn-light" data-dismiss="modal">{{ trans('lang.close') }}</a>
-                            <a type="submit" class="btn btn-primary" form="assignAccessForm" id="assignButton" disabled>
+                            <button type="submit" class="btn btn-primary" form="assignAccessForm" id="assignButton" disabled>
                                 <i class="fas fa-user-plus mr-1"></i>{{ trans('lang.assign') }}
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -474,6 +476,13 @@
         .card-header {
             padding: 1.5rem;
             border-bottom: none;
+        }
+
+        .card-info {
+            display: flex;
+            align-items: start;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
         .file-icon-container {
@@ -761,7 +770,7 @@
                 this.selectedUserId = null;
                 this.assignedUsers = new Set();
                 this.searchTimeout = null;
-                this.assignRoute = "{{ route('patient_files.assign_access', [$patient, $file]) }}";
+                this.assignRouteTemplate = "{{ route('patient_files.assign_access', [$patient, ':file_id']) }}";
 
                 this.initializeElements();
                 this.bindEvents();
@@ -974,14 +983,17 @@
                 this.currentFileId = fileId;
 
                 if (this.selectedFileName) {
-                    // Decode the filename to display special characters correctly
-                    this.selectedFileName.textContent = decodeURIComponent(fileName.replace(/\+/g, ' '));
+                    try {
+                        this.selectedFileName.textContent = decodeURIComponent(escape(fileName));
+                    } catch (e) {
+                        this.selectedFileName.textContent = fileName;
+                    }
                 }
                 if (this.selectedFileIdInput) {
                     this.selectedFileIdInput.value = fileId;
                 }
                 if (this.assignForm) {
-                    this.assignForm.action = this.assignRoute;
+                    this.assignForm.action = this.assignRouteTemplate.replace(':file_id', fileId);
                 }
 
                 this.resetModal();
@@ -1029,14 +1041,14 @@
                         ->toArray();
                 @endphp
                 const assignedUsers = @json($assignedUserIds);
-                assignedUsers.forEach(userId => {
-                    const userItem = this.userList.querySelector(`[data-user-id="${userId}"]`);
-                    if (userItem) {
-                        userItem.classList.add('already-assigned');
+                        assignedUsers.forEach(userId => {
+                            const userItem = this.userList.querySelector(`[data-user-id="${userId}"]`);
+                            if (userItem) {
+                                userItem.classList.add('already-assigned');
                         const assignedIndicator = userItem.querySelector('.assigned-indicator');
-                        if (assignedIndicator) {
-                            assignedIndicator.style.display = 'block';
-                        }
+                                if (assignedIndicator) {
+                                    assignedIndicator.style.display = 'block';
+                                }
                     }
                 });
             }
