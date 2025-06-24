@@ -1684,4 +1684,6 @@ return [
     'file_required' => 'A file is required.',
     'invalid_file_type' => 'The selected file type is not supported.',
     'file_too_large' => 'The file size exceeds the maximum limit of :max.',
+    'no_user_found_with_email' => 'No user found with email',
+    'enter_email_to_search' => 'Enter an email to search',
 ];

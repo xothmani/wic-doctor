@@ -2366,4 +2366,6 @@ return [
     'file_required' => 'Un fichier est requis.',
     'invalid_file_type' => 'Le type de fichier sélectionné n’est pas pris en charge.',
     'file_too_large' => 'La taille du fichier dépasse la limite maximale de :max.',
+    'no_user_found_with_email' => 'Aucun utilisateur trouvé avec l’adresse email',
+    'enter_email_to_search' => 'Entrez une adresse email pour rechercher',
 ];
