@@ -159,9 +159,7 @@
                         <form id="assignAccessForm" method="POST" action="{{ route('patient_files.assign_access', [$patient, ':id']) }}">
                             @csrf
                             <div class="users-modal-list" id="userList">
-                                <div id="noResultsMessage" class="text-center p-4 text-muted">
-                                    <i class="fas fa-search mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-                                    <p>{{ trans('lang.enter_email_to_search') }}</p>
+                                <div id="noResultsMessage" class="text-center p-4 text-muted" style="display: none;">
                                 </div>
 
                                 @if(isset($allUsers))
@@ -770,8 +768,7 @@
                     const userName = (item.dataset.name || '').trim().toLowerCase();
 
                     const shouldShow = !searchEmail ||
-                        userEmail.includes(searchEmail) ||
-                        userName.includes(searchEmail);
+                        userEmail === searchEmail;
 
                     if (shouldShow) {
                         this.showUserItem(item);
@@ -819,14 +816,18 @@
                 if (hasVisibleUsers) {
                     this.noResultsMessage.style.display = 'none';
                 } else {
-                    this.noResultsMessage.style.display = 'block';
-                    this.noResultsMessage.innerHTML = searchEmail ? `
-                        <i class="fas fa-user-slash mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-                        <p>{{ trans('lang.no_user_found') }}: <strong>${this.escapeHtml(searchEmail)}</strong></p>
-                    ` : `
-                        <i class="fas fa-search mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-                        <p>{{ trans('lang.enter_email_to_search') }}</p>
-                    `;
+                    if (searchEmail && searchEmail!=='') {
+                        this.noResultsMessage.style.display = 'block';
+                        this.noResultsMessage.innerHTML = searchEmail ? `
+                            <i class="fas fa-user-slash mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <p>{{ trans('lang.no_user_found') }}: <strong>${this.escapeHtml(searchEmail)}</strong></p>
+                        ` : `
+                            <i class="fas fa-search mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <p>{{ trans('lang.enter_email_to_search') }}</p>
+                        `;
+                    }else {
+                        this.noResultsMessage.style.display = 'none';
+                    }
                 }
             }
 
