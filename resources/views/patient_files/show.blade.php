@@ -462,6 +462,10 @@
             gap: 3rem;
         }
 
+        .stat-item i {
+            width: 18px;
+        }
+
         .content-header {
             background: #f8f9fa;
             border-bottom: 1px solid var(--border-color);
@@ -530,7 +534,7 @@
 
         .file-title {
             font-weight: 600;
-            color: #2d3748;
+            color:rgb(79, 79, 79);
         }
 
         .stat-item {
