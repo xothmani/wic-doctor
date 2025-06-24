@@ -1095,12 +1095,13 @@
                     const csrfInput = document.createElement('input');
                     csrfInput.type = 'hidden';
                     csrfInput.name = '_token';
-                    csrfInput.value = '{{ csrf_token() }}';
+                    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content') || '';
                     form.appendChild(csrfInput);
 
                     const methodInput = document.createElement('input');
                     methodInput.type = 'hidden';
-                    methodInput.name = 'DELETE';
+                    methodInput.name = '_method';
+                    methodInput.value = 'DELETE';
                     form.appendChild(methodInput);
 
                     document.body.appendChild(form);
