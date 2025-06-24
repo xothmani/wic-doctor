@@ -15,13 +15,13 @@
             <div class="container-fluid">
                 <div class="row align-items-center">
                     <div class="col-md-6 mb-3 mb-md-0">
-                        <h1 class="m-0 d-flex align-items-center flex-wrap">
-                            <span class="font-weight-bold mr-2">{{ trans('lang.patient_file_details') }}</span>
-                            <span class="text-muted mx-2">|</span>
-                            <span class="badge badge-primary px-3 py-2">
+                        <h1 class="m-0 text-bold">
+                            {{trans('lang.patient_files_plural')}}
+                            <small class="mx-3 text-muted">|</small>
+                            <small class="badge badge-soft-info px-3 py-1">
                                 <i class="fas fa-user-injured mr-1"></i>
                                 {{ $patient->first_name }} {{ $patient->last_name }}
-                            </span>
+                            </small>
                         </h1>
                     </div>
                     <div class="col-md-6">
@@ -213,7 +213,7 @@
                                 <section class="assigned-users-section p-4" role="region" aria-label="{{ trans('lang.users_with_access') }}">
                                     <div class="section-header d-flex justify-content-between align-items-center mb-3">
                                         <h2 class="section-title h5 mb-0">
-                                            <i class="fas fa-users text-info mr-2"></i>{{ trans('lang.users_with_access') }}
+                                            <i class="fas fa-users text-primary mr-2"></i>{{ trans('lang.users_with_access') }}
                                         </h2>
                                         @if(auth()->user()->hasPermissionInContext('patient_files.assign_access', $doctorId))
                                             <a class="action-btn assign-btn" 
@@ -312,9 +312,7 @@
                             <form id="assignAccessForm" method="POST" action="{{ route('patient_files.assign_access', [$patient, $file]) }}">
                                 @csrf
                                 <div class="users-modal-list" id="userList">
-                                    <div id="noResultsMessage" class="text-center p-4 text-muted">
-                                        <i class="fas fa-search mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-                                        <p>{{ trans('lang.enter_email_to_search') }}</p>
+                                    <div id="noResultsMessage" class="text-center p-4 text-muted" style="display: none;">
                                     </div>
 
                                     @if(isset($allUsers))
@@ -422,6 +420,26 @@
             --shadow-heavy: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             --border-radius: 12px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        .bg-gradient-primary {
+            background: var(--primary-color) !important;
+        }
+
+        .badge-soft-info {
+            color: var(--info, #17a2b8);
+            background-color: rgba(23, 162, 184, 0.1);
+            border: 1px solid rgba(23, 162, 184, 0.2);
+        }
+
+        .user-avatar ,.uploader-avatar {
+            height: 40px;
+            width: 40px;
+            overflow: hidden;
         }
 
         .gap-1 {
@@ -568,6 +586,7 @@
             object-fit: cover;
             border: 2px solid white;
             box-shadow: var(--shadow-light);
+            overflow: hidden;
         }
 
         .avatar-placeholder {
@@ -868,8 +887,7 @@
                     const userName = (item.dataset.name || '').trim().toLowerCase();
 
                     const shouldShow = !searchEmail ||
-                        userEmail.includes(searchEmail) ||
-                        userName.includes(searchEmail);
+                        userEmail === searchEmail;
 
                     if (shouldShow) {
                         this.showUserItem(item);
@@ -917,14 +935,18 @@
                 if (hasVisibleUsers) {
                     this.noResultsMessage.style.display = 'none';
                 } else {
-                    this.noResultsMessage.style.display = 'block';
-                    this.noResultsMessage.innerHTML = searchEmail ? `
-                        <i class="fas fa-user-slash mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-                        <p>{{ trans('lang.no_user_found') }}: <strong>${this.escapeHtml(searchEmail)}</strong></p>
-                    ` : `
-                        <i class="fas fa-search mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-                        <p>{{ trans('lang.enter_email_to_search') }}</p>
-                    `;
+                    if (searchEmail && searchEmail!=='') {
+                        this.noResultsMessage.style.display = 'block';
+                        this.noResultsMessage.innerHTML = searchEmail ? `
+                            <i class="fas fa-user-slash mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <p>{{ trans('lang.no_user_found') }}: <strong>${this.escapeHtml(searchEmail)}</strong></p>
+                        ` : `
+                            <i class="fas fa-search mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <p>{{ trans('lang.enter_email_to_search') }}</p>
+                        `;
+                    }else {
+                        this.noResultsMessage.style.display = 'none';
+                    }
                 }
             }
 
