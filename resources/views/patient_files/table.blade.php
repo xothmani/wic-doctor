@@ -672,7 +672,7 @@
                 this.selectedUserId = null;
                 this.assignedUsers = new Set();
                 this.searchTimeout = null;
-                this.assignRoute = "{{ route('patient_files.assign_access', [$patient, $file]) }}";
+                this.assignRouteTemplate = "{{ route('patient_files.assign_access', [$patient, ':file_id']) }}";
 
                 this.initializeElements();
                 this.bindEvents();
@@ -885,14 +885,17 @@
                 this.currentFileId = fileId;
 
                 if (this.selectedFileName) {
-                    // Decode the filename to display special characters correctly
-                    this.selectedFileName.textContent = decodeURIComponent(fileName.replace(/\+/g, ' '));
+                    try {
+                        this.selectedFileName.textContent = decodeURIComponent(escape(fileName));
+                    } catch (e) {
+                        this.selectedFileName.textContent = fileName;
+                    }
                 }
                 if (this.selectedFileIdInput) {
                     this.selectedFileIdInput.value = fileId;
                 }
                 if (this.assignForm) {
-                    this.assignForm.action = this.assignRoute;
+                    this.assignForm.action = this.assignRouteTemplate.replace(':file_id', fileId);
                 }
 
                 this.resetModal();
@@ -929,25 +932,26 @@
             loadAssignedUsers() {
                 if (!this.currentFileId || !this.userList) return;
 
-                @php
-                    $assignedUserIds = \App\Models\PatientFileUser::where('patient_file_id', $file->id)
-                        ->where('patient_id', $patient->id)
-                        ->where(function ($query) {
-                            $query->whereNull('expiration_date')
-                                ->orWhere('expiration_date', '>', now());
-                        })
-                        ->pluck('user_id')
-                        ->toArray();
-                @endphp
-                const assignedUsers = @json($assignedUserIds);
-                assignedUsers.forEach(userId => {
-                    const userItem = this.userList.querySelector(`[data-user-id="${userId}"]`);
-                    if (userItem) {
-                        userItem.classList.add('already-assigned');
-                        const assignedIndicator = userItem.querySelector('.assigned-indicator');
-                        if (assignedIndicator) {
-                            assignedIndicator.style.display = 'block';
-                        }
+                const url = "/patient_files/patient_files/{{ $patient->id }}/assigned_users/" + this.currentFileId;
+
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    success: (response) => {
+                        const assignedUsers = response.user_ids || [];
+                        assignedUsers.forEach(userId => {
+                            const userItem = this.userList.querySelector(`[data-user-id="${userId}"]`);
+                            if (userItem) {
+                                userItem.classList.add('already-assigned');
+                                const assignedIndicator = userItem.querySelector('.assigned-indicator');
+                                if (assignedIndicator) {
+                                    assignedIndicator.style.display = 'block';
+                                }
+                            }
+                        });
+                    },
+                    error: (xhr) => {
+                        console.error('Error loading assigned users:', xhr.responseText);
                     }
                 });
             }
