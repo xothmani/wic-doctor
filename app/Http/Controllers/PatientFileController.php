@@ -8,6 +8,7 @@ use App\Models\PatientFileLog;
 use App\Models\PatientFileUser;
 use App\Models\Doctor;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
@@ -627,10 +628,18 @@ class PatientFileController extends Controller
             return response()->json(['error' => 'Unauthorized access to patient files.'], 403);
         }
 
-        // Retrieve only files the user has access to
-        $files = PatientFile::where('patient_id', $patient->id)
+        $perPage = $request->query('per_page', 10);
+        $page = $request->query('page', 1);
+
+        if (!is_numeric($perPage) || $perPage < 1 || $perPage > 100) {
+            return response()->json(['error' => 'Invalid per_page value. Must be between 1 and 100.'], 400);
+        }
+        if (!is_numeric($page) || $page < 1) {
+            return response()->json(['error' => 'Invalid page value. Must be at least 1.'], 400);
+        }
+
+        $query = PatientFile::where('patient_id', $patient->id)
             ->where(function ($query) use ($user, $patient) {
-                // If user is the patient, include all their files
                 if ($patient->user_id === $user->id) {
                     return;
                 }
@@ -648,19 +657,31 @@ class PatientFileController extends Controller
                     });
                 }
             })
-            ->with('uploader')
-            ->get()
-            ->map(function ($file) {
+            ->with('uploader');
+
+        // Apply pagination
+        $files = $query->paginate($perPage, ['*'], 'page', $page)
+            ->through(function ($file) {
                 return $file->makeHidden(['uploader']);
             });
 
         Log::info('API: Successfully retrieved patient files', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
-            'file_count' => $files->count()
+            'file_count' => $files->total(),
+            'page' => $files->currentPage(),
+            'per_page' => $files->perPage()
         ]);
 
-        return response()->json(['files' => $files], 200);
+        return response()->json([
+            'files' => $files->items(),
+            'pagination' => [
+                'current_page' => $files->currentPage(),
+                'last_page' => $files->lastPage(),
+                'per_page' => $files->perPage(),
+                'total' => $files->total()
+            ]
+        ], 200);
     }
 
     public function apiShow(Patient $patient, PatientFile $file, Request $request)
