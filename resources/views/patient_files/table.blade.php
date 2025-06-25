@@ -933,14 +933,24 @@
             loadAssignedUsers() {
                 if (!this.currentFileId || !this.userList) return;
 
-                const url = "/patient_files/patient_files/{{ $patient->id }}/assigned_users/" + this.currentFileId;
+                const url = "/api/patient_files/{{ $patient->id }}/assigned_users/" + this.currentFileId;
 
                 $.ajax({
                     url: url,
                     method: 'GET',
+                    headers: {
+                        'X-USER-ID': '{{ auth()->user()->id }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
                     success: (response) => {
-                        const assignedUsers = response.user_ids || [];
-                        assignedUsers.forEach(userId => {
+                        const assignedUsers = response.assigned_users || [];
+                        // log assigned users
+                        console.log('Assigned users:', assignedUsers);
+
+                        assignedUsers.forEach(item => {
+                            console.log('Access item:', item);
+                            const userId = item.user_id;
                             const userItem = this.userList.querySelector(`[data-user-id="${userId}"]`);
                             if (userItem) {
                                 userItem.classList.add('already-assigned');

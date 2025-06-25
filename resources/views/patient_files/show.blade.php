@@ -1056,25 +1056,36 @@
             loadAssignedUsers() {
                 if (!this.currentFileId || !this.userList) return;
 
-                @php
-                    $assignedUserIds = \App\Models\PatientFileUser::where('patient_file_id', $file->id)
-                        ->where('patient_id', $patient->id)
-                        ->where(function ($query) {
-                            $query->whereNull('expiration_date')
-                                ->orWhere('expiration_date', '>', now());
-                        })
-                        ->pluck('user_id')
-                        ->toArray();
-                @endphp
-                const assignedUsers = @json($assignedUserIds);
-                        assignedUsers.forEach(userId => {
+                const url = "/api/patient_files/{{ $patient->id }}/assigned_users/" + this.currentFileId;
+
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    headers: {
+                        'X-USER-ID': '{{ auth()->user()->id }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    success: (response) => {
+                        const assignedUsers = response.assigned_users || [];
+                        // log assigned users
+                        console.log('Assigned users:', assignedUsers);
+
+                        assignedUsers.forEach(item => {
+                            console.log('Access item:', item);
+                            const userId = item.user_id;
                             const userItem = this.userList.querySelector(`[data-user-id="${userId}"]`);
                             if (userItem) {
                                 userItem.classList.add('already-assigned');
-                        const assignedIndicator = userItem.querySelector('.assigned-indicator');
+                                const assignedIndicator = userItem.querySelector('.assigned-indicator');
                                 if (assignedIndicator) {
                                     assignedIndicator.style.display = 'block';
                                 }
+                            }
+                        });
+                    },
+                    error: (xhr) => {
+                        console.error('Error loading assigned users:', xhr.responseText);
                     }
                 });
             }
