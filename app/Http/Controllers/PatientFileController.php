@@ -20,7 +20,7 @@ class PatientFileController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess']);
+        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers']);
         Log::info('PatientFileController initialized', ['user_id' => Auth::id()]);
     }
 
@@ -576,6 +576,20 @@ class PatientFileController extends Controller
         }
     }
 
+    public function getAssignedUsers($patientId, $fileId)
+    {
+        $assignedUserIds = PatientFileUser::where('patient_file_id', $fileId)
+            ->where('patient_id', $patientId)
+            ->where(function ($query) {
+                $query->whereNull('expiration_date')
+                    ->orWhere('expiration_date', '>', now());
+            })
+            ->pluck('user_id')
+            ->toArray();
+
+        return response()->json(['user_ids' => $assignedUserIds]);
+    }
+
     // API Routes
     public function apiIndex(Patient $patient, Request $request)
     {
@@ -585,7 +599,21 @@ class PatientFileController extends Controller
             return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
         }
 
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
         Log::info('API: Accessing patient files index', [
             'user_id' => $user->id,
             'patient_id' => $patient->id
@@ -646,7 +674,23 @@ class PatientFileController extends Controller
             return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
         }
 
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
         Log::info('API: Attempting to access patient file show', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
@@ -683,7 +727,23 @@ class PatientFileController extends Controller
             return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
         }
 
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
         Log::info('API: Attempting to download file', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
@@ -750,7 +810,23 @@ class PatientFileController extends Controller
             return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
         }
 
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
         Log::info('API: Attempting to delete file', [
             'user_id' => $user->id,
             'patient_id' => $patient->id,
@@ -815,7 +891,23 @@ class PatientFileController extends Controller
             return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
         }
 
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
         $request->validate([
             'to_user_id' => 'required|exists:users,id',
             'expiration_date' => 'nullable|date|after:now',
@@ -927,7 +1019,21 @@ class PatientFileController extends Controller
             'patient_id' => $patient->id
         ]);
 
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
 
         \Log::info('found user', [
             'user_id' => $user->email
@@ -938,7 +1044,21 @@ class PatientFileController extends Controller
             'description' => 'nullable|string|max:255',
         ]);
 
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
         Log::info('API: Attempting to upload file', [
             'user_id' => $user->id,
             'patient_id' => $patient->id
@@ -1013,7 +1133,23 @@ class PatientFileController extends Controller
             return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
         }
 
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
         $request->validate([
             'to_user_id' => 'required|exists:users,id',
         ]);
@@ -1093,6 +1229,78 @@ class PatientFileController extends Controller
                 'error' => $e->getMessage()
             ]);
             return response()->json(['error' => 'File access revocation failed.'], 500);
+        }
+    }
+
+    public function apiGetAssignedUsers(Patient $patient, PatientFile $file, Request $request)
+    {
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
+
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
+        Log::info('API: Attempting to access patient file show', [
+            'user_id' => $user->id,
+            'patient_id' => $patient->id,
+            'file_id' => $file->id
+        ]);
+
+        if ($file->patient_id !== $patient->id) {
+            Log::error('API: File not found for patient', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'File not found.'], 404);
+        }
+
+        if (!$this->hasFileAccess($patient, $user, $file)) {
+            Log::warning('API: Unauthorized attempt to access patient file show', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Unauthorized to access file.'], 403);
+        }
+
+        try {
+            $assignedUsers = PatientFileUser::where('patient_file_id', $file->id)
+                ->where(function ($q) {
+                    $q->whereNull('expiration_date')
+                        ->orWhere('expiration_date', '>', now());
+                })
+                ->get();
+
+            return response()->json(['assigned_users' => $assignedUsers], 200);
+        } catch (\Exception $e) {
+            Log::error('API: Error getting assigned users', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'Error getting assigned users.'], 500);
         }
     }
 

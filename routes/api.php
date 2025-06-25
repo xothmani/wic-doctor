@@ -267,4 +267,5 @@ Route::prefix('patient_files')->name('api.patient_files.')->group(function () {
     Route::post('/{patient}/{file}/give-access', [PatientFileController::class, 'apiGiveAccess'])->name('give_access');
     Route::post('/{patient}/upload', [PatientFileController::class, 'apiUpload'])->name('upload');
     Route::post('/{patient}/{file}/revoke-access', [PatientFileController::class, 'apiRevokeAccess'])->name('revoke_access');
+    Route::get('/{patient}/assigned_users/{file}', [PatientFileController::class, 'apiGetAssignedUsers'])->name('assigned_users');
 });

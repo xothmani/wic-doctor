@@ -704,6 +704,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         Route::post('/{patient}/assign-doctor', [PatientFileController::class, 'assignDoctor'])->name('assign_doctor');
         Route::post('/{patient}/{file}/assign-access', [PatientFileController::class, 'assignAccess'])->name('assign_access');
         Route::post('/{patient}/{file}/revoke-access', [PatientFileController::class, 'revokeAccess'])->name('revoke_access');
+        Route::get('patient_files/{patient}/assigned_users/{file}', [PatientFileController::class, 'getAssignedUsers'])->name('assigned_users');
     });
 
 });
