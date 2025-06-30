@@ -16,12 +16,15 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\URL;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 
 class PatientFileController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers']);
+        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers', 'apiGenerateFileQrCode', 'apiDownloadExternal']);
         Log::info('PatientFileController initialized', ['user_id' => Auth::id()]);
     }
 
@@ -820,6 +823,49 @@ class PatientFileController extends Controller
         }
     }
 
+    public function apiDownloadExternal(Patient $patient, PatientFile $file)
+    {
+        
+        if ($file->patient_id !== $patient->id) {
+            Log::error('API: File not found for patient', [
+                'user_id' => $patient->user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'File not found.'], 404);
+        }
+
+        try {
+            PatientFileLog::create([
+                'patient_file_id' => $file->id,
+                'user_id' => $patient->user->id,
+                'action' => 'download',
+            ]);
+
+            $encryptedContent = Storage::disk('patient_files')->get($file->file_path);
+            $decryptedContent = Crypt::decrypt($encryptedContent);
+
+            Log::info('API: File downloaded successfully', [
+                'user_id' => $patient->user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id,
+                'file_name' => $file->file_name
+            ]);
+
+            return response($decryptedContent)
+                ->header('Content-Type', $file->file_type)
+                ->header('Content-Disposition', 'attachment; filename="' . $file->file_name . '"');
+        } catch (\Exception $e) {
+            Log::error('API: File download failed', [
+                'user_id' => $patient->user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'File download failed.'], 500);
+        }
+    }
+
     public function apiDestroy(Patient $patient, PatientFile $file, Request $request)
     {
         $userId = $request->header('X-User-ID');
@@ -1322,6 +1368,100 @@ class PatientFileController extends Controller
                 'error' => $e->getMessage()
             ]);
             return response()->json(['error' => 'Error getting assigned users.'], 500);
+        }
+    }
+
+    public function apiGenerateFileQrCode(Request $request, Patient $patient, PatientFile $file)
+    {
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
+
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
+
+        Log::info('API: Attempting to generate QR code for file', [
+            'user_id' => $user->id,
+            'patient_id' => $patient->id,
+            'file_id' => $file->id
+        ]);
+
+        if ($file->patient_id !== $patient->id) {
+            Log::error('API: File not found for patient', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'File not found.'], 404);
+        }
+
+        if (!$this->hasFileAccess($patient, $user, $file)) {
+            Log::warning('API: Unauthorized attempt to generate QR code', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Unauthorized to generate QR code.'], 403);
+        }
+
+        try {
+            $downloadUrl = URL::temporarySignedRoute(
+                'api.patient_files.api_download',
+                now()->addHours(24),
+                ['patient' => $patient->id, 'file' => $file->id]
+            );
+
+            $qrCode = QrCode::create($downloadUrl)->setSize(300);
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+            $qrCodeBase64 = base64_encode($result->getString());
+
+            PatientFileLog::create([
+                'patient_file_id' => $file->id,
+                'user_id' => $user->id,
+                'action' => 'generate_qr_code',
+            ]);
+
+            Log::info('API: QR code generated successfully', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id,
+                'file_name' => $file->file_name
+            ]);
+
+            return response()->json([
+                'message' => 'QR code generated successfully.',
+                'qr_code' => 'data:image/png;base64,' . $qrCodeBase64,
+                'download_url' => $downloadUrl
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('API: QR code generation failed', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'QR code generation failed.'], 500);
         }
     }
 
