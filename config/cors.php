@@ -19,8 +19,8 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://wic-doctor.com', 'http://wic-doctor.com', 'https://wic-doctor.com/*', 'http://wic-doctor.com/*', 'http://127.0.0.1:8031', 'http://localhost:8031', 'http://127.0.0.1:8031/*', 'http://localhost:8031/*'],
-    // 'allowed_origins' => ['*'],
+    // 'allowed_origins' => ['https://wic-doctor.com', 'http://wic-doctor.com', 'https://wic-doctor.com/*', 'http://wic-doctor.com/*', 'http://127.0.0.1:8031', 'http://localhost:8031', 'http://127.0.0.1:8031/*', 'http://localhost:8031/*'],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
