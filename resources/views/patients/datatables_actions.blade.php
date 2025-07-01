@@ -304,6 +304,10 @@
         color: white;
         opacity: 1;
     }
+    .btn-group-sm .btn-link {
+    opacity: 1 !important;
+    transition: none !important;
+}
 </style>
 
 

@@ -14,9 +14,7 @@
 </head>
 <body class="hold-transition login-page">
 <div class="login-box" @if(isset($width)) style="width:{{$width}}" @endif>
-    <div class="login-logo">
-        <a href="{{ url('/') }}"><img src="{{$app_logo}}" alt="{{setting('app_name')}}"></a>
-    </div>
+   
     <!-- /.login-logo -->
     <div class="card shadow-sm">
         @yield('content')

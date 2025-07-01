@@ -701,7 +701,7 @@
             $('<style>').text(`
                                                                                                                                                                                                                                                                                                                                                                                     .time-slot-button.active, 
                                                                                                                                                                                                                                                                                                                                                                                     .slot-btn.time-slot-button.active {
-                                                                                                                                                                                                                                                                                                                                                                                        background-color: #5c6bc0 !important;
+                                                                                                                                                                                                                                                                                                                                                                                        background-color: #001f3f !important;
                                                                                                                                                                                                                                                                                                                                                                                         color: #fff !important;
                                                                                                                                                                                                                                                                                                                                                                                         transform: translateY(-2px) !important;
                                                                                                                                                                                                                                                                                                                                                                                         border-color: #4a5aa5 !important;
@@ -1094,7 +1094,7 @@
                                     'transform': ''
                                 });
                                 $(this).addClass('active').css({
-                                    'background-color': '#5c6bc0',
+                                    'background-color': '#001f3f',
                                     'color': '#fff',
                                     'transform': 'translateY(-2px)'
                                 });
@@ -1128,7 +1128,7 @@
                                     'transform': ''
                                 });
                                 $(this).addClass('active').css({
-                                    'background-color': '#5c6bc0',
+                                    'background-color': '#001f3f',
                                     'color': '#fff',
                                     'transform': 'translateY(-2px)'
                                 });
@@ -1229,7 +1229,7 @@
                                             'transform': ''
                                         });
                                         $(this).addClass('active').css({
-                                            'background-color': '#5c6bc0',
+                                            'background-color': '#001f3f',
                                             'color': '#fff',
                                             'transform': 'translateY(-2px)'
                                         });
@@ -1241,7 +1241,7 @@
                                     // If this was the selected slot, make it active
                                     if (slotData.slot === selectedSlot) {
                                         $btn.addClass('active').css({
-                                            'background-color': '#5c6bc0',
+                                            'background-color': '#001f3f',
                                             'color': '#fff',
                                             'transform': 'translateY(-2px)'
                                         });
@@ -1681,7 +1681,7 @@
                                         'transform': ''
                                     });
                                     $(this).addClass('active').css({
-                                        'background-color': '#5c6bc0',
+                                        'background-color': '#001f3f',
                                         'color': '#fff',
                                         'transform': 'translateY(-2px)'
                                     });
@@ -1693,7 +1693,7 @@
                                 // If this was the selected slot, make it active
                                 if (slotData.slot === selectedSlot) {
                                     $btn.addClass('active').css({
-                                        'background-color': '#5c6bc0',
+                                        'background-color': '#001f3f',
                                         'color': '#fff',
                                         'transform': 'translateY(-2px)'
                                     });
@@ -2699,7 +2699,7 @@
                                 z-index: 10;
                                 border-radius: 4px;
                             ">
-                                <div style="display: flex; align-items: center; gap: 8px; color: #007bff;">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #001f3f;">
                                     <i class="fas fa-spinner fa-spin"></i>
                                     <span>Chargement...</span>
                                 </div>

@@ -52,12 +52,12 @@
         }
 
         .section-title {
-            color: #5c6bc0;
+            color: #001f3f;
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 1.5rem;
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid #5c6bc0;
+            border-bottom: 2px solid #001f3f;
         }
 
         .form-group {
@@ -73,7 +73,7 @@
         }
 
         .form-control:focus {
-            border-color: #5c6bc0;
+            border-color: #001f3f;
             box-shadow: 0 0 0 0.2rem rgba(92, 107, 192, 0.15);
         }
 
@@ -86,7 +86,7 @@
 
         .required-field::after {
             content: "*";
-            color: #5c6bc0;
+            color: #001f3f;
             margin-left: 4px;
         }
 
@@ -99,7 +99,7 @@
             left: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #5c6bc0;
+            color: #001f3f;
         }
 
         .input-icon input {
@@ -114,8 +114,8 @@
         }
 
         .btn-primary {
-            background-color: #5c6bc0;
-            border-color: #5c6bc0;
+            background-color: #001f3f;
+            border-color: #001f3f;
         }
 
         .btn-primary:hover {
@@ -195,7 +195,7 @@
 
         <div class="card">
             <div class="card-body">
-                <h3 class="mb-4" style="color: #5c6bc0;">
+                <h3 class="mb-4" style="color: #001f3f;">
                     <i class="fas fa-video me-2"></i>&nbsp;&nbsp;{{ trans('lang.new_teleconsultation') }}
                 </h3>
 
@@ -538,8 +538,8 @@
                     html: `
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <div class="text-left">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="card mb-3" style="border-color: #5c6bc0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="card-header text-white" style="background-color: #5c6bc0">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="card mb-3" style="border-color: #001f3f">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="card-header text-white" style="background-color: #001f3f">
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <i class="fas fa-user-circle"></i> Informations
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </div>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <div class="card-body p-3">
@@ -562,8 +562,8 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </div>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </div>
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="card mb-3" style="border-color: #5c6bc0">
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="card-header text-white" style="background-color: #5c6bc0">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <div class="card mb-3" style="border-color: #001f3f">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="card-header text-white" style="background-color: #001f3f">
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             <i class="fas fa-money-bill"></i> Prix & Lien
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </div>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <div class="card-body p-3">
@@ -590,7 +590,7 @@
                     showCancelButton: true,
                     confirmButtonText: 'Confirmer',
                     cancelButtonText: 'Modifier',
-                    confirmButtonColor: '#5c6bc0',
+                    confirmButtonColor: '#001f3f',
                     cancelButtonColor: '#6c757d'
                 }).then((result) => {
                     if (result.isConfirmed) {

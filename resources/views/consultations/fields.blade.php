@@ -12,7 +12,7 @@
     }
 
     #recordButton:hover {
-        background-color: #5c6bc0 !important;
+        background-color: #001f3f !important;
     }
 
     #playButton:hover {

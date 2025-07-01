@@ -287,20 +287,20 @@ span.input-group-addon {
 }
 
 .btn.btn-facebook {
-  background-color: #4267B2;
-  border-color: #395da5;
+  background-color: #001f3f;
+  border-color: #001f3f;
   color: #fff;
 }
-
+th
 .btn.btn-google {
-  background-color: #4285F4;
-  border-color: #3174df;
+  background-color: #001f3f;
+  border-color: #001f3f;
   color: #fff;
 }
 
 .btn.btn-twitter {
-  background-color: #00aced;
-  border-color: #00a4e6;
+  background-color: #001f3f;
+  border-color: #001f3f;
   color: #fff;
 }
 
@@ -585,4 +585,5 @@ body.rtl div.dataTables_wrapper .dataTables_length {
   }
 }
 
-/*# sourceMappingURL=styles.css.map */
+
+

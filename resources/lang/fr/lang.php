@@ -2217,7 +2217,7 @@ return [
     'medicament_prescription_created_at' => 'Crée le',
     'liste_medicament' => 'Liste médicaments',
 
-    'drug_drug_interactions' => 'Interactions',
+    'drug_drug_interactions' => 'Interactions IA',
     'interactions_results' => 'Résultats des interactions',
     'ddi-checker' => 'Vérificateur d\'interactions médicamenteuses',
     'search-drugs-placeholder' => 'Rechercher un médicament...',

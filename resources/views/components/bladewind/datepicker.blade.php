@@ -140,7 +140,7 @@
             <div class="bg-white dark:bg-dark-700 mt-12 p-4 absolute top-0 left-0 z-50 drop-shadow-md dark:border dark:border-dark-600/70 rounded-lg"
                  style="width: 17rem"
                  x-show.transition="showDatepicker" @click.away="showDatepicker = false">
-                <div class="flex justify-between items-center bg-primary-500 dark:bg-dark-800/50 p-4 !-mx-4 !-mt-4 mb-4 rounded-tl-lg rounded-tr-lg">
+                <div class="flex justify-between items-center bg-primary-subtle-500 dark:bg-dark-800/50 p-4 !-mx-4 !-mt-4 mb-4 rounded-tl-lg rounded-tr-lg">
                     <div>
                         <button type="button"
                                 class="focus:outline-none focus:shadow-outline transition ease-in-out duration-100 inline-flex cursor-pointer py-1 pr-1 !-ml-1"
@@ -189,11 +189,11 @@
                         <div style="width: 14.28%" class=" mb-1">
                             <div @click="getDateValue(date, '{{$format}}')" x-text="date"
                                  class="cursor-pointer text-center text-sm leading-8 rounded-md transition ease-in-out duration-100"
-                                 :class="{'bg-primary-100 dark:bg-dark-800': isToday(date) == true,
+                                 :class="{'bg-primary-subtle-100 dark:bg-dark-800': isToday(date) == true,
                                  'text-gray-300 dark:text-gray-600 cursor-not-allowed': isDisabled(date),
-                                'text-gray-600 dark:text-gray-100 hover:bg-primary-200 hover:dark:bg-dark-500':
+                                'text-gray-600 dark:text-gray-100 hover:bg-primary-subtle-200 hover:dark:bg-dark-500':
                                 !isDisabled(date) && !isSelectedDate(date),
-                                'bg-primary-600 dark:bg-dark-900 text-white hover:bg-opacity-75': isSelectedDate(date),}"
+                                'bg-primary-subtle-600 dark:bg-dark-900 text-white hover:bg-opacity-75': isSelectedDate(date),}"
                                  :aria-disabled="isDisabled(date)">
                             </div>
                         </div>

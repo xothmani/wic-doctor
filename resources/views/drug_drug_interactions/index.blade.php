@@ -17,7 +17,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
         }
 
         .h1 {
@@ -36,10 +36,10 @@
 
         h1 {
             text-align: center;
-            color: #2c3e50;
+            color: #0594D0;
             margin-bottom: 30px;
             font-size: 2.5em;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: #0594D0;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -65,7 +65,7 @@
 
         .search-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #001f3f;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
@@ -124,7 +124,7 @@
             color: transparent;
             background-clip: text;
             -webkit-background-clip: text;
-            background-image: linear-gradient(45deg, #667eea, #764ba2);
+            background-image: linear-gradient(45deg, #001f3f, rgb(45, 97, 150));
             padding: 8px 15px;
             border-radius: 25px;
             display: flex;
@@ -141,7 +141,7 @@
             color: transparent;
             background-clip: text;
             -webkit-background-clip: text;
-            background-image: linear-gradient(45deg, #667eea, #764ba2);
+            background-image: linear-gradient(45deg, #001f3f, rgb(45, 97, 150));
             font-weight: 600;
         }
 
@@ -173,7 +173,7 @@
 
 
         .check-button {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(to right, #0594D0, #33bdea);
             color: white;
             border: none;
             padding: 15px 30px;
@@ -241,7 +241,7 @@
         }
 
         .interaction.no-interactions h3 {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: #0594D0;
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
@@ -301,7 +301,7 @@
 
         .severity.minor {
             background: #d1ecf1;
-            color: #0c5460;
+            color: #0594D0;
         }
 
         .severity.major {
@@ -319,14 +319,14 @@
             background: #f8f9fa;
             padding: 15px;
             border-radius: 10px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #001f3f;
             margin-top: 15px;
         }
 
         .loading {
             text-align: center;
             padding: 20px;
-            color: #667eea;
+            color: #001f3f;
         }
 
         .error {
@@ -360,7 +360,7 @@
             width: 20px;
             height: 20px;
             border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
+            border-top: 2px solid #001f3f;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -373,7 +373,7 @@
         @include('flash::message')
 
         <div class="container">
-            <h1>@lang('lang.ddi-checker')</h1>
+            <h1 style="color : #0594D0;">@lang('lang.ddi-checker')</h1>
 
             <div class="search-section">
                 <div class="search-container">

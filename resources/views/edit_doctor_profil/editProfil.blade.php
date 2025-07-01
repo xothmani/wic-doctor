@@ -77,11 +77,11 @@
 
                 <!-- Bouton pour afficher/masquer les champs Infos personnelles -->
                 <button
-                    class="btn bg-{{setting('theme_color')}} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
+                style="background: linear-gradient(135deg, #e6f3ff 0%, #f8fafc 100%); color: #053178; border-color: #053178;"                     class="btn w-100 text-left mt-3 d-flex justify-content-between align-items-center"
                     type="button" data-toggle="collapse" data-target="#infoPersonnel" aria-expanded="false"
                     aria-controls="infoPersonnel">
-                    <span class="d-flex align-items-center">
-                        <i class="fas fa-user mr-2"></i> Infos personnelles
+                    <span class="d-flex align-items-center" style="font-weight: bold;">
+                        <i class="fas fa-user mr-2" style="color : #01b8aa"></i> Infos personnelles
                     </span>
                     <i class="fas fa-angle-down fa-lg" id="arrowIcon"></i>
                 </button>
@@ -292,11 +292,11 @@
 
                 <!-- Bouton pour afficher/masquer les champs Adresse -->
                 <button
-                    class="btn bg-{{setting('theme_color')}} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
+                style="background: linear-gradient(135deg, #e6f3ff 0%, #f8fafc 100%); color: #053178; border-color: #053178;"                     class="btn w-100 text-left mt-3 d-flex justify-content-between align-items-center"
                     type="button" data-toggle="collapse" data-target="#adresseSection" aria-expanded="false"
                     aria-controls="adresseSection">
-                    <span class="d-flex align-items-center">
-                        <i class="fas fa-map-marker-alt mr-2"></i> Adresse
+                    <span class="d-flex align-items-center" style="font-weight: bold;">
+                        <i class="fas fa-map-marker-alt mr-2" style="color : #01b8aa"></i> Adresse
                     </span>
                     <i class="fas fa-angle-down fa-lg" id="arrowIcon"></i>
                 </button>
@@ -610,11 +610,11 @@
 
                 <!-- Bouton pour afficher/masquer les champs Diplômes et Langues -->
                 <button
-                    class="btn bg-{{setting('theme_color')}} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
+                style="background: linear-gradient(135deg, #e6f3ff 0%, #f8fafc 100%); color: #053178; border-color: #053178;"                     class="btn w-100 text-left mt-3 d-flex justify-content-between align-items-center"
                     type="button" data-toggle="collapse" data-target="#curriculumVitae" aria-expanded="false"
                     aria-controls="curriculumVitae" id="toggleButton">
-                    <span class="d-flex align-items-center">
-                        <i class="fas fa-file-alt mr-2"></i> Curriculum Vitae
+                    <span class="d-flex align-items-center" style="font-weight: bold;">
+                        <i class="fas fa-file-alt mr-2" style="color : #01b8aa"></i> Curriculum Vitae
                     </span>
                     <i class="fas fa-angle-down fa-lg" id="arrowIcon"></i>
                 </button>
@@ -837,11 +837,12 @@
                 <!-- ************************* GESTION PHOTOS -->
                 <!-- Bouton pour afficher/masquer la section du Cabinet -->
                 <button
-                    class="btn bg-{{ setting('theme_color') }} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
+                style="background: linear-gradient(135deg, #e6f3ff 0%, #f8fafc 100%); color: #053178; border-color: #053178;" 
+                    class="btn  w-100 text-left mt-3 d-flex justify-content-between align-items-center"
                     type="button" data-toggle="collapse" data-target="#mediaSection" aria-expanded="false"
                     aria-controls="mediaSection" id="toggleMedia">
-                    <span class="d-flex align-items-center">
-                        <i class="fas fa-camera mr-2"></i> Photos du Cabinet
+                    <span class="d-flex align-items-center" style="font-weight: bold;">
+                        <i class="fas fa-camera mr-2" style="color : #01b8aa"></i> Photos du Cabinet
                     </span>
                     <i class="fas fa-angle-down fa-lg" id="arrowIcon"></i>
                 </button>
@@ -858,7 +859,7 @@
                     <div class="card-body">
                         <div style="font-size: 16px; text-align: justify;">
                             <div>
-                                <i class="fas fa-user-edit" style="color: #5c6bc0; margin-right: 8px;"></i>
+                                <i class="fas fa-user-edit" style="color: #001f3f; margin-right: 8px;"></i>
                                 <span>Complétez votre profil sur WIC Doctor : Téléchargez des photos professionnelles de
                                     votre cabinet pour bénéficier pleinement de nos services.</span>
                             </div><br>
@@ -880,7 +881,7 @@
                         <!-- Section d'importation via Dropzone -->
                         <div id="uploadSection">
                             <button id="createMedia" class="btn mt-2 mb-2"
-                                style="background-color: #5c6bc0; border-color: #5c6bc0; color: #fff;">Importer</button>
+                                style="background-color: #001f3f; border-color: #001f3f; color: #fff;">Importer</button>
 
                             <div id="createMediaField" class="row" style="display: none;">
                                 <div class="col-12">
@@ -905,20 +906,20 @@
 
                 </div>
                 <button
-                    class="btn bg-{{setting('theme_color')}} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
+                style="background: linear-gradient(135deg, #e6f3ff 0%, #f8fafc 100%); color: #053178; border-color: #053178;"                     class="btn  w-100 text-left mt-3 d-flex justify-content-between align-items-center"
                     type="button" onclick="window.location.href='/doctor_tag';">
-                    <span class="d-flex align-items-center">
+                    <span class="d-flex align-items-center" style="font-weight: bold;">
                         <!-- Icône de tag (remplacer l'icône actuelle) -->
-                        <i class="fas fa-tag mr-2"></i> Expertises et actes
+                        <i class="fas fa-tag mr-2" style="color : #01b8aa"></i> Expertises et actes
                     </span>
                 </button>
 
                 <button
-    class="btn bg-{{setting('theme_color')}} w-100 text-left mt-3 d-flex justify-content-between align-items-center"
+                style="background: linear-gradient(135deg, #e6f3ff 0%, #f8fafc 100%); color: #053178; border-color: #053178;"     class="btn w-100 text-left mt-3 d-flex justify-content-between align-items-center"
     type="button" data-toggle="collapse" data-target="#parameterAdvance" aria-expanded="false"
     aria-controls="parameterAdvance">
-    <span class="d-flex align-items-center">
-        <i class="fas fa-sliders-h mr-2"></i> Paramètre avancé
+    <span class="d-flex align-items-center" style="font-weight: bold;">
+        <i class="fas fa-sliders-h mr-2" style="color : #01b8aa"></i> Paramètre avancé
     </span>
     <i class="fas fa-angle-down fa-lg" id="arrowIcon"></i>
 </button>

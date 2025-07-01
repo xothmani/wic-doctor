@@ -226,7 +226,7 @@
                         </div>
 
                         <div class="d-flex flex-row justify-content-end">
-                            <span class="mr-2"> <i style='color:{{setting("main_color","#007bff")}}' class="fas fa-square"></i> {{trans('lang.dashboard_this_year')}} </span>
+                            <span class="mr-2"> <i style='color:{{setting("main_color","#001f3f")}}' class="fas fa-square"></i> {{trans('lang.dashboard_this_year')}} </span>
                         </div>
                     </div>
                 </div>
@@ -342,8 +342,8 @@
                     labels: labels,
                     datasets: [
                         {
-                            backgroundColor: '{{setting("main_color","#007bff")}}',
-                            borderColor: '{{setting("main_color","#007bff")}}',
+                            backgroundColor: '{{setting("main_color","#001f3f")}}',
+                            borderColor: '{{setting("main_color","#001f3f")}}',
                             data: data
                         }
                     ]

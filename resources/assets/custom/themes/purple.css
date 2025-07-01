@@ -12,7 +12,7 @@ footer a:not(.btn),
 .nav-pills .nav-link.selected,
 .breadcrumb-item > a,
 .page-link {
-    color: #5c6bc0 !important;
+    color: #001f3f !important;
 }
 
 .form-group a:not(.btn):hover,
@@ -21,19 +21,19 @@ footer a:not(.btn):hover,
 .nav-pills .nav-link:not(.active):hover,
 .breadcrumb-item > a:hover,
 .page-link:hover {
-    color: #7986CB !important;
+    color: #001f3f !important;
 }
 
 .card .nav-pills .nav-link.active,
 .dropdown-menu > a.dropdown-item.active,
 .dropdown-menu > a.dropdown-item:active,
 .card .nav-pills .show > .nav-link {
-    background-color: #5c6bc0 !important;
+    background-color: #001f3f !important;
     color: white !important;
 }
 
 .select2-container--bootstrap4 .select2-results__option--highlighted, .select2-container--bootstrap4 .select2-results__option--highlighted.select2-results__option[aria-selected=true] {
-    background-color: #5c6bc0 !important;
+    background-color: #001f3f !important;
     color: #f8f9fa !important;
 }
 
@@ -51,24 +51,24 @@ footer a:not(.btn):hover,
     border-color: rgb(92, 107, 192,0.25);
 }
 .btn-outline-purple, .btn-purple {
-    color: #5c6bc0;
-    border-color: #5c6bc0;
+    color: #001f3f;
+    border-color: #001f3f;
 }
 
 .btn-purple {
     color: #fff;
-    background-color: #5c6bc0;
-    border-color: #5c6bc0;
+    background-color: #001f3f;
+    border-color: #001f3f;
     box-shadow: none;
 }
 
 a {
-    color: #5c6bc0;
+    color: #001f3f;
 }
 
 .page-item.active .page-link,
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
     color: #ffffff !important;
-    background-color: #5c6bc0;
-    border-color: #5c6bc0;
+    background-color: #001f3f;
+    border-color: #001f3f;
 }

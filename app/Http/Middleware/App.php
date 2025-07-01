@@ -40,7 +40,7 @@ class App
         try {
             $this->uploadRepository = new UploadRepository(app());
             $upload = $this->uploadRepository->findByField('uuid', setting('app_logo', ''))->first();
-            $appLogo = asset('images/logo_default.png');
+            $appLogo = asset('images/logo.png');
             if ($upload && $upload->hasMedia('app_logo')) {
                 $appLogo = $upload->getFirstMediaUrl('app_logo');
             }
