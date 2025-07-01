@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                              .file-icon {
                                                 cursor: pointer;
                                                 font-size: 20px;
-                                                color: #007bff;
+                                                color: #001f3f;
                                                 margin-right: 10px; /* Espace entre l'icône et l'input */
                                             }
                                             .message-image img {
@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
     align-items: center;
     gap: 8px;
     padding: 8px 15px;
-    background: #007bff;
+    background: #001f3f;
     color: white !important;
     border-radius: 25px;
     text-decoration: none;
@@ -692,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 .file-icon:hover {
-    background: #007bff;
+    background: #001f3f;
     color: white;
     transform: rotate(15deg);
 }
@@ -721,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* Fichiers non-images */
 .message-file .file-icon {
     font-size: 24px;
-    color: #007bff;
+    color: #001f3f;
     min-width: 40px;
     text-align: center;
 }
@@ -743,7 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 .upload-progress {
     height: 3px;
-    background: #007bff;
+    background: #001f3f;
     animation: upload-progress 2s ease-out;
     position: absolute;
     bottom: 0;
@@ -877,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             .header-actions button {
                                                 background: none;
                                                 border: none;
-                                                color: #007bff; /* Bleu pour les icônes */
+                                                color: #001f3f; /* Bleu pour les icônes */
                                                 font-size: 18px;
                                                 cursor: pointer;
                                                 transition: color 0.3s ease;
@@ -930,7 +930,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 .conversation-item.active {
     background-color: #f0f2f5;
-    border-left: 4px solid #007bff;
+    border-left: 4px solid #001f3f;
     position: relative;
 }
 
@@ -942,7 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
     transform: translateY(-50%);
     height: 60%;
     width: 2px;
-    background-color: #007bff;
+    background-color: #001f3f;
 }
 
 .conversation-item:hover {
@@ -1025,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 }
 
                                                 .message.sent .message-content {
-                                                    background-color: #007bff;
+                                                    background-color: #001f3f;
                                                     color: white;
                                                 }
 
@@ -1072,7 +1072,7 @@ document.addEventListener('DOMContentLoaded', () => {
         text-decoration: underline;
     }
  .chat-input button {
-                                                    background-color: #007bff;
+                                                    background-color: #001f3f;
                                                     border: none;
                                                     color: white;
                                                     padding: 10px;
@@ -1108,7 +1108,7 @@ z-index: 1000;
                                                 right: 10px;
                                                 top: 50%;
                                                 transform: translateY(-50%);
-                                                background-color: #007bff;
+                                                background-color: #001f3f;
                                                 border: none;
                                                 color: white;
                                                 padding: 8px 12px;
@@ -1155,7 +1155,7 @@ z-index: 1000;
                                             }
 
                                             .send-button {
-                                                background-color: #007bff;
+                                                background-color: #001f3f;
                                                 border: none;
                                                 color: white;
                                                 padding: 8px 12px;

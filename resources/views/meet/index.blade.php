@@ -147,7 +147,7 @@
     <div class="modal fade" id="createMeetModal" tabindex="-1" aria-labelledby="createMeetModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header" style="background-color: #5c6bc0; color: white;">
+                <div class="modal-header" style="background-color: #001f3f; color: white;">
                     <h5 class="modal-title" id="createMeetModalLabel">
                         <i class="fas fa-video"></i> Nouvelle consultation
                     </h5>
@@ -235,7 +235,7 @@
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" form="createMeetingForm" class="btn"
-                        style="background-color: #5c6bc0; color: white;">
+                        style="background-color: #001f3f; color: white;">
                         <i class="fas fa-check"></i> Créer
                     </button>
                 </div>
@@ -249,13 +249,13 @@
         }
 
         .form-control:focus {
-            border-color: #5c6bc0;
+            border-color: #001f3f;
             box-shadow: 0 0 0 0.2rem rgba(92, 107, 192, 0.25);
         }
 
         .required-field::after {
             content: "*";
-            color: #5c6bc0;
+            color: #001f3f;
             margin-left: 4px;
         }
 
@@ -311,7 +311,7 @@
         }
 
         .bg-{{setting('theme_color')}} {
-            background-color: #5c6bc0;
+            background-color: #001f3f;
             color: white;
         }
     </style>
@@ -377,7 +377,7 @@
                     showCancelButton: true,
                     confirmButtonText: 'Créer',
                     cancelButtonText: 'Annuler',
-                    confirmButtonColor: '#5c6bc0',
+                    confirmButtonColor: '#001f3f',
                     cancelButtonColor: '#6c757d'
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -410,7 +410,7 @@
                         text: `Voulez-vous marquer cette consultation comme ${status === 'completed' ? 'terminée' : 'échouée'} ?`,
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonColor: '#5c6bc0',
+                        confirmButtonColor: '#001f3f',
                         cancelButtonColor: '#6c757d',
                         confirmButtonText: 'Oui, confirmer',
                         cancelButtonText: 'Annuler'

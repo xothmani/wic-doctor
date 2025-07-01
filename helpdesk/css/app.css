@@ -91,13 +91,13 @@ a:hover {
 .icon-actions {
     width: 1.23em;
     height: 1em;
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .icon-add {
     width: 1em;
     height: 1em;
-    fill: #2c70a2;
+    fill: #001f3f;
 }
 
 .icon-anonymize {
@@ -200,7 +200,7 @@ a:hover {
 .icon-dismiss {
     width: 1em;
     height: 1em;
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .icon-down {
@@ -212,13 +212,13 @@ a:hover {
 .icon-edit-ticket {
     width: 1em;
     height: 1em;
-    fill: #2c70a2;
+    fill: #001f3f;
 }
 
 .icon-edit {
     width: 1em;
     height: 1em;
-    fill: #2c70a2;
+    fill: #001f3f;
 }
 
 .icon-export {
@@ -242,7 +242,7 @@ a:hover {
 .icon-filters {
     width: 1em;
     height: 1em;
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .icon-info {
@@ -641,7 +641,7 @@ a:hover {
 }
 
 .selectize-dropdown, .selectize-input, .selectize-input input {
-    color: #2c70a2;
+    color: #001f3f;
     font-family: inherit;
     font-size: 13px;
     line-height: 18px;
@@ -856,7 +856,7 @@ a:hover {
     height: 0;
     border-style: solid;
     border-width: 5px 5px 0;
-    border-color: #2c70a2 transparent transparent;
+    border-color: #001f3f transparent transparent;
 }
 
 .selectize-control.single .selectize-input.dropdown-active:after {
@@ -887,7 +887,7 @@ a:hover {
 }
 
 .selectize-input.input-active {
-    border: solid 1px #2c70a2!important
+    border: solid 1px #001f3f!important
 }
 
 .selectize-input:hover {
@@ -914,7 +914,7 @@ a:hover {
 
 .selectize-control .selectize-input {
     border-radius: 2px;
-    border: solid 1px #2c70a2;
+    border: solid 1px #001f3f;
     box-shadow: none;
     min-width: 100px;
     padding: 0 30px 0 12px;
@@ -957,7 +957,7 @@ a:hover {
 }
 
 .selectize-control .selectize-dropdown .option.active {
-    background-color: #2c70a2;
+    background-color: #001f3f;
     color: #fff;
 }
 
@@ -1790,7 +1790,7 @@ img:not([src]):not([srcset]) {
 }
 
 .link {
-    color: #2c70a2;
+    color: #001f3f;
 }
 
 .d-flex {
@@ -1819,7 +1819,7 @@ img:not([src]):not([srcset]) {
 }
 
 .c_battleship-grey {
-    color: #2c70a2
+    color: #001f3f
 }
 
 .badge {
@@ -1968,7 +1968,7 @@ img:not([src]):not([srcset]) {
     position: absolute;
     top: 100%;
     z-index: 100;
-    border: 1px solid #2c70a2;
+    border: 1px solid #001f3f;
 }
 
 .dropdown .dropdown-list .separator, .dropdown-select .dropdown-list .separator {
@@ -2002,7 +2002,7 @@ img:not([src]):not([srcset]) {
     display: flex;
     -ms-flex-align: center;
     align-items: center;
-    color: #133e5e;
+    color: #001f3f;
 }
 
 .dropdown .dropdown-list>li a {
@@ -2025,7 +2025,7 @@ img:not([src]):not([srcset]) {
 }
 
 .dropdown .dropdown-list>li:hover, .dropdown-select .dropdown-list>li:hover {
-    background-color: #2c70a2;
+    background-color: #001f3f;
     color: #fff !important;
 }
 
@@ -2231,7 +2231,7 @@ button {
 }
 
 .btn-transparent:hover {
-    background-color: #2c70a2;
+    background-color: #001f3f;
     border: 1px solid #133e5e;
     color: #fff;
 }
@@ -2250,7 +2250,7 @@ button {
 .btn-full {
     min-width: 152px;
     height: 40px;
-    background-color: #2c70a2;
+    background-color: #001f3f;
     color: #fff;
     font-weight: 600;
     transition: all 100ms ease;
@@ -2273,7 +2273,7 @@ button {
 }
 
 .btn--blue {
-    color: #2c70a2
+    color: #001f3f
 }
 
 .btn--blue .icon {
@@ -2283,7 +2283,7 @@ button {
 .btn-border {
     min-width: 152px;
     height: 40px;
-    border: 1px solid #2c70a2;
+    border: 1px solid #001f3f;
     color: #002d73;
     padding: 0;
     background-color: #e9f0f3;
@@ -2295,15 +2295,15 @@ button {
     display: -ms-inline-flexbox;
     display: inline-flex;
     height: 48px;
-    border: 1px solid #2c70a2;
-    color: #2c70a2;
+    border: 1px solid #001f3f;
+    color: #001f3f;
     font-weight: 600;
     background-color: #fff;
 }
 
 .btn--blue-border:hover {
     border-color: #133e5e;
-    background-color: #2c70a2 !important;
+    background-color: #001f3f !important;
     color: #fff;
 }
 
@@ -2367,7 +2367,7 @@ button {
 }
 
 ::-webkit-input-placeholder {
-    color: #2c70a2;
+    color: #001f3f;
 }
 
 ::-moz-placeholder {
@@ -2439,7 +2439,7 @@ input::-ms-clear {
 }
 
 .input-group-append--icon:hover .icon {
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .input-group-append--icon .icon {
@@ -2489,7 +2489,7 @@ input::-ms-clear {
     padding: 4px 12px;
     font-size: 14px;
     border-radius: 2px;
-    border: solid 1px #2c70a2;
+    border: solid 1px #001f3f;
     background-color: #f1f9ff;
     font-weight: 400;
     font-style: normal;
@@ -2534,7 +2534,7 @@ input::-ms-clear {
 
 .form input.form-control:focus, .form textarea.form-control:focus, .form select.form-control:focus {
     color: #000;
-    border-color: #2c70a2;
+    border-color: #001f3f;
     outline: none;
     box-shadow: none;
 }
@@ -2685,7 +2685,7 @@ input::-ms-clear {
     font-stretch: normal;
     line-height: 1.5;
     letter-spacing: .1px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .form__search .form__search_results .results--list {
@@ -2725,7 +2725,7 @@ input::-ms-clear {
 }
 
 .form__search .form__search_results .results--list li a {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -2797,19 +2797,19 @@ input::-ms-clear {
 }
 
 .form__search .form__control:hover::-webkit-input-placeholder {
-    color: #2c70a2
+    color: #001f3f
 }
 
 .form__search .form__control:hover::-moz-placeholder {
-    color: #2c70a2
+    color: #001f3f
 }
 
 .form__search .form__control:hover:-ms-input-placeholder {
-    color: #2c70a2
+    color: #001f3f
 }
 
 .form__search .form__control:hover:-moz-placeholder {
-    color: #2c70a2
+    color: #001f3f
 }
 
 .form__search.type .form__control {
@@ -2840,7 +2840,7 @@ input::-ms-clear {
     cursor: pointer;
     line-height: 1.2;
     letter-spacing: normal;
-    color: #2c70a2;
+    color: #001f3f;
 }
 
 .checkbox-custom [type='checkbox']:checked+label {
@@ -2861,7 +2861,7 @@ input::-ms-clear {
     height: 16px;
     border-radius: 2px;
     background: #fff;
-    border: 1px solid #2c70a2;
+    border: 1px solid #001f3f;
     /* color: #fff; */
 }
 
@@ -2923,7 +2923,7 @@ input::-ms-clear {
     cursor: pointer;
     line-height: 1.2;
     letter-spacing: normal;
-    color: #2c70a2;
+    color: #001f3f;
 }
 
 .radio-custom [type='radio']:checked+label:before, .radio-custom [type='radio']:not(:checked)+label:before {
@@ -3031,7 +3031,7 @@ input::-ms-clear {
 }
 
 .select-items div:hover, .same-as-selected {
-    color: #2c70a2
+    color: #001f3f
 }
 
 .select-custom--stretched {
@@ -3139,7 +3139,7 @@ input::-ms-clear {
 }
 
 .switch-checkbox input[type="checkbox"]:checked+.switch-checkbox__bullet {
-    background-color: #2c70a2;
+    background-color: #001f3f;
     border-color: #092639;
 }
 
@@ -3166,12 +3166,12 @@ input::-ms-clear {
 .switch-checkbox a {
     margin-left: 16px;
     transition: all 100ms ease;
-    color: #2c70a2;
+    color: #001f3f;
     line-height: 1.2
 }
 
 .switch-checkbox a:hover {
-    color: #025cca
+    color: #001f3f
 }
 
 .block--attach {
@@ -3381,7 +3381,7 @@ input::-ms-clear {
 
 .table thead {
     height: 48px;
-    background-color: #2c70a2;
+    background-color: #001f3f;
     font-size: 10px;
     font-weight: 700;
     line-height: normal;
@@ -3556,7 +3556,7 @@ input::-ms-clear {
     top: 0;
     bottom: 0;
     left: 0;
-    background-color: #2c70a2;
+    background-color: #001f3f;
     border-top: 1px solid #bdd4e2;
 }
 
@@ -3568,7 +3568,7 @@ input::-ms-clear {
         top: 0;
         bottom: 0;
         left: 0;
-        background-color: #2c70a2
+        background-color: #001f3f
     }
 }
 
@@ -3657,7 +3657,7 @@ input::-ms-clear {
     width: 100%;
     height: 100%;
     border-radius: 4px;
-    background-color: #2c70a2;
+    background-color: #001f3f;
     font-size: 18px;
     font-weight: 700;
     font-style: normal;
@@ -3767,7 +3767,7 @@ input::-ms-clear {
     line-height: 1.57;
     letter-spacing: .1px;
     text-align: center;
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -3775,7 +3775,7 @@ input::-ms-clear {
     margin: 0 0 4px;
     width: 24px;
     height: 24px;
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .table tbody .dropdown.assignment .dropdown-list li .assign__body>li a:hover {
@@ -3933,7 +3933,7 @@ input::-ms-clear {
     font-size: 12px;
     background-color: #fff;
     transition: all 100ms ease;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .filters__listing .filter-item .item--body:hover {
@@ -4246,11 +4246,11 @@ input::-ms-clear {
     -ms-flex-align: center;
     align-items: center;
     position: relative;
-    /* color: #2c70a2; */
+    /* color: #001f3f; */
 }
 
 .ticket__body_block .block--head .contact>span {
-    color: #2c70a2;
+    color: #001f3f;
 }
 
 .ticket__body_block .block--head .contact b {
@@ -4301,11 +4301,11 @@ input::-ms-clear {
 }
 
 .ticket__body_block .block--head .contact .dropdown .dropdown-list li a {
-    color: #002d73
+    color: #001f3f
 }
 
 .ticket__body_block .block--head .contact .dropdown .dropdown-list li.noclose a:hover {
-    color: #2c70a2;
+    color: #001f3f;
 }
 
 .ticket__body_block .block--head .contact .dropdown .dropdown-list li a:hover {
@@ -4319,7 +4319,7 @@ input::-ms-clear {
 
 .ticket__body_block .block--head time {
     margin: 0 10px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .ticket__body_block .block--head .more {
@@ -4442,7 +4442,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .ticket__body_block .block--notes .note .note__head .name span {
@@ -4455,7 +4455,7 @@ p.rate {
 }
 
 .ticket__body_block .block--notes .note .note__head .name time {
-    color: #2c70a2;
+    color: #001f3f;
     white-space: nowrap
 }
 
@@ -4521,12 +4521,12 @@ p.rate {
 }
 
 .ticket__body_block .block--uploads a {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
 .ticket__body_block .block--uploads a:hover {
-    color: #025cca
+    color: #001f3f
 }
 
 .ticket__body_block .block--suggested {
@@ -4552,17 +4552,17 @@ p.rate {
 }
 
 .ticket__body_block .block--suggested a {
-    color: #00518e;
+    color: #001f3f;
     transition: all 100ms ease;
 }
 
 .ticket__body_block .block--suggested a:hover {
-    color: #025cca
+    color: #001f3f
 }
 
 .ticket__body_block .block--timer {
     height: 48px;
-    background-color: #2c70a2;
+    background-color: #001f3f;
     display: -ms-flexbox;
     display: flex;
     -ms-flex-pack: center;
@@ -4675,7 +4675,7 @@ p.rate {
     letter-spacing: .1px;
     resize: vertical;
     transition: none;
-    border: 1px solid #2c70a2;
+    border: 1px solid #001f3f;
 }
 
 .ticket__body_block .block--message textarea::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
@@ -4707,7 +4707,7 @@ p.rate {
 }
 
 .ticket__body_block .block--message .placeholder a {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -4853,19 +4853,19 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .ticket__body_block .block--submit .submit-us span {
     margin-left: 6px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .ticket__body_block .block--submit .submit-us .icon-chevron-down {
     width: 8px;
     height: 8px;
     margin-left: 4px;
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .ticket__body_block .block--submit .submit-us .dropdown-list {
@@ -4887,7 +4887,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     display: -ms-inline-flexbox;
     display: inline-flex;
     -ms-flex-align: center;
@@ -4914,7 +4914,7 @@ p.rate {
     margin-left: 8px;
     width: 8px;
     height: 8px;
-    fill: #2c70a2;
+    fill: #001f3f;
     transition: all 100ms ease
 }
 
@@ -4956,7 +4956,7 @@ p.rate {
     -ms-flex-align: center;
     align-items: center;
     flex-grow: 1;
-    color: #2c70a2;
+    color: #001f3f;
 }
 
 .ticket__params .params--bar .modal__buttons a {
@@ -4970,7 +4970,7 @@ p.rate {
 .ticket__params .params--bar a svg {
     width: 16px;
     height: 16px;
-    fill: #2c70a2;
+    fill: #001f3f;
     margin-right: 10px;
 }
 
@@ -5005,7 +5005,7 @@ p.rate {
 .ticket__params .params--bar .dropdown label svg {
     width: 16px;
     height: 16px;
-    fill: #2c70a2;
+    fill: #001f3f;
     transition: all 100ms ease;
     margin: 0;
 }
@@ -5195,7 +5195,7 @@ p.rate {
 }
 
 .right-bar.filter-list .filter-list__section .section--title a {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -5406,7 +5406,7 @@ p.rate {
 }
 
 .right-bar.ticket-create .step-item.step-3 a {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -5482,7 +5482,7 @@ p.rate {
 .param.calendar .calendar--button button {
     width: 48px;
     height: 48px;
-    background-color: #2c70a2;
+    background-color: #001f3f;
     border: none;
     outline: none;
     display: -ms-flexbox;
@@ -5507,7 +5507,7 @@ p.rate {
 }
 
 .param.calendar .calendar--button button:hover {
-    border: 1px solid #2c70a2;
+    border: 1px solid #001f3f;
     background-color: #fff;
 }
 
@@ -5523,7 +5523,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     padding-right: 25px;
     position: relative;
     display: none;
@@ -5579,7 +5579,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.5;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     margin-right: 4px
 }
 
@@ -5599,7 +5599,7 @@ p.rate {
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background-color: #2c70a2;
+    background-color: #001f3f;
     position: absolute;
     top: 6px;
     left: 0
@@ -5695,7 +5695,7 @@ p.rate {
     margin-bottom: 12px;
     font-size: 12px;
     text-transform: uppercase;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .filter-list__footer {
@@ -5846,7 +5846,7 @@ p.rate {
 }
 
 .template-create .template-create__body .template--type a {
-    color: #2c70a2;
+    color: #001f3f;
     margin-left: 8px;
     transition: all 100ms ease
 }
@@ -5878,7 +5878,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     margin-bottom: 12px;
 }
 
@@ -5906,7 +5906,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.33;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     height: 28px;
     background-color: #f5f8ff;
     transition: all 100ms ease
@@ -6048,7 +6048,7 @@ p.rate {
 .main__content.categories .table-wrap tbody .generate a svg {
     width: 16px;
     height: 16px;
-    fill: #2c70a2;
+    fill: #001f3f;
 }
 
 .main__content.categories .table-wrap tbody .generate a:hover svg {
@@ -6262,7 +6262,7 @@ p.rate {
 
 .main__content.team .table-wrap tbody a {
     transition: all 100ms ease;
-    color: #2c70a2;
+    color: #001f3f;
     vertical-align: middle;
 }
 
@@ -6306,7 +6306,7 @@ p.rate {
 .main__content.team .table-wrap .buttons p a svg {
     width: 16px;
     height: 16px;
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .main__content.team .table-wrap .buttons p a:hover svg {
@@ -6525,7 +6525,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     display: -ms-flexbox;
     display: flex;
     -ms-flex-align: center;
@@ -6561,7 +6561,7 @@ p.rate {
 
 .main__content.knowledge .knowledge__head .knowledge__head_buttons a {
     margin-left: 24px;
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -6702,7 +6702,7 @@ p.rate {
 }
 
 .main__content.knowledge .knowledge__tabs .knowledge__list .all a {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -7010,7 +7010,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -7024,7 +7024,7 @@ p.rate {
 
 .main__content.knowledge.article .article__body .article__back .icon-back {
     width: 20px;
-    fill: #2c70a2;
+    fill: #001f3f;
     margin-right: 10px
 }
 
@@ -7128,7 +7128,7 @@ p.rate {
     font-size: 12px;
     line-height: 1.33;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     margin: 0 8px 8px 0
 }
 
@@ -7214,7 +7214,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.33;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     margin-bottom: 0
 }
 
@@ -7288,7 +7288,7 @@ p.rate {
 
 .main__content.knowledge .article__detalies .article__detalies_list li .descr a {
     display: inline-block;
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease;
     margin-left: 4px
 }
@@ -7480,7 +7480,7 @@ p.rate {
     line-height: 1.57;
     letter-spacing: .1px;
     text-align: center;
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease;
 }
 
@@ -7510,7 +7510,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     display: -ms-flexbox;
     display: flex;
     -ms-flex-align: center;
@@ -7623,7 +7623,7 @@ p.rate {
 }
 
 .body a {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -7671,7 +7671,7 @@ p.rate {
 }
 
 .main__content.emails .email__tabs .email__list .list--item.new {
-    border-left-color: #2c70a2
+    border-left-color: #001f3f
 }
 
 .main__content.emails .email__tabs .email__list .list--item.current {
@@ -7721,7 +7721,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.5;
     letter-spacing: .1px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .main__content.emails .email__tabs[data-current='inbox'] .email__list[data-tab='inbox'] {
@@ -8047,7 +8047,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -8070,15 +8070,15 @@ p.rate {
 
 .main__content.profile .profile__info .profile__info_list .info-lng .dropdown-select {
     margin-top: 8px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .main__content.profile .profile__info .profile__info_list .info-lng .dropdown-select span {
-    color: #2c70a2
+    color: #001f3f
 }
 
 .main__content.profile .profile__info .profile__info_list .info-lng .dropdown-select .icon-chevron-down {
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .main__content.profile .profile__edit {
@@ -8146,12 +8146,12 @@ p.rate {
 }
 
 .main__content.profile .profile__control a.profile-log-out {
-    color: #2c70a2;
+    color: #001f3f;
     margin-top: 12px;
 }
 
 .main__content.profile .profile__control a.profile-log-out svg {
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .main__content.profile .profile__control a.profile-log-out:hover {
@@ -8521,11 +8521,11 @@ p.rate {
 }
 
 .main__content.settings .dropdown-select .label {
-    color: #2c70a2
+    color: #001f3f
 }
 
 .main__content.settings .dropdown-select svg {
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .main__content.settings .settings__status {
@@ -8556,7 +8556,7 @@ p.rate {
 
 .main__content.settings .settings__status .settings__status_list .list--name {
     width: 155px;
-    color: #2c70a2;
+    color: #001f3f;
 }
 
 .main__content.settings .settings__form h3 {
@@ -8627,7 +8627,7 @@ p.rate {
 
 .main__content.settings .settings__form .form-group.list .input-list li a {
     transition: all 100ms ease;
-    color: #2c70a2;
+    color: #001f3f;
     white-space: nowrap
 }
 
@@ -8974,7 +8974,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.5;
     letter-spacing: .1px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .main__content.tools h3 {
@@ -9073,7 +9073,7 @@ p.rate {
 .main__content.tools .table-wrapper.service-message table .buttons p a svg {
     width: 16px;
     height: 16px;
-    fill: #2c70a2;
+    fill: #001f3f;
 }
 
 .main__content.tools .table-wrapper.service-message table .buttons p a:hover svg {
@@ -9166,7 +9166,7 @@ p.rate {
 .main__content.tools .table-wrapper.custom-field .buttons p a svg {
     width: 16px;
     height: 16px;
-    fill: #2c70a2;
+    fill: #001f3f;
 }
 
 .main__content.tools .table-wrapper.custom-field .buttons p a:hover svg {
@@ -9183,7 +9183,7 @@ p.rate {
 }
 
 .main__content.tools .table-wrapper.status table tbody a {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -9232,7 +9232,7 @@ p.rate {
 .main__content.tools .table-wrapper.status .buttons p a svg {
     width: 16px;
     height: 16px;
-    fill: #2c70a2;
+    fill: #001f3f;
 }
 
 .main__content.tools .table-wrapper.status .buttons p a:hover svg {
@@ -9249,7 +9249,7 @@ p.rate {
 
 .main__content.tools .table-wrapper table .unban a {
     font-size: 12px;
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -9418,11 +9418,11 @@ p.rate {
 .right-bar.service-message-create .styles__radio label.none {
     border: solid 1px #9c9c9c;
     background-color: #fff;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .right-bar.service-message-create .styles__radio label.none .icon-tick {
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .right-bar.service-message-create .styles__radio label.success {
@@ -9536,7 +9536,7 @@ p.rate {
 
 .right-bar.tools-email-template-edit .param>span {
     display: inline-block;
-    color: #2c70a2;
+    color: #001f3f;
     margin-right: 8px;
 }
 
@@ -9559,7 +9559,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     margin-bottom: 12px;
 }
 
@@ -9587,7 +9587,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.33;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     height: 28px;
     background-color: #f5f8ff
 }
@@ -9768,7 +9768,7 @@ p.rate {
 }
 
 .main__content.notifications .notifications__list li.new {
-    border-left: 2px solid #2c70a2
+    border-left: 2px solid #001f3f
 }
 
 .main__content.notifications .notifications__list li.new h5 {
@@ -9797,7 +9797,7 @@ p.rate {
     line-height: normal;
     letter-spacing: .1px;
     text-align: right;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .main__content.notifications .pagination-wrap {
@@ -9854,7 +9854,7 @@ p.rate {
     display: block;
     width: 8px;
     height: 8px;
-    background: #2c70a2;
+    background: #001f3f;
     border-radius: 50%;
     position: absolute;
     top: calc(50% - 4px);
@@ -10215,15 +10215,15 @@ p.rate {
 }
 
 .header .icon {
-    fill: #2c70a2;
+    fill: #001f3f;
 }
 
 .header .icon:hover {
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .header button:hover .icon {
-    fill: #2c70a2
+    fill: #001f3f
 }
 
 .header .icon-mail {
@@ -10429,7 +10429,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -10456,7 +10456,7 @@ p.rate {
 }
 
 .header .profile__user.active {
-    background-color: #2c70a2;
+    background-color: #001f3f;
 }
 
 .header .profile__user.active .icon-chevron-down {
@@ -10529,7 +10529,7 @@ p.rate {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #2c70a2;
+    background-color: #001f3f;
     color: #fff;
 }
 
@@ -10566,7 +10566,7 @@ p.rate {
     overflow: hidden;
     display: block;
     text-overflow: ellipsis;
-    color: #2c70a2;
+    color: #001f3f;
 }
 
 .header .user__name p .icon-chevron-down {
@@ -10753,7 +10753,7 @@ p.rate {
 .footer {
     padding: 10px 16px 16px;
     font-size: 16px;
-    /* color:#2c70a2 */
+    /* color:#001f3f */
 }
 
 .pagination-wrap {
@@ -10845,7 +10845,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .main__content.search h2 {
@@ -10883,7 +10883,7 @@ p.rate {
 .main__content.search .article__list li .article__list_title .icon {
     width: 24px;
     height: 24px;
-    fill: #2c70a2;
+    fill: #001f3f;
     margin-right: 8px
 }
 
@@ -10905,7 +10905,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.57;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -11268,7 +11268,7 @@ p.rate {
 @media screen and (max-width: 899px) {
     .banner {
         padding: 16px 21px;
-        background-color: #2c70a2;
+        background-color: #001f3f;
         font-size: 12px;
         color: #fff;
         -ms-flex-wrap: wrap;
@@ -11495,7 +11495,7 @@ p.rate {
 }
 
 .right-bar .right-bar__body .checkbox-custom label {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -11606,7 +11606,7 @@ p.rate {
     line-height: 1.5;
     letter-spacing: .1px;
     text-align: center;
-    color: #2c70a2;
+    color: #001f3f;
     position: relative;
     cursor: pointer
 }
@@ -12097,7 +12097,7 @@ p.rate {
     font-stretch: normal;
     line-height: 1.5;
     letter-spacing: .1px;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .notification-flash .btn {
@@ -12132,7 +12132,7 @@ p.rate {
 .tooltype .icon-info {
     width: 16px;
     height: 16px;
-    fill: #2c70a2;
+    fill: #001f3f;
     transition: all 100ms ease;
 }
 
@@ -12163,7 +12163,7 @@ th > .tooltype:hover .icon-info {
     font-stretch: normal;
     line-height: 1.5;
     letter-spacing: .1px;
-    color: #2c70a2;
+    color: #001f3f;
     text-transform: initial;
     width: 260px;
     display: none
@@ -12178,7 +12178,7 @@ th > .tooltype:hover .icon-info {
 }
 
 .tooltype .tooltype__content a {
-    color: #2c70a2;
+    color: #001f3f;
     transition: all 100ms ease
 }
 
@@ -12313,7 +12313,7 @@ th > .tooltype:hover .icon-info {
 }
 
 .datepicker .datepicker--cells .datepicker--cell:hover:not(.-selected-) {
-    background-color: #2c70a2;
+    background-color: #001f3f;
     color: #fff;
 }
 
@@ -12327,7 +12327,7 @@ th > .tooltype:hover .icon-info {
 .datepicker .datepicker--days-names .datepicker--day-name {
     width: 48px;
     font-family: "Lato", Arial, sans-serif;
-    color: #2c70a2;
+    color: #001f3f;
     font-size: 14px;
     font-weight: 700;
     font-style: normal;
@@ -12354,7 +12354,7 @@ th > .tooltype:hover .icon-info {
     left: 0;
     width: 100%;
     display: none;
-    background-color: #2c70a2
+    background-color: #001f3f
 }
 
 .notification-bar.notice-flash {
@@ -12705,7 +12705,7 @@ sub {
 
 .browser-default a {
     text-decoration: underline;
-    color: #2c70a2;
+    color: #001f3f;
     transition: color 100ms ease
 }
 
@@ -12834,12 +12834,12 @@ sub {
 }
 
 #submit-as-div .label {
-    background-color: #2c70a2;
+    background-color: #001f3f;
     border-radius: 0 2px 2px 0;
 }
 
 #submit-as-div .label span {
-    border: 1px solid #2c70a2;
+    border: 1px solid #001f3f;
     outline: none;
     cursor: pointer;
     font-size: 13px;
@@ -12916,7 +12916,7 @@ sub {
 
 .header .profile__user.active .user__ava {
     background-color: #fff;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .header .profile__user.active .user__name p span {
@@ -12929,13 +12929,13 @@ sub {
 
 .header .profile__user .profile__menu .profile--view .btn-border {
     border: 1px solid #002257!important;
-    background-color: #2c70a2!important;
+    background-color: #001f3f!important;
     color: #fff
 }
 
 .header .profile__user .profile__menu .profile--view .btn-border:hover {
     background-color: #fff!important;
-    color: #2c70a2
+    color: #001f3f
 }
 
 .inprogress {
@@ -12947,7 +12947,7 @@ sub {
 }
 
 #ul_category li:hover {
-    background-color: #2c70a2 !important
+    background-color: #001f3f !important
 }
 
 #ul_category li a:hover {
@@ -12955,7 +12955,7 @@ sub {
 }
 
 .param.calendar .calendar--button button:hover .icon-calendar {
-    fill: #2c70a2 !important;
+    fill: #001f3f !important;
 }
 
 @media screen and (min-width: 900px) {

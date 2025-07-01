@@ -4,43 +4,43 @@
     // https://tailwindcss.com/docs/content-configuration#dynamic-class-names
 
     'css_classes_to_pre_compile' => [
-        'bg' => 'bg-primary-100/70 bg-blue-100/70 bg-red-100/70 bg-yellow-100/70 bg-green-100/70 bg-purple-100/70
+        'bg' => 'bg-primary-subtle-100/70 bg-blue-100/70 bg-red-100/70 bg-yellow-100/70 bg-green-100/70 bg-purple-100/70
                 bg-orange-100/70 bg-slate-100/70 bg-gray-100/70 bg-pink-100/70 bg-cyan-100/70 bg-violet-100/70
-                bg-indigo-100/70 bg-fuchsia-100/70 bg-primary-100 bg-blue-100 bg-red-100 bg-yellow-100 bg-green-100 bg-purple-100
+                bg-indigo-100/70 bg-fuchsia-100/70 bg-primary-subtle-100 bg-blue-100 bg-red-100 bg-yellow-100 bg-green-100 bg-purple-100
                 bg-orange-100 bg-slate-100 bg-gray-100 bg-pink-100 bg-cyan-100 bg-violet-100
                 bg-indigo-100 bg-fuchsia-100
 
-                bg-primary-200/80 bg-blue-200/80 bg-red-200/80 bg-yellow-200/80 bg-green-200/80 bg-purple-200/80
+                bg-primary-subtle-200/80 bg-blue-200/80 bg-red-200/80 bg-yellow-200/80 bg-green-200/80 bg-purple-200/80
                 bg-orange-200/80 bg-slate-200/80 bg-gray-200/80 bg-pink-200/80 bg-cyan-200/80 bg-violet-200/80
                 bg-indigo-200/80 bg-fuchsia-200/80
 
-                bg-primary-300 bg-secondary-300 bg-blue-300 bg-red-300 bg-yellow-300 bg-green-300 bg-purple-300
+                bg-primary-subtle-300 bg-secondary-300 bg-blue-300 bg-red-300 bg-yellow-300 bg-green-300 bg-purple-300
                 bg-orange-300 bg-slate-300 bg-gray-300 bg-pink-300 bg-cyan-300 bg-violet-300
                 bg-indigo-300 bg-fuchsia-300
 
-                bg-primary-500 bg-secondary-500 bg-blue-500 bg-red-500 bg-yellow-500 bg-green-500 bg-purple-500 bg-orange-500 bg-slate-500
+                bg-primary-subtle-500 bg-secondary-500 bg-blue-500 bg-red-500 bg-yellow-500 bg-green-500 bg-purple-500 bg-orange-500 bg-slate-500
                 bg-gray-500 bg-pink-500 bg-cyan-500 bg-violet-500 bg-indigo-500 bg-fuchsia-500 bg-black
-                group-hover:bg-primary-500 group-hover:bg-secondary-500 group-hover:bg-blue-500 group-hover:bg-red-500 group-hover:bg-yellow-500 group-hover:bg-green-500 group-hover:bg-purple-500 group-hover:bg-orange-500 group-hover:bg-slate-500
+                group-hover:bg-primary-subtle-500 group-hover:bg-secondary-500 group-hover:bg-blue-500 group-hover:bg-red-500 group-hover:bg-yellow-500 group-hover:bg-green-500 group-hover:bg-purple-500 group-hover:bg-orange-500 group-hover:bg-slate-500
                 group-hover:bg-gray-500 group-hover:bg-pink-500 group-hover:bg-cyan-500 group-hover:bg-violet-500 group-hover:bg-indigo-500 group-hover:bg-fuchsia-500 group-hover:bg-black
-                !bg-primary-500 !bg-secondary-500 !bg-blue-500 !bg-red-500 !bg-yellow-500 !bg-green-500 !bg-purple-500 !bg-orange-500 !bg-slate-500
+                !bg-primary-subtle-500 !bg-secondary-500 !bg-blue-500 !bg-red-500 !bg-yellow-500 !bg-green-500 !bg-purple-500 !bg-orange-500 !bg-slate-500
                 !bg-gray-500 !bg-pink-500 !bg-cyan-500 !bg-violet-500 !bg-indigo-500 !bg-fuchsia-500 !bg-black
 
-                hover:bg-primary-600 hover:bg-secondary-600 hover:bg-blue-600 hover:bg-red-600 hover:bg-yellow-600 hover:bg-green-600
+                hover:bg-primary-subtle-600 hover:bg-secondary-600 hover:bg-blue-600 hover:bg-red-600 hover:bg-yellow-600 hover:bg-green-600
                 hover:bg-purple-600 hover:bg-orange-600 hover:bg-slate-600 hover:bg-gray-600 hover:bg-pink-600
                 hover:bg-cyan-600 hover:bg-violet-600 hover:bg-indigo-600 hover:bg-fuchsia-600
-                hover:!bg-primary-600 hover:!bg-secondary-600 hover:!bg-blue-600 hover:!bg-red-600 hover:!bg-yellow-600 hover:!bg-green-600
+                hover:!bg-primary-subtle-600 hover:!bg-secondary-600 hover:!bg-blue-600 hover:!bg-red-600 hover:!bg-yellow-600 hover:!bg-green-600
                 hover:!bg-purple-600 hover:!bg-orange-600 hover:!bg-slate-600 hover:!bg-gray-600 hover:!bg-pink-600
                 hover:!bg-cyan-600 hover:!bg-violet-600 hover:!bg-indigo-600 hover:!bg-fuchsia-600
 
-                dark:bg-primary-600 dark:bg-secondary-600 dark:bg-blue-600 dark:bg-red-600 dark:bg-yellow-600 dark:bg-green-600
+                dark:bg-primary-subtle-600 dark:bg-secondary-600 dark:bg-blue-600 dark:bg-red-600 dark:bg-yellow-600 dark:bg-green-600
                 dark:bg-purple-600 dark:bg-orange-600 dark:bg-slate-600 dark:bg-gray-600 dark:bg-pink-600
                 dark:bg-cyan-600 dark:bg-violet-600 dark:bg-indigo-600 dark:bg-fuchsia-600
 
-                active:!bg-primary-600 active:!bg-blue-600 active:!bg-red-600 active:!bg-yellow-600 active:!bg-green-600
+                active:!bg-primary-subtle-600 active:!bg-blue-600 active:!bg-red-600 active:!bg-yellow-600 active:!bg-green-600
                 active:!bg-purple-600 active:!bg-orange-600 active:!bg-slate-600 active:!bg-gray-600 active:!bg-pink-600
                 active:!bg-cyan-600 active:!bg-violet-600 active:!bg-indigo-600 active:!bg-fuchsia-600
 
-                peer-checked:bg-primary-600 peer-checked:bg-blue-600 peer-checked:bg-red-600 peer-checked:bg-yellow-600 peer-checked:bg-green-600
+                peer-checked:bg-primary-subtle-600 peer-checked:bg-blue-600 peer-checked:bg-red-600 peer-checked:bg-yellow-600 peer-checked:bg-green-600
                 peer-checked:bg-purple-600 peer-checked:bg-orange-600 peer-checked:bg-slate-600 peer-checked:bg-gray-600 peer-checked:bg-pink-600
                 peer-checked:bg-cyan-600 peer-checked:bg-violet-600 peer-checked:bg-indigo-600 peer-checked:bg-fuchsia-600',
 

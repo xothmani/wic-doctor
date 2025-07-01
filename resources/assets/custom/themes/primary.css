@@ -11,7 +11,7 @@ footer a:not(.btn),
 .nav-pills .nav-link.selected,
 .breadcrumb-item > a,
 .page-link{
-    color: #007bff !important;
+    color: #001f3f !important;
 }
 .form-group a:not(.btn):hover,
 footer a:not(.btn):hover,
@@ -19,7 +19,7 @@ footer a:not(.btn):hover,
 .nav-pills .nav-link:not(.active):hover,
 .breadcrumb-item > a:hover,
 .page-link:hover{
-    color: #0063c5 !important;
+    color: #001f3f !important;
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected],
@@ -27,7 +27,7 @@ footer a:not(.btn):hover,
 .dropdown-menu > a.dropdown-item.active,
 .dropdown-menu > a.dropdown-item:active,
 .card .nav-pills .show > .nav-link {
-    background-color: #007bff !important;
+    background-color: #001f3f !important;
     color: white !important;
 }
 
@@ -44,6 +44,6 @@ footer a:not(.btn):hover,
 .page-item.active .page-link,
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
     color: #ffffff !important;
-    background-color: #007bff;
-    border-color: #007bff;
+    background-color: #001f3f;
+    border-color: #001f3f;
 }

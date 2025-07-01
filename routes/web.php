@@ -46,6 +46,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardMedecinController;
+use App\Http\Controllers\DoctorPatientsController;
 
 
 
@@ -755,4 +756,13 @@ Route::resource('medicament-prescriptions', MedicamentPrescriptionController::cl
         'index' => 'medicament_prescriptions.index',
 
     ]);
-Route::patch('/medicament-prescriptions/{id}/mark-treated', [App\Http\Controllers\MedicamentPrescriptionController::class, 'markAsTreated'])->name('medicament_prescriptions.markAsTreated');
+    Route::patch('/medicament-prescriptions/{id}/mark-treated', [App\Http\Controllers\MedicamentPrescriptionController::class, 'markAsTreated'])->name('medicament_prescriptions.markAsTreated');
+
+    Route::post('/patients/{patient}/attach', [DoctorPatientsController::class, 'attach'])
+    ->name('doctors.patients.attach');
+
+    Route::get('/imagerie', 'App\Http\Controllers\ImagerieController@index')->name('imagerie.index');
+    Route::get('/imagerie/{specialty}',  'App\Http\Controllers\ImagerieController@show')->name('imagerie.specialties.show');
+    Route::get('/SpeechToText', action: 'App\Http\Controllers\SpeechToTextController@index')->name('SpeechToText.index');
+    Route::get('/Lap', action: 'App\Http\Controllers\LapController@index')->name('Lap.index');
+

@@ -152,9 +152,9 @@
   text-decoration: none; /* Remove underline */
   transition: all 0.3s ease-in-out; /* Smooth hover effect */
   padding: 0 10px; /* Smaller horizontal padding */
-  background-color: #5c6bc0; /* Green background */
+  background-color: #062b50; /* Green background */
   color: white; /* Icon and text color */
-  border: 1px solid #5c6bc0; /* Border matching the background */
+  border: 1px solid #062b50; /* Border matching the background */
   border-radius: 0.25rem; /* Slightly rounded corners */
   line-height: 1; /* Ensures proper text/icon alignment */
 }
@@ -286,7 +286,7 @@
 /* Improve Select2 appearance */
 .select2-container--default .select2-selection--single {
   background-color: #f8f9fa; /* Light background */
-  border: 1px solid #007bff; /* Blue border to match Bootstrap */
+  border: 1px solid #062b50; /* Blue border to match Bootstrap */
   border-radius: 6px; /* Softer corners */
   height: 30px; /* Taller select box */
   padding: 5px 12px; /* More spacing */
@@ -296,7 +296,7 @@
 
 /* Hover effect */
 .select2-container--default .select2-selection--single:hover {
-  border-color: #5c6bc0; /* Darker blue on hover */
+  border-color: #062b50; /* Darker blue on hover */
 }
 
 /* Focus effect when clicked */
@@ -313,13 +313,13 @@
 
 /* Selected item inside dropdown */
 .select2-container--default .select2-results__option--selected {
-  background-color: #5c6bc0 !important;
+  background-color: #062b50 !important;
   color: white !important;
 }
 
 /* Hover effect on dropdown options */
 .select2-container--default .select2-results__option--highlighted {
-  background-color: #5c6bc0 !important;
+  background-color: #062b50 !important;
   color: white !important;
 }
 .form-group input,
@@ -339,9 +339,9 @@
   text-decoration: none; /* Remove underline */
   transition: all 0.3s ease-in-out; /* Smooth hover effect */
   padding: 0 10px; /* Smaller horizontal padding */
-  background-color: #5c6bc0; /* Same Green background */
+  background-color: #062b50; /* Same Green background */
   color: white; /* Icon and text color */
-  border: 1px solid #5c6bc0; /* Border matching the background */
+  border: 1px solid #062b50; /* Border matching the background */
   border-radius: 0.25rem; /* Slightly rounded corners */
   line-height: 1; /* Ensures proper text/icon alignment */
 }
@@ -354,8 +354,8 @@
 
 /* Hover Effect */
 #addNewPattern:hover {
-  background-color: #5c6bc0; /* Darker Green on hover */
-  border-color: #5c6bc0; /* Darker border on hover */
+  background-color: #062b50; /* Darker Green on hover */
+  border-color: #062b50; /* Darker border on hover */
 }
 
 /* Ensure the dropdown is aligned properly */
@@ -375,13 +375,13 @@
 
 /* Save Button Styling */
 .save-btn {
-  background-color: #5c6bc0; /* Blue */
+  background-color: #062b50; /* Blue */
   border: none;
   font-weight: 600;
 }
 
 .save-btn:hover {
-  background-color: #5c6bc0;
+  background-color: #062b50;
   transform: scale(1.03);
 }
 
@@ -409,8 +409,8 @@
   line-height: 13px;
 }
 .time-slot-button {
-  border: 2px solid #5c6bc0;   /* or your desired color */
-  color: #5c6bc0;
+  border: 2px solid #062b50;   /* or your desired color */
+  color: #062b50;
   background-color: #fff;
   border-radius: 8px;
   cursor: pointer;
@@ -423,34 +423,34 @@
 }
 
 .time-slot-button:hover {
-  background-color: #5c6bc0;
+  background-color: #062b50;
   color: #fff;
   transform: translateY(-2px);
 }
 
 /* .time-slot-button.active {
-  background-color: #5c6bc0;
+  background-color: #062b50;
   color: #fff;
   transform: translateY(-2px);
 } */
 
 .time-slot-button.active, 
 .slot-btn.time-slot-button.active {
-  background-color: #5c6bc0 !important;
+  background-color: #062b50 !important;
   color: #fff !important;
   transform: translateY(-2px) !important;
   border-color: #4a5aa5 !important;
 }
 /* For all tab links in .nav-tabs */
 .nav-tabs .nav-link {
-  color: #5c6bc0; /* desired color */
+  color: #062b50; /* desired color */
 }
 
 /* When a tab is active (currently selected) */
 .nav-tabs .nav-link.active {
   color: #fff;            /* text color when active */
-  background-color: #5c6bc0; /* background for active tab */
-  border-color: #5c6bc0;     /* if you want the border to match */
+  background-color: #062b50; /* background for active tab */
+  border-color: #062b50;     /* if you want the border to match */
 }
 .slot-taken {
   background-color: #cccccc !important;
@@ -460,7 +460,7 @@
 }
 /* Ensure modal header background extends fully */
 .modal-header {
-  background-color: #5c6bc0 !important;
+  background-color: #062b50 !important;
   color: white;
   border-radius: 0 !important; /* Removes rounded corners */
   padding: 15px 20px;
@@ -844,7 +844,7 @@
 #appointmentForm input:focus,
 #appointmentForm select:focus,
 #appointmentForm textarea:focus {
-  border-color: #007bff;
+  border-color: #062b50;
   outline: none;
 }
 
@@ -855,8 +855,8 @@
   transition: all 0.2s ease-in-out;
 }
 .btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
+  background-color: #062b50;
+  border-color: #062b50;
   color: #fff;
 }
 .btn-primary:hover {
@@ -1131,9 +1131,9 @@ input[readonly], select[disabled] {
 }
 
 .slot-btn.active {
-  background-color: #007bff !important; /* Primary blue color */
+  background-color: #002042 !important; /* Primary blue color */
   color: white !important;
-  border-color: #0069d9 !important;
+  border-color: #002042 !important;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
 }
 
