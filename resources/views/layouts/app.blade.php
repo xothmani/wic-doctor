@@ -8,6 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{asset('vendor/fontawesome-free/css/all.min.css')}}">
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+
     @stack('css_lib')
     <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,600" rel="stylesheet">
     <link rel="stylesheet" href="{{asset('vendor/overlayScrollbars/css/OverlayScrollbars.min.css')}}">
@@ -18,6 +21,10 @@
     @yield('css_custom')
     @stack('styles')
 	@yield('styles')
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+
 </head>
 
 <body class="@if(in_array(app()->getLocale(), ['ar','ku','fa','ur','he','ha','ks'])) rtl @else ltr @endif layout-fixed {{setting('fixed_header',false) ? "layout-navbar-fixed" : ""}} {{setting('fixed_footer',false) ? "layout-footer-fixed" : ""}} sidebar-mini {{setting('theme_color')}} {{setting('theme_contrast','')}}-mode" data-scrollbar-auto-hide="r" data-scrollbar-theme="os-theme-dark">

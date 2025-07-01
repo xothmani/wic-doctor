@@ -6,6 +6,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\DrugController;
 use App\Http\Controllers\MessagerieController;
 use App\Http\Controllers\PatientDoctorChatController;
+use App\Http\Controllers\PatientFileController;
 use App\Http\Controllers\TeleseceteriatDoctorsController;
 
 use App\Http\Controllers\HelpDeskController;
@@ -693,6 +694,20 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
 
     // Drug-drug interactions page (requires login)
     Route::get('/drug_drug_interactions', [DrugController::class, 'index'])->name('drug_drug_interactions.index');
+
+    Route::prefix('patient_files')->name('patient_files.')->group(function () {
+        Route::get('/{patient?}', [PatientFileController::class, 'index'])->name('index');
+        Route::get('/{patient}/create', [PatientFileController::class, 'create'])->name('create');
+        Route::get('/{patient}/{file}', [PatientFileController::class, 'show'])->name('show');
+        Route::post('/{patient}', [PatientFileController::class, 'store'])->name('store');
+        Route::get('/{patient}/{file}/download', [PatientFileController::class, 'download'])->name('download');
+        Route::delete('/{patient}/{file}', [PatientFileController::class, 'destroy'])->name('destroy');
+        Route::post('/{patient}/assign-doctor', [PatientFileController::class, 'assignDoctor'])->name('assign_doctor');
+        Route::post('/{patient}/{file}/assign-access', [PatientFileController::class, 'assignAccess'])->name('assign_access');
+        Route::post('/{patient}/{file}/revoke-access', [PatientFileController::class, 'revokeAccess'])->name('revoke_access');
+        Route::get('patient_files/{patient}/assigned_users/{file}', [PatientFileController::class, 'getAssignedUsers'])->name('assigned_users');
+    });
+
 });
 Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
 Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
@@ -739,7 +754,7 @@ use App\Http\Controllers\MedicamentPrescriptionController;
 Route::resource('medicament-prescriptions', MedicamentPrescriptionController::class)
     ->names([
         'index' => 'medicament_prescriptions.index',
-   
+
     ]);
     Route::patch('/medicament-prescriptions/{id}/mark-treated', [App\Http\Controllers\MedicamentPrescriptionController::class, 'markAsTreated'])->name('medicament_prescriptions.markAsTreated');
 
@@ -747,6 +762,7 @@ Route::resource('medicament-prescriptions', MedicamentPrescriptionController::cl
     ->name('doctors.patients.attach');
 
     Route::get('/imagerie', 'App\Http\Controllers\ImagerieController@index')->name('imagerie.index');
-Route::get('/imagerie/{specialty}',  'App\Http\Controllers\ImagerieController@show')->name('imagerie.specialties.show');
+    Route::get('/imagerie/{specialty}',  'App\Http\Controllers\ImagerieController@show')->name('imagerie.specialties.show');
     Route::get('/SpeechToText', action: 'App\Http\Controllers\SpeechToTextController@index')->name('SpeechToText.index');
     Route::get('/Lap', action: 'App\Http\Controllers\LapController@index')->name('Lap.index');
+

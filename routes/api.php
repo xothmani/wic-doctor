@@ -10,11 +10,13 @@ use App\Http\Controllers\API\NotificationAPIController;
 use App\Http\Controllers\API\PrescriptionsApiController;
 use App\Http\Controllers\API\RoomAPIController;
 use App\Http\Controllers\DrugController;
+use App\Http\Controllers\PatientFileController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\API\TranslationAPIController;
 use App\Http\Controllers\API\AvailabilityHourAPIController;
+use App\Http\Controllers\API\AppointmentAPIController ;
 use App\Http\Controllers\API\UserAPIController;
-use Google\Service\Doubleclicksearch\Availability;
+use App\Http\Controllers\API\CustomMediaApiController;
 
 
 /*********************** Route ajouté par Hamza ********************* */
@@ -39,7 +41,10 @@ Route::middleware('auth:api')->post('/set-locale', [TranslationAPIController::cl
 Route::get('/get-type-consultation/{id}', [AvailabilityHourAPIController::class, 'getTypeConsultation']);
 Route::put('update-user-email/{id}', [UserAPIController::class, 'updateUserEmail']);
 Route::get('/consultations/prescriptions/{id}', [PrescriptionsApiController::class, 'show']);
-
+Route::delete('appointments/delete/{id}', [AppointmentApiController::class, 'delete']);
+Route::post('/media/upload', [CustomMediaApiController::class, 'upload']);
+Route::delete('/media/delete/{id}', [CustomMediaApiController::class, 'destroy']);
+Route::delete('doctor_reviews/{id}', 'API\DoctorReviewAPIController@delete');
 /*********************** End Route ajouté par Hamza ********************* */
 
 
@@ -206,6 +211,7 @@ Route::middleware('auth:api')->group(function () {
         'index'
     ]);
     Route::post('doctor_reviews', 'API\DoctorReviewAPIController@store')->name('doctor_reviews.store');
+    
     Route::post('clinic_reviews', 'API\ClinicReviewAPIController@store')->name('clinic_reviews.store');
 
 
@@ -244,4 +250,24 @@ Route::prefix('/drugs')->group(function () {
     Route::get('/search', [DrugController::class, 'search']);
     Route::get('/{medicament_id}', [DrugController::class, 'show']);
     Route::post('/check-interactions', [DrugController::class, 'checkInteractions']);
+});
+
+Route::prefix('/drug-interactions')->group(function () {
+    Route::post('/check', [DrugController::class, 'checkInteractions']);
+    Route::get('/backup-stats', [DrugController::class, 'getBackupStats']);
+    Route::post('/toggle-backup-mode', [DrugController::class, 'toggleBackupMode']);
+    Route::get('/search-backup', [DrugController::class, 'searchBackup']);
+});
+
+Route::prefix('patient_files')->name('api.patient_files.')->group(function () {
+    Route::get('/{patient}', [PatientFileController::class, 'apiIndex'])->name('index');
+    Route::get('/{patient}/{file}', [PatientFileController::class, 'apiShow'])->name('show');
+    Route::get('/{patient}/{file}/download', [PatientFileController::class, 'apiDownload'])->name('download');
+    Route::delete('/{patient}/{file}', [PatientFileController::class, 'apiDestroy'])->name('destroy');
+    Route::post('/{patient}/{file}/give-access', [PatientFileController::class, 'apiGiveAccess'])->name('give_access');
+    Route::post('/{patient}/upload', [PatientFileController::class, 'apiUpload'])->name('upload');
+    Route::post('/{patient}/{file}/revoke-access', [PatientFileController::class, 'apiRevokeAccess'])->name('revoke_access');
+    Route::get('/{patient}/assigned_users/{file}', [PatientFileController::class, 'apiGetAssignedUsers'])->name('assigned_users');
+    Route::post('/{patient}/{file}/generate-qr-code', [PatientFileController::class, 'apiGenerateFileQrCode'])->name('generate_qr_code');
+    Route::get('/{patient}/{file}/api-download', [PatientFileController::class, 'apiDownloadExternal'])->name('api_download');
 });
