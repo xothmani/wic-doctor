@@ -2404,9 +2404,10 @@ return [
     'close' => 'Fermer',
     'error_generating_link' => 'Échec de la génération du lien de téléchargement public.',
     'download_qr_code' => 'Télécharger le code QR',
-    'public_upload_link_description' => 'Ce lien peutêtre utilisé pour telecharger des fichiers dans le compte du patient. Il expirera dans 24 heures.',
+    'public_upload_link_description' => 'Ce lien peut être utilisé pour télécharger des fichiers dans le compte du patient. Il expirera dans 24 heures.',
     'link_expires_in' => 'Le lien expire dans',
     'link_expired' => 'Ce lien a expiré.',
     'upload_requested_by' => 'Demandé par',
     'upload_for_patient' => 'Pour le patient',
+    'drop_files_here' => 'Déposez vos fichiers ici ou cliquez pour choisir',
 ];
