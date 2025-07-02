@@ -1722,4 +1722,7 @@ return [
     'close' => 'Close',
     'error_generating_link' => 'Failed to generate public upload link.',
     'download_qr_code' => 'Download QR Code',
+    'public_upload_link_description' => 'This link can be used to upload files to this patient’s account. It will expire after 24 hours.',
+    'link_expires_in' => 'Link expires in',
+    'link_expired' => 'This link has expired.',
 ];

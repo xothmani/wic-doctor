@@ -129,6 +129,9 @@
                                                             </button>
                                                         </div>
                                                     </div>
+                                                    <p class="text-muted">
+                                                        {{ trans('lang.public_upload_link_description') }}
+                                                    </p>
                                                     <h6 class="mb-3 text-dark font-weight-bold">{{ trans('lang.qr_code') }}</h6>
                                                     <div class="d-flex flex-column align-items-center">
                                                         <img id="public-upload-qr" src="" alt="QR Code"
