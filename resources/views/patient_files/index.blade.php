@@ -85,7 +85,7 @@
                                     @include('patient_files.table')
                                 </div>
                             </div>
-                            <div class="modal fade" id="generatePublicUploadLinkModal" tabindex="-1" role="dialog"
+                            <div class="modal fade" id="generatePublicUploadLinkModal" tabindex="30" role="dialog"
                                 aria-labelledby="generatePublicUploadLinkModalLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-lg" role="document">
                                     <div class="modal-content rounded-20">
@@ -676,5 +676,10 @@
             height: 30px;
             font-size: 0.8rem;
         }
+    }
+
+    .modal-backdrop {
+        background-color: transparent !important;
+        backdrop-filter: blur(2px);
     }
 </style>
