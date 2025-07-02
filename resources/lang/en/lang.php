@@ -1721,4 +1721,5 @@ return [
     'link_copied' => 'Link copied to clipboard!',
     'close' => 'Close',
     'error_generating_link' => 'Failed to generate public upload link.',
+    'download_qr_code' => 'Download QR Code',
 ];

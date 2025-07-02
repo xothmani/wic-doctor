@@ -130,8 +130,11 @@
                                                         </div>
                                                     </div>
                                                     <h6 class="mb-3 text-dark font-weight-bold">{{ trans('lang.qr_code') }}</h6>
-                                                    <img id="public-upload-qr" src="" alt="QR Code"
-                                                        class="img-fluid rounded shadow-sm" style="max-width: 300px;">
+                                                    <div class="d-flex flex-column align-items-center">
+                                                        <img id="public-upload-qr" src="" alt="QR Code"
+                                                            class="img-fluid rounded shadow-sm" style="max-width: 300px;">
+                                                        <div class="btn-container mt-3"></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -237,6 +240,26 @@
                             linkInput.value = data.upload_url;
                             qrImage.src = data.qr_code;
                             linkContainer.style.display = 'block';
+                            const canvas = document.createElement('canvas');
+                            const context = canvas.getContext('2d');
+                            const img = new Image();
+                            img.src = data.qr_code;
+                            img.onload = function () {
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                context.drawImage(img, 0, 0);
+
+                                // Create download link
+                                const downloadButton = document.createElement('a');
+                                downloadButton.href = canvas.toDataURL("image/png");
+                                downloadButton.download = "qrcode.png";
+                                downloadButton.classList.add("btn", "btn-sm", "bg-gradient-info", "text-white", "d-flex", "align-items-center", "shadow-sm");
+                                downloadButton.innerHTML = '<i class="fas fa-download mr-2"></i>{{ trans('lang.download_qr_code') }}';
+
+                                const btnContainer = document.querySelector('.btn-container');
+                                btnContainer.innerHTML = '';
+                                btnContainer.appendChild(downloadButton);
+                            };
                         } else {
                             alert('{{ trans('lang.error_generating_link') }}');
                         }
@@ -599,6 +622,21 @@
         border: 1px solid #e9ecef;
         padding: 10px;
         background: white;
+    }
+
+    .btn-container {
+        margin-top: 1rem;
+    }
+
+    .btn.bg-gradient-info {
+        background: var(--info-gradient);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn.bg-gradient-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
     }
 
     @keyframes slideInUp {
