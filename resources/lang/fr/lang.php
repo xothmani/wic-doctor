@@ -2403,4 +2403,5 @@ return [
     'link_copied' => 'Lien copié dans le presse-papiers !',
     'close' => 'Fermer',
     'error_generating_link' => 'Échec de la génération du lien de téléchargement public.',
+    'download_qr_code' => 'Télécharger le code QR',
 ];
