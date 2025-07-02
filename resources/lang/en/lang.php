@@ -1727,4 +1727,5 @@ return [
     'link_expired' => 'This link has expired.',
     'upload_requested_by' => 'Requested by',
     'upload_for_patient' => 'For patient',
+    'drop_files_here' => 'Drop files here or click to upload',
 ];
