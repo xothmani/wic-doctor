@@ -3,6 +3,13 @@
 <body class="bg-light">
     <div class="container mx-auto p-4">
         <div class="card shadow-sm">
+            <div class="alert alert-info border-0 bg-dark-info shadow-sm" style="border-radius: 10px 10px 0 0 !important;">
+                <i class="fas fa-user-md mr-2"></i>
+                {{ trans('lang.upload_requested_by') }} <strong>{{ $user->name }} {{ $user->lastname }}</strong><br>
+                <i class="fas fa-user mr-2"></i>
+                {{ trans('lang.upload_for_patient') }} <strong>{{ $patient->first_name }}
+                    {{ $patient->last_name }}</strong>
+            </div>
             <div class="card-body p-5">
                 <!-- Upload Icon and Title -->
                 <div class="text-center mb-5">
@@ -158,7 +165,7 @@
                         <div class="col-lg-8">
                             <div class="d-flex justify-content-end">
                                 <button type="submit"
-                                    class="btn bg-{{ setting('theme_color', 'primary') }} text-white btn-lg px-5 shadow-sm upload-btn">
+                                    class="btn bg-info }} text-white btn-lg px-5 shadow-sm upload-btn">
                                     <span class="btn-text">{{ trans('lang.upload_file') }}</span>
                                     <span class="btn-loading" style="display: none;">
                                         <i class="fas fa-spinner fa-spin mr-2"></i>{{ trans('lang.uploading') }}...
