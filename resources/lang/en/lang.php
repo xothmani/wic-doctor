@@ -1711,5 +1711,14 @@ return [
     'select_user_to_assign' => 'Please select a user to assign access',
     'access_assigned_successfully' => 'Access assigned successfully',
     'error_assigning_access' => 'Error assigning access',
-    'confirm_delete_file' => 'Are you sure you want to delete this file?'
+    'confirm_delete_file' => 'Are you sure you want to delete this file?',
+    'generate_public_upload_link' => 'Generate Public Upload Link',
+    'click_to_generate_public_upload_link' => 'Click the button to generate a public upload link for this patient.',
+    'generate_link' => 'Generate Link',
+    'generating' => 'Generating',
+    'public_upload_link' => 'Public Upload Link',
+    'qr_code' => 'QR Code',
+    'link_copied' => 'Link copied to clipboard!',
+    'close' => 'Close',
+    'error_generating_link' => 'Failed to generate public upload link.',
 ];
