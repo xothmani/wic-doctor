@@ -1650,7 +1650,7 @@ return [
     'drag_drop_files' => 'Drag and drop files here',
     'or_click_to_select' => 'Or click to select',
     'browse_files' => 'Browse files',
-    'supported_file_types' => 'Supported file types',
+    'supported_file_types' => 'Supported file types (max. 100MB)',
     'patient_file_description_placeholder' => 'Enter a description for the patient file...',
     'cancel' => 'Cancel',
     'upload_file' => 'Upload file',
@@ -1722,4 +1722,9 @@ return [
     'close' => 'Close',
     'error_generating_link' => 'Failed to generate public upload link.',
     'download_qr_code' => 'Download QR Code',
+    'public_upload_link_description' => 'This link can be used to upload files to this patient’s account. It will expire after 24 hours.',
+    'link_expires_in' => 'Link expires in',
+    'link_expired' => 'This link has expired.',
+    'upload_requested_by' => 'Requested by',
+    'upload_for_patient' => 'For patient',
 ];

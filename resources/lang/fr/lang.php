@@ -2314,7 +2314,7 @@ return [
     'drag_drop_files' => 'Glissez et déposez les fichiers ici',
     'or_click_to_select' => 'Ou cliquez pour sélectionner',
     'browse_files' => 'Parcourir les fichiers',
-    'supported_file_types' => 'Types de fichiers pris en charge',
+    'supported_file_types' => 'Types de fichiers pris en charge (max. 100MB)',
     'patient_file_description_placeholder' => 'Entrez une description pour le fichier du patient...',
     'cancel' => 'Annuler',
     'upload_file' => 'Télécharger le fichier',
@@ -2404,4 +2404,9 @@ return [
     'close' => 'Fermer',
     'error_generating_link' => 'Échec de la génération du lien de téléchargement public.',
     'download_qr_code' => 'Télécharger le code QR',
+    'public_upload_link_description' => 'Ce lien peutêtre utilisé pour telecharger des fichiers dans le compte du patient. Il expirera dans 24 heures.',
+    'link_expires_in' => 'Le lien expire dans',
+    'link_expired' => 'Ce lien a expiré.',
+    'upload_requested_by' => 'Demandé par',
+    'upload_for_patient' => 'Pour le patient',
 ];

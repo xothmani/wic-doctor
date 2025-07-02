@@ -3,6 +3,13 @@
 <body class="bg-light">
     <div class="container mx-auto p-4">
         <div class="card shadow-sm">
+            <div class="alert alert-info border-0 bg-dark-info shadow-sm" style="border-radius: 10px 10px 0 0 !important;">
+                <i class="fas fa-user-md mr-2"></i>
+                {{ trans('lang.upload_requested_by') }} <strong>{{ $user->name }} {{ $user->lastname }}</strong><br>
+                <i class="fas fa-user mr-2"></i>
+                {{ trans('lang.upload_for_patient') }} <strong>{{ $patient->first_name }}
+                    {{ $patient->last_name }}</strong>
+            </div>
             <div class="card-body p-5">
                 <!-- Upload Icon and Title -->
                 <div class="text-center mb-5">
@@ -40,7 +47,17 @@
                         </button>
                     </div>
                 @endif
-
+                <div class="text-center mb-4">
+                    <div id="countdown-timer" class="alert alert-info border-0 bg-light-info shadow-sm">
+                        <i class="fas fa-clock mr-2 text-info"></i>
+                        <span id="timer-text">{{ trans('lang.link_expires_in') }} <span
+                                id="timer-value">Loading...</span></span>
+                        <span id="timer-expired" style="display: none;">
+                            <i class="fas fa-exclamation-triangle mr-2 text-danger"></i>
+                            {{ trans('lang.link_expired') }}
+                        </span>
+                    </div>
+                </div>
                 <form
                     action="{{ route('patient_files.public_upload', ['patient' => $patient->id, 'user' => $user->id, 'expires' => request()->query('expires'), 'signature' => request()->query('signature')]) }}"
                     method="POST" enctype="multipart/form-data" id="uploadForm">
@@ -148,7 +165,7 @@
                         <div class="col-lg-8">
                             <div class="d-flex justify-content-end">
                                 <button type="submit"
-                                    class="btn bg-{{ setting('theme_color', 'primary') }} text-white btn-lg px-5 shadow-sm upload-btn">
+                                    class="btn bg-info }} text-white btn-lg px-5 shadow-sm upload-btn">
                                     <span class="btn-text">{{ trans('lang.upload_file') }}</span>
                                     <span class="btn-loading" style="display: none;">
                                         <i class="fas fa-spinner fa-spin mr-2"></i>{{ trans('lang.uploading') }}...
@@ -296,6 +313,39 @@
         .shadow-lg {
             box-shadow: 0 1rem 3rem rgba(0, 0, 0, .175) !important;
         }
+
+        #countdown-timer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            font-size: 1rem;
+            border-radius: 10px;
+        }
+
+        #timer-text,
+        #timer-expired {
+            font-weight: 500;
+        }
+
+        #timer-text {
+            color: black;
+        }
+
+        #timer-value {
+            font-weight: 700;
+            color: var(--info, #17a2b8);
+        }
+
+        #timer-expired {
+            color: var(--danger, #dc3545);
+        }
+
+
+        .upload-btn.btn-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
@@ -309,6 +359,10 @@
             const uploadForm = document.getElementById('uploadForm');
             const uploadBtn = document.querySelector('.upload-btn');
             const browseBtn = document.getElementById('browseBtn');
+            const expiresTimestamp = parseInt('{{ request()->query('expires') }}') * 1000; // Convert seconds to milliseconds
+            const timerValue = document.getElementById('timer-value');
+            const timerText = document.getElementById('timer-text');
+            const timerExpired = document.getElementById('timer-expired');
 
             browseBtn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -398,6 +452,36 @@
                     }
                 }, 1000);
             });
+
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const timeLeft = expiresTimestamp - now;
+
+                if (timeLeft <= 0) {
+                    timerText.style.display = 'none';
+                    timerExpired.style.display = 'inline';
+                    uploadBtn.disabled = true;
+                    uploadBtn.classList.add('btn-disabled');
+                    clearInterval(countdownInterval);
+                    return;
+                }
+
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                timerValue.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            if (!isNaN(expiresTimestamp) && expiresTimestamp > 0) {
+                updateCountdown();
+                const countdownInterval = setInterval(updateCountdown, 1000);
+            } else {
+                timerText.style.display = 'none';
+                timerExpired.style.display = 'inline';
+                uploadBtn.disabled = true;
+                uploadBtn.classList.add('btn-disabled');
+            }
         });
     </script>
 </body>
