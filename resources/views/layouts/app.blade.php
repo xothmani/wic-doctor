@@ -22,12 +22,11 @@
     @stack('styles')
 	@yield('styles')
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+
 
 </head>
 
-<body class="@if(in_array(app()->getLocale(), ['ar','ku','fa','ur','he','ha','ks'])) rtl @else ltr @endif layout-fixed {{setting('fixed_header',false) ? "layout-navbar-fixed" : ""}} {{setting('fixed_footer',false) ? "layout-footer-fixed" : ""}} sidebar-mini {{setting('theme_color')}} {{setting('theme_contrast','')}}-mode" data-scrollbar-auto-hide="r" data-scrollbar-theme="os-theme-dark">
+<body class="@if(in_array(app()->getLocale(), ['ar','ku','fa','ur','he','ha','ks'])) rtl @else ltr @endif layout-fixed {{setting('fixed_header',false) ? 'layout-navbar-fixed' : ''}} {{setting('fixed_footer',false) ? 'layout-footer-fixed' : ''}} sidebar-mini {{setting('theme_color')}} {{setting('theme_contrast','')}}-mode" data-scrollbar-auto-hide="r" data-scrollbar-theme="os-theme-dark" data-user-id="{{ auth()->check() ? auth()->user()->id : '' }}">
 @yield('scripts')
 <div class="wrapper">
 <!-- Global Active Doctor Component -->
@@ -588,7 +587,10 @@
             @endcan
             @can('notifications.index')
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('notifications*') ? 'active' : '' }}" href="{!! route('notifications.index') !!}"><i class="fas fa-bell"></i></a>
+                    <a class="nav-link {{ Request::is('notifications*') ? 'active' : '' }}" href="{!! route('messenger.index') !!}">
+                        <i class="fas fa-bell"></i>
+                        <span id="global-unread-count" class="badge badge-danger" style="display: none;">0</span>
+                    </a>
                 </li>
             @endcan
   
@@ -639,45 +641,68 @@
     </footer> -->
 
 </div>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Firebase SDK v8 - Load in correct order -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <!-- Optional: Only include messaging if you need push notifications -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 
+    <!-- Firebase Initialization - Load after Firebase SDK -->
+    <script>
+    // Global Firebase Configuration
+    window.firebaseConfig = {
+        apiKey: "AIzaSyCONylt3t8MDw_02k5H9ceXTEmdtxmQtu8",
+        authDomain: "wic-doctor-b83e0.firebaseapp.com",
+        databaseURL: "https://wic-doctor-b83e0-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "wic-doctor-b83e0",
+        storageBucket: "wic-doctor-b83e0.firebasestorage.app",
+        messagingSenderId: "895957208558",
+        appId: "1:895957208558:web:322c25347af966f5f512ff",
+        measurementId: "G-J2RKG7ZXE5"
+    };
+
+    // Initialize Firebase globally
+    function initializeGlobalFirebase() {
+        if (firebase.apps.length === 0) {
+            try {
+                firebase.initializeApp(window.firebaseConfig);
+                console.log('🔥 Global Firebase initialized successfully');
+                
+                // Make services available globally
+                window.firebaseApp = firebase.app();
+                window.firebaseDb = firebase.firestore(); // Set window.firebaseDb to Firestore instance
+                
+                return true;
+            } catch (error) {
+                console.error('❌ Global Firebase initialization error:', error);
+                return false;
+            }
+        } else {
+            console.log('ℹ️ Firebase already initialized globally');
+            window.firebaseDb = firebase.firestore(); // Ensure window.firebaseDb is set even if already initialized
+            return true;
+        }
+    }
+
+    // Initialize Firebase when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeGlobalFirebase();
+    });
+</script>
 <!-- jQuery -->
 <script src="{{asset('vendor/jquery/jquery.min.js')}}"></script>
 
 <script src="{{asset('vendor/bootstrap-v4-rtl/js/bootstrap.bundle.min.js')}}"></script>
 <script src="{{asset('vendor/overlayScrollbars/js/jquery.overlayScrollbars.min.js')}}"></script>
 
-<!-- The core Firebase JS SDK is always required and must be listed first -->
-<script src="{{asset('https://www.gstatic.com/firebasejs/7.2.0/firebase-app.js')}}"></script>
-
-<script src="{{asset('https://www.gstatic.com/firebasejs/7.2.0/firebase-messaging.js')}}"></script>
-
-<script type="text/javascript">@include('vendor.notifications.init_firebase')</script>
-
 <script type="text/javascript">
-    const messaging = firebase.messaging();
-    navigator.serviceWorker.register("{{url('firebase/sw-js')}}")
-        .then((registration) => {
-            messaging.useServiceWorker(registration);
-            messaging.requestPermission()
-                .then(function () {
-                    console.log('Notification permission granted.');
-                    getRegToken();
-
-                })
-                .catch(function (err) {
-                    console.log('Unable to get permission to notify.', err);
-                });
-            messaging.onMessage(function (payload) {
-                console.log("Message received. ", payload);
-                notificationTitle = payload.data.title;
-                notificationOptions = {
-                    body: payload.data.body,
-                    icon: payload.data.icon,
-                    image: payload.data.image
-                };
-                var notification = new Notification(notificationTitle, notificationOptions);
-            });
-        });
+   
 
     function getRegToken(argument) {
         messaging.getToken().then(function (currentToken) {
@@ -719,7 +744,11 @@
 <script src="{{asset('dist/js/adminlte.min.js')}}"></script>
 <script src="{{asset('js/scripts.min.js')}}"></script>
 <script src="{{ asset('js/services/doctorService.js') }}"></script>
+<script src="{{ asset('js/global-notifications.js') }}"></script>
+
 @stack('scripts')
+
+
 </body>
 </html>
 <script>

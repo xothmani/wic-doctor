@@ -760,13 +760,56 @@ Route::resource('medicament-prescriptions', MedicamentPrescriptionController::cl
         'index' => 'medicament_prescriptions.index',
 
     ]);
-    Route::patch('/medicament-prescriptions/{id}/mark-treated', [App\Http\Controllers\MedicamentPrescriptionController::class, 'markAsTreated'])->name('medicament_prescriptions.markAsTreated');
+Route::patch('/medicament-prescriptions/{id}/mark-treated', [App\Http\Controllers\MedicamentPrescriptionController::class, 'markAsTreated'])->name('medicament_prescriptions.markAsTreated');
 
-    Route::post('/patients/{patient}/attach', [DoctorPatientsController::class, 'attach'])
+Route::post('/patients/{patient}/attach', [DoctorPatientsController::class, 'attach'])
     ->name('doctors.patients.attach');
 
-    Route::get('/imagerie', 'App\Http\Controllers\ImagerieController@index')->name('imagerie.index');
-    Route::get('/imagerie/{specialty}',  'App\Http\Controllers\ImagerieController@show')->name('imagerie.specialties.show');
-    Route::get('/SpeechToText', action: 'App\Http\Controllers\SpeechToTextController@index')->name('SpeechToText.index');
-    Route::get('/Lap', action: 'App\Http\Controllers\LapController@index')->name('Lap.index');
+Route::get('/imagerie', 'App\Http\Controllers\ImagerieController@index')->name('imagerie.index');
+Route::get('/imagerie/{specialty}', 'App\Http\Controllers\ImagerieController@show')->name('imagerie.specialties.show');
+Route::get('/SpeechToText', action: 'App\Http\Controllers\SpeechToTextController@index')->name('SpeechToText.index');
+Route::get('/Lap', action: 'App\Http\Controllers\LapController@index')->name('Lap.index');
 
+Route::prefix('messenger')->middleware(['auth'])->group(function () {
+    // Main messenger application views
+    Route::get('/', function () {
+        return view('messenger.index');
+    })->name('messenger.index');
+
+    Route::get('/chat', function () {
+        return view('messenger.index');
+    })->name('messenger.chat');
+
+    Route::get('/conversation/{conversationId}', function ($conversationId) {
+        return view('messenger.index', ['conversationId' => $conversationId]);
+    })->name('messenger.conversation');
+
+    Route::get('/group/{groupId}', function ($groupId) {
+        return view('messenger.index', ['groupId' => $groupId]);
+    })->name('messenger.group');
+
+    // Data Loading Routes
+    Route::get('/conversations', 'MessengerController@getConversations')->name('messenger.conversations');
+    Route::get('/user-info/{userId}', 'MessengerController@getUserInfo')->name('messenger.user-info');
+    Route::get('/potential-partners', 'MessengerController@getPotentialPartners')->name('messenger.potential-partners');
+    Route::get('/friends', 'MessengerController@getFriends')->name('messenger.friends');
+    Route::get('/patients', 'MessengerController@getPatients')->name('messenger.patients');
+    Route::get('/groups', 'MessengerController@getGroups')->name('messenger.groups');
+
+    // Conversation Management
+    Route::post('/create-conversation', 'MessengerController@createDirectConversation')->name('messenger.create-conversation');
+    Route::post('/create-group', 'MessengerController@createGroup')->name('messenger.create-group');
+
+    // Search and Invitations
+    Route::get('/search-doctors', 'MessengerController@searchDoctors')->name('messenger.search-doctors');
+    Route::post('/send-invitation', 'MessengerController@sendInvitation')->name('messenger.send-invitation');
+
+    // Notifications
+    Route::get('/notifications/count', 'MessengerController@getNotificationsCount')->name('messemessenger.search-doctorsnger.notifimessenger.search-doctorscations.count');
+
+    // FCM token management
+    Route::post('/save-fcm-token', 'MessengerController@saveFCMToken')->name('messenger.save-fcm-token');
+
+    // Test endpoint for authentication
+    Route::get('/test-auth', 'MessengerController@testAuth')->name('messenger.test-auth');
+});
