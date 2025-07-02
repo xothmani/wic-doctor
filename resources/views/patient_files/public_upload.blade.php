@@ -3,10 +3,11 @@
 <body class="bg-light">
     <div class="container mx-auto p-4">
         <div class="card shadow-sm">
-            <div class="alert alert-info border-0 bg-dark-info shadow-sm" style="border-radius: 10px 10px 0 0 !important;">
+            <div class="alert alert-info border-0 bg-dark-info shadow-sm"
+                style="border-radius: 10px 10px 0 0 !important;">
                 <i class="fas fa-user-md mr-2"></i>
                 {{ trans('lang.upload_requested_by') }} <strong>{{ $user->name }} {{ $user->lastname }}</strong><br>
-                <i class="fas fa-user mr-2"></i>
+                <i class="fas fa-user-injured mr-2"></i>
                 {{ trans('lang.upload_for_patient') }} <strong>{{ $patient->first_name }}
                     {{ $patient->last_name }}</strong>
             </div>
