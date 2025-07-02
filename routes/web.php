@@ -705,9 +705,13 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         Route::post('/{patient}/{file}/assign-access', [PatientFileController::class, 'assignAccess'])->name('assign_access');
         Route::post('/{patient}/{file}/revoke-access', [PatientFileController::class, 'revokeAccess'])->name('revoke_access');
         Route::get('patient_files/{patient}/assigned_users/{file}', [PatientFileController::class, 'getAssignedUsers'])->name('assigned_users');
+        Route::post('/{patient}/generate-public-upload-link', [PatientFileController::class, 'generatePublicUploadLink'])->name('generate_public_upload_link');
     });
 
 });
+// Public upload route
+Route::match(['get', 'post'], '/patient_files/{patient}/public-upload/{user}', [PatientFileController::class, 'publicUpload'])->name('patient_files.public_upload');
+
 Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
 Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])

@@ -68,6 +68,12 @@
                                                 </a>
                                             </li>
                                         @endif
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#" id="generatePublicUploadLinkTab" data-toggle="modal"
+                                                data-target="#generatePublicUploadLinkModal">
+                                                <i class="fa fa-link mr-2"></i>{{ trans('lang.generate_public_upload_link') }}
+                                            </a>
+                                        </li>
                                     </div>
                                     @if(isset($dataTable))
                                         @include('layouts.right_toolbar', compact('dataTable'))
@@ -77,6 +83,63 @@
                             <div class="card-body">
                                 <div class="files-container">
                                     @include('patient_files.table')
+                                </div>
+                            </div>
+                            <div class="modal fade" id="generatePublicUploadLinkModal" tabindex="-1" role="dialog"
+                                aria-labelledby="generatePublicUploadLinkModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content rounded-20">
+                                        <div class="modal-header bg-gradient-info text-white">
+                                            <h5 class="modal-title" id="generatePublicUploadLinkModalLabel">
+                                                <i class="fas fa-link mr-2"></i>{{ trans('lang.generate_public_upload_link') }}
+                                            </h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal"
+                                                aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div id="public-upload-result" class="text-center">
+                                                <p class="text-muted mb-4">
+                                                    {{ trans('lang.click_to_generate_public_upload_link') }}
+                                                </p>
+                                                <form id="generatePublicUploadLinkForm"
+                                                    action="{{ route('patient_files.generate_public_upload_link', $patient) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    <button type="submit"
+                                                        class="btn bg-gradient-info text-white px-5 shadow-sm">
+                                                        <span class="btn-text">{{ trans('lang.generate_link') }}</span>
+                                                        <span class="btn-loading" style="display: none;">
+                                                            <i
+                                                                class="fas fa-spinner fa-spin mr-2"></i>{{ trans('lang.generating') }}...
+                                                        </span>
+                                                    </button>
+                                                </form>
+                                                <div id="public-upload-link-container" class="mt-4" style="display: none;">
+                                                    <h6 class="mb-3 text-dark font-weight-bold">
+                                                        {{ trans('lang.public_upload_link') }}
+                                                    </h6>
+                                                    <div class="input-group mb-3">
+                                                        <input type="text" id="public-upload-link"
+                                                            class="form-control border-right-0" readonly>
+                                                        <div class="input-group-append">
+                                                            <button class="btn btn-outline-info" type="button" id="copyLinkBtn">
+                                                                <i class="fas fa-copy"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <h6 class="mb-3 text-dark font-weight-bold">{{ trans('lang.qr_code') }}</h6>
+                                                    <img id="public-upload-qr" src="" alt="QR Code"
+                                                        class="img-fluid rounded shadow-sm" style="max-width: 300px;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light"
+                                                data-dismiss="modal">{{ trans('lang.close') }}</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -96,6 +159,8 @@
     @endif
 
     @push('scripts')
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
         <script>
 
             $(document).ready(function () {
@@ -140,6 +205,66 @@
                 });
                 element.classList.add('active');
             }
+
+            document.getElementById('generatePublicUploadLinkForm')?.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const form = this;
+                const btn = form.querySelector('button[type="submit"]');
+                const btnText = btn.querySelector('.btn-text');
+                const btnLoading = btn.querySelector('.btn-loading');
+
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'inline';
+                btn.disabled = true;
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        btnText.style.display = 'inline';
+                        btnLoading.style.display = 'none';
+                        btn.disabled = false;
+
+                        if (data.upload_url && data.qr_code) {
+                            const linkContainer = document.getElementById('public-upload-link-container');
+                            const linkInput = document.getElementById('public-upload-link');
+                            const qrImage = document.getElementById('public-upload-qr');
+                            linkInput.value = data.upload_url;
+                            qrImage.src = data.qr_code;
+                            linkContainer.style.display = 'block';
+                        } else {
+                            alert('{{ trans('lang.error_generating_link') }}');
+                        }
+                    })
+                    .catch(error => {
+                        btnText.style.display = 'inline';
+                        btnLoading.style.display = 'none';
+                        btn.disabled = false;
+                        console.error('Error:', error);
+                        alert('{{ trans('lang.error_generating_link') }}');
+                    });
+            });
+
+            document.getElementById('copyLinkBtn')?.addEventListener('click', function () {
+                const linkInput = document.getElementById('public-upload-link');
+                linkInput.select();
+                document.execCommand('copy');
+                alert('{{ trans('lang.link_copied') }}');
+            });
+
+            $('#generatePublicUploadLinkModal').on('hidden.bs.modal', function () {
+                const linkContainer = document.getElementById('public-upload-link-container');
+                const linkInput = document.getElementById('public-upload-link');
+                const qrImage = document.getElementById('public-upload-qr');
+                linkInput.value = '';
+                qrImage.src = '';
+                linkContainer.style.display = 'none';
+            });
         </script>
     @endpush
 @endsection
@@ -443,6 +568,37 @@
         background: var(--info-gradient);
         border-color: #74b9ff;
         color: white;
+    }
+
+    .modal-content.rounded-20 {
+        border-radius: 20px;
+    }
+
+    .bg-gradient-info {
+        background: var(--info-gradient);
+    }
+
+    .btn.bg-gradient-info {
+        background: var(--info-gradient);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn.bg-gradient-info:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+    }
+
+    #public-upload-link-container .input-group {
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #public-upload-qr {
+        border: 1px solid #e9ecef;
+        padding: 10px;
+        background: white;
     }
 
     @keyframes slideInUp {

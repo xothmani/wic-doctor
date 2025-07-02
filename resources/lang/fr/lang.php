@@ -2393,5 +2393,14 @@ return [
     'select_user_to_assign' => 'Veuillez sélectionner un utilisateur pour attribuer l\'accès',
     'access_assigned_successfully' => 'Accès attribué avec succès',
     'error_assigning_access' => 'Erreur lors de l\'attribution de l\'accès',
-    'confirm_delete_file' => 'Êtes-vous sûr de vouloir supprimer ce fichier ?'
+    'confirm_delete_file' => 'Êtes-vous sûr de vouloir supprimer ce fichier ?',
+    'generate_public_upload_link' => 'Générer un lien de téléchargement public',
+    'click_to_generate_public_upload_link' => 'Cliquez sur le bouton pour générer un lien de téléchargement public pour ce patient.',
+    'generate_link' => 'Générer le lien',
+    'generating' => 'Génération en cours',
+    'public_upload_link' => 'Lien de téléchargement public',
+    'qr_code' => 'Code QR',
+    'link_copied' => 'Lien copié dans le presse-papiers !',
+    'close' => 'Fermer',
+    'error_generating_link' => 'Échec de la génération du lien de téléchargement public.',
 ];
