@@ -1172,6 +1172,25 @@ class PatientFileController extends Controller
             'file_name' => $file->file_name
         ]);
 
+        if ($toUser->id === $user->id) {
+            Log::warning('API: Attempt to assign own access', [
+                'user_id' => $user->id,
+                'to_user_id' => $toUser->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Cannot assign your own access.'], 400);
+        }
+
+        if ($toUser->id === $patient->user->id) {
+            Log::warning('API: Attempt to assign patient user access on own file', [
+                'user_id' => $user->id,
+                'to_user_id' => $toUser->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Cannot assign patient user access on own file.'], 400);
+        }
+
         if (
             PatientFileUser::where('patient_file_id', $file->id)
                 ->where('user_id', $toUser->id)
