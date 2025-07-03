@@ -24,7 +24,7 @@ class PatientFileController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers', 'apiGenerateFileQrCode', 'apiDownloadExternal', 'publicUpload']);
+        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers', 'apiGenerateFileQrCode', 'apiDownloadExternal', 'publicUpload', 'apiGeneratePublicUploadLink']);
         Log::info('PatientFileController initialized', ['user_id' => Auth::id()]);
     }
 
@@ -1640,6 +1640,92 @@ class PatientFileController extends Controller
                 'error' => $e->getMessage()
             ]);
             return response()->json(['error' => 'QR code generation failed.'], 500);
+        }
+    }
+
+    public function apiGeneratePublicUploadLink(Request $request, Patient $patient)
+    {
+
+        Log::info('Attempting to generate public upload link');
+        $userId = $request->header('X-User-ID');
+
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
+
+        \Log::info('API: Attempting to upload file', [
+            'user_id' => $userId,
+            'patient_id' => $patient->id
+        ]);
+
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
+
+        \Log::info('found user', [
+            'user_id' => $user->email
+        ]);
+
+        Log::info('Attempting to generate public upload link', [
+            'user_id' => $user->id,
+            'patient_id' => $patient->id
+        ]);
+
+        if (!$this->hasFileAccess($patient, $user)) {
+            Log::warning('Unauthorized attempt to generate public upload link', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id
+            ]);
+            abort(403, 'Unauthorized to generate public upload link.');
+        }
+
+        try {
+            // Generate a signed URL valid for 24 hours
+            $uploadUrl = URL::temporarySignedRoute(
+                'patient_files.public_upload',
+                now()->addHours(24),
+                ['patient' => $patient->id, 'user' => $user->id]
+            );
+
+            // Generate QR code for the upload URL
+            $qrCode = QrCode::create($uploadUrl)->setSize(300);
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+            $qrCodeBase64 = base64_encode($result->getString());
+
+            Log::info('Public upload link and QR code generated successfully', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'upload_url' => $uploadUrl
+            ]);
+
+            return response()->json([
+                'message' => 'Public upload link generated successfully.',
+                'upload_url' => $uploadUrl,
+                'qr_code' => 'data:image/png;base64,' . $qrCodeBase64
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Public upload link generation failed', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'Failed to generate public upload link.'], 500);
         }
     }
 
