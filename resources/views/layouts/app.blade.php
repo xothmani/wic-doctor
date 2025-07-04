@@ -669,15 +669,17 @@
 
     // Initialize Firebase globally
     function initializeGlobalFirebase() {
+        if (typeof firebase === 'undefined') {
+            console.error('❌ Firebase SDK not loaded');
+            return false;
+        }
         if (firebase.apps.length === 0) {
             try {
                 firebase.initializeApp(window.firebaseConfig);
                 console.log('🔥 Global Firebase initialized successfully');
-                
-                // Make services available globally
                 window.firebaseApp = firebase.app();
-                window.firebaseDb = firebase.firestore(); // Set window.firebaseDb to Firestore instance
-                
+                window.firebaseDb = firebase.firestore();
+                window.firebaseStorage = firebase.storage(); // Initialize Storage
                 return true;
             } catch (error) {
                 console.error('❌ Global Firebase initialization error:', error);
@@ -685,14 +687,23 @@
             }
         } else {
             console.log('ℹ️ Firebase already initialized globally');
-            window.firebaseDb = firebase.firestore(); // Ensure window.firebaseDb is set even if already initialized
+            window.firebaseDb = firebase.firestore();
+            window.firebaseStorage = firebase.storage(); // Initialize Storage
             return true;
         }
     }
 
     // Initialize Firebase when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-        initializeGlobalFirebase();
+        const initializeWithRetry = () => {
+            if (initializeGlobalFirebase()) {
+                console.log('✅ Firebase initialization complete');
+            } else {
+                console.log('🔄 Retrying Firebase initialization in 1 second...');
+                setTimeout(initializeWithRetry, 1000);
+            }
+        };
+        initializeWithRetry();
     });
 </script>
 <!-- jQuery -->
