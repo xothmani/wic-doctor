@@ -19,7 +19,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\View\View;
 use Prettus\Validator\Exceptions\ValidatorException;
-
+use App\Models\Doctor;
+use App\Models\Patient;
 class DoctorPatientsController extends Controller
 {
     /** @var  DoctorPatientsRepository */
@@ -210,4 +211,29 @@ class DoctorPatientsController extends Controller
         }
     }
 
+    public function attach(Patient $patient)
+{
+    try {
+        $doctor = auth()->user()->doctor;
+    
+        if (!$doctor) {
+            Flash::error('Aucun médecin associé à ce compte');
+            return redirect()->route('patients.index');
+        }
+    
+        if ($doctor->patients()->where('patient_id', $patient->id)->exists()) {
+            Flash::warning('Ce patient est déjà associé à votre compte');
+            return redirect()->route('patients.index');
+        }
+    
+        $doctor->patients()->attach($patient);
+        \Log::info("Patient attached successfully - Flash success should show");
+        Flash::success('Patient associé avec succès');
+        return redirect()->route('patients.index');
+    
+    } catch (\Exception $e) {
+        Flash::error('Erreur serveur: ' . $e->getMessage());
+        return redirect()->route('patients.index');
+    }
+}
 }

@@ -183,11 +183,11 @@ return [
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-         App\Providers\BroadcastServiceProvider::class,
+        App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\ModulesServiceProvider::class,
-            // ...
+        // ...
         App\Providers\FirebaseServiceProvider::class,
 
 
@@ -235,7 +235,7 @@ return [
         'Request' => Illuminate\Support\Facades\Request::class,
         'Response' => Illuminate\Support\Facades\Response::class,
         'Firebase' => Kreait\Laravel\Firebase\Facades\Firebase::class,
-
+        'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
         'Route' => Illuminate\Support\Facades\Route::class,
         'Schema' => Illuminate\Support\Facades\Schema::class,
         'Session' => Illuminate\Support\Facades\Session::class,

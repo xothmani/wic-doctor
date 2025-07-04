@@ -61,7 +61,7 @@
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card shadow">
-                    <div class="card-header text-center bg-primary text-white">
+                    <div class="card-header text-center text-white" style="color: #001f3f;">
                         <h4>Product Payment</h4>
                     </div>
                     <div class="card-body">

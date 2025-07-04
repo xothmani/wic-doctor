@@ -13,7 +13,7 @@
                         <div class="row">
                             <!-- Texte à gauche -->
                             <div class="col-md-8">
-                                <span class="badge bg-primary text-white mb-2">{{ $blog->titre_court }}</span>
+                                <span class="badge text-white mb-2" style="color: #001f3f;">{{ $blog->titre_court }}</span>
                                 <h2 class="fw-bold">{!! $blog->titre !!}</h2>
 
                                 <!-- Contenu du blog avec un texte masqué -->

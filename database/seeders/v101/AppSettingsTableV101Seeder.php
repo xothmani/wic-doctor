@@ -240,12 +240,12 @@ class AppSettingsTableSeeder extends Seeder
             array(
                 'id' => 116,
                 'key' => 'main_color',
-                'value' => '#5C6BC0',
+                'value' => '#001f3f',
             ),
             array(
                 'id' => 117,
                 'key' => 'main_dark_color',
-                'value' => '#5C6BC0',
+                'value' => '#001f3f',
             ),
             array(
                 'id' => 118,

@@ -16,12 +16,15 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\URL;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 
 class PatientFileController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers']);
+        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers', 'apiGenerateFileQrCode', 'apiDownloadExternal', 'publicUpload', 'apiGeneratePublicUploadLink']);
         Log::info('PatientFileController initialized', ['user_id' => Auth::id()]);
     }
 
@@ -591,6 +594,165 @@ class PatientFileController extends Controller
         return response()->json(['user_ids' => $assignedUserIds]);
     }
 
+    public function generatePublicUploadLink(Request $request, Patient $patient)
+    {
+        Log::info('Attempting to generate public upload link');
+        $user = Auth::user();
+
+        Log::info('Attempting to generate public upload link', [
+            'user_id' => $user->id,
+            'patient_id' => $patient->id
+        ]);
+
+        if (!$this->hasFileAccess($patient, $user)) {
+            Log::warning('Unauthorized attempt to generate public upload link', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id
+            ]);
+            abort(403, 'Unauthorized to generate public upload link.');
+        }
+
+        try {
+            // Generate a signed URL valid for 24 hours
+            $uploadUrl = URL::temporarySignedRoute(
+                'patient_files.public_upload',
+                now()->addHours(24),
+                ['patient' => $patient->id, 'user' => $user->id]
+            );
+
+            // Generate QR code for the upload URL
+            $qrCode = QrCode::create($uploadUrl)->setSize(300);
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+            $qrCodeBase64 = base64_encode($result->getString());
+
+            Log::info('Public upload link and QR code generated successfully', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'upload_url' => $uploadUrl
+            ]);
+
+            return response()->json([
+                'message' => 'Public upload link generated successfully.',
+                'upload_url' => $uploadUrl,
+                'qr_code' => 'data:image/png;base64,' . $qrCodeBase64
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Public upload link generation failed', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'Failed to generate public upload link.'], 500);
+        }
+    }
+
+    public function publicUpload(Request $request, Patient $patient, User $user)
+    {
+        Log::info('Accessing public upload page', [
+            'patient_id' => $patient->id,
+            'user_id' => $user->id
+        ]);
+
+        // Verify the signed URL
+        if (!$request->hasValidSignature()) {
+            Log::warning('Invalid or expired public upload link', [
+                'patient_id' => $patient->id,
+                'user_id' => $user->id
+            ]);
+            abort(403, 'Invalid or expired upload link.');
+        }
+
+        // Verify user-patient relationship
+        if (!$this->hasFileAccess($patient, $user)) {
+            Log::warning('User does not have access to patient', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id
+            ]);
+            abort(403, 'Unauthorized access to patient.');
+        }
+
+        if ($request->isMethod('get')) {
+            // Show the public upload form
+            return view('patient_files.public_upload', compact('patient', 'user'));
+        }
+
+        // Handle file upload
+        try {
+            $request->validate([
+                'file' => [
+                    'required',
+                    'file',
+                    'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,xml,hl7,dcm,nii,ecg,jpg,jpeg,png,gif,webp,svg,bmp,tiff,mp3,wav,aac,ogg,mp4,mkv,avi,mov,wmv,flv,zip,rar,7z,tar,gz,bz2',
+                    'max:102400',
+                ],
+                'description' => 'nullable|string|max:255',
+            ], [
+                'file.required' => trans('lang.file_required'),
+                'file.mimes' => trans('lang.invalid_file_type'),
+                'file.max' => trans('lang.file_too_large', ['max' => '100MB']),
+            ]);
+
+            $file = $request->file('file');
+            $fileName = $file->getClientOriginalName();
+            $fileContent = file_get_contents($file->getRealPath());
+            $encryptedContent = Crypt::encrypt($fileContent);
+            $filePath = "{$patient->id}/" . time() . '_' . Str::slug(pathinfo($fileName, PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+
+            Storage::disk('patient_files')->put($filePath, $encryptedContent);
+
+            $patientFile = PatientFile::create([
+                'patient_id' => $patient->id,
+                'uploaded_by' => $user->id, // Set uploader as the user who generated the link
+                'file_name' => $fileName,
+                'file_path' => $filePath,
+                'file_type' => $file->getClientMimeType(),
+                'file_size' => $file->getSize(),
+                'description' => $request->description,
+            ]);
+
+            PatientFileUser::create([
+                'patient_file_id' => $patientFile->id,
+                'patient_id' => $patient->id,
+                'user_id' => $user->id,
+                'expiration_date' => null,
+            ]);
+
+            PatientFileLog::create([
+                'patient_file_id' => $patientFile->id,
+                'user_id' => $user->id,
+                'action' => 'upload',
+            ]);
+
+            Log::info('Public file uploaded successfully', [
+                'patient_id' => $patient->id,
+                'user_id' => $user->id,
+                'file_id' => $patientFile->id,
+                'file_name' => $fileName
+            ]);
+
+            return redirect()->back()->with('success', trans('lang.file_uploaded_successfully'));
+        } catch (ValidationException $e) {
+            Log::error('Public file upload validation failed', [
+                'patient_id' => $patient->id,
+                'user_id' => $user->id,
+                'errors' => $e->errors()
+            ]);
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput()
+                ->with('error', trans('lang.file_upload_failed_validation'));
+        } catch (\Exception $e) {
+            Log::error('Public file upload failed', [
+                'patient_id' => $patient->id,
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+            return redirect()->back()
+                ->with('error', trans('lang.file_upload_failed_generic', ['error' => $e->getMessage()]));
+        }
+    }
+
     // API Routes
     public function apiIndex(Patient $patient, Request $request)
     {
@@ -820,6 +982,49 @@ class PatientFileController extends Controller
         }
     }
 
+    public function apiDownloadExternal(Patient $patient, PatientFile $file)
+    {
+
+        if ($file->patient_id !== $patient->id) {
+            Log::error('API: File not found for patient', [
+                'user_id' => $patient->user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'File not found.'], 404);
+        }
+
+        try {
+            PatientFileLog::create([
+                'patient_file_id' => $file->id,
+                'user_id' => $patient->user->id,
+                'action' => 'download',
+            ]);
+
+            $encryptedContent = Storage::disk('patient_files')->get($file->file_path);
+            $decryptedContent = Crypt::decrypt($encryptedContent);
+
+            Log::info('API: File downloaded successfully', [
+                'user_id' => $patient->user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id,
+                'file_name' => $file->file_name
+            ]);
+
+            return response($decryptedContent)
+                ->header('Content-Type', $file->file_type)
+                ->header('Content-Disposition', 'attachment; filename="' . $file->file_name . '"');
+        } catch (\Exception $e) {
+            Log::error('API: File download failed', [
+                'user_id' => $patient->user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'File download failed.'], 500);
+        }
+    }
+
     public function apiDestroy(Patient $patient, PatientFile $file, Request $request)
     {
         $userId = $request->header('X-User-ID');
@@ -966,6 +1171,25 @@ class PatientFileController extends Controller
             'file_id' => $file->id,
             'file_name' => $file->file_name
         ]);
+
+        if ($toUser->id === $user->id) {
+            Log::warning('API: Attempt to assign own access', [
+                'user_id' => $user->id,
+                'to_user_id' => $toUser->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Cannot assign your own access.'], 400);
+        }
+
+        if ($toUser->id === $patient->user->id) {
+            Log::warning('API: Attempt to assign patient user access on own file', [
+                'user_id' => $user->id,
+                'to_user_id' => $toUser->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Cannot assign patient user access on own file.'], 400);
+        }
 
         if (
             PatientFileUser::where('patient_file_id', $file->id)
@@ -1322,6 +1546,186 @@ class PatientFileController extends Controller
                 'error' => $e->getMessage()
             ]);
             return response()->json(['error' => 'Error getting assigned users.'], 500);
+        }
+    }
+
+    public function apiGenerateFileQrCode(Request $request, Patient $patient, PatientFile $file)
+    {
+        $userId = $request->header('X-User-ID');
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
+
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
+
+        Log::info('API: Attempting to generate QR code for file', [
+            'user_id' => $user->id,
+            'patient_id' => $patient->id,
+            'file_id' => $file->id
+        ]);
+
+        if ($file->patient_id !== $patient->id) {
+            Log::error('API: File not found for patient', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'File not found.'], 404);
+        }
+
+        if (!$this->hasFileAccess($patient, $user, $file)) {
+            Log::warning('API: Unauthorized attempt to generate QR code', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id
+            ]);
+            return response()->json(['error' => 'Unauthorized to generate QR code.'], 403);
+        }
+
+        try {
+            $downloadUrl = URL::temporarySignedRoute(
+                'api.patient_files.api_download',
+                now()->addHours(24),
+                ['patient' => $patient->id, 'file' => $file->id]
+            );
+
+            $qrCode = QrCode::create($downloadUrl)->setSize(300);
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+            $qrCodeBase64 = base64_encode($result->getString());
+
+            PatientFileLog::create([
+                'patient_file_id' => $file->id,
+                'user_id' => $user->id,
+                'action' => 'generate_qr_code',
+            ]);
+
+            Log::info('API: QR code generated successfully', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id,
+                'file_name' => $file->file_name
+            ]);
+
+            return response()->json([
+                'message' => 'QR code generated successfully.',
+                'qr_code' => 'data:image/png;base64,' . $qrCodeBase64,
+                'download_url' => $downloadUrl
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('API: QR code generation failed', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'file_id' => $file->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'QR code generation failed.'], 500);
+        }
+    }
+
+    public function apiGeneratePublicUploadLink(Request $request, Patient $patient)
+    {
+
+        Log::info('Attempting to generate public upload link');
+        $userId = $request->header('X-User-ID');
+
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header', [
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
+
+        \Log::info('API: Attempting to upload file', [
+            'user_id' => $userId,
+            'patient_id' => $patient->id
+        ]);
+
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            Log::error('API: User not found', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'User not found.'], 404);
+        } catch (\Exception $e) {
+            Log::error('API: Error retrieving user', [
+                'user_id' => $userId,
+                'patient_id' => $patient->id
+            ]);
+            return response()->json(['error' => 'Error retrieving user.'], 500);
+        }
+
+        \Log::info('found user', [
+            'user_id' => $user->email
+        ]);
+
+        Log::info('Attempting to generate public upload link', [
+            'user_id' => $user->id,
+            'patient_id' => $patient->id
+        ]);
+
+        if (!$this->hasFileAccess($patient, $user)) {
+            Log::warning('Unauthorized attempt to generate public upload link', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id
+            ]);
+            abort(403, 'Unauthorized to generate public upload link.');
+        }
+
+        try {
+            // Generate a signed URL valid for 24 hours
+            $uploadUrl = URL::temporarySignedRoute(
+                'patient_files.public_upload',
+                now()->addHours(24),
+                ['patient' => $patient->id, 'user' => $user->id]
+            );
+
+            // Generate QR code for the upload URL
+            $qrCode = QrCode::create($uploadUrl)->setSize(300);
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+            $qrCodeBase64 = base64_encode($result->getString());
+
+            Log::info('Public upload link and QR code generated successfully', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'upload_url' => $uploadUrl
+            ]);
+
+            return response()->json([
+                'message' => 'Public upload link generated successfully.',
+                'upload_url' => $uploadUrl,
+                'qr_code' => 'data:image/png;base64,' . $qrCodeBase64
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Public upload link generation failed', [
+                'user_id' => $user->id,
+                'patient_id' => $patient->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json(['error' => 'Failed to generate public upload link.'], 500);
         }
     }
 

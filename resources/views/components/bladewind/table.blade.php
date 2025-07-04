@@ -387,7 +387,7 @@
         </div>
         <div class="hidden size-0 partial-check-template">
             <x-bladewind::icon name="minus" type="solid"
-                               class="hidden stroke-2 rounded-md bg-primary-500 text-white check-icon !size-5 !mb-1 !mt-[4px] !-ml-1"/>
+                               class="hidden stroke-2 rounded-md  text-white check-icon !size-5 !mb-1 !mt-[4px] !-ml-1" style="color: #001f3f;"/>
         </div>
         <script>
             const addCheckboxesToTable = (el) => {
