@@ -20,21 +20,24 @@ class Fiche extends Model
         'numFiche'
 ]; 
 
-  protected static function boot()
+protected static function boot()
 {
     parent::boot();
 
     static::creating(function ($fiche) {
         $lastCode = self::orderByDesc('code')->first()?->code ?? '0000';
-
-        // Extraire la partie numérique
         $numeric = preg_replace('/\D/', '', $lastCode);
         $numeric = $numeric !== '' ? (int)$numeric : 0;
 
-        $nextCode = str_pad($numeric + 1, 4, '0', STR_PAD_LEFT); // ← padding à 4 chiffres
-        $fiche->code = $nextCode;
+        do {
+            $numeric++;
+            $code = str_pad($numeric, 4, '0', STR_PAD_LEFT);
+        } while (self::where('code', $code)->exists());
+
+        $fiche->code = $code;
     });
 }
+
 
     // Relation avec Patient
     public function patient()
