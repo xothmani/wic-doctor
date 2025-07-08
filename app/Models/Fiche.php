@@ -20,17 +20,21 @@ class Fiche extends Model
         'numFiche'
 ]; 
 
-    protected static function boot()
-    {
-        parent::boot();
+  protected static function boot()
+{
+    parent::boot();
 
-        static::creating(function ($fiche) {
-            // Génération d'un code unique auto-incrémenté avec format `001`, `002`, etc.
-            $lastCode = self::max('code');
-            $nextCode = str_pad((int)$lastCode + 1, 3, '0', STR_PAD_LEFT);
-            $fiche->code = $nextCode;
-        });
-    }
+    static::creating(function ($fiche) {
+        $lastCode = self::orderByDesc('code')->first()?->code ?? '0000';
+
+        // Extraire la partie numérique
+        $numeric = preg_replace('/\D/', '', $lastCode);
+        $numeric = $numeric !== '' ? (int)$numeric : 0;
+
+        $nextCode = str_pad($numeric + 1, 4, '0', STR_PAD_LEFT); // ← padding à 4 chiffres
+        $fiche->code = $nextCode;
+    });
+}
 
     // Relation avec Patient
     public function patient()
