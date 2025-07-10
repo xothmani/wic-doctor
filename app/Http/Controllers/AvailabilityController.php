@@ -154,9 +154,9 @@ class AvailabilityController extends Controller
                 ->select('pause_from', 'pause_to')
                 ->first();
             $patternsByType = [
-                    'cabinet' => $doctorPatterns->where('type', 1)->values(),
-                    'teleconsultation' => $doctorPatterns->where('type', 4)->values(),
-                    'home_visit' => $doctorPatterns->where('type', 3)->values()
+                'cabinet' => $doctorPatterns->where('type', 1)->values(),
+                'teleconsultation' => $doctorPatterns->where('type', 4)->values(),
+                'home_visit' => $doctorPatterns->where('type', 3)->values()
             ];
             // Get vacations
             $vacations = DB::table('vacance')
@@ -184,100 +184,100 @@ class AvailabilityController extends Controller
                 'patternsByType',
                 'dailyClosures',
             ));
-        }elseif ($currentMode == 'precise') {
+        } elseif ($currentMode == 'precise') {
 
-                $days = [
-                    "monday",
-                    "tuesday",
-                    "wednesday",
-                    "thursday",
-                    "friday",
-                    "saturday",
-                    "sunday"
-                ];
-    
-                // Get availability for all types
-                $availabilities = [
-                    'cabinet' => [],
-                    'teleconsultation' => [],
-                    'home_visit' => []
-                ];
-    
-                // Debug log to check what's being retrieved
-                \Log::info("Fetching precise mode availabilities for doctor: " . $doctorId);
-    
-                // Retrieve availabilities for each type with mode filter
-                foreach ($availabilities as $type => &$typeAvailability) {
-                    $slots = AvailabilityHour::where('doctor_id', $doctorId)
-                        ->where('type', $type)
-                        ->where('mode', 'precise') // Add mode filter
-                        ->get();
-    
-                    // Group by day
-                    $typeAvailability = $slots->groupBy('day');
-    
-                    // Debug log
-                    \Log::info("Retrieved precise mode for type {$type}:", ['count' => $slots->count()]);
-                }
-    
-                // Get vacations
-                $vacations = DB::table('vacance')
-                    ->where('doctor_id', $doctorId)
-                    ->orderBy('start_date', 'desc')
+            $days = [
+                "monday",
+                "tuesday",
+                "wednesday",
+                "thursday",
+                "friday",
+                "saturday",
+                "sunday"
+            ];
+
+            // Get availability for all types
+            $availabilities = [
+                'cabinet' => [],
+                'teleconsultation' => [],
+                'home_visit' => []
+            ];
+
+            // Debug log to check what's being retrieved
+            \Log::info("Fetching precise mode availabilities for doctor: " . $doctorId);
+
+            // Retrieve availabilities for each type with mode filter
+            foreach ($availabilities as $type => &$typeAvailability) {
+                $slots = AvailabilityHour::where('doctor_id', $doctorId)
+                    ->where('type', $type)
+                    ->where('mode', 'precise') // Add mode filter
                     ->get();
-    
-                // Get doctor's patterns and decode JSON names
-                $doctorPatterns = Pattern::where('doctor_id', $doctorId)
-                    ->get()
-                    ->map(function ($pattern) {
-                        $decodedNom = json_decode($pattern->nom, true);
-                        if (is_array($decodedNom) && isset($decodedNom['fr'])) {
-                            $pattern->nom = $decodedNom['fr'];
-                        }
-                        return $pattern;
-                    });
-                \Log::info('Doctor Patterns:111111111', ['patterns' => $doctorPatterns->toArray()]);
-                $patternsByType = [
-                    'cabinet' => $doctorPatterns->where('type', 1)->values(),
-                    'teleconsultation' => $doctorPatterns->where('type', 4)->values(),
-                    'home_visit' => $doctorPatterns->where('type', 3)->values()
-                ];
-                \Log::info('Patterns by type:', [
-                    'cabinet_count' => count($patternsByType['cabinet']),
-                    'teleconsultation_count' => count($patternsByType['teleconsultation']),
-                    'home_visit_count' => count($patternsByType['home_visit'])
-                ]);
-                $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
-                    ->orderBy('start_date', 'desc')
-                    ->get();
-                $dailyClosures = DB::table('doctor_urgency')
-                    ->where('doctor_id', $doctorId)
-                    ->where('jour', '>=', now()->startOfDay())
-                    ->orderBy('jour', 'asc')
-                    ->get();
-    
-                $periodClosures = DB::table('vacance')
-                    ->where('doctor_id', $doctorId)
-                    ->where('end_date', '>=', now()->startOfDay())
-                    ->orderBy('start_date', 'asc')
-                    ->get();
-                // For debugging
-                \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
-                \Log::info('patternsByType:', ['patternsByType' => $patternsByType]);
-                return view('availability.index', compact(
-                    'availabilities',
-                    'currentMode',
-                    'days',
-                    'vacations',
-                    'substitutes',
-                    'doctorPatterns',
-                    'dailyClosures',
-                    'patternsByType',
-                    'periodClosures'
-                ));
+
+                // Group by day
+                $typeAvailability = $slots->groupBy('day');
+
+                // Debug log
+                \Log::info("Retrieved precise mode for type {$type}:", ['count' => $slots->count()]);
             }
+
+            // Get vacations
+            $vacations = DB::table('vacance')
+                ->where('doctor_id', $doctorId)
+                ->orderBy('start_date', 'desc')
+                ->get();
+
+            // Get doctor's patterns and decode JSON names
+            $doctorPatterns = Pattern::where('doctor_id', $doctorId)
+                ->get()
+                ->map(function ($pattern) {
+                    $decodedNom = json_decode($pattern->nom, true);
+                    if (is_array($decodedNom) && isset($decodedNom['fr'])) {
+                        $pattern->nom = $decodedNom['fr'];
+                    }
+                    return $pattern;
+                });
+            \Log::info('Doctor Patterns:111111111', ['patterns' => $doctorPatterns->toArray()]);
+            $patternsByType = [
+                'cabinet' => $doctorPatterns->where('type', 1)->values(),
+                'teleconsultation' => $doctorPatterns->where('type', 4)->values(),
+                'home_visit' => $doctorPatterns->where('type', 3)->values()
+            ];
+            \Log::info('Patterns by type:', [
+                'cabinet_count' => count($patternsByType['cabinet']),
+                'teleconsultation_count' => count($patternsByType['teleconsultation']),
+                'home_visit_count' => count($patternsByType['home_visit'])
+            ]);
+            $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
+                ->orderBy('start_date', 'desc')
+                ->get();
+            $dailyClosures = DB::table('doctor_urgency')
+                ->where('doctor_id', $doctorId)
+                ->where('jour', '>=', now()->startOfDay())
+                ->orderBy('jour', 'asc')
+                ->get();
+
+            $periodClosures = DB::table('vacance')
+                ->where('doctor_id', $doctorId)
+                ->where('end_date', '>=', now()->startOfDay())
+                ->orderBy('start_date', 'asc')
+                ->get();
+            // For debugging
+            \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
+            \Log::info('patternsByType:', ['patternsByType' => $patternsByType]);
+            return view('availability.index', compact(
+                'availabilities',
+                'currentMode',
+                'days',
+                'vacations',
+                'substitutes',
+                'doctorPatterns',
+                'dailyClosures',
+                'patternsByType',
+                'periodClosures'
+            ));
         }
-    
+    }
+
 
 
 
@@ -377,12 +377,13 @@ class AvailabilityController extends Controller
                             $type
                         );
 
-                        if ($hasOverlap) {
-                            throw new \Exception(
-                                "Conflit d'horaire détecté entre {$startTime} et {$dayData['slots']['end'][$index]}. " .
-                                "Ces horaires chevauchent une autre consultation."
-                            );
-                        }
+                        // Comment out or remove the overlap check if you want to skip it
+                        // if ($hasOverlap) {
+                        //     throw new \Exception(
+                        //         "Conflit d'horaire détecté entre {$startTime} et {$dayData['slots']['end'][$index]}. " .
+                        //         "Ces horaires chevauchent une autre consultation."
+                        //     );
+                        // }
 
                         AvailabilityHour::create([
                             'doctor_id' => $doctorId,
@@ -498,49 +499,49 @@ class AvailabilityController extends Controller
             throw $e;
         }
     }
-   /*  private function syncAvailabilityHoursTunisie($doctorId, $data, $type, $sessionDuration)
-    {
-        try {
-            $onlineValue = match ($type) {
-                'cabinet' => 0,
-                'teleconsultation' => 1,
-                'home_visit' => 2,
-                default => throw new \Exception('Invalid consultation type')
-            };
-            // Delete existing records for this doctor and type
-            DB::table('availability_hours_tunisie')
-                ->where('doctor_id', $doctorId)
-                ->where('onligne', $onlineValue)
-                ->delete();
+    /*  private function syncAvailabilityHoursTunisie($doctorId, $data, $type, $sessionDuration)
+     {
+         try {
+             $onlineValue = match ($type) {
+                 'cabinet' => 0,
+                 'teleconsultation' => 1,
+                 'home_visit' => 2,
+                 default => throw new \Exception('Invalid consultation type')
+             };
+             // Delete existing records for this doctor and type
+             DB::table('availability_hours_tunisie')
+                 ->where('doctor_id', $doctorId)
+                 ->where('onligne', $onlineValue)
+                 ->delete();
 
-            // Insert new records
-            foreach ($data as $availability) {
-                if (isset($availability['is_available']) && $availability['is_available']) {
-                    DB::table('availability_hours_tunisie')->insert([
-                        'doctor_id' => $doctorId,
-                        'day' => $availability['day'],
-                        'start_at' => $availability['from'],
-                        'end_at' => $availability['to'],
-                        'session_duration' => $sessionDuration,
-                        'is_available' => true,
-                        'onligne' => $onlineValue, // Using integer value instead of type string
-                        'pause_from' => $availability['pause_from'] ?? null,
-                        'pause_to' => $availability['pause_to'] ?? null,
-                        'data' => null,
-                    ]);
-                }
-            }
+             // Insert new records
+             foreach ($data as $availability) {
+                 if (isset($availability['is_available']) && $availability['is_available']) {
+                     DB::table('availability_hours_tunisie')->insert([
+                         'doctor_id' => $doctorId,
+                         'day' => $availability['day'],
+                         'start_at' => $availability['from'],
+                         'end_at' => $availability['to'],
+                         'session_duration' => $sessionDuration,
+                         'is_available' => true,
+                         'onligne' => $onlineValue, // Using integer value instead of type string
+                         'pause_from' => $availability['pause_from'] ?? null,
+                         'pause_to' => $availability['pause_to'] ?? null,
+                         'data' => null,
+                     ]);
+                 }
+             }
 
-            return true;
-        } catch (\Exception $e) {
-            \Log::error('Error syncing availability_hours_tunisie:', [
-                'error' => $e->getMessage(),
-                'doctor_id' => $doctorId,
-                'type' => $type
-            ]);
-            throw $e;
-        }
-    } */
+             return true;
+         } catch (\Exception $e) {
+             \Log::error('Error syncing availability_hours_tunisie:', [
+                 'error' => $e->getMessage(),
+                 'doctor_id' => $doctorId,
+                 'type' => $type
+             ]);
+             throw $e;
+         }
+     } */
     public function storeOpen(Request $request)
     {
         \Log::info('Request store received:', ['request' => $request->all()]);
@@ -704,18 +705,18 @@ class AvailabilityController extends Controller
                         'is_available' => true
                     ]);
 
-                   /*  DB::table('availability_hours_tunisie')->insert([
-                        'doctor_id' => $doctorId,
-                        'day' => $data['day'],
-                        'start_at' => $data['from'],
-                        'end_at' => $data['to'],
-                        'session_duration' => $sessionDuration,
-                        'is_available' => true,
-                        'onligne' => $type, // Assuming 'onligne' is meant to represent the type (cabinet/home_visit/etc)
-                        'pause_from' => null,
-                        'pause_to' => null,
-                        'data' => null,
-                    ]); */
+                    /*  DB::table('availability_hours_tunisie')->insert([
+                         'doctor_id' => $doctorId,
+                         'day' => $data['day'],
+                         'start_at' => $data['from'],
+                         'end_at' => $data['to'],
+                         'session_duration' => $sessionDuration,
+                         'is_available' => true,
+                         'onligne' => $type, // Assuming 'onligne' is meant to represent the type (cabinet/home_visit/etc)
+                         'pause_from' => null,
+                         'pause_to' => null,
+                         'data' => null,
+                     ]); */
                     Log::info("Created availability with breaks", [
                         'day' => $data['day'],
                         'pause_from' => $pauseFrom,
