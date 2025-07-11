@@ -496,5 +496,11 @@
     "Once you delete this file, there is no going back. Please be certain.": "Once you delete this file, there is no going back. Please be certain.",
     "Share your file": "Share your file",
     "expiration date : %s": "expiration date : %s",
-    "Choose a file from your device": "Choose a file from your device"
+    "Choose a file from your device": "Choose a file from your device",
+    "Sharing Failed": "Sharing Failed",
+    "Unable to share the link. Please try again later.": "Unable to share the link. Please try again later.",
+    "QR Code Sharing Failed": "QR Code Sharing Failed",
+    "Unable to share the QR code. Please try again later.": "Unable to share the QR code. Please try again later.",
+    "Link": "Link",
+    "You can access my medical file by scanning the QR code or clicking the link below.": "You can access my medical file by scanning the QR code or clicking the link below."
 }

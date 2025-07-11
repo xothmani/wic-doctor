@@ -530,5 +530,11 @@
     "Once you delete this file, there is no going back. Please be certain.": "بمجرد حذف هذا الملف، لا يمكن التراجع. الرجاء التأكد.",
     "Share your file": "شارك ملفك",
     "expiration date : %s": "تاريخ الانتهاء: %s",
-    "Choose a file from your device": "اختر ملفًا من جهازك"
+    "Choose a file from your device": "اختر ملفًا من جهازك",
+    "Sharing Failed": "فشل المشاركة",
+    "Unable to share the link. Please try again later.": "تعذر مشاركة الرابط. يرجى المحاولة مرة أخرى لاحقًا.",
+    "QR Code Sharing Failed": "فشل مشاركة رمز الاستجابة السريعة",
+    "Unable to share the QR code. Please try again later.": "تعذر مشاركة رمز الاستجابة السريعة. يرجى المحاولة مرة أخرى لاحقًا.",
+    "Link": "الرابط",
+    "You can access my medical file by scanning the QR code or clicking the link below.": "يمكنك الوصول إلى ملفي الطبي من خلال مسح رمز الاستجابة السريعة أو النقر على الرابط أدناه."
 }
