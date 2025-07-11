@@ -407,9 +407,9 @@
     <li class="nav-item">
         <a class="nav-link {{ Request::is('patient_files') ? 'active' : '' }}" href="{!! route('patient_files.index') !!}">
             @if($icons)
-                <i class="nav-icon fas fa-archive"></i>
+                <i style="color: #001f3f;" class="nav-icon fas fa-share-alt"></i>
             @endif
-            <p>{{ trans('lang.shared_files_plural') }}</p>
+            <p style="color: #001f3f;">{{ trans('lang.shared_files_plural') }}</p>
         </a>
     </li>
 @endcan

@@ -25,16 +25,10 @@ protected static function boot()
     parent::boot();
 
     static::creating(function ($fiche) {
-        $lastCode = self::orderByDesc('code')->first()?->code ?? '0000';
-        $numeric = preg_replace('/\D/', '', $lastCode);
-        $numeric = $numeric !== '' ? (int)$numeric : 0;
+        $lastCode = self::orderByRaw('CAST(code AS UNSIGNED) DESC')->first()?->code ?? '0';
+        $numeric = is_numeric($lastCode) ? (int)$lastCode : 0;
 
-        do {
-            $numeric++;
-            $code = str_pad($numeric, 4, '0', STR_PAD_LEFT);
-        } while (self::where('code', $code)->exists());
-
-        $fiche->code = $code;
+        $fiche->code = (string)($numeric + 1); // Pas de str_pad
     });
 }
 

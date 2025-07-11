@@ -768,6 +768,8 @@ Route::post('/patients/{patient}/attach', [DoctorPatientsController::class, 'att
 Route::get('/imagerie', 'App\Http\Controllers\ImagerieController@index')->name('imagerie.index');
 Route::get('/imagerie/{specialty}', 'App\Http\Controllers\ImagerieController@show')->name('imagerie.specialties.show');
 Route::get('/SpeechToText', action: 'App\Http\Controllers\SpeechToTextController@index')->name('SpeechToText.index');
+Route::get('/RapportPatient', action: 'App\Http\Controllers\SpeechToTextController@renderRapportPatient')->name('SpeechToText.renderRapportPatient');
+
 Route::get('/Lap', action: 'App\Http\Controllers\LapController@index')->name('Lap.index');
 
 Route::prefix('messenger')->middleware(['auth'])->group(function () {
@@ -812,4 +814,6 @@ Route::prefix('messenger')->middleware(['auth'])->group(function () {
 
     // Test endpoint for authentication
     Route::get('/test-auth', 'MessengerController@testAuth')->name('messenger.test-auth');
+    Route::post('/patients/{patient}/files/{file}/revoke', [PatientFileController::class, 'revokeAccess'])->name('patient_files.revoke');
+
 });

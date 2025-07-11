@@ -2323,7 +2323,7 @@ return [
     'file_actions' => 'Actions sur le fichier',
     'download_to_device' => 'Télécharger sur l\'appareil',
     'view_all_files' => 'Voir tous les fichiers',
-    'shared_files_plural' => 'Fichiers partagés',
+    'shared_files_plural' => 'Dossiers partagés',
     'enter_doctor_email' => 'Entrez l\'adresse email du médecin souhaité',
     'search_patients' => 'Rechercher des patients',
     'view_patient_files' => 'Consulter les fichiers du patient',

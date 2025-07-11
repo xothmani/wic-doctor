@@ -45,8 +45,10 @@
                 </div>
             </div>
         </div>
+        
 
         <div class="content">
+            
             <div class="clearfix"></div>
             <!-- Flash Messages -->
             @if (session('success'))
@@ -345,13 +347,13 @@
     }
 
     .badge-soft-primary {
-        color: var(--primary, #007bff);
+        color:  #11b8aa;
         background-color: rgba(0, 123, 255, 0.1);
         border: 1px solid rgba(0, 123, 255, 0.2);
     }
 
     .badge-soft-info {
-        color: var(--info, #17a2b8);
+        color:  #11b8aa;
         background-color: rgba(23, 162, 184, 0.1);
         border: 1px solid rgba(23, 162, 184, 0.2);
     }
@@ -359,7 +361,7 @@
     .badge-title {
         font-size: 1.1rem;
         margin-bottom: 0.5rem;
-        color: var(--info, #17a2b8);
+        color:  #11b8aa;
     }
 
     .upload-btn {

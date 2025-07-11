@@ -387,6 +387,12 @@
     font-weight: bold;
     transition: transform 0.3s ease;
     cursor: pointer;
+       text-decoration: none;
+}
+
+.info-badge:hover {
+    color: white;
+    text-decoration: none;
 }
 
 .service-card:nth-child(1) .info-badge {
@@ -429,11 +435,11 @@
 }
 
 .service-card:nth-child(3) .service-button {
-    background: linear-gradient(to right, #fd8e26, #ffc38d);
+    background: linear-gradient(to right, #fd8e26,rgb(235, 170, 113));
 }
 
 .service-card:nth-child(4) .service-button {
-    background: linear-gradient(to right, #59D189, #8fe9b4);
+    background: linear-gradient(to right, #59D189,rgb(112, 204, 150));
 }
 
 </style>
@@ -457,10 +463,12 @@
 
         <!-- Bannière démo -->
         <div class="demo-banner">
-            <button class="demo-button" onclick="playDemo()">
-                Regarder la vidéo de démonstration
-                <i class="fas fa-play-circle" style="margin-left: 8px;"></i>
-            </button>
+<a href="https://wic-doctor.com/qui-sommes-nous.html#particles" target="_blank" class="demo-button">
+    Regarder la vidéo de démonstration
+    <i class="fas fa-play-circle" style="margin-left: 8px;"></i>
+</a>
+
+
             <img src="/images/miniature.jpeg" alt="Miniature vidéo" class="demo-thumbnail" />
         </div>
 
@@ -472,10 +480,14 @@
                     <span class="service-title">Interaction IA</span>
                     <p class="service-description">
                         Détectez rapidement les interactions à risque grâce à des alertes précises de notre assistant intelligent.
-                        <span class="info-badge">En savoir plus</span>
+<a href="https://wic-doctor.com/inscription-professionnel/wic-prescrip-ia.html" target="_blank" class="info-badge">
+    En savoir plus
+</a>
                     </p>
                 </div>
-                <button class="service-button">Démarrer</button>
+                <a href="{{ route('drug_drug_interactions.index') }}">
+                    <button class="service-button">Démarrer</button>
+                </a>
             </div>
 
             <!-- Carte 2 -->
@@ -484,10 +496,13 @@
                     <span class="service-title">Aide à la prescription</span>
                     <p class="service-description">
                         Prescrivez en toute sécurité grâce à des alertes ciblées selon le profil du patient et les traitements choisis.
-                        <span class="info-badge">En savoir plus</span>
-                    </p>
+<a href="https://wic-doctor.com/inscription-professionnel/wic-prescrip-ia.html" target="_blank" class="info-badge">
+    En savoir plus
+</a>                    </p>
                 </div>
+                <a href="{{ route('Lap.index') }}">
                 <button class="service-button">Explorer</button>
+                </a>
             </div>
 
             <!-- Carte 3 -->
@@ -496,10 +511,13 @@
                     <span class="service-title">Rapport IA</span>
                     <p class="service-description">
                         Générez des rapports PDF précis et documentez vos décisions grâce à notre micro-intelligence.
-                        <span class="info-badge">En savoir plus</span>
-                    </p>
+<a href="https://wic-doctor.com/inscription-professionnel/wic-docuAI.html" target="_blank" class="info-badge">
+    En savoir plus
+</a>                        </p>
                 </div>
+                  <a href="{{ route('SpeechToText.index') }}">
                 <button class="service-button">Lancer</button>
+                </a>
             </div>
 
             <!-- Carte 4 -->
@@ -508,10 +526,13 @@
                     <span class="service-title">Imagerie intelligente</span>
                     <p class="service-description">
                         Générez un rapport structuré en secondes à partir de radios, scanners ou IRM grâce à l'IA.
-                        <span class="info-badge">En savoir plus</span>
-                    </p>
+<a href="https://wic-doctor.com/inscription-professionnel/wic-radiolog-ia.html" target="_blank" class="info-badge">
+    En savoir plus
+</a>                        </p>
                 </div>
+                 <a href="{{ route('imagerie.index') }}">
                 <button class="service-button">Voir plus</button>
+                </a>
             </div>
         </div>
     </div>

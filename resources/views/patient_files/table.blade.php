@@ -8,7 +8,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
+    
     <div class="modern-table-container">
         @forelse ($files as $file)
             <div class="file-card" style="animation-delay: {{ $loop->index * 0.1 }}s">
@@ -42,12 +44,12 @@
                         </div>
                     </div>
 
-                    <div class="file-description">
+                <!--     <div class="file-description">
                         <p class="description-text">
                             {{ $file->description ?? trans('lang.no_description') }}
                         </p>
                     </div>
-
+ -->
                     <div class="file-meta">
                         <div class="uploader-info">
                             <div class="uploader-avatar">
@@ -61,7 +63,14 @@
                                 @endif
                             </div>
                             <div class="uploader-details">
-                                <span class="uploader-name">{{ $file->uploader->name ?? trans('lang.unknown_uploader') }}</span>
+@php
+    $uploaderName = $file->uploader->name ?? trans('lang.unknown_uploader');
+    $decoded = json_decode($uploaderName, true);
+@endphp
+
+<span class="uploader-name">
+    {{ is_array($decoded) ? implode(' ', $decoded) : $uploaderName }}
+</span>
                                 <span class="upload-date">
                                     <i class="fas fa-clock mr-1"></i>
                                     {{ $file->created_at->diffForHumans() }}
@@ -116,7 +125,7 @@
                 <h5 class="empty-title">{{ trans('lang.no_files_found') }}</h5>
                 <p class="empty-description">{{ trans('lang.no_files_description') }}</p>
                 @if(auth()->user()->hasPermissionInContext('patient_files.create', auth()->user()->getDoctorId()))
-                    <a href="{{ route('patient_files.create', $patient) }}" class="btn btn-primary">
+                    <a href="{{ route('patient_files.create', $patient) }}" class="btn bg-navy">
                         <i class="fas fa-plus mr-2"></i>{{ trans('lang.upload_first_file') }}
                     </a>
                 @endif
@@ -128,7 +137,7 @@
         <div class="modal fade" id="assignAccessModal" tabindex="-1" aria-labelledby="assignAccessModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg">
-                    <div class="modal-header bg-gradient-primary text-white border-0">
+                    <div class="modal-header bg-navy text-white border-0">
                         <h5 class="modal-title" id="assignAccessModalLabel">
                             <i class="fas fa-user-plus mr-2"></i>{{ trans('lang.assign_access') }}
                         </h5>
@@ -179,7 +188,13 @@
                                                     @endif
                                                 </div>
                                                 <div class="modal-user-info flex-grow-1">
-                                                    <h6 class="user-name mb-1">{{ $user->name }}</h6>
+@php
+    $userName = $user->name ?? trans('lang.unknown_user');
+    $decoded = json_decode($userName, true);
+    $displayUserName = is_array($decoded) ? implode(' ', $decoded) : $userName;
+@endphp
+
+<h6 class="user-name mb-1">{{ $displayUserName }}</h6>
                                                     <small class="text-muted d-block">{{ $user->email }}</small>
                                                     @if($user->doctor && $user->doctor->specialities->isNotEmpty())
                                                         <div class="specialities mt-1">
@@ -215,7 +230,7 @@
                     </div>
                     <div class="modal-footer border-0 bg-light">
                         <button type="button" class="btn btn-light" data-dismiss="modal">{{ trans('lang.close') }}</button>
-                        <button type="submit" class="btn btn-primary" form="assignAccessForm" id="assignButton" disabled>
+                        <button type="submit" class="btn bg-navy" form="assignAccessForm" id="assignButton" disabled>
                             <i class="fas fa-user-plus mr-1"></i>{{ trans('lang.assign') }}
                         </button>
                     </div>
@@ -226,17 +241,17 @@
 
     <style>
         :root {
-            --primary-color: #667eea;
-            --primary-dark: #5a67d8;
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #001f3f;
+            --primary-dark: #001f3f;
+            --primary-gradient: #001f3f;
             --success-color: #48bb78;
-            --success-gradient: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            --success-gradient: #11b8aa;
             --danger-color: #f56565;
-            --danger-gradient: linear-gradient(135deg, #ff7675 0%, #d63031 100%);
+            --danger-gradient:  #d63031;
             --warning-color: #ed8936;
             --warning-gradient: linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%);
-            --info-color: #4299e1;
-            --info-gradient: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            --info-color: #943B5A;
+            --info-gradient: linear-gradient(135deg, #943B5A 0%, #943B5A 100%);
             --secondary-color: #a0aec0;
             --muted-color: #718096;
             --border-color: #e2e8f0;
