@@ -14,7 +14,12 @@ public/storage
 public/hot
 public_html/storage
 public_html/hot
-public/
+# Ignore all public/ contents except specific files
+public/*
+!public/js/
+public/js/*
+!public/js/global-notifications.js
+!public/js/firebase-init.js
 
 # Ignore sensitive and environment-specific files
 storage/*.key
@@ -57,7 +62,6 @@ public/script-detail-med/file.json
 public/script-detail-med/html-content-2.html
 public/script-detail-med/html-content.html
 bootstrap/
-public/
 
 public/Back-NodeJS/Back-WIc-Doctors
 
