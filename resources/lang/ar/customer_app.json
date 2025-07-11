@@ -529,5 +529,6 @@
     "Delete this file!": "احذف هذا الملف!",
     "Once you delete this file, there is no going back. Please be certain.": "بمجرد حذف هذا الملف، لا يمكن التراجع. الرجاء التأكد.",
     "Share your file": "شارك ملفك",
-    "expiration date : (%s)": "تاريخ الانتهاء: (%s)"
+    "expiration date : %s": "تاريخ الانتهاء: %s",
+    "Choose a file from your device": "اختر ملفًا من جهازك"
 }

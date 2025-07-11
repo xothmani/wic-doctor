@@ -348,6 +348,19 @@ public function login(Request $request)//v3 syncronisation avec web
         return $this->sendResponse($user->load('roles'), 'User retrieved successfully');
     }
 
+
+
+    function getUser($id)
+    {
+        $user = $this->userRepository->findByField('id', $id)->first();
+
+        if (!$user) {
+            return $this->sendError('User not found', 404);
+        }
+
+        return $this->sendResponse($user->load('roles'), 'User retrieved successfully');
+    }
+
     function settings(Request $request)
     {
         $settings = setting()->all();

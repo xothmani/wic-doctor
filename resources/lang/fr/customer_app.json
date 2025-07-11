@@ -530,5 +530,6 @@
     "Delete this file!": "Supprimer ce fichier !",
     "Once you delete this file, there is no going back. Please be certain.": "Une fois ce fichier supprimé, il n’y aura aucun retour possible. Veuillez en être sûr.",
     "Share your file": "Partagez votre fichier",
-    "expiration date : (%s)": "date d’expiration : (%s)"
+    "expiration date : %s": "date d’expiration : %s",
+    "Choose a file from your device": "Choisissez un fichier depuis votre appareil"
 }

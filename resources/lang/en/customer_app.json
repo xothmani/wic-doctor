@@ -495,5 +495,6 @@
     "Delete this file!": "Delete this file!",
     "Once you delete this file, there is no going back. Please be certain.": "Once you delete this file, there is no going back. Please be certain.",
     "Share your file": "Share your file",
-    "expiration date : (%s)": "expiration date : (%s)"
+    "expiration date : %s": "expiration date : %s",
+    "Choose a file from your device": "Choose a file from your device"
 }
