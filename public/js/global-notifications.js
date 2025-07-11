@@ -414,41 +414,74 @@ class GlobalNotificationManager {
     showNotification(messageData) {
     console.log('🔔 Showing notification for message from:', messageData.sender?.name);
     
-    // Play notification sound and flash tab
+    // Vérifier si nous sommes sur HTTPS ou localhost
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1';
+    const isSecure = window.location.protocol === 'https:';
+    
+    console.log('🔐 Protocol check:', { 
+        protocol: window.location.protocol,
+        hostname: window.location.hostname,
+        isLocalhost: isLocalhost, 
+        isSecure: isSecure 
+    });
+    
+    // Play notification sound and flash tab (ceux-ci fonctionnent même sans HTTPS)
     this.playNotificationSound();
     this.flashBrowserTab('New Message');
 
-    // Show browser notification
-    if (Notification.permission === 'granted') {
-        const notification = new Notification('New Message', {
-            body: `${messageData.sender?.name || 'Someone'}: ${messageData.text?.substring(0, 50) || 'Sent you a message'}`,
-            icon: '/images/logo.png',
-            data: { url: '/messenger' } // Store the URL in the notification's data
-        });
+    // Vérifier que nous pouvons utiliser les notifications
+    if (!('Notification' in window)) {
+        console.warn('⚠️ Ce navigateur ne prend pas en charge les notifications');
+        return;
+    }
+    
+    // Vérifier la sécurité (sauf pour localhost)
+    if (!isSecure && !isLocalhost) {
+        console.warn('⚠️ Les notifications nécessitent HTTPS sauf sur localhost');
+        return;
+    }
 
-        // Add click event listener to navigate to /messenger
-        notification.onclick = function(event) {
-            event.preventDefault(); // Prevent default behavior
-            window.focus(); // Focus the window
-            window.location.href = event.target.data.url; // Navigate to /messenger
-        };
+    // Vérifier/demander les permissions de notification
+    if (Notification.permission === 'granted') {
+        this.createNotification(messageData);
     } else if (Notification.permission !== 'denied') {
+        console.log('🔔 Demande de permission pour les notifications...');
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
-                const notification = new Notification('New Message', {
-                    body: `${messageData.sender?.name || 'Someone'}: ${messageData.text?.substring(0, 50) || 'Sent you a message'}`,
-                    icon: '/images/logo.png',
-                    data: { url: '/messenger' }
-                });
-
-                // Add click event listener
-                notification.onclick = function(event) {
-                    event.preventDefault();
-                    window.focus();
-                    window.location.href = event.target.data.url;
-                };
+                this.createNotification(messageData);
+            } else {
+                console.warn('⚠️ Permission de notification refusée');
             }
+        }).catch(error => {
+            console.error('❌ Erreur lors de la demande de permission:', error);
         });
+    } else {
+        console.warn('⚠️ Notifications déjà refusées par l\'utilisateur');
+    }
+}
+
+// Ajoutez cette nouvelle méthode
+createNotification(messageData) {
+    try {
+        console.log('🔔 Création de la notification...');
+        const notificationOptions = {
+            body: `${messageData.sender?.name || 'Someone'}: ${messageData.text?.substring(0, 50) || 'Sent you a message'}`,
+            icon: '/images/logo.png',
+            data: { url: '/messenger' }
+        };
+        
+        const notification = new Notification('New Message', notificationOptions);
+        
+        notification.onclick = function() {
+            console.log('🔔 Notification cliquée, redirection vers messenger');
+            window.focus();
+            window.location.href = '/messenger';
+        };
+        
+        console.log('✅ Notification créée avec succès');
+    } catch (error) {
+        console.error('❌ Erreur lors de la création de la notification:', error);
     }
 }
 
