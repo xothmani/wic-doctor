@@ -3,14 +3,35 @@
 <body class="bg-light">
     <div class="container mx-auto p-4">
         <div class="card shadow-sm">
-            <div class="alert alert-info border-0 bg-dark-info shadow-sm"
-                style="border-radius: 10px 10px 0 0 !important;">
-                <i class="fas fa-user-md mr-2"></i>
-                {{ trans('lang.upload_requested_by') }} <strong>{{ $user->name }} {{ $user->lastname }}</strong><br>
-                <i class="fas fa-user-injured mr-2"></i>
-                {{ trans('lang.upload_for_patient') }} <strong>{{ $patient->first_name }}
-                    {{ $patient->last_name }}</strong>
-            </div>
+        @php
+    // Décodage nom utilisateur
+    $userName = $user->name;
+    $userLastName = $user->lastname;
+    $decodedUserName = json_decode($userName, true);
+    $decodedUserLastName = json_decode($userLastName, true);
+    $displayUserName = is_array($decodedUserName) ? ($decodedUserName['fr'] ?? reset($decodedUserName)) : $userName;
+    $displayUserLastName = is_array($decodedUserLastName) ? ($decodedUserLastName['fr'] ?? reset($decodedUserLastName)) : $userLastName;
+
+    // Décodage nom patient
+    $patientFirstName = $patient->first_name;
+    $patientLastName = $patient->last_name;
+    $decodedPatientFirstName = json_decode($patientFirstName, true);
+    $decodedPatientLastName = json_decode($patientLastName, true);
+    $displayPatientFirstName = is_array($decodedPatientFirstName) ? ($decodedPatientFirstName['fr'] ?? reset($decodedPatientFirstName)) : $patientFirstName;
+    $displayPatientLastName = is_array($decodedPatientLastName) ? ($decodedPatientLastName['fr'] ?? reset($decodedPatientLastName)) : $patientLastName;
+@endphp
+
+<div class="alert alert-info border-0 bg-dark-info shadow-sm"
+    style="border-radius: 10px 10px 0 0 !important;">
+    <i class="fas fa-user-md mr-2"></i>
+    {{ trans('lang.upload_requested_by') }}
+    <strong>{{ $displayUserName }} {{ $displayUserLastName }}</strong><br>
+    
+    <i class="fas fa-user-injured mr-2"></i>
+    {{ trans('lang.upload_for_patient') }}
+    <strong>{{ $displayPatientFirstName }} {{ $displayPatientLastName }}</strong>
+</div>
+
             <div class="card-body p-5">
                 <!-- Upload Icon and Title -->
                 <div class="text-center mb-5">
@@ -274,13 +295,13 @@
         }
 
         .badge-soft-primary {
-            color: var(--primary, #007bff);
+            color: var(--primary, #11b8aa);
             background-color: rgba(0, 123, 255, 0.1);
             border: 1px solid rgba(0, 123, 255, 0.2);
         }
 
         .badge-soft-info {
-            color: var(--info, #17a2b8);
+            color:  #11b8aa;
             background-color: rgba(23, 162, 184, 0.1);
             border: 1px solid rgba(23, 162, 184, 0.2);
         }
@@ -288,7 +309,7 @@
         .badge-title {
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
-            color: var(--info, #17a2b8);
+            color: #11b8aa;
         }
 
         .upload-btn {

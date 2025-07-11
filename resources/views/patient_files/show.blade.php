@@ -17,10 +17,10 @@
                     <div class="col-md-6 mb-3 mb-md-0">
                         <h1 class="m-0 text-bold">
                             {{trans('lang.patient_files_plural')}}
-                            <small class="mx-3 text-muted">|</small>
-                            <small class="badge badge-soft-info px-3 py-1">
-                                <i class="fas fa-user-injured mr-1"></i>
-                                {{ $patient->first_name }} {{ $patient->last_name }}
+                            <small>|</small>
+                            <small>
+                            
+                                {{ trans('lang.file_details') }}
                             </small>
                         </h1>
                     </div>
@@ -44,15 +44,40 @@
             </div>
         </header>
 
-        <main class="content py-5">
+        <main class="content">
             <div class="container-fluid">
                 @include('flash::message')
+<div class="col-lg-12 col-md-12 order-lg-2 order-1">
+    <section class="mb-4 shadow-lg border-0" role="region" aria-label="{{ trans('lang.uploaded_by') }}">
+        <div class="card-header" style="background: #f8f9fa !important; font-weight: bold;">
+            <div class="row w-100 align-items-center">
+                <div class="col-10">
+                    <h2 class="card-title h5 mb-0" style="color: #053178; font-weight: bold;">
+                        <i class="fas fa-file-medical mr-2"></i> Dossier patient :
+                        <span style="color: black; font-weight: 500">
+                            {{ $patient->first_name }} {{ $patient->last_name }}
+                        </span>
+                    </h2>
+                </div>
+                <div class="col-2">
+                    <a href="{{ route('fiche.show', $patient->id) }}" class="btn  btn-sm" style="background-color: white; color: rgb(17, 184, 170); border: 1px solid rgb(17, 184, 170); cursor: pointer; white-space: nowrap; transition: 0.3s;">
+                        <i class="fas fa-folder-open me-1"></i> Consulter fichier
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
                 <div class="row g-4">
+
                     <div class="col-lg-4 col-md-12 order-lg-2 order-1">
                         <section class="card sidebar-card mb-4 shadow-lg border-0" role="region" aria-label="{{ trans('lang.uploaded_by') }}">
-                            <div class="card-header bg-gradient-primary text-white">
-                                <h2 class="card-title h5 mb-0">
+                            <div class="card-header text-white" style=" background: #f8f9fa; font-weight: bold;">
+                                <h2 class="card-title h5 mb-0" style="color : #053178; font-weight: bold;">
                                     <i class="fas fa-user-md mr-2"></i>{{ trans('lang.uploaded_by') }}
+                                    
                                 </h2>
                             </div>
                             <div class="card-body p-4">
@@ -68,7 +93,13 @@
                                         @endif
                                     </div>
                                     <div class="uploader-info flex-grow-1">
-                                        <h3 class="uploader-name h6 mb-1">{{ $file->uploader->name ?? trans('lang.unknown_uploader') }}</h3>
+@php
+    $uploaderName = $file->uploader->name ?? trans('lang.unknown_uploader');
+    $decoded = json_decode($uploaderName, true);
+    $displayName = is_array($decoded) ? implode(' ', $decoded) : $uploaderName;
+@endphp
+
+<h3 class="uploader-name h6 mb-1">{{ $displayName }}</h3>
                                         @if($file->uploader && $file->uploader->doctor && $file->uploader->doctor->specialities && $file->uploader->doctor->specialities->isNotEmpty())
                                             <div class="specialities mb-2">
                                                 @foreach($file->uploader->doctor->specialities->take(2) as $speciality)
@@ -114,13 +145,13 @@
 
                     <div class="col-lg-8 col-md-12 order-lg-1 order-2">
                         <div class="card file-details-card shadow-lg border-0" role="region" aria-label="{{ trans('lang.file_details') }}">
-                            <div class="card-header bg-gradient-primary text-white">
+                            <div class="card-header bg-gradient-primary text-white"> 
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="card-info">
                                         <h2 class="card-title h3 mb-1 d-flex align-items-center">
-                                            <i class="fas fa-file-medical mr-2"></i>{{ trans('lang.file_details') }}
+                                            {{ trans('lang.file_details') }}
                                         </h2>
-                                        <p class="card-subtitle mb-0 text-light" style="font-size: 0.8rem">
+                                        <p class="card-subtitle mb-0">
                                             {{ trans('lang.uploaded') }} {{ $file->created_at->diffForHumans() }}
                                         </p>
                                     </div>
@@ -169,7 +200,7 @@
                                             <h3 class="file-title h5 mb-3">{{ $file->file_name }}</h3>
                                             <div class="file-stats d-flex flex-column gap-2">
                                                 <div class="stat-item">
-                                                    <i class="fas fa-hdd text-info mr-2"></i>
+                                                    <i class="fas fa-hdd " style="color: #bdc4ce;"></i>
                                                     <span class="stat-label">{{ trans('lang.size') }}:</span>
                                                     <span class="stat-value">
                                                         @if(isset($file->file_size) && $file->file_size)
@@ -180,12 +211,12 @@
                                                     </span>
                                                 </div>
                                                 <div class="stat-item">
-                                                    <i class="fas fa-file-alt text-primary mr-2"></i>
+                                                    <i class="fas fa-file-alt " style="color: #bdc4ce;"></i>
                                                     <span class="stat-label">{{ trans('lang.type') }}:</span>
                                                     <span class="stat-value">{{ strtoupper($extension ?? 'Unknown') }}</span>
                                                 </div>
                                                 <div class="stat-item">
-                                                    <i class="fas fa-calendar text-success mr-2"></i>
+                                                    <i class="fas fa-calendar" style="color: #bdc4ce;"></i>
                                                     <span class="stat-label">{{ trans('lang.uploaded') }}:</span>
                                                     <span class="stat-value">{{ $file->created_at->format('M d, Y \a\t g:i A') }}</span>
                                                 </div>
@@ -243,29 +274,50 @@
                                         @else
                                             @foreach($fileUsers as $fileUser)
                                                 @if($fileUser->user)
-                                                    <div class="user-item d-flex align-items-center p-3 mb-2 rounded bg-white shadow-sm" style="animation-delay: {{ $loop->index * 0.1 }}s">
-                                                        <div class="user-avatar mr-3">
-                                                            @if($fileUser->user->media->isNotEmpty())
-                                                                <img src="{{ $fileUser->user->media->first()->getUrl() }}"
-                                                                    alt="{{ $fileUser->user->name }}" class="avatar-img rounded">
-                                                            @else
-                                                                <div class="avatar-placeholder rounded">
-                                                                    <i class="fas fa-user"></i>
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                        <div class="user-info flex-grow-1">
-                                                            <h4 class="user-name h6 mb-1">{{ $fileUser->user->name }}</h4>
-                                                            <small class="text-muted d-block">{{ $fileUser->user->email }}</small>
-                                                            @if($fileUser->expiration_date)
-                                                                <div class="expiration-info mt-1">
-                                                                    <span class="badge badge-warning">
-                                                                        {{ trans('lang.expires') }} {{ $fileUser->expiration_date->diffForHumans() }}
-                                                                    </span>
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
+<div class="user-item d-flex align-items-center p-3 mb-2 rounded bg-white shadow-sm" style="animation-delay: {{ $loop->index * 0.1 }}s">
+    <div class="user-avatar mr-3">
+        @if($fileUser->user->media->isNotEmpty())
+            <img src="{{ $fileUser->user->media->first()->getUrl() }}"
+                alt="{{ $fileUser->user->name }}" class="avatar-img rounded">
+        @else
+            <div class="avatar-placeholder rounded">
+                <i class="fas fa-user"></i>
+            </div>
+        @endif
+    </div>
+
+    <div class="user-info flex-grow-1">
+        @php
+            $userName = $fileUser->user->name ?? trans('lang.unknown_user');
+            $decoded = json_decode($userName, true);
+            $displayUserName = is_array($decoded) ? implode(' ', $decoded) : $userName;
+        @endphp
+
+        <h4 class="user-name h6 mb-1">{{ $displayUserName }}</h4>
+        <small class="text-muted d-block">{{ $fileUser->user->email }}</small>
+
+        @if($fileUser->expiration_date)
+            <div class="expiration-info mt-1">
+                <span class="badge badge-warning">
+                    {{ trans('lang.expires') }} {{ $fileUser->expiration_date->diffForHumans() }}
+                </span>
+            </div>
+        @endif
+    </div>
+
+    {{-- ✅ Afficher le bouton Révoquer uniquement si ce n’est pas l’utilisateur connecté --}}
+    @if(Auth::id() !== $fileUser->user->id)
+        <form action="{{ route('patient_files.revoke', ['patient' => $patient->id, 'file' => $file->id]) }}" method="POST" onsubmit="return confirm('Confirmer la révocation de l\'accès ?');">
+            @csrf
+            <input type="hidden" name="user_id" value="{{ $fileUser->user->id }}">
+            <button type="submit" class="btn btn-sm btn-danger">
+                <i class="fas fa-times-circle"></i> Révoquer
+            </button>
+        </form>
+    @endif
+</div>
+
+
                                                 @endif
                                             @endforeach
                                         @endif
@@ -282,7 +334,7 @@
             <div class="modal fade" id="assignAccessModal" tabindex="-1" aria-labelledby="assignAccessModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
                     <div class="modal-content border-0 shadow-lg">
-                        <div class="modal-header bg-gradient-primary text-white border-0">
+                        <div class="modal-header text-white border-0" style="background: #001f3f">
                             <h5 class="modal-title" id="assignAccessModalLabel">
                                 <i class="fas fa-user-plus mr-2"></i>{{ trans('lang.assign_access') }}
                             </h5>
@@ -332,7 +384,13 @@
                                                         @endif
                                                     </div>
                                                     <div class="modal-user-info flex-grow-1">
-                                                        <h6 class="user-name mb-1">{{ $user->name }}</h6>
+@php
+    $userName = $user->name ?? trans('lang.unknown_user');
+    $decoded = json_decode($userName, true);
+    $displayUserName = is_array($decoded) ? implode(' ', $decoded) : $userName;
+@endphp
+
+<h6 class="user-name mb-1">{{ $displayUserName }}</h6>
                                                         <small class="text-muted d-block">{{ $user->email }}</small>
                                                         @if($user->doctor && $user->doctor->specialities->isNotEmpty())
                                                             <div class="specialities mt-1">
@@ -368,7 +426,7 @@
                         </div>
                         <div class="modal-footer border-0 bg-light">
                             <a type="button" class="btn btn-light" data-dismiss="modal">{{ trans('lang.close') }}</a>
-                            <button type="submit" class="btn btn-primary" form="assignAccessForm" id="assignButton" disabled>
+                            <button type="submit" class="btn bg-navy" form="assignAccessForm" id="assignButton" disabled>
                                 <i class="fas fa-user-plus mr-1"></i>{{ trans('lang.assign') }}
                             </button>
                         </div>
@@ -401,17 +459,17 @@
 @section('styles')
     <style>
         :root {
-            --primary-color: #667eea;
-            --primary-dark: #5a67d8;
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-color: #48bb78;
-            --success-gradient: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            --primary-color: #053178;
+            --primary-dark: #053178;
+            --primary-gradient: linear-gradient(135deg, #053178 0%, #053178 100%);
+            --success-color: #11b8aa;
+            --success-gradient: #11b8aa;
             --danger-color: #f56565;
-            --danger-gradient: linear-gradient(135deg, #ff7675 0%, #d63031 100%);
+            --danger-gradient: #d63031;
             --warning-color: #ed8936;
             --warning-gradient: linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%);
-            --info-color: #4299e1;
-            --info-gradient: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            --info-color: #943B5A;
+            --info-gradient: linear-gradient(135deg, #943B5A 0%, #943B5A 100%);
             --secondary-color: #a0aec0;
             --muted-color: #718096;
             --border-color: #e2e8f0;
@@ -427,11 +485,13 @@
         }
 
         .bg-gradient-primary {
-            background: var(--primary-color) !important;
+            background: #f8f9fa !important;
+            color: #053178;
+            font-weight: bold;
         }
 
         .badge-soft-info {
-            color: var(--info, #17a2b8);
+            color: #11b8aa;
             background-color: rgba(23, 162, 184, 0.1);
             border: 1px solid rgba(23, 162, 184, 0.2);
         }
@@ -489,6 +549,16 @@
             transition: var(--transition);
             animation: slideInUp 0.6s ease forwards;
         }
+        .card-title{
+            color: #053178;
+            font-weight: bold;
+        }
+        .card-subtitle{
+            color: #053178;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
 
         .card:hover {
             transform: translateY(-4px);
@@ -596,7 +666,7 @@
         .avatar-placeholder {
             width: 40px;
             height: 40px;
-            background: var(--info-gradient);
+            background: #943B5A;
             display: flex;
             align-items: center;
             justify-content: center;

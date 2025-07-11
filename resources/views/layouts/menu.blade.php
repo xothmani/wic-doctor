@@ -404,14 +404,99 @@
 @endcan -->
 
 @can('patient_files.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('patient_files') ? 'active' : '' }}" href="{!! route('patient_files.index') !!}">
-            @if($icons)
-                <i class="nav-icon fas fa-archive"></i>
-            @endif
-            <p>{{ trans('lang.shared_files_plural') }}</p>
-        </a>
-    </li>
+<li class="nav-item">
+    <a class="nav-link {{ Request::is('patient_files') ? 'active' : '' }}" href="{!! route('patient_files.index') !!}">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                @if($icons)
+                <i style="color: #001f3f;" class="nav-icon fas fa-share-alt"></i>
+                @endif
+                <p style="color: #001f3f;" class="mb-0">{{ trans('lang.shared_files_plural') }}</p>
+            </div>
+            
+            {{-- Badge NEW animé --}}
+            <span class="badge badge-new">
+                NEW
+            </span>
+        </div>
+    </a>
+</li>
+
+{{-- Styles CSS pour le badge animé --}}
+<style>
+.badge-new {
+    background: linear-gradient(45deg,rgb(223, 70, 70),rgb(218, 56, 56));
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 4px 6px;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+    animation: pulse-glow 10s infinite;
+}
+
+.badge-new::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: shine 3s infinite;
+    transform: rotate(45deg);
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(255, 107, 107, 0.5);
+    }
+}
+
+@keyframes shine {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    50% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+}
+
+/* Animation au survol */
+.nav-link:hover .badge-new {
+    animation: bounce 1s ease-in-out;
+}
+
+@keyframes bounce {
+    0%, 20%, 60%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-8px);
+    }
+    80% {
+        transform: translateY(-4px);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .badge-new {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+}
+</style>
 @endcan
 
 @can('chatA.index')

@@ -297,8 +297,8 @@
 
 <style>
     :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --info-gradient: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        --primary-gradient: #001f3f;
+            --info-gradient: linear-gradient(135deg, #943B5A 0%, #943B5A 100%);
         --success-gradient: linear-gradient(135deg, #00b894 0%, #00a085 100%);
         --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.1);
         --shadow-medium: 0 15px 50px rgba(0, 0, 0, 0.15);
@@ -473,7 +473,7 @@
     }
 
     .email-btn {
-        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        background:linear-gradient(135deg, #943B5A 0%, #943B5A 100%);
         color: white;
     }
 
@@ -655,7 +655,7 @@
     }
 
     .badge-soft-info {
-        color: var(--info, #17a2b8);
+        color:  #11b8aa;
         background-color: rgba(23, 162, 184, 0.1);
         border: 1px solid rgba(23, 162, 184, 0.2);
     }
