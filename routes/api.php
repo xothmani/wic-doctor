@@ -43,6 +43,7 @@ Route::delete('appointments/delete/{id}', [AppointmentApiController::class, 'del
 Route::post('/media/upload', [CustomMediaApiController::class, 'upload']);
 Route::delete('/media/delete/{id}', [CustomMediaApiController::class, 'destroy']);
 Route::delete('doctor_reviews/{id}', 'API\DoctorReviewAPIController@delete');
+Route::get('get-user/{id}', 'API\UserAPIController@getUser');
 /*********************** End Route ajouté par Hamza ********************* */
 
 
