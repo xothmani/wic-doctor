@@ -29,70 +29,86 @@ class PatientFileController extends Controller
     }
 
     // Web Routes
-    public function index(Patient $patient = null)
-    {
-        $user = Auth::user();
-        $doctor = $user->doctor;
-        Log::info('Accessing patient files index', [
-            'user_id' => $user->id,
-            'patient_id' => $patient?->id
-        ]);
+public function index(Patient $patient = null)
+{
+    $user = Auth::user();
+    $doctor = $user->doctor;
+    
+    Log::info('Accessing patient files index', [
+        'user_id' => $user->id,
+        'patient_id' => $patient?->id
+    ]);
 
-        if ($patient) {
-            if (!$this->hasFileAccess($patient, $user)) {
-                Log::warning('Unauthorized access attempt to patient files', [
-                    'user_id' => $user->id,
-                    'patient_id' => $patient->id
-                ]);
-                abort(403, 'Unauthorized access to patient files.');
-            }
-
-            // Retrieve only files the user has access to
-            $files = PatientFile::where('patient_id', $patient->id)
-                ->where(function ($query) use ($user, $patient) {
-                    // If user is the patient, include all their files
-                    if ($patient->user_id === $user->id) {
-                        return;
-                    }
-                    // If user is a doctor with a relationship, include files they have access to
-                    if ($user->doctor && $user->doctor->patients()->where('patient_id', $patient->id)->exists()) {
-                        $query->whereExists(function ($subQuery) use ($user) {
-                            $subQuery->select(\DB::raw(1))
-                                ->from('patient_file_users')
-                                ->whereColumn('patient_file_users.patient_file_id', 'patient_files.id')
-                                ->where('patient_file_users.user_id', $user->id)
-                                ->where(function ($q) {
-                                    $q->whereNull('patient_file_users.expiration_date')
-                                        ->orWhere('patient_file_users.expiration_date', '>', now());
-                                });
-                        });
-                    }
-                })
-                ->with('uploader')
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            $patient->load('doctors.specialities', 'doctors.user');
-            $allDoctors = Doctor::with('specialities', 'user')->get();
-            $allUsers = User::whereNotNull('name')->whereNotNull('email')->get(); // Add this
-
-            Log::info('Successfully retrieved patient files', [
+    // Si un patient spécifique est demandé
+    if ($patient) {
+        // Vérification des droits d'accès
+        if (!$this->hasFileAccess($patient, $user)) {
+            Log::warning('Unauthorized access attempt to patient files', [
                 'user_id' => $user->id,
-                'patient_id' => $patient->id,
-                'file_count' => $files->count()
+                'patient_id' => $patient->id
             ]);
-
-            return view('patient_files.index', compact('patient', 'files', 'allDoctors', 'allUsers')); // Update to include allUsers
+            abort(403, 'Unauthorized access to patient files.');
         }
 
-        $myPatients = $doctor ? $doctor->patients()->with('user')->get() : [];
-        Log::info('Viewing patient selection page', [
-            'user_id' => $user->id,
-            'patient_count' => $myPatients->count()
-        ]);
+        // Récupération des fichiers avec pagination
+        $files = PatientFile::where('patient_id', $patient->id)
+            ->where(function ($query) use ($user, $patient) {
+                if ($patient->user_id === $user->id) {
+                    return;
+                }
+                
+                if ($user->doctor && $user->doctor->patients()->where('patient_id', $patient->id)->exists()) {
+                    $query->whereExists(function ($subQuery) use ($user) {
+                        $subQuery->select(\DB::raw(1))
+                            ->from('patient_file_users')
+                            ->whereColumn('patient_file_users.patient_file_id', 'patient_files.id')
+                            ->where('patient_file_users.user_id', $user->id)
+                            ->where(function ($q) {
+                                $q->whereNull('patient_file_users.expiration_date')
+                                    ->orWhere('patient_file_users.expiration_date', '>', now());
+                            });
+                    });
+                }
+            })
+            ->with('uploader')
+            ->orderBy('created_at', 'desc')
+            ->paginate(4);
 
-        return view('patient_files.select_patient', compact('myPatients'));
+        $patient->load('doctors.specialities', 'doctors.user');
+        $allDoctors = Doctor::with('specialities', 'user')->get();
+        $allUsers = User::whereNotNull('name')->whereNotNull('email')->get();
+
+        return view('patient_files.index', compact('patient', 'files', 'allDoctors', 'allUsers'));
     }
+
+    // Si aucun patient spécifique - page de sélection
+    $searchTerm = request()->input('search');
+    
+    $query = $doctor 
+        ? $doctor->patients()->with('user')
+        : Patient::query()->whereNull('id');
+
+    if ($searchTerm) {
+        $query->where(function($q) use ($searchTerm) {
+            $q->where('first_name', 'like', "%{$searchTerm}%")
+              ->orWhere('last_name', 'like', "%{$searchTerm}%")
+              ->orWhereHas('user', function($userQuery) use ($searchTerm) {
+                  $userQuery->where('email', 'like', "%{$searchTerm}%");
+              });
+        });
+    }
+
+    $myPatients = $query->paginate(4)
+                       ->appends(request()->query());
+
+    Log::info('Viewing patient selection page', [
+        'user_id' => $user->id,
+        'patient_count' => $myPatients->total(),
+        'search_term' => $searchTerm
+    ]);
+
+    return view('patient_files.select_patient', compact('myPatients'));
+}
 
     public function show(Patient $patient, PatientFile $file)
     {
@@ -122,7 +138,7 @@ class PatientFileController extends Controller
             'file_id' => $file->id
         ]);
 
-        return view('patient_files.show', compact('patient', 'file', 'allUsers')); // Include allUsers
+        return view(view: 'patient_files.show', data: compact('patient', 'file', 'allUsers')); // Include allUsers
     }
 
     public function create(Patient $patient)
@@ -545,8 +561,9 @@ class PatientFileController extends Controller
                     'patient_id' => $patient->id,
                     'file_id' => $file->id
                 ]);
-                return redirect()->route('patient_files.index', $patient)
+                return redirect()->route('patient_files.show', ['patient' => $patient->id, 'file' => $file->id])
                     ->with('error', 'No access found to revoke.');
+
             }
 
             $fileAccess->delete();
@@ -565,7 +582,7 @@ class PatientFileController extends Controller
                 'file_name' => $file->file_name
             ]);
 
-            return redirect()->route('patient_files.index', $patient)
+            return redirect()->route('patient_files.show', ['patient' => $patient->id, 'file' => $file->id])
                 ->with('success', 'File access revoked successfully.');
         } catch (\Exception $e) {
             Log::error('File access revocation failed', [
@@ -575,7 +592,7 @@ class PatientFileController extends Controller
                 'file_id' => $file->id,
                 'error' => $e->getMessage()
             ]);
-            return redirect()->route('patient_files.index', $patient)
+            return redirect()->route('patient_files.show', ['patient' => $patient->id, 'file' => $file->id])
                 ->with('error', 'File access revocation failed.');
         }
     }
