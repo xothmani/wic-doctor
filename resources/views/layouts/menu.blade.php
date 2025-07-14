@@ -659,6 +659,10 @@
         <p>
             WIC Messenger
             <span class="right badge badge-primary" id="messenger-unread-count" style="display: none;">0</span>
+            {{-- Badge NEW animé --}}
+            <span class="badge badge-new">
+                NEW
+            </span>
         </p>
     </a>
 </li>
