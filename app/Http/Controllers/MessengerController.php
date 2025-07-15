@@ -372,6 +372,81 @@ class MessengerController extends Controller
         }
     }
 
+    /**
+     * Accept friend request by friend_id (for messenger auto-accept)
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function acceptFriend(Request $request): JsonResponse
+    {
+        $currentUserId = Auth::id();
+        $friendId = $request->input('friend_id');
+
+        if (!$friendId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Friend ID is required'
+            ], 400);
+        }
+
+        // Find the friendship
+        $friendship = Friend::where(function ($query) use ($currentUserId, $friendId) {
+            $query->where([
+                'user_id' => $friendId,
+                'friend_id' => $currentUserId,
+                'status' => 'pending'
+            ]);
+        })->first();
+
+        if (!$friendship) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pending friend request not found'
+            ], 404);
+        }
+
+        try {
+            // Accept the friend request
+            $friendship->update(['status' => 'accepted']);
+
+            // Get friend name for response
+            $friend = User::find($friendId);
+            $friendName = $friend ? $friend->name : 'Unknown';
+
+            // Log the acceptance
+            \Log::info("✅ Friend request auto-accepted from chat", [
+                'friendship_id' => $friendship->id,
+                'sender_id' => $friendId,
+                'receiver_id' => $currentUserId,
+                'sender_name' => $friendName,
+                'timestamp' => now()->toDateTimeString()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Friend request accepted successfully',
+                'data' => [
+                    'friendship_id' => $friendship->id,
+                    'status' => 'accepted',
+                    'friend_name' => $friendName
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error("❌ Error auto-accepting friend request", [
+                'sender_id' => $friendId,
+                'receiver_id' => $currentUserId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error accepting friend request'
+            ], 500);
+        }
+    }
+
     public function getFriends(): JsonResponse
     {
         $userId = Auth::id();
