@@ -348,6 +348,19 @@ public function login(Request $request)//v3 syncronisation avec web
         return $this->sendResponse($user->load('roles'), 'User retrieved successfully');
     }
 
+
+
+    function getUser($id)
+    {
+        $user = $this->userRepository->findByField('id', $id)->first();
+
+        if (!$user) {
+            return $this->sendError('User not found', 404);
+        }
+
+        return $this->sendResponse($user->load('roles'), 'User retrieved successfully');
+    }
+
     function settings(Request $request)
     {
         $settings = setting()->all();
@@ -503,6 +516,43 @@ public function login(Request $request)//v3 syncronisation avec web
 
     }
 
+
+
+    //Recherche users par nom ou email, si rien renseigné, renvoie tous
+    public function getAllUsers(Request $request): JsonResponse
+    {
+        $userId = $request->header('X-USER-ID');
+        $query = $request->input('search'); // ou $request->search
+
+        Log::info("getAllUsers: userId: " . $userId . ", query: " . $query);
+
+        $users = User::when($query, function ($q) use ($query) {
+            $q->where(function ($sub) use ($query) {
+                $sub->where('name', 'LIKE', "%{$query}%")
+                    ->orWhere('email', 'LIKE', "%{$query}%");
+            });
+        })->where('id', '!=', $userId)->get();
+
+        return $this->sendResponse($users, 'Users retrieved successfully');
+    }
+
+
+
+
+    //Recherche user par email
+    public function getUserByEmail(Request $request): JsonResponse
+    {
+        $userId = $request->header('X-USER-ID');
+        $query = $request->input('email');
+
+        $user= User::where('email', $query)->where('id', '!=', $userId)->first();
+
+        if($user == null) {
+            return $this->sendError('User not found');
+        }else{
+            return $this->sendResponse($user, 'User retrieved successfully');
+        }
+    }
     /**
      * Remove the authenticated user from storage.
      *

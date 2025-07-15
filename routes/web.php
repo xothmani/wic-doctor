@@ -795,6 +795,7 @@ Route::prefix('messenger')->middleware(['auth'])->group(function () {
     Route::get('/user-info/{userId}', 'MessengerController@getUserInfo')->name('messenger.user-info');
     Route::get('/potential-partners', 'MessengerController@getPotentialPartners')->name('messenger.potential-partners');
     Route::get('/friends', 'MessengerController@getFriends')->name('messenger.friends');
+    Route::post('/accept-friend', 'MessengerController@acceptFriend')->name('messenger.accept-friend');
     Route::get('/patients', 'MessengerController@getPatients')->name('messenger.patients');
     Route::get('/groups', 'MessengerController@getGroups')->name('messenger.groups');
 

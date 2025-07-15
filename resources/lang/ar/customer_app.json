@@ -529,5 +529,21 @@
     "Delete this file!": "احذف هذا الملف!",
     "Once you delete this file, there is no going back. Please be certain.": "بمجرد حذف هذا الملف، لا يمكن التراجع. الرجاء التأكد.",
     "Share your file": "شارك ملفك",
-    "expiration date : (%s)": "تاريخ الانتهاء: (%s)"
+    "expiration date : %s": "تاريخ الانتهاء: %s",
+    "Choose a file from your device": "اختر ملفًا من جهازك",
+    "Sharing Failed": "فشل المشاركة",
+    "Unable to share the link. Please try again later.": "تعذر مشاركة الرابط. يرجى المحاولة مرة أخرى لاحقًا.",
+    "QR Code Sharing Failed": "فشل مشاركة رمز الاستجابة السريعة",
+    "Unable to share the QR code. Please try again later.": "تعذر مشاركة رمز الاستجابة السريعة. يرجى المحاولة مرة أخرى لاحقًا.",
+    "Link": "الرابط",
+    "You can access my medical file by scanning the QR code or clicking the link below.": "يمكنك الوصول إلى ملفي الطبي من خلال مسح رمز الاستجابة السريعة أو النقر على الرابط أدناه.",
+    "List assigned users is empty. Only you have access to this file.": "قائمة المستخدمين المعينين فارغة. أنت وحدك من يملك حق الوصول إلى هذا الملف.",
+    "Search user...": "ابحث عن مستخدم...",
+    "Assign to": "تعيين ل",
+    "User not found. Please enter an email that matches our records.": "لم يتم العثور على مستخدم. يرجى ادخال عنوان بريد يتوافق مع سجلاتنا.",
+    "Are you sure you want to revoke this user's access to the file?": "هل أنت متأكد أنك تريد سحب وصول هذا المستخدم إلى الملف؟",
+    "User access revoked successfully.": "تم سحب وصول المستخدم بنجاح.",
+    "Failed to revoke user access.": "حدث خطأ أثناء سحب وصول المستخدم.",
+    "Revoke user!": "سحب المستخدم!",
+    "Expiration date": "تاريخ الانتهاء"
 }

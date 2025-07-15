@@ -530,5 +530,20 @@
     "Delete this file!": "Supprimer ce fichier !",
     "Once you delete this file, there is no going back. Please be certain.": "Une fois ce fichier supprimé, il n’y aura aucun retour possible. Veuillez en être sûr.",
     "Share your file": "Partagez votre fichier",
-    "expiration date : (%s)": "date d’expiration : (%s)"
+    "expiration date : %s": "date d’expiration : %s",
+    "Choose a file from your device": "Choisissez un fichier depuis votre appareil",
+    "Sharing Failed": "Échec du partage",
+    "Unable to share the link. Please try again later.": "Impossible de partager le lien. Veuillez réessayer plus tard.",
+    "QR Code Sharing Failed": "Échec du partage du QR code",
+    "Unable to share the QR code. Please try again later.": "Impossible de partager le QR code. Veuillez réessayer plus tard.",
+    "Link": "Lien",
+    "You can access my medical file by scanning the QR code or clicking the link below.": "Vous pouvez accéder à mon dossier médical en scannant le code QR ou en cliquant sur le lien ci-dessous.",
+    "List assigned users is empty. Only you have access to this file.": "La liste des utilisateurs assignés est vide. Vous avez uniquement accès à ce fichier.",
+    "Search user...": "Rechercher un utilisateur...",
+    "User not found. Please enter an email that matches our records.": "Utilisateur introuvable. Veuillez entrer un email correspondant à nos données.",
+    "Are you sure you want to revoke this user's access to the file?": "Êtes-vous sûr de vouloir retirer l'accès de cet utilisateur au fichier ?",
+    "User access revoked successfully.": "L'accès de l'utilisateur a été révoqué avec succès.",
+    "Failed to revoke user access.": "Une erreur est survenue lors de la révocation de l'accès de l'utilisateur.",
+    "Revoke user!": "Révoquer l'utilisateur !",
+    "Expiration date": "Date d'expiration"
 }

@@ -773,6 +773,7 @@ public function index(Patient $patient = null)
     // API Routes
     public function apiIndex(Patient $patient, Request $request)
     {
+        Log::info('API: Accessing patient files index -> apiIndex function');
         $userId = $request->header('X-User-ID');
         if (!$userId || !is_numeric($userId)) {
             Log::warning('API: Invalid or missing user_id in header');
@@ -841,7 +842,19 @@ public function index(Patient $patient = null)
         // Apply pagination
         $files = $query->paginate($perPage, ['*'], 'page', $page)
             ->through(function ($file) {
-                return $file->makeHidden(['uploader']);
+                return [
+                    'id' => $file->id,
+                    'patient_id' => $file->patient_id,
+                    'uploaded_by' => $file->uploader->id, 
+                    'uploaded_by_user' => $file->uploader,// user
+                    'file_name' => $file->file_name,
+                    'file_path' => $file->file_path,
+                    'file_type' => $file->file_type,
+                    'file_size' => $file->file_size,
+                    'description' => $file->description,
+                    'created_at' => $file->created_at,
+                    'updated_at' => $file->updated_at,
+                ];
             });
 
         Log::info('API: Successfully retrieved patient files', [
@@ -1552,6 +1565,8 @@ public function index(Patient $patient = null)
                     $q->whereNull('expiration_date')
                         ->orWhere('expiration_date', '>', now());
                 })
+                ->where('user_id', '!=', $userId) 
+                ->with('user')
                 ->get();
 
             return response()->json(['assigned_users' => $assignedUsers], 200);
