@@ -45,7 +45,7 @@ class DoctorRequestMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.doctorRequest', // Assurez-vous que cette vue existe
+            view: 'emails.doctorRequest',
         );
     }
 
@@ -58,8 +58,12 @@ class DoctorRequestMail extends Mailable
     {
         return [
             Attachment::fromPath(storage_path('app/public/pdf/Guide modification photo de profil.pdf'))
-                      ->as('Guide_WIC_Doctor.pdf') // Nom du fichier dans l'email
-                      ->withMime('application/pdf'),
+                ->as('Guide_WIC_Doctor.pdf')
+                ->withMime('application/pdf'),
+
+            Attachment::fromPath(storage_path('app/public/pdf/Catalogue_des_prix.pdf'))
+                ->as('Catalogue_WIC_Doctor.pdf')
+                ->withMime('application/pdf'),
         ];
     }
 }

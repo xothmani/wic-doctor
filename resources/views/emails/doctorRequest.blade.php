@@ -50,10 +50,14 @@
             </td>
         </tr>
 
-        <!-- Guide et Assistance -->
+        <!-- Guide et Catalogue -->
         <tr>
             <td style="font-weight: bold; color: #565a5c; text-align: left;">
-                <p>Vous trouverez également le <strong>Guide pour personnaliser et compléter votre profil</strong> sur WIC Doctor en pièce jointe.</p>
+                <p>📎 En pièces jointes, vous trouverez :</p>
+                <ul>
+                    <li>Le <strong>guide pour personnaliser et compléter votre profil</strong> sur WIC Doctor</li>
+                    <li>Le <strong>catalogue des prix</strong> pour consulter nos offres</li>
+                </ul>
                 <p>Si vous avez la moindre question ou besoin d'assistance, n'hésitez pas à nous contacter.</p>
             </td>
         </tr>
@@ -62,7 +66,7 @@
         <tr>
             <td style="color: #565a5c; text-align: center;">
                 <br> ✨ Merci de votre confiance, à très bientôt !  
-                🌿 L'équipe WIC Doctor 🌿👨‍⚕
+                <br>🌿 L'équipe WIC Doctor 🌿👨‍⚕
             </td>
         </tr>
     </table>
