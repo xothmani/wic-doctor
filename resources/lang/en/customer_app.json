@@ -502,5 +502,13 @@
     "QR Code Sharing Failed": "QR Code Sharing Failed",
     "Unable to share the QR code. Please try again later.": "Unable to share the QR code. Please try again later.",
     "Link": "Link",
-    "You can access my medical file by scanning the QR code or clicking the link below.": "You can access my medical file by scanning the QR code or clicking the link below."
+    "You can access my medical file by scanning the QR code or clicking the link below.": "You can access my medical file by scanning the QR code or clicking the link below.",
+    "List assigned users is empty. Only you have access to this file.": "List assigned users is empty. Only you have access to this file.",
+    "Search user...": "Search user...",
+    "User not found. Please enter an email that matches our records.": "User not found. Please enter an email that matches our records.",
+    "Are you sure you want to revoke this user's access to the file?": "Are you sure you want to revoke this user's access to the file?",
+    "User access revoked successfully.": "User access revoked successfully.",
+    "Failed to revoke user access.": "Failed to revoke user access.",
+    "Revoke user!": "Revoke user!",
+    "Expiration date": "Expiration date"
 }
