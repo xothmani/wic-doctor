@@ -46,6 +46,8 @@ Route::post('/media/upload', [CustomMediaApiController::class, 'upload']);
 Route::delete('/media/delete/{id}', [CustomMediaApiController::class, 'destroy']);
 Route::delete('doctor_reviews/{id}', 'API\DoctorReviewAPIController@delete');
 Route::get('get-user/{id}', 'API\UserAPIController@getUser');
+Route::get('get-all-users', 'API\UserAPIController@getAllUsers');
+Route::get('get-user-by-email', 'API\UserAPIController@getUserByEmail');
 /*********************** End Route ajouté par Hamza ********************* */
 
 
