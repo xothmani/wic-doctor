@@ -37,6 +37,7 @@
             font-size: 36px;
             font-weight: bold;
             color: #11B8AA;
+            padding: 10px;
         }
         .header h1 {
             margin: 0;
@@ -153,7 +154,7 @@
     <div class="email-container">
         <div class="header">
             <div class="logo">
-                <img src="images/logo-square.png" alt="Logo">
+                <img src="https://wic-doctor.com/assets/images/wic-dr-logo.png" alt="Logo">
             </div>
         </div>
         
