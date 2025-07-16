@@ -19,13 +19,16 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\URL;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SendDmeQrCodeMail;
+
 
 class PatientFileController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers', 'apiGenerateFileQrCode', 'apiDownloadExternal', 'publicUpload', 'apiGeneratePublicUploadLink']);
-        Log::info('PatientFileController initialized', ['user_id' => Auth::id()]);
+        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers', 'apiGenerateFileQrCode', 'apiDownloadExternal', 'publicUpload', 'apiGeneratePublicUploadLink', 'apiGetUploaderFiles', 'apiFilterFilesByUploader', 'apiSendQrToEmail']);
     }
 
     // Web Routes
@@ -874,6 +877,38 @@ public function index(Patient $patient = null)
                 'total' => $files->total()
             ]
         ], 200);
+    }
+
+
+    //Get all uploader file for a patient
+    public function apiGetUploaderFiles(int $patientId)
+    {
+        
+        $uploaders = PatientFile::where('patient_id', $patientId)
+            ->with('uploader')
+            ->get()
+            ->pluck('uploader')
+            ->unique('id')
+            ->values();
+
+        return response()->json($uploaders);
+    }
+
+
+    public function apiFilterFilesByUploader(int $uploaderId ,int $patientId)
+    {
+        $files = PatientFile::where('patient_id', $patientId)
+            ->where('uploaded_by', $uploaderId)
+            ->with('uploader')
+            ->get()
+            ->map(function ($file) {
+                $data = $file->toArray();
+                $data['uploaded_by_user'] = $data['uploader'];
+                unset($data['uploader']);
+                return $data;
+            });
+
+        return response()->json($files);
     }
 
     public function apiShow(Patient $patient, PatientFile $file, Request $request)
@@ -1798,4 +1833,38 @@ public function index(Patient $patient = null)
 
         return false;
     }
+
+
+    public function apiSendQrToEmail(Request $request)
+    {
+
+        $userId = $request->header('X-User-ID');
+
+        if (!$userId || !is_numeric($userId)) {
+            Log::warning('API: Invalid or missing user_id in header');
+            return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
+        }
+
+        $request->validate([
+            'email' => 'required|email',
+            'qr_code_base64' => 'required|string',
+            'download_url' => 'required|url',
+        ]);
+
+        $user = User::findOrFail($userId);
+        $toUser = User::where('email', $request->email)->first();
+
+        if (!$toUser) {
+            return response()->json(['error' => 'User not found.'], 404);
+        }
+
+        Mail::to($request->email)->send(
+            new SendDmeQrCodeMail($request->qr_code_base64, $request->download_url, $user, $toUser)
+        );
+
+        return response()->json(['message' => 'QR code envoyé avec succès.']);
+    }
+
+
+    
 }
