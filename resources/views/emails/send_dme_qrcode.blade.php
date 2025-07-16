@@ -153,7 +153,7 @@
     <div class="email-container">
         <div class="header">
             <div class="logo">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo">
+                <img src="images/logo-square.png" alt="Logo">
             </div>
         </div>
         
@@ -186,7 +186,7 @@
         
         <div class="footer">
             <div class="footer-logo">
-                <img src="{{ asset('images/logo-white.png') }}" alt="Logo">
+                <img src="images/logo-white.png" alt="Logo">
             </div>
             <div class="footer-text">
                 Votre plateforme médicale sécurisée<br>
