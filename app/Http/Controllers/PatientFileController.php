@@ -19,13 +19,13 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\URL;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Http\JsonResponse;
 
 class PatientFileController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers', 'apiGenerateFileQrCode', 'apiDownloadExternal', 'publicUpload', 'apiGeneratePublicUploadLink']);
-        Log::info('PatientFileController initialized', ['user_id' => Auth::id()]);
+        $this->middleware(['auth', 'check.membership'])->except(['apiIndex', 'apiShow', 'apiDownload', 'apiDestroy', 'apiGiveAccess', 'apiUpload', 'apiRevokeAccess', 'apiGetAssignedUsers', 'apiGenerateFileQrCode', 'apiDownloadExternal', 'publicUpload', 'apiGeneratePublicUploadLink', 'apiGetUploaderFiles', 'apiFilterFilesByUploader']);
     }
 
     // Web Routes
@@ -874,6 +874,38 @@ public function index(Patient $patient = null)
                 'total' => $files->total()
             ]
         ], 200);
+    }
+
+
+    //Get all uploader file for a patient
+    public function apiGetUploaderFiles(int $patientId)
+    {
+        
+        $uploaders = PatientFile::where('patient_id', $patientId)
+            ->with('uploader')
+            ->get()
+            ->pluck('uploader')
+            ->unique('id')
+            ->values();
+
+        return response()->json($uploaders);
+    }
+
+
+    public function apiFilterFilesByUploader(int $uploaderId ,int $patientId)
+    {
+        $files = PatientFile::where('patient_id', $patientId)
+            ->where('uploaded_by', $uploaderId)
+            ->with('uploader')
+            ->get()
+            ->map(function ($file) {
+                $data = $file->toArray();
+                $data['uploaded_by_user'] = $data['uploader'];
+                unset($data['uploader']);
+                return $data;
+            });
+
+        return response()->json($files);
     }
 
     public function apiShow(Patient $patient, PatientFile $file, Request $request)
@@ -1798,4 +1830,7 @@ public function index(Patient $patient = null)
 
         return false;
     }
+
+
+    
 }
