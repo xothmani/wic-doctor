@@ -262,6 +262,8 @@ Route::prefix('/drug-interactions')->group(function () {
     Route::get('/search-backup', [DrugController::class, 'searchBackup']);
 });
 
+
+
 Route::prefix('patient_files')->name('api.patient_files.')->group(function () {
     Route::get('/{patient}', [PatientFileController::class, 'apiIndex'])->name('index');
     Route::get('/{patient}/{file}', [PatientFileController::class, 'apiShow'])->name('show');
@@ -275,3 +277,11 @@ Route::prefix('patient_files')->name('api.patient_files.')->group(function () {
     Route::get('/{patient}/{file}/api-download', [PatientFileController::class, 'apiDownloadExternal'])->name('api_download');
     Route::post('/{patient}/generate-public-upload-link', [PatientFileController::class, 'apiGeneratePublicUploadLink'])->name('generate_public_upload_link');
 });
+
+
+Route::get('get-uploaders/dme/{patientId}', [PatientFileController::class, 'apiGetUploaderFiles'])
+    ->name('api.get-uploaders.dme');
+
+Route::get('filter-by-uploader/{uploaderId}/{patientId}', [PatientFileController::class, 'apiFilterFilesByUploader'])
+    ->name('api.filter-by-uploader');
+
