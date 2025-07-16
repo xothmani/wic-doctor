@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             margin: 0;
@@ -12,7 +10,7 @@
             color: #333;
         }
         .email-container {
-            max-width: 700px;
+            max-width: 900px;
             margin: 0 auto;
             background-color: #ffffff;
             border-radius: 12px;
@@ -26,8 +24,8 @@
             color: white;
         }
         .logo {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             background-color: white;
             border-radius: 50%;
             margin: 0 auto;
@@ -37,7 +35,6 @@
             font-size: 36px;
             font-weight: bold;
             color: #11B8AA;
-            padding: 10px;
         }
         .header h1 {
             margin: 0;
@@ -106,7 +103,7 @@
         .divider {
             height: 1px;
             background: linear-gradient(90deg, transparent, #11B8AA, transparent);
-            margin: 30px 0;
+            margin: 0 30px 0 0px;
         }
         .footer {
             background-color: #053178;
@@ -154,7 +151,7 @@
     <div class="email-container">
         <div class="header">
             <div class="logo">
-                <img src="https://wic-doctor.com/assets/images/wic-dr-logo.png" alt="Logo">
+                <img src="{{ URL::asset('images/logo-square.png') }}" width="100px" height="auto"/>
             </div>
         </div>
         
@@ -169,7 +166,7 @@
             
             <div class="download-section">
                 <div class="qr-code">
-                    <div><img src="{{ $qrImageUrl }}" alt="QR Code" width="300px" height="300px"/></div>
+                    <div><img src= "{{ $qrImageUrl }}" width="300px" height="300px"/></div>
                 </div>
                 
                 <a href="{{ $downloadUrl }}" class="download-button">
@@ -180,14 +177,11 @@
                     Ou scannez le QR code avec votre smartphone
                 </div>
             </div>
-            
-            <!--<div class="divider"></div>-->
-
         </div>
         
         <div class="footer">
             <div class="footer-logo">
-                <img src="images/logo-white.png" alt="Logo">
+                <img src="{{ URL::asset('images/logo-white.png') }}" width="100px" height="auto"/>
             </div>
             <div class="footer-text">
                 Votre plateforme médicale sécurisée<br>
