@@ -13,12 +13,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
+use Illuminate\Mail\Attachment;
+
 
 class SendDmeQrCodeMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $qrImageUrl;     // ← URL de l'image générée
+    public $qrImageName;     // ← URL de l'image générée
     public $downloadUrl;
     protected $fromUser;
 
@@ -26,7 +28,7 @@ class SendDmeQrCodeMail extends Mailable
 
     public function __construct(string $qrCodeBase64, string $downloadUrl, User $fromUser, User $toUser)
     {
-        $this->qrImageUrl = self::saveBase64UrlImage($qrCodeBase64);
+        $this->qrImageName = self::saveBase64UrlImage($qrCodeBase64);
         $this->downloadUrl = $downloadUrl;
         $this->fromUser = $fromUser;
         $this->toUser = $toUser;
@@ -47,7 +49,7 @@ class SendDmeQrCodeMail extends Mailable
         return new Content(
             view: 'emails.send_dme_qrcode',
             with: [
-                'qrImageUrl' => $this->qrImageUrl,
+                'qrImageUrl' => $this->qrImageName,
                 'downloadUrl' => $this->downloadUrl,
                 'userName' => $this->fromUser->name,
                 'toUserName' => $this->toUser->name
@@ -57,7 +59,8 @@ class SendDmeQrCodeMail extends Mailable
 
     public function attachments(): array
     {
-        return [];
+        return [
+        ];
     }
 
     // Méthode static pour convertir et sauvegarder l’image
@@ -77,7 +80,7 @@ class SendDmeQrCodeMail extends Mailable
         Storage::disk('local')->put("{$folder}/{$imageName}", base64_decode($base64));
 
         // retourne une URL HTTP dynamique utilisable dans un e-mail
-        return URL::route('qrcodes.show', ['filename' => $imageName]);
+        return $imageName;
     }
 }
 
