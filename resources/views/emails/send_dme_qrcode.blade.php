@@ -151,7 +151,7 @@
     <div class="email-container">
         <div class="header">
             <div class="logo">
-                <img src="{{ URL::asset('images/logo-square.png') }}" width="100px" height="auto"/>
+                <img src="{{ $logoSquare }}" width="100px" height="auto"/>
             </div>
         </div>
         
@@ -181,7 +181,7 @@
         
         <div class="footer">
             <div class="footer-logo">
-                <img src="{{ URL::asset('images/logo-white.png') }}" width="100px" height="auto"/>
+                <img src="{{ $logoWhite }}" width="100px" height="auto"/>
             </div>
             <div class="footer-text">
                 Votre plateforme médicale sécurisée<br>
