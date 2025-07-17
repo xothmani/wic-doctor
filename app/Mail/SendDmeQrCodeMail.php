@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
+use Illuminate\Mail\Attachment;
+
 
 class SendDmeQrCodeMail extends Mailable
 {
@@ -50,14 +52,17 @@ class SendDmeQrCodeMail extends Mailable
                 'qrImageUrl' => $this->qrImageUrl,
                 'downloadUrl' => $this->downloadUrl,
                 'userName' => $this->fromUser->name,
-                'toUserName' => $this->toUser->name
+                'toUserName' => $this->toUser->name,
+                'logoSquare' => public_path('images/logo-square.png'),
+                'logoWhite' => public_path('images/logo-white.png')
             ]
         );
     }
 
     public function attachments(): array
     {
-        return [];
+        return [
+        ];
     }
 
     // Méthode static pour convertir et sauvegarder l’image
