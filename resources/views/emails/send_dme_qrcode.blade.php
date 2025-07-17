@@ -18,24 +18,31 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
         .header {
-            background: linear-gradient(135deg, #11B8AA 0%, #0ea5a5 100%);
-            padding: 40px 20px;
+            background: #053178;
             text-align: center;
             color: white;
+            height: 10px;
         }
+
         .logo {
             width: 120px;
             height: 120px;
-            background-color: white;
+            background-color: #053178;
             border-radius: 50%;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
-            font-weight: bold;
-            color: #11B8AA;
+            overflow: hidden;
         }
+
+        .logo img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            display: block;
+        }
+
         .header h1 {
             margin: 0;
             font-size: 28px;
@@ -150,9 +157,9 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <div class="logo">
-                <img src="{{ $logoSquare }}" width="100px" height="auto"/>
-            </div>
+            <!-- <div class="logo">
+                <img src="{{ $message->embed(public_path('images/logo-white.png')) }}" width="100px" height="100px"/>
+            </div> -->
         </div>
         
         <div class="content">
@@ -166,7 +173,7 @@
             
             <div class="download-section">
                 <div class="qr-code">
-                    <div><img src= "{{ $qrImageUrl }}" width="300px" height="300px"/></div>
+                    <div><img src= "{{ $message->embed(storage_path('app/patient_files/qrcodes/' . $qrImageName)) }}" width="300px" height="300px"/></div>
                 </div>
                 
                 <a href="{{ $downloadUrl }}" class="download-button">
@@ -181,7 +188,7 @@
         
         <div class="footer">
             <div class="footer-logo">
-                <img src="{{ $logoWhite }}" width="100px" height="auto"/>
+                <img src="{{ $message->embed(public_path('images/logo-white.png')) }}" width="100px" height="auto"/>
             </div>
             <div class="footer-text">
                 Votre plateforme médicale sécurisée<br>
