@@ -168,7 +168,11 @@
             </div>
             
             <div class="message">
-                Votre fichier médical est maintenant prêt et sécurisé. Vous pouvez le télécharger facilement en utilisant le QR code ci-dessous ou en cliquant sur le bouton de téléchargement.
+                 @if ($use_in == 'download')
+                    Votre fichier médical est maintenant prêt et sécurisé. Vous pouvez le télécharger facilement en utilisant le QR code ci-dessous ou en cliquant sur le bouton de téléchargement.
+                @else
+                    Vous avez reçu l'autorisation d'ajouter un fichier médical à ce dossier. Scannez le QR code ou utilisez le lien ci-dessous pour téléverser votre document en toute sécurité.
+                @endif
             </div>
             
             <div class="download-section">
@@ -177,7 +181,11 @@
                 </div>
                 
                 <a href="{{ $downloadUrl }}" class="download-button">
-                    📥 Télécharger le fichier
+                    @if ($use_in == 'download')
+                        📥 Télécharger le fichier
+                    @elseif ($use_in == 'upload')
+                        📤 Ajouter un fichier
+                    @endif
                 </a>
                 
                 <div class="alternative-text">

@@ -1839,6 +1839,7 @@ public function index(Patient $patient = null)
     {
 
         $userId = $request->header('X-User-ID');
+        $use_in = $request->input('use_in');
 
         if (!$userId || !is_numeric($userId)) {
             Log::warning('API: Invalid or missing user_id in header');
@@ -1859,7 +1860,7 @@ public function index(Patient $patient = null)
         }
 
         Mail::to($request->email)->send(
-            new SendDmeQrCodeMail($request->qr_code_base64, $request->download_url, $user, $toUser)
+            new SendDmeQrCodeMail($request->qr_code_base64, $request->download_url, $user, $toUser, $use_in)
         );
 
         return response()->json(['message' => 'QR code envoyé avec succès.']);
