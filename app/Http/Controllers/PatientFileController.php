@@ -1837,6 +1837,21 @@ public function index(Patient $patient = null)
 
     public function apiSendQrToEmail(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'qr_code_base64' => 'required|string',
+            'download_url' => 'required|url',
+            'use_in' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed.',
+                'messages' => $validator->errors(),
+            ], 422);
+        }
+
+
 
         $userId = $request->header('X-User-ID');
         $use_in = $request->input('use_in');
@@ -1846,14 +1861,12 @@ public function index(Patient $patient = null)
             return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
         }
 
-        $request->validate([
-            'email' => 'required|email',
-            'qr_code_base64' => 'required|string',
-            'download_url' => 'required|url',
-        ]);
-
         $user = User::findOrFail($userId);
         $toUser = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found.'], 404);
+        }
 
         if (!$toUser) {
             return response()->json(['error' => 'User not found.'], 404);
