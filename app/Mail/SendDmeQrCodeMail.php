@@ -26,12 +26,15 @@ class SendDmeQrCodeMail extends Mailable
 
     protected $toUser;
 
-    public function __construct(string $qrCodeBase64, string $downloadUrl, User $fromUser, User $toUser)
+    protected $use_in;
+
+    public function __construct(string $qrCodeBase64, string $downloadUrl, User $fromUser, User $toUser, string $use_in)
     {
         $this->qrImageName = self::saveBase64UrlImage($qrCodeBase64);
         $this->downloadUrl = $downloadUrl;
         $this->fromUser = $fromUser;
         $this->toUser = $toUser;
+        $this->use_in = $use_in;
     }
 
     public function envelope(): Envelope
@@ -52,7 +55,8 @@ class SendDmeQrCodeMail extends Mailable
                 'qrImageUrl' => $this->qrImageName,
                 'downloadUrl' => $this->downloadUrl,
                 'userName' => $this->fromUser->name,
-                'toUserName' => $this->toUser->name
+                'toUserName' => $this->toUser->name,
+                'use_in' => $this->use_in
             ]
         );
     }

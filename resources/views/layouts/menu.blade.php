@@ -657,7 +657,7 @@
             <i class="nav-icon fas fa-comments"></i>
         @endif
         <p>
-            WIC Messenger
+            WIC Courrier
             <span class="right badge badge-primary" id="messenger-unread-count" style="display: none;">0</span>
             {{-- Badge NEW animé --}}
             <span class="badge badge-new ml-2">
