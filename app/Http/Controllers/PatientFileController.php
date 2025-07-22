@@ -22,6 +22,7 @@ use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendDmeQrCodeMail;
+use Illuminate\Support\Facades\Validator;
 
 
 class PatientFileController extends Controller
@@ -1837,23 +1838,35 @@ public function index(Patient $patient = null)
 
     public function apiSendQrToEmail(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string',
+            'qr_code_base64' => 'required|string',
+            'download_url' => 'required|string',
+            'use_in' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Vérification échouée',
+                'messages' => 'Merci de vérifier et remplir tous les champs obligatoires.',
+            ], 422);
+        }
+
+
 
         $userId = $request->header('X-User-ID');
         $use_in = $request->input('use_in');
 
         if (!$userId || !is_numeric($userId)) {
-            Log::warning('API: Invalid or missing user_id in header');
             return response()->json(['error' => 'Invalid or missing user_id in header.'], 400);
         }
 
-        $request->validate([
-            'email' => 'required|email',
-            'qr_code_base64' => 'required|string',
-            'download_url' => 'required|url',
-        ]);
-
         $user = User::findOrFail($userId);
         $toUser = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found.'], 404);
+        }
 
         if (!$toUser) {
             return response()->json(['error' => 'User not found.'], 404);
