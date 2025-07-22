@@ -22,6 +22,7 @@ use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendDmeQrCodeMail;
+use Illuminate\Support\Facades\Validator;
 
 
 class PatientFileController extends Controller
