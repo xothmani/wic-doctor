@@ -1,17 +1,9 @@
-@extends('layouts.app')
-
-@section('content')
-<div class="container py-4">
-    <h2>Consultation pour {{ $patient->first_name }} {{ $patient->last_name }}</h2>
-    <div id="viewer" style="height: 800px; border: 1px solid #ccc;"></div>
-</div>
-
-<script src="https://pdfjs.express/lib/webviewer.min.js"></script>
+<script src="https://pdftron.s3.amazonaws.com/downloads/pl/webviewer/lib/webviewer.min.js"></script>
 <script>
     WebViewer({
-        path: 'https://pdfjs.express/lib', // hébergé chez eux
+        path: 'https://pdftron.s3.amazonaws.com/downloads/pl/webviewer/lib',
         initialDoc: "{{ $pdfUrl }}",
-        licenseKey: 'Insert_your_license_here'
+        licenseKey: '', // Facultatif si version d'essai
     }, document.getElementById('viewer')).then(instance => {
         const { documentViewer, annotationManager, PDFNet, docViewer, UI } = instance;
 
@@ -56,4 +48,3 @@
         });
     });
 </script>
-@endsection
