@@ -137,13 +137,20 @@
                                                 <h6 class="mb-1" id="fileName"></h6>
                                                 <small class="text-muted" id="fileSize"></small>
                                             </div>
+                           <!--                  <div>
+                                            <p>téléchargé avec succées</p>
+                                            
+                                        </div> -->
                                             <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile()">
                                                 <i class="fas fa-times"></i>
                                             </button>
+
                                         </div>
                                         <div class="progress mt-2" style="height: 6px;">
                                             <div class="progress-bar bg-success" style="width: 100%;"></div>
+                                            
                                         </div>
+                                           
                                     </div>
                                 </div>
 

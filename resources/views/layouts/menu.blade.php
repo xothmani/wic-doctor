@@ -583,7 +583,16 @@
         </a>
     </li>
 @endcan
-
+@can('consultation_perso.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('consultation_perso') ? 'active' : '' }}" href="{!! route('consultation_perso.index') !!}">
+            @if($icons)
+<i style="color: #001f3f;" class="nav-icon fas fa-notes-medical"></i>
+            @endif
+            <p style="color: #001f3f;">Consult. Spécialisée</p>
+        </a>
+    </li>
+@endcan
 @can('doctor_tag.index')
     <li class="nav-item">
         <a class="nav-link {{ Request::is('doctor_tag') && !Request::is('doctor_tag/create') ? 'active' : '' }}"
@@ -678,6 +687,35 @@
 <li class="nav-header" style="font-size: 1rem; color: #11b8aa; font-weight: bold;">
     <span style="font-weight: bold;">Boîte à outils IA </span> <!-- Texte en gras -->
 </li>
+@can('SpeechToText.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('SpeechToText*') ? 'active' : '' }}" href="{!! route('SpeechToText.index') !!}"
+            style="{{ Request::is('SpeechToText*') ? 'background-color: #001f3f;' : '' }}">
+            <i class="nav-icon fas fa-microphone-alt"
+                style="color: {{ Request::is('SpeechToText*') ? '#ffffff' : '#11b8aa' }};"></i>
+            <p style="color: {{ Request::is('SpeechToText*') ? '#ffffff' : '#001f3f' }};">Rapport IA</p>
+        </a>
+    </li>
+@endcan
+
+
+
+@can('extractIA.index')
+
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('extractIA*') ? 'active' : '' }}"
+            href="{!! route('extractIA.index') !!}"
+            style="{{ Request::is('extractIA*') ? 'background-color: #001f3f;' : '' }}">
+            @if($icons)
+                <i class="nav-icon fas fa-cogs"
+                    style="color: {{ Request::is('extractIA*') ? '#ffffff' : '#11b8aa' }};"></i>
+            @endif
+            <p style="color: {{ Request::is('extractIA*') ? '#ffffff' : '#001f3f' }};">
+Extracteur IA            </p>
+        </a>
+    </li>
+@endcan
+
 
 @can('drug_drug_interactions.index')
     <li class="nav-item">
@@ -695,28 +733,7 @@
     </li>
 @endcan
 
-@can('Lap.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('Lap*') ? 'active' : '' }}" href="{!! route('Lap.index') !!}"
-            style="{{ Request::is('Lap*') ? 'background-color: #001f3f;' : '' }}">
-            @if($icons)
-                <i class="nav-icon fas fa-file-prescription"
-                    style="color: {{ Request::is('Lap*') ? '#ffffff' : '#11b8aa' }};"></i>
-            @endif
-            <p style="color: {{ Request::is('Lap*') ? '#ffffff' : '#001f3f' }};">Aide à la Prescription</p>
-        </a>
-    </li>
-@endcan
-@can('SpeechToText.index')
-    <li class="nav-item">
-        <a class="nav-link {{ Request::is('SpeechToText*') ? 'active' : '' }}" href="{!! route('SpeechToText.index') !!}"
-            style="{{ Request::is('SpeechToText*') ? 'background-color: #001f3f;' : '' }}">
-            <i class="nav-icon fas fa-microphone-alt"
-                style="color: {{ Request::is('SpeechToText*') ? '#ffffff' : '#11b8aa' }};"></i>
-            <p style="color: {{ Request::is('SpeechToText*') ? '#ffffff' : '#001f3f' }};">Rapport IA</p>
-        </a>
-    </li>
-@endcan
+
 
 @can('imagerie.index')
     <li class="nav-item">
@@ -729,6 +746,23 @@
         </a>
     </li>
 @endcan
+
+@can('Lap.index')
+    <li class="nav-item">
+        <a class="nav-link {{ Request::is('Lap*') ? 'active' : '' }}" href="{!! route('Lap.index') !!}"
+            style="{{ Request::is('Lap*') ? 'background-color: #001f3f;' : '' }}">
+            @if($icons)
+                <i class="nav-icon fas fa-file-prescription"
+                    style="color: {{ Request::is('Lap*') ? '#ffffff' : '#11b8aa' }};"></i>
+            @endif
+            <p style="color: {{ Request::is('Lap*') ? '#ffffff' : '#001f3f' }};">Aide à la Prescription</p>
+        </a>
+    </li>
+@endcan
+
+
+
+
 
 
 <!-- @can('pharmacies.index')

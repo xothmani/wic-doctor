@@ -47,6 +47,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardMedecinController;
 use App\Http\Controllers\DoctorPatientsController;
+use App\Http\Controllers\ConsultationPersoController;
 
 
 
@@ -815,5 +816,13 @@ Route::prefix('messenger')->middleware(['auth'])->group(function () {
     // Test endpoint for authentication
     Route::get('/test-auth', 'MessengerController@testAuth')->name('messenger.test-auth');
     Route::post('/patients/{patient}/files/{file}/revoke', [PatientFileController::class, 'revokeAccess'])->name('patient_files.revoke');
+    Route::get('/extractIA', action: 'App\Http\Controllers\ExtracteurIaController@index')->name('extractIA.index');
+    Route::post('/change-language', [App\Http\Controllers\LocalizationController::class, 'change'])->name('change.language');
+    Route::get('/consultation_perso', action: [ConsultationPersoController::class, 'index'])->name('consultation_perso.index');
+Route::get('/consultation-perso/{patient}/pdfs', [ConsultationPersoController::class, 'selectPdf'])->name('consultation_perso.select_pdf');
+Route::get('/consultation_perso/open/{patient}/{pdf}', [ConsultationPersoController::class, 'openPdf'])->name('consultation_perso.open_pdf');
+Route::post('/consultation_perso/save-filled-pdf', [ConsultationPersoController::class, 'saveFilledPdf'])->name('consultation_perso.save_filled_pdf');
 
+
+ 
 });
