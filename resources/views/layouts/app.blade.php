@@ -601,6 +601,23 @@
                         {{env('APP_CONSTRUCTION','') }}</a>
                 </li>
             @endif
+<!--             <li class="nav-item dropdown">
+    <a class="nav-link" data-toggle="dropdown" href="#" role="button">
+        🌐 {{ strtoupper(app()->getLocale()) }}
+        <i class="fas fa-angle-down ml-1"></i>
+    </a>
+    <div class="dropdown-menu dropdown-menu-right">
+        <form id="languages-form" action="{{ route('change.language') }}" method="POST">
+            @csrf
+            <input type="hidden" name="locale" id="current-language">
+
+            <a href="#" class="dropdown-item" onclick="changeLanguage('fr')">🇫🇷 Français</a>
+            <a href="#" class="dropdown-item" onclick="changeLanguage('en')">🇬🇧 English</a>
+            <a href="#" class="dropdown-item" onclick="changeLanguage('it')">🇮🇹 Italiano</a>
+       </form>
+    </div>
+</li>
+ -->
             @can('favorites.index')
                 <li class="nav-item">
                     <a class="nav-link {{ Request::is('favorites*') ? 'active' : '' }}" href="{{route('favorites.index')}}"><i class="fas fa-heart"></i></a>
