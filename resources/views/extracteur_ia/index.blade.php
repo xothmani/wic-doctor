@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediSmart AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -599,7 +599,6 @@
                 <p class="method-description">
                     Téléchargez des fichiers PDF ou Word contenant des informations patient. L'analyse avancée extrait instantanément les données structurées.
                 </p>
-                <br>
                 <div style="height: 25px;"></div>
 
                 <div class="upload-area" onclick="document.getElementById('docInput').click()">
@@ -722,7 +721,7 @@
         // Patient field definitions
         const patientFields = {
             personal: {
-                title: 'Infos Personnelles',
+                title: 'Informations Personnelles',
                 icon: 'fas fa-user',
                 fields: {
                     prenom: { label: 'Prénom', type: 'text' },
@@ -967,7 +966,7 @@
         }
 
         async function toggleRecording() {
-            console.log('🎯 toggleRecording called, isRecording:', isRecording);
+            console.log('toggleRecording called, isRecording:', isRecording);
             
             const recordBtn = document.getElementById('recordBtn');
             const processAudioBtn = document.getElementById('processAudioBtn');
@@ -983,28 +982,28 @@
                     audioChunks = [];
                     mediaRecorder = new MediaRecorder(stream);
                     
-                    console.log('🎙️ MediaRecorder created, state:', mediaRecorder.state);
+                    console.log('MediaRecorder created, state:', mediaRecorder.state);
 
                     mediaRecorder.ondataavailable = (event) => {
-                        console.log('📦 Data available, size:', event.data.size);
+                        console.log('Data available, size:', event.data.size);
                         if (event.data.size > 0) {
                             audioChunks.push(event.data);
                         }
                     };
 
                     mediaRecorder.onstop = () => {
-                        console.log('📁 MediaRecorder onstop event fired');
+                        console.log('MediaRecorder onstop event fired');
                         
                         window.recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        console.log('📊 Recorded blob size:', window.recordedBlob.size);
+                        console.log('Recorded blob size:', window.recordedBlob.size);
 
                         if (window.recordedBlob && window.recordedBlob.size > 0) {
-                            console.log('✅ Recording complete. Ready to process...');
+                            console.log('Recording complete. Ready to process...');
                             setTimeout(() => {
                                 updateUIAfterRecording();
                             }, 100);
                         } else {
-                            console.error('❌ Recording is empty.');
+                            console.error('Recording is empty.');
                             showStatus('Enregistrement vide ou échoué', 'error');
                             setTimeout(() => {
                                 resetUIToInitialState();
@@ -1014,7 +1013,7 @@
 
                     mediaRecorder.start();
                     isRecording = true;
-                    console.log('🎙️ Recording started, state:', mediaRecorder.state);
+                    console.log('Recording started, state:', mediaRecorder.state);
                     
                     updateUIDuringRecording();
                     startTimer();
@@ -1023,24 +1022,24 @@
                     showStatus('Accès au microphone refusé', 'error');
                 }
             } else {
-                console.log('🛑 Stopping recording...');
+                console.log('Stopping recording...');
                 
                 recordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 recordBtn.disabled = true;
                 recordingStatus.textContent = 'Arrêt de l\'enregistrement...';
                 
                 if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    console.log('🛑 Stopping mediaRecorder, current state:', mediaRecorder.state);
+                    console.log('Stopping mediaRecorder, current state:', mediaRecorder.state);
                     mediaRecorder.stop();
                 }
                 
                 if (mediaRecorder && mediaRecorder.stream) {
-                    console.log('🛑 Stopping all tracks...');
+                    console.log('Stopping all tracks...');
                     mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 }
                 
                 isRecording = false;
-                console.log('🛑 Recording stopped, isRecording set to false');
+                console.log('Recording stopped, isRecording set to false');
                 clearInterval(timerInterval);
             }
         }
@@ -1060,7 +1059,7 @@
         }
 
         function updateUIAfterRecording() {
-            console.log('🎨 Updating UI after recording...');
+            console.log('Updating UI after recording...');
             
             const recordBtn = document.getElementById('recordBtn');
             const recordingStatus = document.getElementById('recordingStatus');
@@ -1075,7 +1074,7 @@
             audioIcon.style.color = '#28a745';
             audioIcon.style.animation = 'none';
             processAudioBtn.style.display = 'inline-block';
-            console.log('🎨 UI update complete');
+            console.log('UI update complete');
         }
 
         function resetUIToInitialState() {
@@ -1341,107 +1340,560 @@
                 });
             });
         });
-        async function confirmAction() {
-            try {
-                // Check if data exists
-                if (!extractedData || extractedData.length === 0) {
-                    alert('Aucune donnée à confirmer');
-                    return;
+        // Global variables for phone verification
+let currentPatientIndex = null;
+let currentExistingPatients = [];
+let phoneVerificationResults = {};
+
+// Step 1: Phone verification function
+async function verifyPhoneNumber(phoneNumber) {
+    try {
+        const response = await fetch('https://wicdialer.com/extract_ai/api/verify-phone', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                phone_number: phoneNumber
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            return result;
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Erreur de vérification');
+        }
+    } catch (error) {
+        console.error('Phone verification error:', error);
+        return {
+            status: 'error',
+            message: error.message || 'Erreur de connexion'
+        };
+    }
+}
+    function getName(field) {
+        try {
+            const parsed = JSON.parse(field);
+            if (parsed && parsed.fr) {
+                return parsed.fr;
+            }
+        } catch (e) {
+            // Ce n'est pas du JSON, donc on retourne tel quel
+        }
+        return field;
+    }
+// Step 2: Create and show relationship popup
+function showRelationshipPopup(existingPatients, patientData, patientIndex) {
+    // Create modal HTML
+    const modalHTML = `
+        <div id="phoneVerificationModal" style="
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); z-index: 10000; display: flex; 
+            align-items: center; justify-content: center; font-family: Arial, sans-serif;">
+            
+            <div style="
+                background: white; border-radius: 15px; max-width: 600px; width: 90%; 
+                max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease-out;">
+                
+                <!-- Header -->
+                <div style="
+                    background: linear-gradient(45deg, #007bff, #0056b3); color: white; 
+                    padding: 20px 30px; border-radius: 15px 15px 0 0; text-align: center;">
+                    <h3 style="margin: 0; font-size: 1.4em;">Numéro Existant</h3>
+                    <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 0.95em;">
+                        Ce numéro de téléphone est déjà enregistré
+                    </p>
+                </div>
+                
+                <!-- Existing Patients Section -->
+                <div style="padding: 25px 30px 20px 30px;">
+                    <h4 style="color: #333; margin: 0 0 15px 0; font-size: 1.1em; 
+                               border-bottom: 2px solid #f0f0f0; padding-bottom: 8px;">
+                       Patients existants avec ce numéro:
+                    </h4>
+                    
+                   <div id="existingPatientsContainer">
+    ${existingPatients.map((patient, index) => `
+        <div style="
+            background: ${patient.is_main_profil == 1 ? '#e8f5e8' : '#f8f9fa'}; 
+            padding: 15px; border-radius: 10px; margin-bottom: 10px; 
+            border-left: 4px solid ${patient.is_main_profil == 1 ? '#28a745' : '#6c757d'};
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <strong style="color: #333; font-size: 1.1em;">
+                        ${getName(patient.first_name)} ${getName(patient.last_name)}
+                    </strong>
+                    <br>
+                    <small style="color: #666; line-height: 1.4;">
+                         Né(e): ${patient.date_naissance}<br>
+                        ${patient.gender ? ` Sexe: ${patient.gender}<br>` : ''}
+                         Tél: ${patient.phone_number}
+                    </small>
+                </div>
+                <span style="
+                    background: ${patient.is_main_profil == 1 ? '#28a745' : '#6c757d'}; 
+                    color: white; font-size: 0.8em; padding: 4px 8px; 
+                    border-radius: 12px; font-weight: bold;">
+                    ${patient.is_main_profil == 1 ? 'Principal' : '🔗 Secondaire'}
+                </span>
+            </div>
+        </div>
+    `).join('')}
+</div>
+
+
+
+                </div>
+                
+                <!-- New Patient Section -->
+                <div style="padding: 0 30px 20px 30px;">
+                    <h4 style="color: #333; margin: 0 0 15px 0; font-size: 1.1em; 
+                               border-bottom: 2px solid #f0f0f0; padding-bottom: 8px;">
+                         Nouveau patient à ajouter:
+                    </h4>
+                    
+                    <div style="
+                        background: linear-gradient(135deg, #e3f2fd, #bbdefb); 
+                        padding: 15px; border-radius: 10px; border-left: 4px solid #2196f3;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        <strong style="color: #1976d2; font-size: 1.1em;">
+                            ${patientData.prenom} ${patientData.nom_de_famille}
+                        </strong>
+                        <br>
+                        <small style="color: #555; line-height: 1.4;">
+                             Né(e): ${patientData.date_de_naissance}<br>
+                             Tél: ${patientData.telephone}
+                            ${patientData.sexe ? `<br> Sexe: ${patientData.sexe}` : ''}
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Relationship Selection Form -->
+                <div style="padding: 0 30px 25px 30px;">
+                    <div style="background: #fff8e1; padding: 15px; border-radius: 10px; margin-bottom: 20px; 
+                                border-left: 4px solid #ffc107;">
+                        <strong style="color: #f57f17; font-size: 0.95em;">
+                             Quelle est la relation entre ce nouveau patient et les patients existants?
+                        </strong>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; 
+                                      color: #333; font-size: 1em;">
+                             Type de relation:
+                        </label>
+                        <select id="relationshipTypeSelect" style="
+                            width: 100%; padding: 12px 15px; border: 2px solid #ddd; 
+                            border-radius: 8px; font-size: 16px; background: white;
+                            transition: border-color 0.3s ease;" 
+                            onchange="updateRelationshipDescription()">
+                            <option value="">-- Sélectionner une relation --</option>
+                            <option value="same_person">Même personne (mise à jour des infos)</option>
+                            <option value="parent">Parent</option>
+                            <option value="enfant">Enfant</option>
+                            <option value="frere">Frère</option>
+                            <option value="soeur">Sœur</option>
+                            <option value="conjoint">Conjoint(e)</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 25px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; 
+                                      color: #333; font-size: 1em;">
+                             Description (optionnel):
+                        </label>
+                        <textarea id="relationshipDescriptionText" 
+                            placeholder="Ajoutez des détails supplémentaires si nécessaire..." 
+                            style="width: 100%; padding: 12px 15px; border: 2px solid #ddd; 
+                                   border-radius: 8px; font-size: 16px; resize: vertical; 
+                                   height: 80px; font-family: Arial, sans-serif;
+                                   transition: border-color 0.3s ease;"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Footer Buttons -->
+                <div style="
+                    background: #f8f9fa; padding: 20px 30px; border-radius: 0 0 15px 15px;
+                    display: flex; justify-content: flex-end; gap: 15px;">
+                    
+                    <button onclick="closePhoneVerificationModal(false)" style="
+                        padding: 12px 25px; background: #6c757d; color: white; border: none; 
+                        border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;
+                        transition: all 0.3s ease;" 
+                        onmouseover="this.style.background='#5a6268'" 
+                        onmouseout="this.style.background='#6c757d'">
+                         Annuler
+                    </button>
+                    
+                    <button onclick="confirmRelationship(${patientIndex})" style="
+                        padding: 12px 25px; background: #007bff; color: white; border: none; 
+                        border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;
+                        transition: all 0.3s ease;" 
+                        onmouseover="this.style.background='#0056b3'" 
+                        onmouseout="this.style.background='#007bff'">
+                        Confirmer
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+            @keyframes slideIn {
+                from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+                to { opacity: 1; transform: scale(1) translateY(0); }
+            }
+            
+            #relationshipTypeSelect:focus, #relationshipDescriptionText:focus {
+                border-color: #007bff !important;
+                box-shadow: 0 0 0 3px rgba(0,123,255,0.1) !important;
+                outline: none !important;
+            }
+        </style>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('phoneVerificationModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Store current data
+    currentPatientIndex = patientIndex;
+    currentExistingPatients = existingPatients;
+}
+
+// Step 3: Update relationship description based on selection
+function updateRelationshipDescription() {
+    const select = document.getElementById('relationshipTypeSelect');
+    const textarea = document.getElementById('relationshipDescriptionText');
+    
+    if (!select || !textarea) return;
+    
+    const relationshipTypes = {
+        'same_person': 'Il s\'agit de la même personne. Les informations seront mises à jour.',
+        'parent': 'Ce patient est le parent d\'un patient existant.',
+        'enfant': 'Ce patient est l\'enfant d\'un patient existant.',
+        'frere': 'Ce patient est le frère d\'un patient existant.',
+        'soeur': 'Ce patient est la sœur d\'un patient existant.',
+        'conjoint': 'Ce patient est le/la conjoint(e) d\'un patient existant.',
+        'autre': ''
+    };
+    
+    textarea.value = relationshipTypes[select.value] || '';
+}
+
+// Step 4: Confirm relationship selection
+function confirmRelationship(patientIndex) {
+    const relationshipType = document.getElementById('relationshipTypeSelect').value;
+    const description = document.getElementById('relationshipDescriptionText').value;
+    
+    if (!relationshipType) {
+        alert('Veuillez sélectionner un type de relation avant de continuer.');
+        document.getElementById('relationshipTypeSelect').focus();
+        return;
+    }
+    
+    // Store the relationship data
+    phoneVerificationResults[patientIndex] = {
+        relationship_type: relationshipType,
+        description: description.trim(),
+        existing_patients: currentExistingPatients
+    };
+    
+    // Close modal
+    closePhoneVerificationModal(true);
+    
+    // Show success message
+    showTemporaryMessage(`Relation "${getRelationshipLabel(relationshipType)}" enregistrée pour le patient ${patientIndex + 1}`, 'success');
+}
+
+// Step 5: Close modal function
+function closePhoneVerificationModal(success = false) {
+    const modal = document.getElementById('phoneVerificationModal');
+    if (modal) {
+        modal.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+    
+    // Reset current data
+    currentPatientIndex = null;
+    currentExistingPatients = [];
+    
+    return success;
+}
+
+// Step 6: Process all patients for phone verification
+async function processPatientPhoneVerification(extractedData) {
+    const patientsNeedingRelationships = [];
+    
+    for (let i = 0; i < extractedData.length; i++) {
+        const patient = extractedData[i];
+        const phoneNumber = patient.telephone;
+        
+        if (!phoneNumber) continue;
+        
+        console.log(`Vérification du téléphone pour le patient ${i + 1}: ${phoneNumber}`);
+        
+        // Verify phone number
+        const verificationResult = await verifyPhoneNumber(phoneNumber);
+        
+        if (verificationResult.status === 'exists') {
+            patientsNeedingRelationships.push({
+                index: i,
+                patient: patient,
+                existingPatients: verificationResult.existing_patients
+            });
+        } else if (verificationResult.status === 'error') {
+            console.error(`Erreur de vérification pour ${phoneNumber}:`, verificationResult.message);
+        }
+    }
+    
+    return patientsNeedingRelationships;
+}
+
+// Step 7: Handle patients needing relationships one by one
+async function handlePatientRelationships(patientsNeedingRelationships) {
+    for (const patientData of patientsNeedingRelationships) {
+        // Show popup and wait for user input
+        showRelationshipPopup(
+            patientData.existingPatients, 
+            patientData.patient, 
+            patientData.index
+        );
+        
+        // Wait for user to make a decision
+        await waitForRelationshipDecision(patientData.index);
+    }
+}
+
+// Step 8: Wait for user decision (Promise-based)
+function waitForRelationshipDecision(patientIndex) {
+    return new Promise((resolve, reject) => {
+        const checkInterval = setInterval(() => {
+            // Check if relationship has been set or modal closed
+            if (phoneVerificationResults[patientIndex] || !document.getElementById('phoneVerificationModal')) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 500);
+        
+        // Timeout after 5 minutes
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            reject(new Error('Timeout: Aucune réponse après 5 minutes'));
+        }, 300000);
+    });
+}
+
+// Step 9: Modified confirmAction function
+async function confirmAction() {
+    try {
+        // Reset verification results
+        phoneVerificationResults = {};
+        
+        // Check if data exists
+        if (!extractedData || extractedData.length === 0) {
+            alert('Aucune donnée à confirmer');
+            return;
+        }
+
+        // Validate required fields (existing validation)
+        const requiredFields = ['prenom', 'nom_de_famille', 'date_de_naissance', 'telephone'];
+        const patientFields = {
+            personal: {
+                fields: {
+                    prenom: { label: 'Prénom' },
+                    nom_de_famille: { label: 'Nom de famille' },
+                    date_de_naissance: { label: 'Date de naissance' }
                 }
-
-                // Validate required fields
-                const requiredFields = ['prenom', 'nom_de_famille', 'date_de_naissance', 'Téléphone'];
-                const patientFields = {
-                    personal: {
-                        fields: {
-                            prenom: { label: 'Prénom' },
-                            nom_de_famille: { label: 'Nom de famille' },
-                            date_de_naissance: { label: 'Date de naissance' }
-                        }
-                    },
-                    contact: {
-                        fields: {
-                            telephone: { label: 'Téléphone' }
-                        }
-                    }
-                };
-                let validationErrors = [];
-                extractedData.forEach((patient, index) => {
-                    requiredFields.forEach(field => {
-                        if (!patient[field] || patient[field].trim() === '') {
-                            const fieldLabel = patientFields.personal.fields[field]?.label || 
-                                            patientFields.contact.fields[field]?.label || field;
-                            validationErrors.push(`Patient ${index + 1}: ${fieldLabel} est requis`);
-                        }
-                    });
-                });
-
-                if (validationErrors.length > 0) {
-                    alert(validationErrors.join('; '));
-                    return;
-                }
-
-                // Show loading state
-                const button = event.target.closest('button');
-                const originalText = button.innerHTML;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
-                button.disabled = true;
-                const formData = new FormData();
-                userID=420
-                const DoctorID = {{ $doctorId }};
-                // Make API call to Flask backend with extracted data
-                const response = await fetch('https://wicdialer.com/extract_ai/api/confirm', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        formdata: {
-                            userID: userID,
-                            DoctorID: DoctorID
-                        },
-                        data: extractedData,
-                        timestamp: new Date().toISOString(),
-                        filename: `patients_data_${new Date().toISOString().split('T')[0]}.json`
-                    })
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-
-                    // Handle successful response - show French success message
-                    button.innerHTML = '<i class="fas fa-check"></i> Confirmé!';
-                    console.log('Success:', result);
-                    showStatus('Patients ajoutés avec succès !', 'success');
-
-                    // Reset button after 2 seconds
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                        button.disabled = false;
-                    }, 2000);
-
-                    return; // Exit early on success
-                } else {
-                    // Handle error response
-                    const error = await response.json();
-                    alert('Erreur: ' + (error.message || 'Quelque chose s\'est mal passé'));
-                    console.error('Error:', error);
-                }
-            } catch (error) {
-                // Handle network or other errors
-                console.error('Erreur réseau:', error);
-                alert('Erreur réseau: Impossible de se connecter au serveur');
-            } finally {
-                // Reset button state only if not already handled in success
-                const button = event.target.closest('button');
-                if (!button.innerHTML.includes('Confirmé!')) {
-                    button.innerHTML = originalText;
-                    button.disabled = false;
+            },
+            contact: {
+                fields: {
+                    telephone: { label: 'Téléphone' }
                 }
             }
+        };
+        
+        let validationErrors = [];
+        extractedData.forEach((patient, index) => {
+            requiredFields.forEach(field => {
+                const value = patient[field];
+                const fieldLabel = patientFields.personal.fields[field]?.label || 
+                                patientFields.contact.fields[field]?.label || field;
+
+                // Check if field is missing or empty
+                if (!value || value.trim() === '') {
+                    validationErrors.push(`Patient ${index + 1}: ${fieldLabel} est requis`);
+                }
+
+                // Additional check for telephone: must be string and have more than 8 digits
+                if (field === 'telephone' && (typeof value !== 'string' || value.replace(/\D/g, '').length <= 8)) {
+                    validationErrors.push(`Patient ${index + 1}: ${fieldLabel} doit contenir plus de 8 chiffres`);
+                }
+            });
+        });
+
+
+        if (validationErrors.length > 0) {
+            alert(validationErrors.join('\n'));
+            return;
         }
+
+        // Show loading state
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification des téléphones...';
+        button.disabled = true;
+
+        // Step: Process phone verification for all patients
+        const patientsNeedingRelationships = await processPatientPhoneVerification(extractedData);
+        
+        if (patientsNeedingRelationships.length > 0) {
+            button.innerHTML = '<i class="fas fa-users"></i> Relations requises...';
+            showTemporaryMessage(`📞 ${patientsNeedingRelationships.length} numéro(s) de téléphone déjà enregistré(s). Veuillez spécifier les relations.`, 'warning');
+            
+            // Handle each patient needing relationships
+            await handlePatientRelationships(patientsNeedingRelationships);
+        }
+
+        // Continue with normal confirmation process
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement final...';
+        
+        // Change Doctor ID 
+        DoctorID=135
+
+
+
+        // Make API call with relationship data
+        const response = await fetch('https://wicdialer.com/extract_ai/api/confirm', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                DoctorID : DoctorID,
+                data: extractedData,
+                timestamp: new Date().toISOString(),
+                filename: `patients_data_${new Date().toISOString().split('T')[0]}.json`,
+                relationships: phoneVerificationResults
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            button.innerHTML = '<i class="fas fa-check"></i> Confirmé!';
+            console.log('Success:', result);
+            showTemporaryMessage('✅ Patients ajoutés avec succès !', 'success');
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+
+            return;
+        } else {
+            const error = await response.json();
+            alert('Erreur: ' + (error.message || 'Quelque chose s\'est mal passé'));
+            console.error('Error:', error);
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur: ' + error.message);
+    } finally {
+        // Reset button state
+        const button = event.target.closest('button');
+        if (!button.innerHTML.includes('Confirmé!')) {
+            button.innerHTML = originalText || 'Confirmer';
+            button.disabled = false;
+        }
+    }
+}
+
+// Helper functions
+function getRelationshipLabel(relationshipType) {
+    const labels = {
+        'same_person': 'Même personne',
+        'parent': 'Parent',
+        'enfant': 'Enfant',
+        'frere': 'Frère',
+        'soeur': 'Sœur',
+        'conjoint': 'Conjoint(e)',
+        'autre': 'Autre'
+    };
+    return labels[relationshipType] || relationshipType;
+}
+
+function showTemporaryMessage(message, type = 'info') {
+    // Remove existing messages
+    const existingMessages = document.querySelectorAll('.temp-message');
+    existingMessages.forEach(msg => msg.remove());
+    
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'temp-message';
+    messageDiv.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 10001;
+        padding: 15px 25px; border-radius: 8px; color: white; font-weight: bold;
+        max-width: 400px; word-wrap: break-word; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    // Set background color based on type
+    const colors = {
+        'success': '#28a745',
+        'warning': '#ffc107',
+        'error': '#dc3545',
+        'info': '#007bff'
+    };
+    messageDiv.style.background = colors[type] || colors['info'];
+    messageDiv.textContent = message;
+    
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
+        }
+    `;
+    if (!document.querySelector('#temp-message-styles')) {
+        style.id = 'temp-message-styles';
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(messageDiv);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOutRight 0.3s ease-in';
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.remove();
+            }
+        }, 300);
+    }, 5000);
+}
+
+
+
     </script>
 </body>
 </html>
 
-@endsection
+ @endsection
