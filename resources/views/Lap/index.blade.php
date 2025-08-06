@@ -416,7 +416,19 @@
                                     </div>
                                 </div>
                             </div> -->
-
+            <div class="result-content" style="background-color: rgba(40, 167, 69, 0.05); border: 1px solid rgba(40, 167, 69, 0.3); border-left: 5px solid #28a745; padding: 10px;border-radius: 15px;margin: 10px;">
+            
+            <div class="result-text">
+                <div class="result-title-container" style="color: #28a745">
+                    <div class="result-icon" style="color: #28a745">
+                        <i class="fas fa-check-circle"></i>    <span style="color: #28a745; font-weight: bold"  >Bonne compatibilité</span> 
+                    </div>
+                  
+                </div>
+                <div class="result-message">Compatibilité et appropriativité de la dose</div>
+                <div class="result-details">Le paracétamol est prescrit à une dose de 1 g une fois par jour pendant 5 jours. Cette posologie est appropriée pour un adulte et ne présente pas de risques majeurs de toxicité hépatique chez un patient de 29 ans sans antécédents médicaux spécifiques mentionnés. Il n'y a pas de interactions connues avec d'autres médicaments non mentionnés dans cette évaluation.</div>
+            </div>
+        </div>
                     <div class="form-section">
                         <h2 class="section-title">
                             <span class="section-icon"><i class="fas fa-robot"></i></span>
