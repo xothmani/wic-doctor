@@ -1,6 +1,10 @@
 @extends('layouts.app') {{-- Si vous utilisez un layout --}}
 
 @section('content')
+
+
+
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -8,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediSmart AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<style>
+    <style>
         * {
             margin: 0;
             padding: 0;
@@ -966,7 +970,7 @@
         }
 
         async function toggleRecording() {
-            console.log('toggleRecording called, isRecording:', isRecording);
+            console.log('🎯 toggleRecording called, isRecording:', isRecording);
             
             const recordBtn = document.getElementById('recordBtn');
             const processAudioBtn = document.getElementById('processAudioBtn');
@@ -982,28 +986,28 @@
                     audioChunks = [];
                     mediaRecorder = new MediaRecorder(stream);
                     
-                    console.log('MediaRecorder created, state:', mediaRecorder.state);
+                    console.log('🎙️ MediaRecorder created, state:', mediaRecorder.state);
 
                     mediaRecorder.ondataavailable = (event) => {
-                        console.log('Data available, size:', event.data.size);
+                        console.log('📦 Data available, size:', event.data.size);
                         if (event.data.size > 0) {
                             audioChunks.push(event.data);
                         }
                     };
 
                     mediaRecorder.onstop = () => {
-                        console.log('MediaRecorder onstop event fired');
+                        console.log('📁 MediaRecorder onstop event fired');
                         
                         window.recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        console.log('Recorded blob size:', window.recordedBlob.size);
+                        console.log('📊 Recorded blob size:', window.recordedBlob.size);
 
                         if (window.recordedBlob && window.recordedBlob.size > 0) {
-                            console.log('Recording complete. Ready to process...');
+                            console.log('✅ Recording complete. Ready to process...');
                             setTimeout(() => {
                                 updateUIAfterRecording();
                             }, 100);
                         } else {
-                            console.error('Recording is empty.');
+                            console.error('❌ Recording is empty.');
                             showStatus('Enregistrement vide ou échoué', 'error');
                             setTimeout(() => {
                                 resetUIToInitialState();
@@ -1013,7 +1017,7 @@
 
                     mediaRecorder.start();
                     isRecording = true;
-                    console.log('Recording started, state:', mediaRecorder.state);
+                    console.log('🎙️ Recording started, state:', mediaRecorder.state);
                     
                     updateUIDuringRecording();
                     startTimer();
@@ -1022,24 +1026,24 @@
                     showStatus('Accès au microphone refusé', 'error');
                 }
             } else {
-                console.log('Stopping recording...');
+                console.log('🛑 Stopping recording...');
                 
                 recordBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                 recordBtn.disabled = true;
                 recordingStatus.textContent = 'Arrêt de l\'enregistrement...';
                 
                 if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    console.log('Stopping mediaRecorder, current state:', mediaRecorder.state);
+                    console.log('🛑 Stopping mediaRecorder, current state:', mediaRecorder.state);
                     mediaRecorder.stop();
                 }
                 
                 if (mediaRecorder && mediaRecorder.stream) {
-                    console.log('Stopping all tracks...');
+                    console.log('🛑 Stopping all tracks...');
                     mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 }
                 
                 isRecording = false;
-                console.log('Recording stopped, isRecording set to false');
+                console.log('🛑 Recording stopped, isRecording set to false');
                 clearInterval(timerInterval);
             }
         }
@@ -1059,7 +1063,7 @@
         }
 
         function updateUIAfterRecording() {
-            console.log('Updating UI after recording...');
+            console.log('🎨 Updating UI after recording...');
             
             const recordBtn = document.getElementById('recordBtn');
             const recordingStatus = document.getElementById('recordingStatus');
@@ -1074,7 +1078,7 @@
             audioIcon.style.color = '#28a745';
             audioIcon.style.animation = 'none';
             processAudioBtn.style.display = 'inline-block';
-            console.log('UI update complete');
+            console.log('🎨 UI update complete');
         }
 
         function resetUIToInitialState() {
@@ -1182,7 +1186,14 @@
                 let sectionHTML = `<div class="info-section ${isEditMode ? 'edit-mode' : ''}"><div class="section-header"><i class="${icon}"></i> ${title}</div>`;
                 Object.keys(fields).forEach(field => {
                     const fieldDef = fields[field];
-                    const value = patient[field] || '';
+                    let value = patient[field] || '';
+
+                    // Format date_de_naissance to YYYY-MM-DD for date inputs in edit mode
+                    if (field === 'date_de_naissance' && value && isEditMode) {
+                        const date = parseDate(value);
+                        value = date ? date.toISOString().split('T')[0] : '';
+                    }
+
                     let fieldHTML = `<div class="field-group"><span class="field-label">${fieldDef.label}</span>`;
 
                     if (isEditMode) {
@@ -1197,7 +1208,9 @@
                             fieldHTML += `<input type="${fieldDef.type}" class="field-input" data-field="${field}" value="${value}">`;
                         }
                     } else {
-                        fieldHTML += `<div class="field-value">${value || 'Non renseigné'}</div>`;
+                        // Format date for display in non-edit mode
+                        const displayValue = field === 'date_de_naissance' && value ? formatDisplayDate(value) : value;
+                        fieldHTML += `<div class="field-value">${displayValue || 'Non renseigné'}</div>`;
                     }
                     fieldHTML += `</div>`;
                     sectionHTML += fieldHTML;
@@ -1215,10 +1228,60 @@
                 </div>
             `;
 
+            // Add event listeners for input fields in edit mode
+            if (isEditMode) {
+                const inputs = card.querySelectorAll('.field-input');
+                inputs.forEach(input => {
+                    input.addEventListener('change', (e) => {
+                        const fieldKey = e.target.dataset.field;
+                        let value = e.target.value;
+
+                        // Format date_de_naissance to DD/MM/YYYY for storage
+                        if (fieldKey === 'date_de_naissance' && value) {
+                            const date = new Date(value);
+                            if (!isNaN(date)) {
+                                const day = String(date.getDate()).padStart(2, '0');
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                const year = date.getFullYear();
+                                value = `${day}/${month}/${year}`;
+                            }
+                        }
+
+                        updatePatientField(index, fieldKey, value);
+                    });
+                });
+            }
+
             return card;
         }
-
-        
+        // Helper function to parse various date formats
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            
+            // Try ISO format (YYYY-MM-DD)
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                const date = new Date(dateStr);
+                return isNaN(date) ? null : date;
+            }
+            
+            // Try DD/MM/YYYY or DD-MM-YYYY
+            const parts = dateStr.split(/[-\/]/);
+            if (parts.length === 3) {
+                const [day, month, year] = parts;
+                const date = new Date(`${year}-${month}-${day}`);
+                return isNaN(date) ? null : date;
+            }
+            
+            return null;
+        }
+        function formatDisplayDate(dateStr) {
+            const date = parseDate(dateStr);
+            if (!date) return dateStr;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
         function updatePatientField(patientIndex, fieldKey, value) {
             // Update the data
             extractedData[patientIndex][fieldKey] = value || 'pas specifie';
@@ -1373,7 +1436,8 @@ async function verifyPhoneNumber(phoneNumber) {
         };
     }
 }
-    function getName(field) {
+
+ function getName(field) {
         try {
             const parsed = JSON.parse(field);
             if (parsed && parsed.fr) {
@@ -1384,6 +1448,7 @@ async function verifyPhoneNumber(phoneNumber) {
         }
         return field;
     }
+
 // Step 2: Create and show relationship popup
 function showRelationshipPopup(existingPatients, patientData, patientIndex) {
     // Create modal HTML
@@ -1402,7 +1467,7 @@ function showRelationshipPopup(existingPatients, patientData, patientIndex) {
                 <div style="
                     background: linear-gradient(45deg, #007bff, #0056b3); color: white; 
                     padding: 20px 30px; border-radius: 15px 15px 0 0; text-align: center;">
-                    <h3 style="margin: 0; font-size: 1.4em;">Numéro Existant</h3>
+                    <h3 style="margin: 0; font-size: 1.4em;">⚠️ Numéro Existant</h3>
                     <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 0.95em;">
                         Ce numéro de téléphone est déjà enregistré
                     </p>
@@ -1412,49 +1477,46 @@ function showRelationshipPopup(existingPatients, patientData, patientIndex) {
                 <div style="padding: 25px 30px 20px 30px;">
                     <h4 style="color: #333; margin: 0 0 15px 0; font-size: 1.1em; 
                                border-bottom: 2px solid #f0f0f0; padding-bottom: 8px;">
-                       Patients existants avec ce numéro:
+                        👥 Patients existants avec ce numéro:
                     </h4>
                     
-                   <div id="existingPatientsContainer">
-    ${existingPatients.map((patient, index) => `
-        <div style="
-            background: ${patient.is_main_profil == 1 ? '#e8f5e8' : '#f8f9fa'}; 
-            padding: 15px; border-radius: 10px; margin-bottom: 10px; 
-            border-left: 4px solid ${patient.is_main_profil == 1 ? '#28a745' : '#6c757d'};
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <strong style="color: #333; font-size: 1.1em;">
-                        ${getName(patient.first_name)} ${getName(patient.last_name)}
-                    </strong>
-                    <br>
-                    <small style="color: #666; line-height: 1.4;">
-                         Né(e): ${patient.date_naissance}<br>
-                        ${patient.gender ? ` Sexe: ${patient.gender}<br>` : ''}
-                         Tél: ${patient.phone_number}
-                    </small>
-                </div>
-                <span style="
-                    background: ${patient.is_main_profil == 1 ? '#28a745' : '#6c757d'}; 
-                    color: white; font-size: 0.8em; padding: 4px 8px; 
-                    border-radius: 12px; font-weight: bold;">
-                    ${patient.is_main_profil == 1 ? 'Principal' : '🔗 Secondaire'}
-                </span>
-            </div>
-        </div>
-    `).join('')}
-</div>
-
-
-
+                    <div id="existingPatientsContainer">
+                        ${existingPatients.map((patient, index) => `
+                            <div style="
+                                background: ${patient.is_main_profil == 1 ? '#e8f5e8' : '#f8f9fa'}; 
+                                padding: 15px; border-radius: 10px; margin-bottom: 10px; 
+                                border-left: 4px solid ${patient.is_main_profil == 1 ? '#28a745' : '#6c757d'};
+                                box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div>
+                                        <strong style="color: #333; font-size: 1.1em;">
+                                             ${getName(patient.first_name)} ${getName(patient.last_name)}
+                                        </strong>
+                                        <br>
+                                        <small style="color: #666; line-height: 1.4;">
+                                            📅 Né(e): ${patient.date_naissance}<br>
+                                            ${patient.gender ? `👤 Sexe: ${patient.gender}<br>` : ''}
+                                            📱 Tél: ${patient.phone_number}
+                                        </small>
+                                    </div>
+                                    <span style="
+                                        background: ${patient.is_main_profil == 1 ? '#28a745' : '#6c757d'}; 
+                                        color: white; font-size: 0.8em; padding: 4px 8px; 
+                                        border-radius: 12px; font-weight: bold;">
+                                        ${patient.is_main_profil == 1 ? '👑 Principal' : '🔗 Secondaire'}
+                                    </span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
                 
                 <!-- New Patient Section -->
                 <div style="padding: 0 30px 20px 30px;">
                     <h4 style="color: #333; margin: 0 0 15px 0; font-size: 1.1em; 
                                border-bottom: 2px solid #f0f0f0; padding-bottom: 8px;">
-                         Nouveau patient à ajouter:
+                        ➕ Nouveau patient à ajouter:
                     </h4>
                     
                     <div style="
@@ -1466,9 +1528,9 @@ function showRelationshipPopup(existingPatients, patientData, patientIndex) {
                         </strong>
                         <br>
                         <small style="color: #555; line-height: 1.4;">
-                             Né(e): ${patientData.date_de_naissance}<br>
-                             Tél: ${patientData.telephone}
-                            ${patientData.sexe ? `<br> Sexe: ${patientData.sexe}` : ''}
+                            📅 Né(e): ${patientData.date_de_naissance}<br>
+                            📱 Tél: ${patientData.telephone}
+                            ${patientData.sexe ? `<br>👤 Sexe: ${patientData.sexe}` : ''}
                         </small>
                     </div>
                 </div>
@@ -1478,14 +1540,14 @@ function showRelationshipPopup(existingPatients, patientData, patientIndex) {
                     <div style="background: #fff8e1; padding: 15px; border-radius: 10px; margin-bottom: 20px; 
                                 border-left: 4px solid #ffc107;">
                         <strong style="color: #f57f17; font-size: 0.95em;">
-                             Quelle est la relation entre ce nouveau patient et les patients existants?
+                            🤔 Quelle est la relation entre ce nouveau patient et les patients existants?
                         </strong>
                     </div>
                     
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; 
                                       color: #333; font-size: 1em;">
-                             Type de relation:
+                            🔗 Type de relation:
                         </label>
                         <select id="relationshipTypeSelect" style="
                             width: 100%; padding: 12px 15px; border: 2px solid #ddd; 
@@ -1493,20 +1555,20 @@ function showRelationshipPopup(existingPatients, patientData, patientIndex) {
                             transition: border-color 0.3s ease;" 
                             onchange="updateRelationshipDescription()">
                             <option value="">-- Sélectionner une relation --</option>
-                            <option value="same_person">Même personne (mise à jour des infos)</option>
-                            <option value="parent">Parent</option>
-                            <option value="enfant">Enfant</option>
-                            <option value="frere">Frère</option>
-                            <option value="soeur">Sœur</option>
-                            <option value="conjoint">Conjoint(e)</option>
-                            <option value="autre">Autre</option>
+                            <option value="same_person">🆔 Même personne (mise à jour des infos)</option>
+                            <option value="parent">👨‍👩‍👧‍👦 Parent</option>
+                            <option value="enfant">👶 Enfant</option>
+                            <option value="frere">👨‍👦 Frère</option>
+                            <option value="soeur">👩‍👧 Sœur</option>
+                            <option value="conjoint">💑 Conjoint(e)</option>
+                            <option value="autre">❓ Autre</option>
                         </select>
                     </div>
                     
                     <div style="margin-bottom: 25px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; 
                                       color: #333; font-size: 1em;">
-                             Description (optionnel):
+                            📝 Description (optionnel):
                         </label>
                         <textarea id="relationshipDescriptionText" 
                             placeholder="Ajoutez des détails supplémentaires si nécessaire..." 
@@ -1528,7 +1590,7 @@ function showRelationshipPopup(existingPatients, patientData, patientIndex) {
                         transition: all 0.3s ease;" 
                         onmouseover="this.style.background='#5a6268'" 
                         onmouseout="this.style.background='#6c757d'">
-                         Annuler
+                        ❌ Annuler
                     </button>
                     
                     <button onclick="confirmRelationship(${patientIndex})" style="
@@ -1537,7 +1599,7 @@ function showRelationshipPopup(existingPatients, patientData, patientIndex) {
                         transition: all 0.3s ease;" 
                         onmouseover="this.style.background='#0056b3'" 
                         onmouseout="this.style.background='#007bff'">
-                        Confirmer
+                        ✅ Confirmer
                     </button>
                 </div>
             </div>
@@ -1597,7 +1659,7 @@ function confirmRelationship(patientIndex) {
     const description = document.getElementById('relationshipDescriptionText').value;
     
     if (!relationshipType) {
-        alert('Veuillez sélectionner un type de relation avant de continuer.');
+        alert('⚠️ Veuillez sélectionner un type de relation avant de continuer.');
         document.getElementById('relationshipTypeSelect').focus();
         return;
     }
@@ -1613,7 +1675,7 @@ function confirmRelationship(patientIndex) {
     closePhoneVerificationModal(true);
     
     // Show success message
-    showTemporaryMessage(`Relation "${getRelationshipLabel(relationshipType)}" enregistrée pour le patient ${patientIndex + 1}`, 'success');
+    showTemporaryMessage(`✅ Relation "${getRelationshipLabel(relationshipType)}" enregistrée pour le patient ${patientIndex + 1}`, 'success');
 }
 
 // Step 5: Close modal function
@@ -1738,7 +1800,7 @@ async function confirmAction() {
                 }
 
                 // Additional check for telephone: must be string and have more than 8 digits
-                if (field === 'telephone' && (typeof value !== 'string' || value.replace(/\D/g, '').length <= 8)) {
+                if (field === 'telephone' && (typeof value !== 'string' || value.replace(/\D/g, '').length < 8)) {
                     validationErrors.push(`Patient ${index + 1}: ${fieldLabel} doit contenir plus de 8 chiffres`);
                 }
             });
@@ -1771,7 +1833,7 @@ async function confirmAction() {
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement final...';
         
         // Change Doctor ID 
-        DoctorID=135
+        const DoctorID = {{ $doctorId }};
 
 
 
@@ -1889,11 +1951,7 @@ function showTemporaryMessage(message, type = 'info') {
         }, 300);
     }, 5000);
 }
-
-
-
     </script>
 </body>
 </html>
-
  @endsection
