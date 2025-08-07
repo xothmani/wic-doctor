@@ -5,10 +5,13 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Requests\CreatePatientRequest;
 use App\Http\Requests\UpdatePatientRequest;
+use App\Models\Media;
 use App\Models\Patient;
+use App\Models\User;
 use App\Repositories\CustomFieldRepository;
 use App\Repositories\PatientRepository;
 use App\Repositories\UploadRepository;
+use App\Services\MediaUploadService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,11 +40,14 @@ class PatientAPIController extends Controller
     /** @var  UploadRepository */
     private UploadRepository $uploadRepository;
 
-    public function __construct(PatientRepository $patientRepo, CustomFieldRepository $customFieldRepo, UploadRepository $uploadRepo)
+    private MediaUploadService $uploadService;
+
+    public function __construct(PatientRepository $patientRepo, CustomFieldRepository $customFieldRepo, UploadRepository $uploadRepo, MediaUploadService $uploadService)
     {
         $this->patientRepository = $patientRepo;
         $this->customFieldRepository = $customFieldRepo;
         $this->uploadRepository = $uploadRepo;
+        $this->uploadService = $uploadService;
         parent::__construct();
     }
 
@@ -61,6 +67,9 @@ class PatientAPIController extends Controller
             return $this->sendError($e->getMessage());
         }
         $patients = $this->patientRepository->all();
+        foreach ($patients as $patient) {
+            $patient->total_appointment = Appointment::where('patient_id', $patient->id)->count();
+        }
         return $this->sendResponse($patients->toArray(), 'Patients retrieved successfully');
     }
 
@@ -86,6 +95,7 @@ class PatientAPIController extends Controller
             if ($request->has('user_id')){
                 $user_id =  $request->only('user_id');
                 $patient  = $this->patientRepository->findWhere('user_id',$user_id);
+                $patient->total_appointment = Appointment::where('patient_id', $patient->id)->count();
             }
 
             else
@@ -106,17 +116,25 @@ class PatientAPIController extends Controller
      */
     function store(Request $request)
     {
-        //return $request->all();
+        Log::info("request: " . json_encode($request->all()));
+        Log::info($request->file('image'));
+
+        $user= User::find($request->user_id);
+        
         try {
             $input = $request->all();
+            unset($input['image']);
+            Log::info("input: " . json_encode($input));
+            $input['email'] = $user->email;
             $input['phone_number'] = $input['mobile_number'];
+            $input['mobile_number'] = null;
+            $input['gender'] = strtolower($input['gender']);
             $patient = $this->patientRepository->create($input);
-            if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
-                foreach ($input['image'] as $fileUuid) {
-                    $cacheUpload = $this->uploadRepository->getByUuid($fileUuid);
-                    $mediaItem = $cacheUpload->getMedia('image')->first();
-                    $mediaItem->copy($patient, 'image');
-                }
+            if ($request->hasFile('image')) {
+                $media = $request->file('image');
+                $this->uploadService->upload($media, 'App\Models\Patient', $patient->id);
+            }else{
+                Log::info("no image");
             }
         } catch (Exception $e) {
             return $this->sendError($e->getMessage());
@@ -132,25 +150,34 @@ class PatientAPIController extends Controller
      * @param UpdatePatientRequest $request
      * @return JsonResponse
      */
-    public function update(int $id, UpdatePatientRequest $request): JsonResponse
+    public function update(int $id, Request $request): JsonResponse
     {
         $patient = $this->patientRepository->findWithoutFail($id);
         if (empty($patient)) {
             return $this->sendError('Patient not found');
         }
+
+
         $input = $request->all();
         try {
             $customFields = $this->customFieldRepository->findByField('custom_field_model', $this->patientRepository->model());
-            if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
-//                if ($patient->hasMedia('image')) {
-//                    $patient->getMedia('image')->each->delete();
-//                }
+            /*if (isset($input['image']) && $input['image'] && is_array($input['image'])) {
                 foreach ($input['image'] as $fileUuid) {
                     $cacheUpload = $this->uploadRepository->getByUuid($fileUuid);
                     $mediaItem = $cacheUpload->getMedia('image')->first();
                     $mediaItem->copy($patient, 'image');
                 }
+            }*/
+
+            if(isset($input['mobile_number'])){
+                $input['phone_number'] = $input['mobile_number'];
+            }else{
+                $input['phone_number'] = null;
             }
+            //$input['phone_number'] = $input['mobile_number'];
+            $input['mobile_number'] = null;
+            $input['gender'] = strtolower($input['gender']);
+
             $patient = $this->patientRepository->update($input, $id);
 
             foreach (getCustomFieldsValues($customFields, $request) as $value) {
@@ -187,10 +214,7 @@ class PatientAPIController extends Controller
 public function totalAppointments($patient_id)
 {
     try {
-        // Query the appointments table to count the number of appointments
-        // Excluding appointment_status_id = 7
         $totalAppointments = Appointment::where('patient_id', $patient_id)
-            ->where('appointment_status_id', '!=', 7)  // Exclude status 7
             ->count();  // Count the number of records
 
         return $this->sendResponse($totalAppointments, 'Total appointments retrieved successfully.');

@@ -13,6 +13,9 @@ use App\Http\Requests\UploadRequest;
 use App\Repositories\UploadRepository;
 use Exception;
 use Prettus\Validator\Exceptions\ValidatorException;
+use App\Models\Media;
+use Illuminate\Support\Facades\Log;
+
 
 class UploadAPIController extends Controller
 {
@@ -34,15 +37,25 @@ class UploadAPIController extends Controller
     public function store(UploadRequest $request)
     {
         $input = $request->all();
+        Log::info("input: " . json_encode($input));
+
         try {
             $upload = $this->uploadRepository->create($input);
+            Log::info("upload : " . json_encode($upload));
             $upload->addMedia($input['file'])
                 ->withCustomProperties(['uuid' => $input['uuid'], 'user_id' => auth()->id()])
                 ->toMediaCollection($input['field']);
+
+            Log::info("upload 2 : " . json_encode($upload));
             return $this->sendResponse($input['uuid'], "Uploaded Successfully");
         } catch (ValidatorException $e) {
             return $this->sendError(false, $e->getMessage());
         }
+    }
+
+
+    public function clearMediaById($id): ?bool{
+        return Media::query()->where('id', $id)->delete();
     }
 
     /**

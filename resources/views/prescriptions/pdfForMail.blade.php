@@ -70,7 +70,24 @@
 <body>
     <header class="header">
         <div class="header-left">
-            <h1>Dr. {{ $user_name }}</h1>
+@php
+    $name = auth()->user()->name;
+    $lastname = auth()->user()->lastname;
+
+    $decodedName = json_decode($name);
+    $decodedLastName = json_decode($lastname);
+
+    $displayName = (json_last_error() === JSON_ERROR_NONE && is_object($decodedName) && isset($decodedName->fr))
+        ? $decodedName->fr
+        : $name;
+
+    $displayLastName = (json_last_error() === JSON_ERROR_NONE && is_object($decodedLastName) && isset($decodedLastName->fr))
+        ? $decodedLastName->fr
+        : $lastname;
+@endphp
+
+<h1>Dr. {{ $displayName }} {{ $displayLastName }}</h1>
+
             <table>
                 <tr>
                     <td style="text-align: left;">{{ json_decode($doctor_speciality)->{app()->getLocale()} ?? '' }}</td>
@@ -108,18 +125,26 @@
             @if ($type === 'Médicament')
                 <h2>Médicaments</h2>
                 <div class="medications">
-                    @foreach ($medicaments as $medicament)
-                    <p>
-    {{ $medicament['nom_commercial'] }} - 
-    {{ $medicament['category'] }} - 
-    {{ $medicament['format'] }} - 
-    {{ $medicament['form'] }} :
-    {{ $medicament['dosage'] }}, 
-    {{ $medicament['nb_de_fois'] }}, 
-    {{ $medicament['horaire'] }} pendant 
-    {{ $medicament['nb_de_jours'] }} jours.
-</p>
-                    @endforeach
+                @foreach ($medicaments as $medicament)
+    <p>
+        <span style="color: #0080FF;">{{ $medicament['nom_commercial'] }}</span>
+        @if (!empty($medicament['category']) || !empty($medicament['format']) || !empty($medicament['form']))
+            -
+            <span style="font-size: smaller; color: #666;">
+                {{ $medicament['category'] ?? '' }}{{ !empty($medicament['category']) && (!empty($medicament['format']) || !empty($medicament['form'])) ? ' - ' : '' }}
+                {{ $medicament['format'] ?? '' }}{{ !empty($medicament['format']) && !empty($medicament['form']) ? ' - ' : '' }}
+                {{ $medicament['form'] ?? '' }}
+            </span>
+        @endif
+        :
+        <span style="color: darkblue;">{{ $medicament['dosage'] }}</span>,
+        <span style="color: darkblue;">{{ $medicament['nb_de_fois'] }}</span>,
+        @if (!empty($medicament['horaire']))
+            <span style="color: darkblue;">{{ $medicament['horaire'] }}</span>,
+        @endif
+        <span style="color: darkblue;">{{ __('lang.pendant') }} {{ $medicament['nb_de_jours'] }}</span>.
+    </p>
+@endforeach
                 </div>
             @elseif($type === 'Analyse')
                 <h2>Analyses</h2>

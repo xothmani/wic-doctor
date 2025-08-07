@@ -56,6 +56,7 @@ class Consultation extends Model implements HasMedia
         'patient_id',
         'user_id',
         'fiche_code',  
+        'duree'
 
     ];
 

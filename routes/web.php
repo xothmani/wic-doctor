@@ -3,8 +3,10 @@
 use App\Http\Controllers\AppointmentController;
 //use App\Http\Controllers\PharmacyController;
 //use App\Http\Controllers\PharmacyTypeController;
+use App\Http\Controllers\DrugController;
 use App\Http\Controllers\MessagerieController;
 use App\Http\Controllers\PatientDoctorChatController;
+use App\Http\Controllers\PatientFileController;
 use App\Http\Controllers\TeleseceteriatDoctorsController;
 
 use App\Http\Controllers\HelpDeskController;
@@ -39,11 +41,13 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PhotosCabinetController;
 use App\Http\Controllers\DoctorUserController;
 use App\Http\Controllers\ChatController;
-
+use App\Http\Controllers\PersonalizedMessageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardMedecinController;
+use App\Http\Controllers\DoctorPatientsController;
+use App\Http\Controllers\ConsultationPersoController;
 
 
 
@@ -585,6 +589,8 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/get-pattern-for-time-slot', [AppointmentEventController::class, 'getPatternForTimeSlot'])->name('get.pattern.for.time.slot');
     Route::post('/appointmentsEvent/store', [AppointmentEventController::class, 'store'])
         ->name('appointmentsEvent.store');
+    Route::get('/get-available-time-slots-for-update', [AppointmentEventController::class, 'getAvailableTimeSlotsForUpdate']);
+
     Route::get('/get-pattern-for-time-slot-without-type', [AppointmentEventController::class, 'getPatternForTimeSlotWithoutType'])->name('get.slot.no.type');
     Route::post('/appointmentsEvent/storeForced', [AppointmentEventController::class, 'storeForced'])
         ->name('appointmentsEvent.storeForced');
@@ -618,7 +624,7 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
     Route::get('/chat/messages/{doctorId}', [ChatController::class, 'getMessages']);
     Route::post('/chat/sendMessage', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
     Route::get('/chat', [ChatController::class, 'showForm']);
-    
+
     Route::get('storage/{file}', function ($file) {
         $path = storage_path('app/public/' . $file);
 
@@ -686,15 +692,36 @@ Route::group(['middleware' => ['auth', 'check.membership']], function () {
         }
         return view('components.active-doctor', compact('activeDoctor'));
     })->middleware('auth');
+
+    // Drug-drug interactions page (requires login)
+    Route::get('/drug_drug_interactions', [DrugController::class, 'index'])->name('drug_drug_interactions.index');
+
+    Route::prefix('patient_files')->name('patient_files.')->group(function () {
+        Route::get('/{patient?}', [PatientFileController::class, 'index'])->name('index');
+        Route::get('/{patient}/create', [PatientFileController::class, 'create'])->name('create');
+        Route::get('/{patient}/{file}', [PatientFileController::class, 'show'])->name('show');
+        Route::post('/{patient}', [PatientFileController::class, 'store'])->name('store');
+        Route::get('/{patient}/{file}/download', [PatientFileController::class, 'download'])->name('download');
+        Route::delete('/{patient}/{file}', [PatientFileController::class, 'destroy'])->name('destroy');
+        Route::post('/{patient}/assign-doctor', [PatientFileController::class, 'assignDoctor'])->name('assign_doctor');
+        Route::post('/{patient}/{file}/assign-access', [PatientFileController::class, 'assignAccess'])->name('assign_access');
+        Route::post('/{patient}/{file}/revoke-access', [PatientFileController::class, 'revokeAccess'])->name('revoke_access');
+        Route::get('patient_files/{patient}/assigned_users/{file}', [PatientFileController::class, 'getAssignedUsers'])->name('assigned_users');
+        Route::post('/{patient}/generate-public-upload-link', [PatientFileController::class, 'generatePublicUploadLink'])->name('generate_public_upload_link');
+    });
+
 });
+// Public upload route
+Route::match(['get', 'post'], '/patient_files/{patient}/public-upload/{user}', [PatientFileController::class, 'publicUpload'])->name('patient_files.public_upload');
+
 Route::get('/chatTE', [TeleseceteriatDoctorsController::class, 'showChat']);
 Route::get('/chatTe', [TeleseceteriatDoctorsController::class, 'showForm'])->name('chat.form');
 Route::get('/chatTE/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
-->name('chatT.show');
+    ->name('chatT.show');
 // Routes
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])
-     ->name('chatT.show')
-->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
+    ->name('chatT.show')
+    ->whereNumber(['doctorUserId', 'teleSecretariatUserId']);
 Route::delete('/chatT/messages/{messageId}', [TeleseceteriatDoctorsController::class, 'deleteMessage'])->name('chatT.deleteMessage');
 Route::get('/chatT/{doctorUserId}/{teleSecretariatUserId}', [TeleseceteriatDoctorsController::class, 'showChat'])->name('chatT.show');
 Route::post('/chatT/send', [TeleseceteriatDoctorsController::class, 'sendMessage'])->name('chatT.send');
@@ -716,3 +743,85 @@ Route::put('/update-appointments/{id}', [AppointmentEventController::class, 'upd
 
 // Delete appointment (DELETE request)/
 Route::delete('/update-appointments/{id}', [AppointmentEventController::class, 'destroy'])->name('appointments.destroy');
+
+// web.php
+Route::post('patients/store-secondary-profile', [PatientController::class, 'storeSecondaryProfile'])->name('patients.associate');
+Route::get('/patients/related/{mainPatientId}/{relation}', [PatientController::class, 'getRelatedPatients']);
+Route::post('/sms/send', [PersonalizedMessageController::class, 'store'])->name('sms.store');
+Route::get('/patients/{patientId}/messages/history', [PersonalizedMessageController::class, 'history'])
+    ->name('messages.history');
+Route::post('/doctors/edit-param', [DoctorController::class, 'editParam'])->name('doctors.editParam');
+
+
+Route::get('/get-slots-for-pattern', 'AppointmentEventController@getSlotsForPattern');
+use App\Http\Controllers\MedicamentPrescriptionController;
+
+Route::resource('medicament-prescriptions', MedicamentPrescriptionController::class)
+    ->names([
+        'index' => 'medicament_prescriptions.index',
+
+    ]);
+Route::patch('/medicament-prescriptions/{id}/mark-treated', [App\Http\Controllers\MedicamentPrescriptionController::class, 'markAsTreated'])->name('medicament_prescriptions.markAsTreated');
+
+Route::post('/patients/{patient}/attach', [DoctorPatientsController::class, 'attach'])
+    ->name('doctors.patients.attach');
+
+Route::get('/imagerie', 'App\Http\Controllers\ImagerieController@index')->name('imagerie.index');
+Route::get('/imagerie/{specialty}', 'App\Http\Controllers\ImagerieController@show')->name('imagerie.specialties.show');
+Route::get('/SpeechToText', action: 'App\Http\Controllers\SpeechToTextController@index')->name('SpeechToText.index');
+Route::get('/RapportPatient', action: 'App\Http\Controllers\SpeechToTextController@renderRapportPatient')->name('SpeechToText.renderRapportPatient');
+
+Route::get('/Lap', action: 'App\Http\Controllers\LapController@index')->name('Lap.index');
+Route::get('/consultation_perso/open/{patient}/{pdf}', [ConsultationPersoController::class, 'openPdf'])->name('consultation_perso.open_pdf');
+Route::post('/consultation_perso/save-filled-pdf', [ConsultationPersoController::class, 'saveFilledPdf'])->name('consultation_perso.save_filled_pdf');
+Route::post('/patients/{patient}/files/{file}/revoke', action: [PatientFileController::class, 'revokeAccess'])->name('patient_files.revoke');
+Route::get('/extractIA', action: 'App\Http\Controllers\ExtracteurIaController@index')->name('extractIA.index');
+Route::post('/change-language', [App\Http\Controllers\LocalizationController::class, 'change'])->name('change.language');
+Route::get('/consultation_perso', action: [ConsultationPersoController::class, 'index'])->name('consultation_perso.index');
+Route::get('/consultation-perso/{patient}/pdfs', [ConsultationPersoController::class, 'selectPdf'])->name('consultation_perso.select_pdf');
+Route::prefix('messenger')->middleware(['auth'])->group(function () {
+    // Main messenger application views
+    Route::get('/', function () {
+        return view('messenger.index');
+    })->name('messenger.index');
+
+    Route::get('/chat', function () {
+        return view('messenger.index');
+    })->name('messenger.chat');
+
+    Route::get('/conversation/{conversationId}', function ($conversationId) {
+        return view('messenger.index', ['conversationId' => $conversationId]);
+    })->name('messenger.conversation');
+
+    Route::get('/group/{groupId}', function ($groupId) {
+        return view('messenger.index', ['groupId' => $groupId]);
+    })->name('messenger.group');
+
+    // Data Loading Routes
+    Route::get('/conversations', 'MessengerController@getConversations')->name('messenger.conversations');
+    Route::get('/user-info/{userId}', 'MessengerController@getUserInfo')->name('messenger.user-info');
+    Route::get('/potential-partners', 'MessengerController@getPotentialPartners')->name('messenger.potential-partners');
+    Route::get('/friends', 'MessengerController@getFriends')->name('messenger.friends');
+    Route::get('/patients', 'MessengerController@getPatients')->name('messenger.patients');
+    Route::get('/groups', 'MessengerController@getGroups')->name('messenger.groups');
+
+    // Conversation Management
+    Route::post('/create-conversation', 'MessengerController@createDirectConversation')->name('messenger.create-conversation');
+    Route::post('/create-group', 'MessengerController@createGroup')->name('messenger.create-group');
+
+    // Search and Invitations
+    Route::get('/search-doctors', 'MessengerController@searchDoctors')->name('messenger.search-doctors');
+    Route::post('/send-invitation', 'MessengerController@sendInvitation')->name('messenger.send-invitation');
+
+    // Notifications
+    Route::get('/notifications/count', 'MessengerController@getNotificationsCount')->name('messemessenger.search-doctorsnger.notifimessenger.search-doctorscations.count');
+
+    // FCM token management
+    Route::post('/save-fcm-token', 'MessengerController@saveFCMToken')->name('messenger.save-fcm-token');
+
+    // Test endpoint for authentication
+    Route::get('/test-auth', 'MessengerController@testAuth')->name('messenger.test-auth');
+
+
+ 
+});

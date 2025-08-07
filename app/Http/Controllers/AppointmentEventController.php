@@ -28,6 +28,7 @@ use App\Repositories\ClinicRepository;
 use function PHPUnit\Framework\isNull;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use App\Events\CreateAppointmentEvent;
 
 class AppointmentEventController extends Controller
 {
@@ -163,7 +164,7 @@ class AppointmentEventController extends Controller
 
 
 
-        
+
                     ];
                 }));
             }
@@ -235,7 +236,17 @@ class AppointmentEventController extends Controller
                     return [$pattern->id => $name[app()->getLocale()] ?? $name['fr']];
                 })
                 ->toArray();
-
+            $patternsByType = DB::table('pattern')
+                ->select('id', 'nom', 'type')
+                ->where('doctor_id', $doctorId)
+                ->get()
+                ->groupBy('type')
+                ->map(function ($group) {
+                    return $group->mapWithKeys(function ($pattern) {
+                        $name = json_decode($pattern->nom, true);
+                        return [$pattern->id => $name[app()->getLocale()] ?? $name['fr']];
+                    });
+                });
             $patients = Patient::whereHas('doctors', function ($query) use ($doctorId) {
                 $query->where('doctor_id', $doctorId);
             })->select('id', 'first_name', 'last_name', 'phone_number')->get();
@@ -311,7 +322,8 @@ class AppointmentEventController extends Controller
                 'availabilityDays',
                 'patterns',
                 'vacations',
-                'urgencies'
+                'urgencies',
+                'patternsByType'
             ));
         }
     }
@@ -384,6 +396,21 @@ class AppointmentEventController extends Controller
             ]);
 
 
+            //get user device token from users table
+            $userFcm = User::find($patientUserId);
+
+            if ($userFcm && !empty($userFcm->device_token)) {
+                $appointment = Appointment::find($appointment->id);
+                event(new CreateAppointmentEvent(
+                    $appointment,
+                    $userFcm,
+                    $userFcm->device_token
+                ));
+            }
+            unset($userFcm);
+            /****** Ed notification create end   */
+
+
             \Log::info('About to broadcast event');
             //event(new AppointmentCreated($appointment));
             \Log::info('Event broadcasted');
@@ -412,7 +439,7 @@ class AppointmentEventController extends Controller
 
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
-            \Log::info('sending sms');
+            \Log::info('sending sms1');
             $numFrance = $doctor->num_france;
 
             $api = $doctor->api_key;
@@ -422,15 +449,15 @@ class AppointmentEventController extends Controller
 
             $to = $patient->phone_number;
             $doctor = Doctor::find($doctorId);
-            
+
             if ($diffInMinutes > 30) {
                 $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
                     "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
-            
+
                 if (Str::startsWith($to, '+33')) {
                     // Envoi via le service SMS France
                     $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
-            
+
                     if ($smsResult) {
                         Log::info("SMS FR envoyé avec succès à $to : $message");
                     } else {
@@ -442,7 +469,7 @@ class AppointmentEventController extends Controller
                         'gsm' => str_replace('+', '', $to),
                         'message' => $message
                     ]);
-            
+
                     if ($response->successful() && $response->json('success') === true) {
                         Log::info("SMS TN envoyé avec succès à $to : $message");
                     } else {
@@ -454,7 +481,7 @@ class AppointmentEventController extends Controller
             } else {
                 Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
             }
-            
+
             return response()->json([
                 'appointment_id' => $appointment->id,
                 'status' => 'success',
@@ -529,7 +556,7 @@ class AppointmentEventController extends Controller
 
         Log::info('Checking if user exists by email or phone number.', request()->all());
         try {
-            
+
             // Find the appointment by ID
             $appointment = Appointment::findOrFail($request->id);
 
@@ -538,7 +565,7 @@ class AppointmentEventController extends Controller
             if ($request->appointment_status_id == 7) { // Replace 7 with the actual status ID for "Canceled"
                 $appointment->cancel_reason = $request->cancel_Reason ?? "Aucune raison fournie";
                 // Retrieve the start and end times of the appointment
-               
+
             }
 
             $patientUserId = $appointment->user_id;
@@ -553,7 +580,7 @@ class AppointmentEventController extends Controller
             //event(new AppointmentChangedEvent($appointment));
             //$appointment->doctor = $this->doctor
             if ($userId->device_token != null) {
-                event(new AppointmentStatusChangedEvent($appointment, $request['payment_status_id'], $userId->device_token));
+                event(new AppointmentStatusChangedEvent($appointment, $request->appointment_status_id, $userId->device_token));
 
             }
 
@@ -832,8 +859,6 @@ class AppointmentEventController extends Controller
         \Log::info('Day name fetched', ['dayName' => $dayName]);
         \Log::info('Selected type', ['type' => $selectedType]);
 
-
-
         // Fetch availability hours for the selected day, doctor, and type
         $availability = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
@@ -875,6 +900,25 @@ class AppointmentEventController extends Controller
         }
 
         \Log::info('Calculated all slots', ['allSlots' => $allSlots]);
+
+        // Check if selected date is today and filter out past time slots
+        $tunisiaTimezone = 'Africa/Tunis';
+        $selectedDateCarbon = Carbon::parse($selectedDate, $tunisiaTimezone);
+        $isToday = $selectedDateCarbon->isToday();
+        $currentTime = now($tunisiaTimezone);
+
+        if ($isToday) {
+            $allSlots = array_filter($allSlots, function ($slot) use ($currentTime, $selectedDate, $tunisiaTimezone) {
+                $slotDateTime = Carbon::parse($selectedDate . ' ' . $slot, $tunisiaTimezone);
+                return $slotDateTime->greaterThan($currentTime);
+            });
+
+            \Log::info('Filtered past slots for today', [
+                'currentTime' => $currentTime->format('Y-m-d H:i:s'),
+                'tunisiaTime' => $currentTime->format('Y-m-d H:i:s'),
+                'filteredSlots' => array_values($allSlots)
+            ]);
+        }
 
         // Exclude urgent hours
         $urgentHours = DB::table('doctor_urgency')
@@ -1124,35 +1168,54 @@ class AppointmentEventController extends Controller
 
     public function getPatternForTimeSlot(Request $request)
     {
-        \Log::info('Fetching Unavailable Time Slots:', [
+        \Log::info('Fetching Pattern for Time Slot:', [
             'date' => $request->get('date'),
             'time' => $request->get('time'),
-            'type' => $request->get('type')
+            'type' => $request->get('type'),
+            'fetch_all_patterns' => $request->get('fetch_all_patterns')
         ]);
+
         $doctorId = auth()->user()->getDoctorId();
         $selectedDate = $request->input('date');
         $selectedTime = $request->input('time');
         $selectedType = $request->input('type');
+        $fetchAllPatterns = $request->input('fetch_all_patterns', false);
+
+        \Log::info('Request parameters:', [
+            'doctorId' => $doctorId,
+            'selectedDate' => $selectedDate,
+            'selectedTime' => $selectedTime,
+            'selectedType' => $selectedType,
+            'fetchAllPatterns' => $fetchAllPatterns
+        ]);
 
         if (!$doctorId || !$selectedDate || !$selectedTime || !$selectedType) {
             return response()->json(['error' => 'Missing data'], 400);
         }
 
         $dayName = Carbon::parse($selectedDate)->format('l');
-        $now = Carbon::now();
+        $now = Carbon::now('Africa/Tunis'); // ✅ Use Tunis timezone
 
-        // Get availability for the selected time slot
-        $availability = DB::table('availability_hours')
+        // Get all availabilities for the selected time slot
+        $availabilityQuery = DB::table('availability_hours')
             ->where('doctor_id', $doctorId)
             ->where('is_available', 1)
             ->where('type', $selectedType)
             ->where('day', $dayName)
             ->whereTime('start_at', '<=', $selectedTime)
             ->whereTime('end_at', '>', $selectedTime)
-            ->where('mode', 'precise')
-            ->first();
+            ->where('mode', 'precise');
 
-        if (!$availability) {
+        // Log the SQL query for debugging
+        \Log::info('Availability query: ' . $availabilityQuery->toSql());
+
+        // Get all matching availabilities
+        $availabilities = $availabilityQuery->get();
+
+        \Log::info('Found availabilities:', ['count' => count($availabilities)]);
+
+        if ($availabilities->isEmpty()) {
+            \Log::info('No availabilities found');
             return response()->json([
                 'pattern_name' => trans('lang.no_pattern_selected'),
                 'pattern_color' => '#cccccc',
@@ -1160,22 +1223,12 @@ class AppointmentEventController extends Controller
             ]);
         }
 
-        // Get pattern details
-        $pattern = DB::table('pattern')->where('id', $availability->patern_id)->first();
-        $displayMotifName = trans('lang.no_pattern_selected');
-
-        if ($pattern) {
-            $lang = app()->getLocale();
-            $decodedNom = json_decode($pattern->nom, true);
-            $displayMotifName = is_array($decodedNom)
-                ? ($decodedNom[$lang] ?? $decodedNom['fr'] ?? $pattern->nom)
-                : $pattern->nom;
-        }
-
-        // Generate all possible time slots
-        $startTime = Carbon::parse($availability->start_at);
-        $endTime = Carbon::parse($availability->end_at);
-        $sessionDuration = $availability->session_duration;
+        // Generate all possible time slots based on first availability
+        // (we assume all availabilities have the same time slots)
+        $firstAvailability = $availabilities->first();
+        $startTime = Carbon::parse($firstAvailability->start_at);
+        $endTime = Carbon::parse($firstAvailability->end_at);
+        $sessionDuration = $firstAvailability->session_duration;
         $availableSlots = [];
         $pastSlots = []; // Track past slots
 
@@ -1184,7 +1237,7 @@ class AppointmentEventController extends Controller
             $availableSlots[] = $slotTime;
 
             // Check if slot is in the past
-            $slotDateTime = Carbon::parse($selectedDate . ' ' . $slotTime);
+            $slotDateTime = Carbon::parse($selectedDate . ' ' . $slotTime, 'Africa/Tunis'); // ✅ Parse in Tunis timezone
             if ($slotDateTime->isPast()) {
                 $pastSlots[] = $slotTime;
             }
@@ -1204,17 +1257,175 @@ class AppointmentEventController extends Controller
         // Combine taken slots with past slots
         $takenSlots = array_unique(array_merge($takenSlots, $pastSlots));
 
+        // Collect all pattern IDs from availabilities
+        $patternIds = $availabilities->pluck('patern_id')->unique()->toArray();
+
+        \Log::info('Pattern IDs found:', ['ids' => $patternIds]);
+
+        // Get all patterns
+        $patterns = DB::table('pattern')
+            ->whereIn('id', $patternIds)
+            ->get();
+
+        \Log::info('Patterns found:', ['count' => count($patterns)]);
+
+        // Format patterns for response
+        $formattedPatterns = [];
+        $lang = app()->getLocale();
+
+        foreach ($patterns as $pattern) {
+            $decodedNom = json_decode($pattern->nom, true);
+            $displayMotifName = is_array($decodedNom)
+                ? ($decodedNom[$lang] ?? $decodedNom['fr'] ?? $pattern->nom)
+                : $pattern->nom;
+
+            // Find the availability for this pattern
+            $patternAvailability = $availabilities->firstWhere('patern_id', $pattern->id);
+
+            $formattedPatterns[] = [
+                'pattern_id' => $pattern->id,
+                'pattern_name' => $displayMotifName,
+                'pattern_color' => $pattern->color,
+                // Add these time-related fields
+                'time_start' => $patternAvailability ? Carbon::parse($patternAvailability->start_at)->format('H:i') : null,
+                'time_end' => $patternAvailability ? Carbon::parse($patternAvailability->end_at)->format('H:i') : null,
+                'time_context' => $selectedTime // Store the selected time for context
+            ];
+        }
+
+        \Log::info('Formatted patterns:', $formattedPatterns);
+
+        // Return appropriate response format based on request
+        if (count($formattedPatterns) > 1) {
+            // Multiple patterns - return array format
+            \Log::info('Returning multiple patterns response');
+
+            return response()->json([
+                'patterns' => $formattedPatterns,
+                'available_slots' => $availableSlots,
+                'taken_slots' => $takenSlots
+            ]);
+        } else {
+            // Single pattern - return legacy format
+            $pattern = !empty($formattedPatterns) ? $formattedPatterns[0] : null;
+
+            \Log::info('Returning single pattern response', [
+                'pattern' => $pattern
+            ]);
+
+            return response()->json([
+                'pattern_id' => $pattern ? $pattern['pattern_id'] : null,
+                'pattern_name' => $pattern ? $pattern['pattern_name'] : trans('lang.no_pattern_selected'),
+                'pattern_color' => $pattern ? $pattern['pattern_color'] : '#cccccc',
+                'available_slots' => $availableSlots,
+                'taken_slots' => $takenSlots
+            ]);
+        }
+    }
+
+    public function getAvailableTimeSlotsForUpdate(Request $request)
+    {
+        \Log::info('Fetching Available Time Slots for Update (Precise Mode):', [
+            'date' => $request->get('date'),
+            'type' => $request->get('type')
+        ]);
+
+        $doctorId = auth()->user()->getDoctorId();
+        $selectedDate = $request->input('date');
+        $selectedType = $request->input('type');
+        \Log::info('Selected Date:', ['date' => $selectedDate]);
+
+        if (!$doctorId || !$selectedDate || !$selectedType) {
+            return response()->json(['error' => 'Missing data'], 400);
+        }
+
+        $dayName = Carbon::parse($selectedDate)->format('l');
+
+        // Check for vacation
+        $vacation = DB::table('vacance')
+            ->where('doctor_id', $doctorId)
+            ->whereDate('start_date', '<=', $selectedDate)
+            ->whereDate('end_date', '>=', $selectedDate)
+            ->first();
+
+        if ($vacation) {
+            return response()->json([
+                'vacation' => true,
+                'available_slots' => [],
+                'taken_slots' => []
+            ]);
+        }
+
+        // Get availabilities for the selected type and day in precise mode
+        $availabilities = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('type', $selectedType)
+            ->where('day', $dayName)
+            ->where('mode', 'precise')
+            ->get();
+
+        if ($availabilities->isEmpty()) {
+            return response()->json([
+                'available_slots' => [],
+                'taken_slots' => [],
+                'session_duration' => 15
+            ]);
+        }
+
+        // Generate all available time slots
+        $availableSlots = [];
+        $sessionDuration = $availabilities->first()->session_duration ?? 15;
+
+        foreach ($availabilities as $availability) {
+            $startTime = Carbon::parse($availability->start_at);
+            $endTime = Carbon::parse($availability->end_at);
+
+            while ($startTime->lessThan($endTime)) {
+                $slotTime = $startTime->format('H:i');
+                if (!in_array($slotTime, $availableSlots)) {
+                    $availableSlots[] = $slotTime;
+                }
+                $startTime->addMinutes($sessionDuration);
+            }
+        }
+
+        // Sort the slots
+        sort($availableSlots);
+
+        // Get taken slots (excluding canceled appointments)
+        $takenSlots = DB::table('appointments')
+            ->where('doctor_id', $doctorId)
+            ->whereDate('start_at', $selectedDate)
+            ->where('appointment_status_id', '!=', 7) // Exclude canceled
+            ->select(DB::raw("DATE_FORMAT(start_at, '%H:%i') as time"))
+            ->pluck('time')
+            ->toArray();
+
+        // Remove past slots if it's today - FIX: Use Tunis timezone
+        $now = Carbon::now('Africa/Tunis'); // ✅ Use Tunis timezone instead of UTC
+        $currentDate = Carbon::parse($selectedDate, 'Africa/Tunis');
+
+        if ($currentDate->isToday()) {
+            $availableSlots = array_filter($availableSlots, function ($slot) use ($now, $selectedDate) {
+                $slotDateTime = Carbon::parse($selectedDate . ' ' . $slot, 'Africa/Tunis'); // ✅ Parse in Tunis timezone
+                return $slotDateTime->isAfter($now);
+            });
+        }
+
+        \Log::info('Available Slots:', ['slots' => array_values($availableSlots)]);
+        \Log::info('Current time in Tunis:', ['now' => $now->format('Y-m-d H:i:s')]);
+
         return response()->json([
-            'pattern_id' => $pattern->id,
-            'pattern_name' => $displayMotifName,
-            'pattern_color' => $pattern ? $pattern->color : '#cccccc',
-            'available_slots' => $availableSlots,
-            'taken_slots' => $takenSlots
+            'vacation' => false,
+            'available_slots' => array_values($availableSlots),
+            'taken_slots' => $takenSlots,
+            'session_duration' => $sessionDuration
         ]);
     }
     public function getPatternForTimeSlotWithoutType(Request $request)
     {
-        \Log::info('Fetching Unavailable Time Slots:', [
+        \Log::info('Fetching Unavailable Time Slots1:', [
             'date' => $request->get('date'),
             'time' => $request->get('time')
         ]);
@@ -1388,7 +1599,99 @@ class AppointmentEventController extends Controller
             'message' => "Voici les créneaux indisponibles du médecin.",
         ]);
     }
+    public function getSlotsForPattern(Request $request)
+    {
+        \Log::info('Fetching slots for pattern:', $request->all());
+        $patternId = $request->input('pattern_id');
+        $date = $request->input('date');
+        $type = $request->input('type');
+        $time = $request->input('time', Carbon::now('Africa/Tunis')->format('H:i')); // ✅ Use Tunis timezone
 
+        \Log::info('Fetching slots for pattern;;;;:', [
+            'pattern_id' => $patternId,
+            'date' => $date,
+            'type' => $type,
+            'time' => $time
+        ]);
+
+        // Validate input
+        if (!$patternId || !$date || !$type) {
+            return response()->json(['error' => 'Missing required parameters'], 400);
+        }
+
+        $doctorId = auth()->user()->getDoctorId();
+        $dayName = Carbon::parse($date)->format('l');
+
+        // Get availability for this specific pattern
+        $availability = DB::table('availability_hours')
+            ->where('doctor_id', $doctorId)
+            ->where('is_available', 1)
+            ->where('type', $type)
+            ->where('patern_id', $patternId)
+            ->where('day', $dayName)
+            ->where('mode', 'precise')
+            ->whereTime('start_at', '<=', $time) // Only availabilities that start before or at the selected time
+            ->whereTime('end_at', '>', $time)    // Only availabilities that end after the selected time
+            ->first();
+        \Log::info('Availability fetched for pattern:', [
+            'pattern_id' => $patternId,
+            'availability' => $availability
+        ]);
+
+        if (!$availability) {
+            \Log::info('No availability found for pattern');
+
+            return response()->json([
+                'available_slots' => [],
+                'taken_slots' => []
+            ]);
+        }
+
+        // Generate all possible time slots
+        $startTime = Carbon::parse($availability->start_at);
+        $endTime = Carbon::parse($availability->end_at);
+        $sessionDuration = $availability->session_duration;
+        $availableSlots = [];
+        $pastSlots = [];
+
+        while ($startTime->lessThan($endTime)) {
+            $slotTime = $startTime->format('H:i');
+            $availableSlots[] = $slotTime;
+
+            // Check if slot is in the past
+            $slotDateTime = Carbon::parse($date . ' ' . $slotTime, 'Africa/Tunis'); // ✅ Parse in Tunis timezone
+            if ($slotDateTime->isPast()) {
+                $pastSlots[] = $slotTime;
+            }
+
+            $startTime->addMinutes($sessionDuration);
+        }
+
+        // Get taken slots specifically for this pattern
+        $takenSlots = DB::table('appointments')
+            ->where('doctor_id', $doctorId)
+            ->where('motif_id', $patternId)
+            ->whereDate('start_at', $date)
+            ->where('appointment_status_id', '!=', 7) // Exclude canceled appointments
+            ->select(DB::raw("DATE_FORMAT(start_at, '%H:%i') as time"))
+            ->pluck('time')
+            ->toArray();
+
+        \Log::info('Fetched taken slots for pattern:', [
+            'pattern_id' => $patternId,
+            'taken_slots' => $takenSlots
+        ]);
+
+        // Combine taken slots with past slots
+        $takenSlots = array_unique(array_merge($takenSlots, $pastSlots));
+
+        return response()->json([
+            'available_slots' => $availableSlots,
+            'taken_slots' => $takenSlots,
+            'pattern_id' => $patternId
+        ]);
+
+    }
 
     public function store(Request $request)
     {
@@ -1462,12 +1765,36 @@ class AppointmentEventController extends Controller
         ]);
         \Log::info('About to broadcast event');
 
+
+
+        if ($patientUserId) {
+            \Log::info('Patient user ID is not null, sending FCM notification', [
+                'patient_user_id' => $patientUserId
+            ]);
+            $userFcm = User::find($patientUserId);
+
+            if ($userFcm && !empty($userFcm->device_token)) {
+                event(new CreateAppointmentEvent(
+                    $appointment,
+                    $userFcm,
+                    $userFcm->device_token
+                ));
+            }
+            unset($userFcm);
+        } else {
+            \Log::warning('Patient user ID is null, skipping FCM notification', [
+                'patient_id' => $validated['patient_id'],
+                'appointment_id' => $appointment->id ?? 'not_created_yet'
+            ]);
+        }
+        /****** Ed notification create end   */
+
         //event(new AppointmentCreated($appointment));
         \Log::info('Event broadcasted');
         // \Log::info("Appointment created:", ['id' => $appointment->id]);
         $now = Carbon::now('Africa/Tunis');
         $diffInMinutes = $now->diffInMinutes($startAt, false);
-        \Log::info('sending sms');
+        \Log::info(message: 'sending sms2');
         $numFrance = $doctor->num_france;
 
 
@@ -1477,40 +1804,40 @@ class AppointmentEventController extends Controller
         $alphasender = 'Wic doctor';
 
         $to = $patient->phone_number;
-            $doctor = Doctor::find($doctorId);
-            
-            if ($diffInMinutes > 30) {
-                $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
-                    "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
-            
-                if (Str::startsWith($to, '+33')) {
-                    // Envoi via le service SMS France
-                    $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
-            
-                    if ($smsResult) {
-                        Log::info("SMS FR envoyé avec succès à $to : $message");
-                    } else {
-                        Log::error("Échec de l'envoi du SMS FR à $to.");
-                    }
-                } elseif (Str::startsWith($to, '+216')) {
-                    // Envoi via le service Tunisie
-                    $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
-                        'gsm' => str_replace('+', '', $to),
-                        'message' => $message
-                    ]);
-            
-                    if ($response->successful() && $response->json('success') === true) {
-                        Log::info("SMS TN envoyé avec succès à $to : $message");
-                    } else {
-                        Log::error("Échec de l'envoi du SMS TN à $to : " . $response->body());
-                    }
+        $doctor = Doctor::find($doctorId);
+
+        if ($diffInMinutes > 30) {
+            $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
+                "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
+
+            if (Str::startsWith($to, '+33')) {
+                // Envoi via le service SMS France
+                $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
+
+                if ($smsResult) {
+                    Log::info("SMS FR envoyé avec succès à $to : $message");
                 } else {
-                    Log::warning("Code pays non pris en charge pour le numéro : $to");
+                    Log::error("Échec de l'envoi du SMS FR à $to.");
+                }
+            } elseif (Str::startsWith($to, '+216')) {
+                // Envoi via le service Tunisie
+                $response = Http::post('https://wic-doctor.com:3004/send-sms-vats', [
+                    'gsm' => str_replace('+', '', $to),
+                    'message' => $message
+                ]);
+
+                if ($response->successful() && $response->json('success') === true) {
+                    Log::info("SMS TN envoyé avec succès à $to : $message");
+                } else {
+                    Log::error("Échec de l'envoi du SMS TN à $to : " . $response->body());
                 }
             } else {
-                Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
+                Log::warning("Code pays non pris en charge pour le numéro : $to");
             }
-            
+        } else {
+            Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
+        }
+
         // Log appointment creation in audit system
         /* app(\App\Services\AuditLogService::class)->logAppointment(
             $appointment->id,
@@ -1541,7 +1868,7 @@ class AppointmentEventController extends Controller
         if (!$doctorId) {
             return back()->withErrors(['error' => 'Médecin non trouvé.']);
         }
-        $doctor = 
+        $doctor = Doctor::find($doctorId);
         $validated = $request->validate([
             'patient_id' => 'required|exists:patients,id',
             'appointment_type' => 'required', // Changed from strings to IDs
@@ -1579,7 +1906,7 @@ class AppointmentEventController extends Controller
             $patientUserId = $patient->user_id;
             $appointmentAt = $startAt->copy()->startOfDay();
 
-            Appointment::create([
+            $appointment = Appointment::create([
                 'doctor_id' => $doctorId,
                 'patient_id' => $validated['patient_id'],
                 'user_id' => $patientUserId,
@@ -1591,9 +1918,26 @@ class AppointmentEventController extends Controller
                 'ends_at' => $endsAt,
                 'hint' => $validated['notes'] ?? null,
             ]);
+
+
+            //get user device token from users table
+            $userFcm = User::find($patientUserId);
+
+            if ($userFcm && !empty($userFcm->device_token)) {
+                event(new CreateAppointmentEvent(
+                    $appointment,
+                    $userFcm,
+                    $userFcm->device_token
+                ));
+            }
+            unset($userFcm);
+            /****** Ed notification create end   */
+
+
+
             $now = Carbon::now('Africa/Tunis');
             $diffInMinutes = $now->diffInMinutes($startAt, false);
-            \Log::info('sending sms');
+            \Log::info('sending sms3');
             $numFrance = $doctor->num_france;
 
             $api = $doctor->api_key;
@@ -1603,15 +1947,15 @@ class AppointmentEventController extends Controller
 
             $to = $patient->phone_number;
             $doctor = Doctor::find($doctorId);
-            
+
             if ($diffInMinutes > 30) {
                 $message = "Bienvenue chez Wic-Dr, " . $patient->first_name . " " . $patient->last_name . ".\n" .
                     "Vous avez un rendez-vous avec le Dr. " . $doctor->name . " le " . $startAt->format('d/m/Y H:i') . ".";
-            
+
                 if (Str::startsWith($to, '+33')) {
                     // Envoi via le service SMS France
                     $smsResult = $this->sendsms($api_key, $from, $to, $message, $alphasender);
-            
+
                     if ($smsResult) {
                         Log::info("SMS FR envoyé avec succès à $to : $message");
                     } else {
@@ -1623,7 +1967,7 @@ class AppointmentEventController extends Controller
                         'gsm' => str_replace('+', '', $to),
                         'message' => $message
                     ]);
-            
+
                     if ($response->successful() && $response->json('success') === true) {
                         Log::info("SMS TN envoyé avec succès à $to : $message");
                     } else {
@@ -1635,7 +1979,7 @@ class AppointmentEventController extends Controller
             } else {
                 Log::info("⏱ RDV trop proche – SMS non envoyé pour $to (dans $diffInMinutes minutes)");
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Rendez-vous forcé créé avec succès.',
@@ -1651,7 +1995,8 @@ class AppointmentEventController extends Controller
                 ]
             ], 500);
         }
-    }    public function getAvailableDays()
+    }
+    public function getAvailableDays()
     {
         $doctorId = auth()->user()->getDoctorId();
 
@@ -1822,7 +2167,7 @@ class AppointmentEventController extends Controller
 
     }
 
-private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor')
+    private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doctor')
     {
         $url = 'https://dashboard.wic-sms.com/apis/smscontact/';
 
@@ -1877,7 +2222,9 @@ private function sendsms($api_key, $from, $to, $message, $alphasender = 'wic doc
         $appointment->appointment_at = $startAt;
         $appointment->ends_at = $startAt->copy()->addMinutes($sessionDuration);
         $appointment->hint = $request->note;
-
+        \Log::info('startAt: ' . $startAt);
+        \Log::info('sessionDuration: ' . $sessionDuration);
+        \Log::info('ends_at: ' . $appointment->ends_at);
         // Add this line to update the motif_id
         if ($request->has('motif_id')) {
             $appointment->motif_id = $request->motif_id;

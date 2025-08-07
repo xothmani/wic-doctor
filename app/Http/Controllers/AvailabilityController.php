@@ -153,7 +153,11 @@ class AvailabilityController extends Controller
                 ->where('mode', 'open')
                 ->select('pause_from', 'pause_to')
                 ->first();
-
+            $patternsByType = [
+                    'cabinet' => $doctorPatterns->where('type', 1)->values(),
+                    'teleconsultation' => $doctorPatterns->where('type', 4)->values(),
+                    'home_visit' => $doctorPatterns->where('type', 3)->values()
+            ];
             // Get vacations
             $vacations = DB::table('vacance')
                 ->where('doctor_id', $doctorId)
@@ -177,88 +181,103 @@ class AvailabilityController extends Controller
                 'breakTime',
                 'vacations',
                 'substitutes',
+                'patternsByType',
                 'dailyClosures',
             ));
-        } elseif ($currentMode == 'precise') {
+        }elseif ($currentMode == 'precise') {
 
-            $days = [
-                "monday",
-                "tuesday",
-                "wednesday",
-                "thursday",
-                "friday",
-                "saturday",
-                "sunday"
-            ];
-
-            // Get availability for all types
-            $availabilities = [
-                'cabinet' => [],
-                'teleconsultation' => [],
-                'home_visit' => []
-            ];
-
-            // Debug log to check what's being retrieved
-            \Log::info("Fetching precise mode availabilities for doctor: " . $doctorId);
-
-            // Retrieve availabilities for each type with mode filter
-            foreach ($availabilities as $type => &$typeAvailability) {
-                $slots = AvailabilityHour::where('doctor_id', $doctorId)
-                    ->where('type', $type)
-                    ->where('mode', 'precise') // Add mode filter
+                $days = [
+                    "monday",
+                    "tuesday",
+                    "wednesday",
+                    "thursday",
+                    "friday",
+                    "saturday",
+                    "sunday"
+                ];
+    
+                // Get availability for all types
+                $availabilities = [
+                    'cabinet' => [],
+                    'teleconsultation' => [],
+                    'home_visit' => []
+                ];
+    
+                // Debug log to check what's being retrieved
+                \Log::info("Fetching precise mode availabilities for doctor: " . $doctorId);
+    
+                // Retrieve availabilities for each type with mode filter
+                foreach ($availabilities as $type => &$typeAvailability) {
+                    $slots = AvailabilityHour::where('doctor_id', $doctorId)
+                        ->where('type', $type)
+                        ->where('mode', 'precise') // Add mode filter
+                        ->get();
+    
+                    // Group by day
+                    $typeAvailability = $slots->groupBy('day');
+    
+                    // Debug log
+                    \Log::info("Retrieved precise mode for type {$type}:", ['count' => $slots->count()]);
+                }
+    
+                // Get vacations
+                $vacations = DB::table('vacance')
+                    ->where('doctor_id', $doctorId)
+                    ->orderBy('start_date', 'desc')
                     ->get();
-
-                // Group by day
-                $typeAvailability = $slots->groupBy('day');
-
-                // Debug log
-                \Log::info("Retrieved precise mode for type {$type}:", ['count' => $slots->count()]);
+    
+                // Get doctor's patterns and decode JSON names
+                $doctorPatterns = Pattern::where('doctor_id', $doctorId)
+                    ->get()
+                    ->map(function ($pattern) {
+                        $decodedNom = json_decode($pattern->nom, true);
+                        if (is_array($decodedNom) && isset($decodedNom['fr'])) {
+                            $pattern->nom = $decodedNom['fr'];
+                        }
+                        return $pattern;
+                    });
+                \Log::info('Doctor Patterns:111111111', ['patterns' => $doctorPatterns->toArray()]);
+                $patternsByType = [
+                    'cabinet' => $doctorPatterns->where('type', 1)->values(),
+                    'teleconsultation' => $doctorPatterns->where('type', 4)->values(),
+                    'home_visit' => $doctorPatterns->where('type', 3)->values()
+                ];
+                \Log::info('Patterns by type:', [
+                    'cabinet_count' => count($patternsByType['cabinet']),
+                    'teleconsultation_count' => count($patternsByType['teleconsultation']),
+                    'home_visit_count' => count($patternsByType['home_visit'])
+                ]);
+                $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
+                    ->orderBy('start_date', 'desc')
+                    ->get();
+                $dailyClosures = DB::table('doctor_urgency')
+                    ->where('doctor_id', $doctorId)
+                    ->where('jour', '>=', now()->startOfDay())
+                    ->orderBy('jour', 'asc')
+                    ->get();
+    
+                $periodClosures = DB::table('vacance')
+                    ->where('doctor_id', $doctorId)
+                    ->where('end_date', '>=', now()->startOfDay())
+                    ->orderBy('start_date', 'asc')
+                    ->get();
+                // For debugging
+                \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
+                \Log::info('patternsByType:', ['patternsByType' => $patternsByType]);
+                return view('availability.index', compact(
+                    'availabilities',
+                    'currentMode',
+                    'days',
+                    'vacations',
+                    'substitutes',
+                    'doctorPatterns',
+                    'dailyClosures',
+                    'patternsByType',
+                    'periodClosures'
+                ));
             }
-
-            // Get vacations
-            $vacations = DB::table('vacance')
-                ->where('doctor_id', $doctorId)
-                ->orderBy('start_date', 'desc')
-                ->get();
-
-            // Get doctor's patterns and decode JSON names
-            $doctorPatterns = Pattern::where('doctor_id', $doctorId)
-                ->get()
-                ->map(function ($pattern) {
-                    $decodedNom = json_decode($pattern->nom, true);
-                    if (is_array($decodedNom) && isset($decodedNom['fr'])) {
-                        $pattern->nom = $decodedNom['fr'];
-                    }
-                    return $pattern;
-                });
-            $substitutes = DoctorSubstitute::where('doctor_id', $doctorId)
-                ->orderBy('start_date', 'desc')
-                ->get();
-            $dailyClosures = DB::table('doctor_urgency')
-                ->where('doctor_id', $doctorId)
-                ->where('jour', '>=', now()->startOfDay())
-                ->orderBy('jour', 'asc')
-                ->get();
-
-            $periodClosures = DB::table('vacance')
-                ->where('doctor_id', $doctorId)
-                ->where('end_date', '>=', now()->startOfDay())
-                ->orderBy('start_date', 'asc')
-                ->get();
-            // For debugging
-            \Log::info('Doctor Patterns:', ['patterns' => $doctorPatterns->toArray()]);
-            return view('availability.index', compact(
-                'availabilities',
-                'currentMode',
-                'days',
-                'vacations',
-                'substitutes',
-                'doctorPatterns',
-                'dailyClosures',
-                'periodClosures'
-            ));
         }
-    }
+    
 
 
 

@@ -34,53 +34,59 @@ class PrescriptionController extends Controller
      */
 
 
-    public function create(Request $request)
-    {
-        $consultation_id = $request->query('consultation_id');
-
-        // Récupérer le médecin associé à l'utilisateur connecté
-        $doctorId = auth()->user()->getDoctorId();
-        $doctor = Doctor::find($doctorId);
-
-        if (!$doctor) {
-            Log::error('Médecin non trouvé pour cet utilisateur', ['user_id' => auth()->id()]);
-            return response()->json(['error' => 'Médecin non trouvé pour cet utilisateur'], 404);
-        }
-
-        // Récupérer l'adresse du médecin
-        $userWithAddress = $doctor->user()->with('address')->first();
-        $address = $userWithAddress->address ?? null;
-
-        // Extraire le pays depuis l'adresse
-        $pays = $address && $address->pays ? json_decode($address->pays, true) : null;
-        $pays = isset($pays['fr']) ? strtolower($pays['fr']) : (is_array($pays) ? strtolower(reset($pays) ?: '') : ($pays ? strtolower($pays) : null));
-
-        // Vérifier si le pays est la France
-        $isFrance = $pays === 'france';
-        Log::info('Requête pour récupérer les médicaments', [
-            'isFrance' => $isFrance
-        ]);
-
-
-        // Sélectionner les médicaments en fonction du pays
-// Sélectionner les médicaments en fonction du pays et les trier par nom_commercial
-        $medicaments = $isFrance
-            ? MedicamentFrance::orderBy('nom_commercial', 'asc')->get()
-            : Medicament::orderBy('nom_commercial', 'asc')->get();
-
-        // Log des médicaments récupérés
-        Log::info('Médicaments récupérés', [
-            'pays' => $pays,
-            'isFrance' => $isFrance,
-            'medicaments' => $medicaments->toArray()
-        ]);
-
-        $analyses = Analyse::all();
-        $radios = Radio::all();
-
-        $customFields = [];
-        return view('prescriptions.create', compact('medicaments', 'analyses', 'radios', 'customFields', 'consultation_id', 'isFrance'));
-    }
+     public function create(Request $request)
+     {
+         $consultation_id = $request->query('consultation_id');
+         $showAlert = false;
+     
+         // Récupérer le médecin connecté
+         $doctor = Doctor::where('user_id', auth()->id())->first();
+     
+         if (!$doctor) {
+             Log::error('Médecin non trouvé pour cet utilisateur', ['user_id' => auth()->id()]);
+             $showAlert = true;
+             return view('prescriptions.create', compact('showAlert'));
+         }
+     
+         // Vérifier l'existence de la consultation et l'association avec le médecin
+         $consultation = Consultation::where('id', $consultation_id)
+             ->where('user_id', auth()->id())
+             ->first();
+     
+         if (!$consultation) {
+             $showAlert = true;
+             return view('prescriptions.create', compact('showAlert'));
+         }
+     
+         // Vérifier l'adresse et le pays
+         $userWithAddress = $doctor->user()->with('address')->first();
+         $address = $userWithAddress->address ?? null;
+         $pays = $address && $address->pays ? json_decode($address->pays, true) : null;
+         $pays = isset($pays['fr']) ? strtolower($pays['fr']) : (is_array($pays) ? strtolower(reset($pays) ?: '') : ($pays ? strtolower($pays) : null));
+         $isFrance = $pays === 'france';
+     
+         $medicaments = $isFrance
+             ? MedicamentFrance::orderBy('nom_commercial', 'asc')->get()
+             : Medicament::orderBy('nom_commercial', 'asc')->get();
+     
+         $analyses = Analyse::all();
+         $radios = Radio::all();
+     
+         $customFields = [];
+         $index = 0;
+     
+         return view('prescriptions.create', compact(
+             'medicaments',
+             'analyses',
+             'radios',
+             'customFields',
+             'consultation_id',
+             'isFrance',
+             'showAlert',
+             'index' 
+         ));
+     }
+     
 
     /**
      * Store a newly created prescription in the database.
@@ -141,49 +147,68 @@ class PrescriptionController extends Controller
         ]);
 
         // Lier les médicaments à la prescription
-        if ($request->input('type') === 'Médicament') {
-            foreach ($request->medicaments as $medicamentData) {
-                $isFrance = MedicamentFrance::where('name', $medicamentData['CODE_PCT'])->exists();
+if ($request->input('type') === 'Médicament') {
+    foreach ($request->medicaments as $medicamentData) {
+        // Vérifier si c'est un médicament manuel (commence par 'manual_')
+        if (str_starts_with($medicamentData['CODE_PCT'], 'manual_')) {
+            $nomMedicament = substr($medicamentData['CODE_PCT'], 7); // Enlever le préfixe 'manual_'
+            
+            // Insérer dans medicament_prescription avec le nom du médicament seulement
+            DB::table('medicament_prescription')->insert([
+                'prescription_id' => $prescription->id,
+                'nom_medicament' => $nomMedicament, // Stocker le nom dans nom_medicament
+                'status_medicament' => 'en cours', // Ajout du statut
+                'dosage' => $medicamentData['dosage'],
+                'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
+                'horaire' => $medicamentData['horaire'] ?? null,
+                'nb_de_fois' => $medicamentData['nb_de_fois'] . ' ' . $medicamentData['frequency_unit'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } else {
+            // Le reste du code existant pour les médicaments normaux...
+            $isFrance = MedicamentFrance::where('name', $medicamentData['CODE_PCT'])->exists();
 
-                if ($isFrance) {
-                    // Si le médicament est de France, utiliser medicament_id
-                    $medicament = MedicamentFrance::where('name', $medicamentData['CODE_PCT'])->first();
-                    if (!$medicament) {
-                        throw new \Exception("Médicament non trouvé dans la table fr_medicament : " . $medicamentData['CODE_PCT']);
-                    }
-
-                    // Insérer dans medicament_prescription avec medicament_id
-                    DB::table('medicament_prescription')->insert([
-                        'prescription_id' => $prescription->id,
-                        'medicament_id' => $medicament->id, // Référence à fr_medicament
-                        'dosage' => $medicamentData['dosage'],
-                        'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
-                        'horaire' => $medicamentData['horaire'] ?? null,
-                        'nb_de_fois' => $medicamentData['nb_de_fois'] . ' ' . $medicamentData['frequency_unit'],
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                } else {
-                    // Si le médicament n'est pas de France, utiliser medicament_CODE_PCT
-                    $medicament = Medicament::where('CODE_PCT', $medicamentData['CODE_PCT'])->first();
-                    if (!$medicament) {
-                        throw new \Exception("Médicament non trouvé dans la table medicaments : " . $medicamentData['CODE_PCT']);
-                    }
-
-                    // Insérer dans medicament_prescription avec medicament_CODE_PCT
-                    DB::table('medicament_prescription')->insert([
-                        'prescription_id' => $prescription->id,
-                        'medicament_CODE_PCT' => $medicament->CODE_PCT, // Référence à medicaments
-                        'dosage' => $medicamentData['dosage'],
-                        'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
-                        'horaire' => $medicamentData['horaire'] ?? null,
-                        'nb_de_fois' => $medicamentData['nb_de_fois'] . ' ' . $medicamentData['frequency_unit'],
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+            if ($isFrance) {
+                // Si le médicament est de France, utiliser medicament_id
+                $medicament = MedicamentFrance::where('name', $medicamentData['CODE_PCT'])->first();
+                if (!$medicament) {
+                    throw new \Exception("Médicament non trouvé dans la table fr_medicament : " . $medicamentData['CODE_PCT']);
                 }
+
+                // Insérer dans medicament_prescription avec medicament_id
+                DB::table('medicament_prescription')->insert([
+                    'prescription_id' => $prescription->id,
+                    'medicament_id' => $medicament->id, // Référence à fr_medicament
+                    'dosage' => $medicamentData['dosage'],
+                    'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
+                    'horaire' => $medicamentData['horaire'] ?? null,
+                    'nb_de_fois' => $medicamentData['nb_de_fois'] . ' ' . $medicamentData['frequency_unit'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                // Si le médicament n'est pas de France, utiliser medicament_CODE_PCT
+                $medicament = Medicament::where('CODE_PCT', $medicamentData['CODE_PCT'])->first();
+                if (!$medicament) {
+                    throw new \Exception("Médicament non trouvé dans la table medicaments : " . $medicamentData['CODE_PCT']);
+                }
+
+                // Insérer dans medicament_prescription avec medicament_CODE_PCT
+                DB::table('medicament_prescription')->insert([
+                    'prescription_id' => $prescription->id,
+                    'medicament_CODE_PCT' => $medicament->CODE_PCT, // Référence à medicaments
+                    'dosage' => $medicamentData['dosage'],
+                    'nb_de_jours' => $medicamentData['nb_de_jours'] . ' ' . $medicamentData['duration_unit'],
+                    'horaire' => $medicamentData['horaire'] ?? null,
+                    'nb_de_fois' => $medicamentData['nb_de_fois'] . ' ' . $medicamentData['frequency_unit'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
         }
+    }
+}
         // Lier les analyses à la prescription
         elseif ($request->input('type') === 'Analyse') {
             foreach ($request->analyses as $analyseData) {
@@ -281,40 +306,54 @@ class PrescriptionController extends Controller
 
         // Préparer les données en fonction du type de prescription
         if ($prescription->type === 'Médicament') {
-            // Récupérer les médicaments de France (medicament_id)
-            $medicamentsFrance = DB::table('medicament_prescription')
-                ->join('fr_medicament', 'medicament_prescription.medicament_id', '=', 'fr_medicament.id')
-                ->where('medicament_prescription.prescription_id', $prescription->id)
-                ->select(
-                    'fr_medicament.name as nom_commercial',
-                    'medicament_prescription.dosage',
-                    'medicament_prescription.nb_de_fois',
-                    'medicament_prescription.horaire',
-                    'medicament_prescription.nb_de_jours'
-                )
+            $medicaments = DB::table('medicament_prescription')
+                ->where('prescription_id', $prescription->id)
                 ->get();
-
-            // Récupérer les médicaments non français (medicament_CODE_PCT)
-            $medicamentsNonFrance = DB::table('medicament_prescription')
-                ->join('medicaments', 'medicament_prescription.medicament_CODE_PCT', '=', 'medicaments.CODE_PCT')
-                ->where('medicament_prescription.prescription_id', $prescription->id)
-                ->select(
-                    'medicaments.NOM_COMMERCIAL as nom_commercial',
-                    'medicaments.category',
-                    'medicaments.format',
-                    'medicaments.form',
-                    'medicament_prescription.dosage',
-                    'medicament_prescription.nb_de_fois',
-                    'medicament_prescription.horaire',
-                    'medicament_prescription.nb_de_jours'
-                )
-                ->get();
-
-            // Fusionner les deux listes de médicaments
-            $medicamentDataArray = $medicamentsFrance->merge($medicamentsNonFrance)->map(function ($item) {
-                return (array) $item; // Convertir chaque objet en tableau
-            })->toArray();
-        } elseif ($prescription->type === 'Analyse') {
+        
+            $medicamentDataArray = [];
+        
+            foreach ($medicaments as $med) {
+                $medData = [
+                    'dosage' => $med->dosage,
+                    'nb_de_fois' => $med->nb_de_fois,
+                    'horaire' => $med->horaire,
+                    'nb_de_jours' => $med->nb_de_jours
+                ];
+        
+                // Cas 1 : Médicament français
+                if (!empty($med->medicament_id)) {
+                    $franceMed = DB::table('fr_medicament')
+                        ->where('id', $med->medicament_id)
+                        ->first();
+        
+                    if ($franceMed) {
+                        $medData['nom_commercial'] = $franceMed->medicament_name;
+                        // Si besoin, tu peux ajouter d'autres champs spécifiques ici
+                    }
+                }
+                // Cas 2 : Médicament standard (non-français)
+                elseif (!empty($med->medicament_CODE_PCT)) {
+                    $standardMed = DB::table('medicaments')
+                        ->where('CODE_PCT', $med->medicament_CODE_PCT)
+                        ->first();
+        
+                    if ($standardMed) {
+                        $medData['nom_commercial'] = $standardMed->NOM_COMMERCIAL;
+                        $medData['category'] = $standardMed->category;
+                        $medData['format'] = $standardMed->format;
+                        $medData['form'] = $standardMed->form;
+                    }
+                }
+                // Cas 3 : Médicament manuel
+                elseif (!empty($med->nom_medicament)) {
+                    $medData['nom_commercial'] = $med->nom_medicament;
+                    // Aucun autre champ spécifique
+                }
+        
+                $medicamentDataArray[] = $medData;
+            }
+        }
+         elseif ($prescription->type === 'Analyse') {
             $analyseDataArray = DB::table('analyses')
                 ->join('analyse_prescription', 'analyses.Code_Analyse', '=', 'analyse_prescription.Code_Analyse')
                 ->where('analyse_prescription.prescription_id', $prescription->id)
@@ -396,38 +435,52 @@ class PrescriptionController extends Controller
 
         // Si la prescription est de type 'Médicament', on récupère les médicaments
         if ($prescription->type === 'Médicament') {
-            // Récupérer les médicaments de France (medicament_id)
-            $medicamentsFrance = DB::table('medicament_prescription')
-                ->join('fr_medicament', 'medicament_prescription.medicament_id', '=', 'fr_medicament.id')
-                ->where('medicament_prescription.prescription_id', $prescription->id)
-                ->select(
-                    'fr_medicament.name as nom_commercial',
-                    'medicament_prescription.dosage',
-                    'medicament_prescription.nb_de_fois',
-                    'medicament_prescription.horaire',
-                    'medicament_prescription.nb_de_jours'
-                )
+            // Récupérer tous les médicaments associés à cette prescription
+            $medicaments = DB::table('medicament_prescription')
+                ->where('prescription_id', $prescription->id)
                 ->get();
-
-            // Récupérer les médicaments non français (medicament_CODE_PCT)
-            $medicamentsNonFrance = DB::table('medicament_prescription')
-                ->join('medicaments', 'medicament_prescription.medicament_CODE_PCT', '=', 'medicaments.CODE_PCT')
-                ->where('medicament_prescription.prescription_id', $prescription->id)
-                ->select(
-                    'medicaments.NOM_COMMERCIAL as nom_commercial',
-                    'medicaments.category',
-                    'medicaments.format',
-                    'medicaments.form',
-                    'medicament_prescription.dosage',
-                    'medicament_prescription.nb_de_fois',
-                    'medicament_prescription.horaire',
-                    'medicament_prescription.nb_de_jours'
-                )
-                ->get();
-
-            // Fusionner les deux listes de médicaments
-            $medicamentDataArray = $medicamentsFrance->merge($medicamentsNonFrance)->toArray();
-        } elseif ($prescription->type === 'Analyse') {
+    
+            foreach ($medicaments as $med) {
+                $medData = [
+                    'dosage' => $med->dosage,
+                    'nb_de_fois' => $med->nb_de_fois,
+                    'horaire' => $med->horaire,
+                    'nb_de_jours' => $med->nb_de_jours
+                ];
+    
+                // Cas 1: Medicament de France (medicament_id)
+                if (!empty($med->medicament_id)) {
+                    $franceMed = DB::table('fr_medicament')
+                        ->where('id', $med->medicament_id)
+                        ->first();
+                    
+                    if ($franceMed) {
+                        $medData['nom_commercial'] = $franceMed->medicament_name;
+                      
+                    }
+                }
+                // Cas 2: Medicament standard (CODE_PCT)
+                elseif (!empty($med->medicament_CODE_PCT)) {
+                    $standardMed = DB::table('medicaments')
+                        ->where('CODE_PCT', $med->medicament_CODE_PCT)
+                        ->first();
+                    
+                    if ($standardMed) {
+                        $medData['nom_commercial'] = $standardMed->NOM_COMMERCIAL;
+                        $medData['category'] = $standardMed->category;
+                        $medData['format'] = $standardMed->format;
+                        $medData['form'] = $standardMed->form;
+                    }
+                }
+                // Cas 3: Medicament manuel (nom_medicament)
+                elseif (!empty($med->nom_medicament)) {
+                    $medData['nom_commercial'] = $med->nom_medicament;
+                    
+                }
+    
+                $medicamentDataArray[] = $medData;
+            }
+        }  elseif ($prescription->type === 'Analyse') {
             $analyseDataArray = DB::table('analyses')
                 ->join('analyse_prescription', 'analyses.Code_Analyse', '=', 'analyse_prescription.Code_Analyse')
                 ->where('analyse_prescription.prescription_id', $prescription->id)

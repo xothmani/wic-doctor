@@ -100,7 +100,7 @@
 <style>
         /* Si vous voulez personnaliser le badge */
         .badge {
-            background-color:#5c6bc0; /* Couleur de fond */
+            background-color:#001f3f; /* Couleur de fond */
             color: white; /* Couleur du texte */
         }
     </style>

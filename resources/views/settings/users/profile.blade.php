@@ -100,7 +100,7 @@
     <!-- Content Header (Page header) -->
     <div class="content-header">
         <div class="container-fluid">
-            <div class="row mb-2">
+            <div class="row">
                 <div class="col-sm-6">
                     <h1 class="m-0">{!! trans('lang.user_profile') !!} <small>{{trans('lang.media_desc')}}</small></h1>
                 </div><!-- /.col -->
@@ -126,16 +126,36 @@
                             <h3 class="card-title"><i class="fas fa-user mr-2"></i> {{trans('lang.user_about_me')}}</h3>
                                                  </div>
                         <div class="card-body box-profile">
-                            <div class="text-center">
-                                <img src="{{auth()->user()->getFirstMediaUrl('avatar', 'icon')}}"
-                                    class="profile-user-img img-fluid img-circle" alt="{{auth()->user()->lastname}} {{auth()->user()->name}}">
-                            </div>
-                            <h3 class="profile-username text-center">{{auth()->user()->lastname}} {{auth()->user()->name}}</h3>
+                        @php
+    $user = auth()->user();
+
+    // Décodage sécurisé du prénom
+    $decodedName = json_decode($user->name);
+    $displayName = (json_last_error() === JSON_ERROR_NONE && is_object($decodedName) && isset($decodedName->fr))
+        ? $decodedName->fr
+        : $user->name;
+
+    // Décodage sécurisé du nom de famille
+    $decodedLastName = json_decode($user->lastname);
+    $displayLastName = (json_last_error() === JSON_ERROR_NONE && is_object($decodedLastName) && isset($decodedLastName->fr))
+        ? $decodedLastName->fr
+        : $user->lastname;
+@endphp
+
+<div class="text-center">
+    <img src="{{ $user->getFirstMediaUrl('avatar', 'icon') }}"
+         class="profile-user-img img-fluid img-circle"
+         alt="{{ $displayName }} {{ $displayLastName }}">
+</div>
+<h3 class="profile-username text-center">
+    {{ $displayName }} {{ $displayLastName }}
+</h3>
+
 
                             <p class="text-muted text-center">{{implode(', ',$rolesSelected)}}</p>
-                            <a class="btn btn-outline-{{setting('theme_color')}} btn-block" href="mailto:{{auth()->user()->email}}"><i class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}</a>
+                            <a style="background-color: #ffffff; color: #18167A; border-color: #18167A;"  class="btn btn-outline-{{setting('theme_color')}} btn-block" href="mailto:{{auth()->user()->email}}"><i class="fas fa-envelope mr-2"></i>{{auth()->user()->email}}</a>
                             @can('doctors.editProfil')
-                            <a class="btn btn-outline-{{ setting('theme_color') }} btn-block" href="{{ asset('storage/pdf/Guide modification photo de profil.pdf') }}" target="_blank">
+                            <a style="background-color: #ffffff; color: #18167A; border-color: #18167A;"  class="btn btn-outline-{{ setting('theme_color') }} btn-block" href="{{ asset('storage/pdf/Guide modification photo de profil.pdf') }}" target="_blank">
                                 <i class="fas fa-info-circle mr-2"></i> Guide pour modifier et compléter votre profil 
                                 <span class="badge badge-danger ml-2">Nouveau</span>
 
@@ -160,27 +180,27 @@
             @if(auth()->user()->hasRole('doctor'))
     <ul class="task-list">
         <li class="task {{ $doctor->pourcentage_avatar ? 'completed' : 'pending' }}">
-            <i class="{{ $doctor->pourcentage_avatar ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            <i class="{{ $doctor->pourcentage_avatar ? 'fas fa-check-circle' : 'far fa-circle' }}" style="color: #18167A;"></i>
             {{ trans('lang.import_avatar') }}
         </li>
         <li class="task {{ $doctor->pourcentage_adresse ? 'completed' : 'pending' }}">
-            <i class="{{ $doctor->pourcentage_adresse ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            <i class="{{ $doctor->pourcentage_adresse ? 'fas fa-check-circle' : 'far fa-circle' }}" style="color: #18167A;"></i>
             {{ trans('lang.complet_adresse') }}
         </li>
         <li class="task {{ $doctor->pourcentage_cv ? 'completed' : 'pending' }}">
-            <i class="{{ $doctor->pourcentage_cv ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            <i class="{{ $doctor->pourcentage_cv ? 'fas fa-check-circle' : 'far fa-circle' }}" style="color: #18167A;"></i>
             {{ trans('lang.complet_cv') }}
         </li>
         <li class="task {{ $doctor->pourcentage_cabinet ? 'completed' : 'pending' }}">
-            <i class="{{ $doctor->pourcentage_cabinet ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            <i class="{{ $doctor->pourcentage_cabinet ? 'fas fa-check-circle' : 'far fa-circle' }}" style="color: #18167A;"></i>
             {{ trans('lang.import_photos') }}
         </li>
         <li class="task {{ $doctor->pourcentage_tags ? 'completed' : 'pending' }}">
-            <i class="{{ $doctor->pourcentage_tags ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            <i class="{{ $doctor->pourcentage_tags ? 'fas fa-check-circle' : 'far fa-circle' }}" style="color: #18167A;"></i>
             {{ trans('lang.check_tags') }}
         </li>
         <li class="task {{ $doctor->pourcentage_profil ? 'completed' : 'pending' }}">
-            <i class="{{ $doctor->pourcentage_profil ? 'fas fa-check-circle' : 'far fa-circle' }}"></i>
+            <i  class="{{ $doctor->pourcentage_profil ? 'fas fa-check-circle' : 'far fa-circle' }}" style="color: #18167A;"></i>
             {{ trans('lang.final_profil') }}
         </li>
     </ul>
@@ -190,15 +210,16 @@
             <!-- Progress Bar -->
             <div class="progress-container">
                 <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: {{ $progressBar }}%; background-color: #5c6bc0;"></div>
+                    <div class="progress-bar" style="width: {{ $progressBar }}%; background-color: #18167A;"></div>
                 </div>
             </div>
 
-            <a class="btn btn-outline-{{ setting('theme_color') }} btn-block" href="{{ route('doctors.editProfil') }}">
+            <a class="btn btn-block" 
+   style="background-color: #ffffff; color: #18167A; border-color: #18167A;" href="{{ route('doctors.editProfil') }}">
                 <i class="fas fa-edit mr-2"></i> {{ trans('lang.edit_profil') }}
             </a>
             <a class="btn btn-block" 
-   style="background-color: #36a78a; color: #ffffff; border-color: #36a78a;" 
+   style="background-color: #11b8aa; color: #ffffff; border-color: #11b8aa;" 
    href="{{ route('doctors.generateUrl') }}" 
    target="_blank" 
    rel="noopener noreferrer">
@@ -278,7 +299,18 @@
         {{ $subscriptionStatus }}
     </span>
 </div>
-
+<div class="form-group border p-3 mb-3" style="border: 2px solid #2196f3; border-radius: 5px;">
+    <i class="fas fa-sms mr-2" style="font-size: 1.2rem; color: #001f3f;"></i> <!-- Icône SMS -->
+    <b>SMS utilisés :</b>
+    <div class="mt-2">
+        <span style="background-color: #28a745; color: white; padding: 2px 8px; border-radius: 10px; font-size: 15px; margin-right: 10px;">
+            Pack SMS Gratuit : {{ $doctor->pack_sms_gratuit }}
+        </span>
+        <span style="background-color: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 15px;">
+            Pack SMS Personnalisé : {{ $doctor->pack_sms_perso }}
+        </span>
+    </div>
+</div>
 
 @endhasrole
 
@@ -419,7 +451,7 @@
     }
 
     .task.completed i {
-        color: #5c6bc0;
+        color: #001f3f;
         /* mauve */
     }
 

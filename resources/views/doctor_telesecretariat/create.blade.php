@@ -14,7 +14,7 @@
         }
 
         .intro-card {
-            background: linear-gradient(135deg, #5C6BC0, #3F51B5);
+            background: linear-gradient(135deg, #001f3f, #3F51B5);
             color: white;
             border-radius: 10px;
             padding: 25px;
@@ -30,7 +30,7 @@
         }
 
         .form-control:focus {
-            border-color: #5C6BC0;
+            border-color: #001f3f;
             box-shadow: 0 0 0 0.2rem rgba(92, 107, 192, 0.15);
         }
 
@@ -41,7 +41,7 @@
         }
 
         .btn-primary-custom {
-            background: #5C6BC0;
+            background: #001f3f;
             border: none;
             padding: 12px 25px;
             border-radius: 8px;
@@ -208,7 +208,7 @@
                         text: 'La date de début est obligatoire',
                         icon: 'error',
                         confirmButtonText: 'OK',
-                        confirmButtonColor: '#5C6BC0'
+                        confirmButtonColor: '#001f3f'
                     });
                     return false;
                 }
@@ -220,7 +220,7 @@
                         text: 'La date de fin doit être postérieure à la date de début',
                         icon: 'error',
                         confirmButtonText: 'OK',
-                        confirmButtonColor: '#5C6BC0'
+                        confirmButtonColor: '#001f3f'
                     });
                     return false;
                 }

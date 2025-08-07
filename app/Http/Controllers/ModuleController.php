@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Artisan; 
 use Illuminate\Support\Facades\DB;
 use Log;
 use Nwidart\Modules\Facades\Module;

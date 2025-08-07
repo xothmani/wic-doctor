@@ -101,6 +101,24 @@ class AvailabilityHourAPIController extends Controller
      */
 
     /*********************** Code hamza ****************************** */
+
+
+    public function getTypeConsultation($id, Request $request): JsonResponse
+    {
+        try {
+            $types = AvailabilityHour::where('doctor_id', '=',$id)
+                ->whereNotNull('type') 
+                ->distinct()
+                ->pluck('type');
+
+            return $this->sendResponse($types, 'Types retrieved successfully.');
+        } catch (\Exception $e) {
+            return $this->sendError('Error retrieving types: ' . $e->getMessage());
+        }
+    }
+
+
+
     public function show(int $id, Request $request): JsonResponse
     {
         Log::info("Availibility hours controller => show function ");
@@ -215,14 +233,12 @@ class AvailabilityHourAPIController extends Controller
     public function getAvailibilityHoursHamza(int $id, $date): array
     {
         $availabilityHours = DB::table('availability_hours')->where('doctor_id', $id)->get();
-        Log::info("Availibility hours doctor", ["Availibility hours" => $availabilityHours]);
         // Convert collection to array
         $availabilityHours = $availabilityHours->map(function ($availability) {
             $availability->day = $this->translateDayToEnglish($availability->day); // Corrigé
             return $availability;
         });
 
-        Log::info("Appel de getAvailibilityHoursHamza ligne 3 ");
 
 
 
@@ -238,7 +254,7 @@ class AvailabilityHourAPIController extends Controller
                 }
             })
             ->get();
-        Log::info("Appel de getAvailibilityHoursHamza ligne 4 ", ["vacations" => $vacations]);
+
         // Conversion des congés en tableau de dates
         $vacationDates = $vacations->flatMap(function ($vacation) {
             $dates = [];
@@ -256,12 +272,11 @@ class AvailabilityHourAPIController extends Controller
             return $dates;
         })->toArray();
 
-        Log::info("Appel de getAvailibilityHoursHamza ligne 5 ");
 
         // Gestion du calendrier des disponibilités
         $calendar = [];
 
-        if (!empty($date)) {
+        /*if (!empty($date)) {
             $date = Carbon::createFromFormat('Y-m-d', $date);
             $doctor = Doctor::find($id);
             $patterns = Pattern::where('doctor_id', $id)->get();
@@ -289,10 +304,15 @@ class AvailabilityHourAPIController extends Controller
 
                 return !in_array($day, $vacationDates);
             });
-        }
-        Log::info("Appel de getAvailibilityHoursHamza ligne 6 ");
+        }*/
+        $doctor = Doctor::find($id);
+        $date = Carbon::createFromFormat('Y-m-d', $date);
+        $calendar = array_merge($calendar, $doctor->weekCalendarRangeForFilter($date));
+        Log::info("Appel de getAvailibilityHoursHamza ligne 6 ", ["calendar" => $calendar]);
         return $calendar;
     }
+
+
 
 
 

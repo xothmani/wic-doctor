@@ -77,6 +77,19 @@
   </div>
 </div> -->
 
+<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+    {!! Form::label('numFiche', 'Numéro de fiche', ['class' => 'col-md-3 control-label text-md-right mr-2']) !!}
+    <div class="col-md-9">
+        {!! Form::text('numFiche', $fiche->numFiche ?? null, [
+            'class' => 'form-control',
+            'placeholder' => 'Insérer le numéro de fiche'
+        ]) !!}
+    </div>
+</div>
+
+
+
+
 
 <!-- First Name Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
@@ -297,18 +310,18 @@
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
   {!! Form::label('weight', trans("lang.patient_weight"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
   <div class="col-md-9">
-    {!! Form::text('weight', null,  ['class' => 'form-control','placeholder'=>  trans("lang.patient_weight_placeholder")]) !!}
-    
+    {!! Form::number('weight', null,  ['class' => 'form-control', 'placeholder'=> trans("lang.patient_weight_placeholder"), 'inputmode' => 'numeric', 'pattern' => '[0-9]*']) !!}
   </div>
 </div>
+
 <!-- Height Field -->
-    <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
-      {!! Form::label('height', trans("lang.patient_height"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
-      <div class="col-md-9">
-        {!! Form::text('height', null,  ['class' => 'form-control','placeholder'=>  trans("lang.patient_height_placeholder")]) !!}
-    
-      </div>
-    </div>
+<div class="form-group align-items-baseline d-flex flex-column flex-md-row">
+  {!! Form::label('height', trans("lang.patient_height"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}
+  <div class="col-md-9">
+    {!! Form::number('height', null,  ['class' => 'form-control', 'placeholder'=> trans("lang.patient_height_placeholder"), 'inputmode' => 'numeric', 'pattern' => '[0-9]*']) !!}
+  </div>
+</div>
+
     <!-- Groupe Sanguin Field -->
 <div class="form-group align-items-baseline d-flex flex-column flex-md-row">
     {!! Form::label('groupe_sanguin', trans("lang.patient_groupe_sanguin"), ['class' => 'col-md-3 control-label text-md-right mx-1']) !!}

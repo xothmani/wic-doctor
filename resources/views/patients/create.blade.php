@@ -1,5 +1,8 @@
 @extends('layouts.app')
-
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
 @php
   $doctorId = auth()->user()->getDoctorId();
 @endphp
@@ -85,3 +88,315 @@
     var dropzoneFields = [];
   </script>
 @endpush
+<!-- Modal pour sous-profil -->
+<!-- Modal pour sous-profil -->
+<div class="modal fade" id="subProfileModal" tabindex="-1" role="dialog" aria-labelledby="subProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="subProfileModalLabel">Profil existant détecté</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if(session('existingPatient'))
+                <p>Ce numéro de téléphone et/ou cette adresse e-mail est déjà associé(e) à <strong>{{ session('existingPatient')['name'] }}</strong>.</p>
+                
+                <div class="form-group">
+                    <label>Ce rendez-vous est pour :</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="appointment_for" id="appointmentForSelf" value="self" checked>
+                        <label class="form-check-label" for="appointmentForSelf">
+                            {{ session('existingPatient')['name'] }} (lui-même)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="appointment_for" id="appointmentForOther" value="other">
+                        <label class="form-check-label" for="appointmentForOther">
+                            Quelqu'un d'autre
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="otherPatientForm" style="display: none;">
+                    <p>Souhaitez-vous créer un sous-profil lié à ce compte?</p>
+                    
+                    <form id="subProfileForm" action="{{ route('patients.store') }}" method="POST" enctype="multipart/form-data" novalidate>
+                        @csrf
+
+                        @if(session('formData.numFiche'))
+                        <div class="form-group">
+                            <label for="last_name">Numéro de fiche</label>
+                            <input type="text" class="form-control" name="numFiche" value="{{ session('formData.numFiche') }}" readonly/>
+                        </div>
+                        @endif
+
+                        <!-- Informations du nouveau sous-profil -->
+                        <div class="form-group">
+                            <label for="first_name">Prénom</label>
+                            <input type="text" class="form-control" name="first_name" id="modalFirstName" value="{{ session('formData')['first_name'] ?? '' }}" required>
+                            <div class="invalid-feedback">Veuillez entrer un prénom valide.</div>
+                        </div>
+                      
+                        <div class="form-group">
+                            <label for="last_name">Nom</label>
+                            <input type="text" class="form-control" name="last_name" id="modalLastName" value="{{ session('formData')['last_name'] ?? '' }}" required>
+                            <div class="invalid-feedback">Veuillez entrer un nom valide.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="date_naissance">Date de naissance</label>
+                            <input type="date" class="form-control" name="date_naissance" id="modalBirthDate" value="{{ session('formData')['date_naissance'] ?? '' }}" required>
+                            <div class="invalid-feedback">Veuillez entrer une date de naissance valide.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">Genre</label>
+                            <select class="form-control" name="gender" id="modalGender" required>
+                                <option value="">Sélectionner un genre</option>
+                                <option value="homme" {{ (session('formData')['gender'] ?? '') == 'homme' ? 'selected' : '' }}>Homme</option>
+                                <option value="femme" {{ (session('formData')['gender'] ?? '') == 'femme' ? 'selected' : '' }}>Femme</option>
+                                <option value="autre" {{ (session('formData')['gender'] ?? '') == 'autre' ? 'selected' : '' }}>Autre</option>
+                            </select>
+                            <div class="invalid-feedback">Veuillez sélectionner un genre.</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="type_of_relationship">Relation avec {{ session('existingPatient')['name'] }}</label>
+                            <select class="form-control" name="type_of_relationship" id="modalRelationship" required>
+                                <option value="">Sélectionner une relation</option>
+                                <option value="conjoint">Conjoint(e)</option>
+                                <option value="enfant">Enfant</option>
+                                <option value="parent">Parent</option>
+                                <option value="frere">Frère</option>
+                                <option value="soeur">Sœur</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                            <div class="invalid-feedback">Veuillez spécifier la relation.</div>
+                        </div>
+                        
+                        <div id="relatedPatientsContainer" class="mt-3" style="display: none;">
+                            <h6>Patients liés existants :</h6>
+                            <div class="form-group">
+                                <div id="relatedPatientsList" class="list-group"></div>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="createNewPatient" name="create_new_patient" checked>
+                                <label class="form-check-label" for="createNewPatient">
+                                    Créer un nouveau patient
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" name="existing_patient_id" id="existingPatientId" value="">
+                        <input type="hidden" name="phone_number" value="{{ session('existingPatient')['phone_number'] }}">
+                        <input type="hidden" name="create_subprofile" value="1">
+                    </form>
+                </div>
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="submitSubProfileForm">Confirmer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const appointmentForSelf = document.getElementById('appointmentForSelf');
+    const appointmentForOther = document.getElementById('appointmentForOther');
+    const otherPatientForm = document.getElementById('otherPatientForm');
+    const relationshipSelect = document.getElementById('modalRelationship');
+    const relatedContainer = document.getElementById('relatedPatientsContainer');
+    const relatedList = document.getElementById('relatedPatientsList');
+    const existingPatientId = document.getElementById('existingPatientId');
+    const createNewPatientCheckbox = document.getElementById('createNewPatient');
+    const form = document.getElementById('subProfileForm');
+    const submitBtn = document.getElementById('submitSubProfileForm');
+
+    // Gestion du choix "pour lui-même" ou "pour quelqu'un d'autre"
+    appointmentForSelf.addEventListener('change', function() {
+        otherPatientForm.style.display = 'none';
+    });
+    
+    appointmentForOther.addEventListener('change', function() {
+        otherPatientForm.style.display = 'block';
+    });
+
+    // Gestion du changement de relation
+    relationshipSelect.addEventListener('change', function() {
+        const selectedRelation = this.value;
+        const mainPatientId = {{ session('existingPatient')['id'] ?? 'null' }};
+
+        if (selectedRelation && mainPatientId) {
+            fetch(`/patients/related/${mainPatientId}/${selectedRelation}`)
+                .then(response => response.json())
+                .then(data => {
+                    relatedList.innerHTML = '';
+                    
+                    if (data.length > 0) {
+                        relatedContainer.style.display = 'block';
+                        
+                        data.forEach(patient => {
+                            const item = document.createElement('button');
+                            item.type = 'button';
+                            item.classList.add('list-group-item', 'list-group-item-action');
+                            
+                            let formattedDate = '';
+                            if (patient.date_naissance) {
+                                const date = new Date(patient.date_naissance);
+                                formattedDate = ` (${date.toLocaleDateString('fr-FR')})`;
+                            }
+                            
+                            item.textContent = `${patient.first_name} ${patient.last_name}${formattedDate}`;
+                            
+                            item.addEventListener('click', function() {
+                                document.querySelectorAll('#relatedPatientsList button').forEach(btn => {
+                                    btn.classList.remove('active');
+                                });
+                                this.classList.add('active');
+                                existingPatientId.value = patient.id;
+                                createNewPatientCheckbox.checked = false;
+                            });
+                            
+                            relatedList.appendChild(item);
+                        });
+                    } else {
+                        relatedContainer.style.display = 'none';
+                        existingPatientId.value = '';
+                        createNewPatientCheckbox.checked = true;
+                    }
+                })
+                .catch(err => {
+                    console.error('Erreur:', err);
+                    relatedContainer.style.display = 'none';
+                });
+        } else {
+            relatedContainer.style.display = 'none';
+            existingPatientId.value = '';
+            createNewPatientCheckbox.checked = true;
+        }
+    });
+
+    // Gestion de la checkbox "Créer un nouveau patient"
+    createNewPatientCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            existingPatientId.value = '';
+            document.querySelectorAll('#relatedPatientsList button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        }
+    });
+
+    // Validation du formulaire
+    submitBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+    
+    if (appointmentForSelf.checked) {
+        // Si c'est pour le patient lui-même, on enregistre simplement la relation avec le médecin
+        const mainPatientId = {{ session('existingPatient')['id'] ?? 'null' }};
+        const doctorId = {{ auth()->user()->id ?? 'null' }};
+        
+        if (mainPatientId && doctorId) {
+            // Envoyer une requête pour associer le patient au médecin
+            fetch(`/patients/${mainPatientId}/attach`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'application/json'
+    },
+    body: JSON.stringify({})
+})
+.then(response => {
+    if (response.redirected) {
+        // Si le serveur a renvoyé une redirection
+        window.location.href = response.url;
+    } else {
+        return response.json().then(data => {
+            if (!response.ok) {
+                throw new Error(data.message || "Erreur lors de l'association");
+            }
+            return data;
+        });
+    }
+})
+.catch(error => {
+    console.error("Erreur Fetch:", error);
+    // Vous pouvez aussi rediriger vers une page d'erreur si besoin
+    window.location.href = `/patients?alert=${encodeURIComponent(error.message)}`;
+});
+        }
+    }else {
+            // Si c'est pour quelqu'un d'autre, on suit le processus existant
+            // Réinitialiser les messages d'erreur
+            form.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            
+            let isValid = true;
+            
+            // Validation des champs requis seulement si on crée un nouveau patient
+            if (createNewPatientCheckbox.checked) {
+                const requiredFields = [
+                    'first_name', 
+                    'last_name', 
+                    'date_naissance', 
+                    'gender', 
+                    'type_of_relationship'
+                ];
+                
+                requiredFields.forEach(fieldName => {
+                    const field = form.querySelector(`[name="${fieldName}"]`);
+                    if (!field.value.trim()) {
+                        field.classList.add('is-invalid');
+                        isValid = false;
+                    }
+                });
+                
+                // Validation spécifique pour la date de naissance
+                const birthDate = form.querySelector('[name="date_naissance"]');
+                if (birthDate.value) {
+                    const birthDateObj = new Date(birthDate.value);
+                    const today = new Date();
+                    if (birthDateObj >= today) {
+                        birthDate.classList.add('is-invalid');
+                        birthDate.nextElementSibling.textContent = 'La date de naissance doit être dans le passé.';
+                        isValid = false;
+                    }
+                }
+            }
+            
+            if (isValid) {
+                form.submit();
+            } else {
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+    });
+    
+    // Validation en temps réel
+    if (form) {
+        form.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        });
+    }
+});
+
+// Afficher le modal si nécessaire
+@if(session('showSubProfileModal'))
+$(document).ready(function() {
+    $('#subProfileModal').modal('show');
+});
+@endif
+</script>

@@ -10,7 +10,7 @@ use App\Models\Appointment;
 use App\Models\AppointmentStatus;
 use App\Models\Doctor;
 use App\Models\DoctorPatients;
-
+use Illuminate\Support\Facades\DB;
 use App\DataTables\ConsultationDataTable;
 use App\Http\Requests\CreateConsultationRequest;
 use App\Http\Requests\UpdateConsultationRequest;
@@ -34,38 +34,71 @@ class ConsultationController extends Controller
     }
 
     public function create(Request $request)
-    {
-        $patient_id = $request->query('patient_id');
-        $selectedPatient = null;
-        $customFields = '';
-        $historiqueMedical = '';
-    
-        if ($patient_id) {
-            $selectedPatient = Patient::find($patient_id);
-            if ($selectedPatient) {
-                $selectedPatient->full_name = $selectedPatient->first_name . ' ' . $selectedPatient->last_name;
-    
-                // Récupérer les consultations du patient avec ce médecin
-                $consultations = Consultation::where('patient_id', $patient_id)
-                    ->where('user_id', auth()->id()) // médecin connecté
-                    ->orderBy('dateConsultation', 'desc')
-                    ->get();
-    
-                // Construire l’historique médical
-                foreach ($consultations as $consultation) {
-                    $historiqueMedical .= "<p><strong>📅 " . $consultation->dateConsultation . "</strong> : " . $consultation->motif . "</p>";
-                }
-            }
-        }
-    
-        return view('consultations.create', compact('selectedPatient', 'customFields', 'historiqueMedical'));
+{
+    $patient_id = $request->query('patient_id');
+    $selectedPatient = null;
+    $customFields = '';
+    $historiqueMedical = '';
+    $showAlert = false;
+
+    // Trouver le doctor correspondant à l'utilisateur connecté
+    $doctor = Doctor::where('user_id', auth()->id())->first();
+
+    if (!$doctor) {
+        $showAlert = true;
+        return view('consultations.create', compact('showAlert'));
     }
+
+    if ($patient_id) {
+        // Vérifier si le patient existe
+        $selectedPatient = Patient::find($patient_id);
+        if (!$selectedPatient) {
+            $showAlert = true;
+            return view('consultations.create', compact('showAlert'));
+        }
+
+        // Vérifier si l'association existe
+        $isAssociated = DB::table('doctor_patients')
+            ->where('doctor_id', $doctor->id)
+            ->where('patient_id', $patient_id)
+            ->exists();
+
+        // Si pas encore associé, l'associer automatiquement
+        if (!$isAssociated) {
+            DB::table('doctor_patients')->insert([
+                'doctor_id' => $doctor->id,
+                'patient_id' => $patient_id,
+              
+            ]);
+        }
+
+        // Préparer les données du patient
+        $selectedPatient->full_name = $selectedPatient->first_name . ' ' . $selectedPatient->last_name;
+
+        $consultations = Consultation::where('patient_id', $patient_id)
+            ->where('user_id', auth()->id())
+            ->orderBy('dateConsultation', 'desc')
+            ->get();
+
+        foreach ($consultations as $consultation) {
+            $historiqueMedical .= "<p><strong>📅 " . $consultation->dateConsultation . "</strong> : " . $consultation->motif . "</p>";
+        }
+    } else {
+        $showAlert = true;
+        return view('consultations.create', compact('showAlert'));
+    }
+
+    return view('consultations.create', compact('selectedPatient', 'customFields', 'historiqueMedical', 'showAlert'));
+}
+
+    
     
     public function store(CreateConsultationRequest $request): RedirectResponse
     {
         $input = $request->all();
         $input['motif'] = strip_tags($request->input('motif'));
         $input['raison'] = strip_tags($request->input('raison'));
+        $data['duree'] = $request->input('duree', 0); // Valeur par défaut 0 si non fournie
         
         $patient_id = $request->input('patient_id');
         $patient = Patient::find($patient_id);
@@ -206,6 +239,8 @@ class ConsultationController extends Controller
             return redirect()->back()->withInput();
         }
     }
+    
+    
     
     
 

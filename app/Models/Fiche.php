@@ -12,21 +12,26 @@ class Fiche extends Model
     // Spécifier la table si elle est au singulier
     protected $table = 'fiche';
 
-    // Ajouter 'patient_id' à la propriété fillable
-    protected $fillable = ['patient_id', 'code',         'user_id',
-]; // Ajoutez les autres champs que vous souhaitez mass-assigner
+    
+    protected $fillable = [
+        'patient_id',
+        'code',
+        'user_id',
+        'numFiche'
+]; 
 
-    protected static function boot()
-    {
-        parent::boot();
+protected static function boot()
+{
+    parent::boot();
 
-        static::creating(function ($fiche) {
-            // Génération d'un code unique auto-incrémenté avec format `001`, `002`, etc.
-            $lastCode = self::max('code');
-            $nextCode = str_pad((int)$lastCode + 1, 3, '0', STR_PAD_LEFT);
-            $fiche->code = $nextCode;
-        });
-    }
+    static::creating(function ($fiche) {
+        $lastCode = self::orderByRaw('CAST(code AS UNSIGNED) DESC')->first()?->code ?? '0';
+        $numeric = is_numeric($lastCode) ? (int)$lastCode : 0;
+
+        $fiche->code = (string)($numeric + 1); // Pas de str_pad
+    });
+}
+
 
     // Relation avec Patient
     public function patient()

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 
+use App\Models\Address;
 use App\Models\DoctorPatients;
 use App\Repositories\DoctorPatientsRepository;
 use Illuminate\Http\Request;
@@ -12,6 +13,8 @@ use Prettus\Repository\Criteria\RequestCriteria;
 use Illuminate\Support\Facades\Response;
 use Prettus\Repository\Exceptions\RepositoryException;
 use App\Models\Doctor;
+use App\Repositories\DoctorRepository;
+
 /**
  * Class DoctorPatientsController
  * @package App\Http\Controllers\API
@@ -22,10 +25,16 @@ class DoctorPatientsAPIController extends Controller
     /** @var  DoctorPatientsRepository */
     private DoctorPatientsRepository $doctorPatientsRepository;
 
-    public function __construct(DoctorPatientsRepository $doctorPatientsRepo)
+    /** @var  DoctorRepository */
+    private DoctorRepository $doctorRepository;
+
+
+
+    public function __construct(DoctorPatientsRepository $doctorPatientsRepo, DoctorRepository $doctorRepository)
     {
         parent::__construct();
         $this->doctorPatientsRepository = $doctorPatientsRepo;
+        $this->doctorRepository = $doctorRepository;
     }
 
     /**
@@ -79,29 +88,31 @@ class DoctorPatientsAPIController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
      public function getRecentDoctors($patient_id)
-{
-    try {
-        // Query the doctor_patients table to get the patient_id and doctor_id
-        $doctorPatients = DoctorPatients::where('patient_id', $patient_id)
-            ->orderBy('doctor_id', 'desc')  // Order by doctor_id
-            ->limit(4)  // Limit to 4 results
-            ->get();
+    {
+        try {
+            // Query the doctor_patients table to get the patient_id and doctor_id
+            $doctorPatients = DoctorPatients::where('patient_id', $patient_id)
+                ->orderBy('doctor_id', 'desc')  // Order by doctor_id
+                ->limit(4)  // Limit to 4 results
+                ->get();
 
-        // Check if data is found
-        if ($doctorPatients->isEmpty()) {
-            return $this->sendError('No recent doctors found for this patient.');
+            // Check if data is found
+            if ($doctorPatients->isEmpty()) {
+                return $this->sendError('No recent doctors found for this patient.');
+            }
+
+            // Retrieve the doctor details based on the doctor_id
+            $doctorIds = $doctorPatients->pluck('doctor_id');  // Extract doctor_ids from the doctor_patients table
+            
+            // Récupère les médecins avec leur adresse
+            $doctors = Doctor::with('address')
+                ->whereIn('id', $doctorIds)
+                ->get();
+
+
+            return $this->sendResponse($doctors->toArray(), 'Recent doctors retrieved successfully.');
+        } catch (\Exception $e) {
+            return $this->sendError('An error occurred: ' . $e->getMessage());
         }
-
-        // Retrieve the doctor details based on the doctor_id
-        $doctorIds = $doctorPatients->pluck('doctor_id');  // Extract doctor_ids from the doctor_patients table
-        
-        // Fetch the full doctor objects by doctor_ids
-        $doctors = Doctor::whereIn('id', $doctorIds)  // Query the Doctor model using the doctor_ids
-            ->get();  // Get all the doctor details
-
-        return $this->sendResponse($doctors->toArray(), 'Recent doctors retrieved successfully.');
-    } catch (\Exception $e) {
-        return $this->sendError('An error occurred: ' . $e->getMessage());
     }
-}
 }

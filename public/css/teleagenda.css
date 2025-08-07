@@ -9,8 +9,8 @@
 #saveAppointmentRef{
     padding: 10px;
     background-color: #e0f7ff;
-    border: 1px solid #007bff;
-    color: #007bff;
+    border: 1px solid #001f3f;
+    color: #001f3f;
     text-align: center;
     cursor: pointer;
     border-radius: 5px;
@@ -19,8 +19,8 @@
 .time-slot {
     padding: 10px;
     background-color: #e0f7ff;
-    border: 1px solid #007bff;
-    color: #007bff;
+    border: 1px solid #001f3f;
+    color: #001f3f;
     text-align: center;
     cursor: pointer;
     border-radius: 5px;
@@ -28,12 +28,12 @@
 }
 
 .time-slot:hover {
-    background-color: #007bff;
+    background-color: #001f3f;
     color: white;
 }
 
 .time-slot.selected {
-    background-color: #007bff;
+    background-color: #001f3f;
     color: white;
     font-weight: bold;
 }
@@ -330,7 +330,7 @@
 
 .list-group-item:hover {
     background-color: #e9ecef;
-    color: #007bff; /* Bootstrap primary color */
+    color: #001f3f; /* Bootstrap primary color */
 }
 
 .list-group-item.active {
@@ -371,7 +371,7 @@
 }
 .fc-daygrid-day-number {
     font-size: 14px;
-    color: #007bff; /* Blue color */
+    color: #001f3f; /* Blue color */
     margin-bottom: 5px;
 }
 

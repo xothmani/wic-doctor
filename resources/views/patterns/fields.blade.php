@@ -106,7 +106,7 @@
 <!-- Submit Field -->
 <div
     class="form-group col-12 d-flex flex-column flex-md-row justify-content-md-end justify-content-sm-center border-top pt-4">
-    <button type="submit" class="btn bg-primary mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2">
+    <button type="submit" class="btn mx-md-3 my-lg-0 my-xl-0 my-md-0 my-2" style="color: #001f3f;">
         <i class="fa fa-save"></i> {{ trans('lang.save') }} {{ trans('lang.pattern') }}
     </button>
     <a href="{!! route('patterns.index') !!}" class="btn btn-default">

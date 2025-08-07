@@ -12,7 +12,7 @@
     }
 
     #recordButton:hover {
-        background-color: #5c6bc0 !important;
+        background-color: #001f3f !important;
     }
 
     #playButton:hover {
@@ -42,43 +42,68 @@
         border-color: #dc3545 !important;
     }
 </style>
+<!-- Timer Display -->
+<div class="form-group col-12 border-top pt-3 border-bottom pb-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap timer-container w-100">
 
-<div class="d-flex flex-column col-sm-12 col-md-6">
+        <!-- Gauche : Informations patient -->
+        <div class="d-flex flex-wrap align-items-center gap-2">
+           <!-- Nom du patient -->
+<span class="badge large-badge patient-info badge-unified">
+    @if(optional($selectedPatient)->gender == 'femme')
+        <i class="fas fa-venus fa-lg me-1"></i>
+    @elseif(optional($selectedPatient)->gender == 'homme')
+        <i class="fas fa-mars fa-lg me-1"></i>
+    @endif
+    {{ optional($selectedPatient)->full_name }}
+</span>
+
+<!-- Date de naissance -->
+<span class="badge large-badge patient-info badge-unified">
+    <i class="fas fa-calendar-alt fa-lg me-1"></i>
+    {{ optional($selectedPatient)->date_naissance ? \Carbon\Carbon::parse($selectedPatient->date_naissance)->format('d/m/Y') : '' }}
+</span>
+
+<!-- Âge -->
+<span class="badge large-badge patient-info badge-unified">
+    <i class="fas fa-birthday-cake fa-lg me-1"></i>
+    {{ optional($selectedPatient)->age }}
+</span>
+        </div>
+
+        <!-- Droite : Timer + Bouton pause/reprise + Label -->
+        <div class="d-flex align-items-center gap-3 flex-wrap justify-content-end">
+
+            <!-- Label -->
+            <small class="text-muted timer-label mr-2">Durée de la consultation: </small>
+            <!-- Timer -->
+<div class="timer-display mr-2">
+    <span class="badge badge-unified">
+        <i class="fas fa-clock me-2"></i>
+        <span id="consultationTimer">00:00:00</span>
+    </span>
+</div>
+
+<!-- Bouton Pause/Reprendre -->
+<button type="button" id="pauseResumeBtn" class="btn pause-btn badge-unified">
+    <i class="fas fa-pause"></i>
+</button>
+
+        </div>
+    </div>
+</div>
+
+
+<input type="hidden" name="duree" id="consultationDuration" value="0">
+
+<div class="d-flex flex-column col-sm-12 col-md-6 ">
     <!-- Hidden Patient ID Field -->
     {!! Form::hidden('patient_id', optional($selectedPatient)->id) !!}
 
     <!-- Hidden User ID Field -->
     {!! Form::hidden('user_id', auth()->user()->id) !!}
 
-    <div class="form-group row d-flex align-items-center mb-2">
-        <!-- Nom du patient -->
-        <div class="col-md-4 d-flex align-items-center mb-2">
-            <span class="badge large-badge" style="background-color:rgb(190, 150, 147); color: #fff;">
-                @if(optional($selectedPatient)->gender == 'femme')
-                    <i class="fas fa-venus fa-lg me-1" aria-hidden="true"></i>
-                @elseif(optional($selectedPatient)->gender == 'homme')
-                    <i class="fas fa-mars fa-lg me-1" aria-hidden="true"></i>
-                @endif
-                {{ optional($selectedPatient)->full_name }}
-            </span>
-        </div>
-
-        <!-- Date de naissance -->
-        <div class="col-md-4 d-flex align-items-center mb-2">
-            <span class="badge large-badge" style="background-color:rgb(190, 150, 147); color: #fff;">
-                <i class="fas fa-calendar-alt fa-lg me-1" aria-hidden="true"></i>
-                {{ optional($selectedPatient)->date_naissance ? \Carbon\Carbon::parse($selectedPatient->date_naissance)->format('d/m/Y') : '' }}
-            </span>
-        </div>
-
-        <!-- Âge -->
-        <div class="col-md-4 d-flex align-items-center mb-2">
-            <span class="badge large-badge" style="background-color:rgb(190, 150, 147); color: #fff;">
-                <i class="fas fa-birthday-cake fa-lg me-1" aria-hidden="true"> </i>
-                {{ optional($selectedPatient)->age }}
-            </span>
-        </div>
-    </div>
+    
 
     <!-- Weight Field -->
     <div class="form-group d-flex flex-column mb-2">
@@ -523,4 +548,155 @@
         });
     });
 </script>
+<script>
+    let isPaused = false;
+    let timerInterval;
+    let startTime = new Date();
+    const durationInput = document.getElementById('consultationDuration');
+    const timerDisplay = document.getElementById('consultationTimer');
+    const pauseResumeBtn = document.getElementById('pauseResumeBtn');
+
+    function formatTime(seconds) {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        return [hrs, mins, secs].map(v => String(v).padStart(2, '0')).join(':');
+    }
+
+    function formatReadableTime(seconds) {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        let result = '';
+        if (hrs > 0) result += `${hrs}h `;
+        if (mins > 0) result += `${mins}min `;
+        if (secs > 0 || result === '') result += `${secs}s`;
+        return result.trim();
+    }
+
+    function updateTimer() {
+        const now = new Date();
+        const elapsedSeconds = Math.floor((now - startTime) / 1000);
+        timerDisplay.textContent = formatTime(elapsedSeconds);
+        if (durationInput) durationInput.value = formatReadableTime(elapsedSeconds);
+    }
+
+    // Initial start
+    document.addEventListener('DOMContentLoaded', function() {
+        timerInterval = setInterval(updateTimer, 1000);
+
+        pauseResumeBtn.addEventListener('click', function () {
+    if (isPaused) {
+        startTime = new Date(new Date() - elapsedPausedTime * 1000);
+        timerInterval = setInterval(updateTimer, 1000);
+        pauseResumeBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        timerDisplay.parentElement.classList.remove('paused');
+    } else {
+        clearInterval(timerInterval);
+        const now = new Date();
+        elapsedPausedTime = Math.floor((now - startTime) / 1000);
+        pauseResumeBtn.innerHTML = '<i class="fas fa-play"></i>';
+        timerDisplay.parentElement.classList.add('paused');
+    }
+    isPaused = !isPaused;
+});
+
+
+        document.querySelector('form')?.addEventListener('submit', function () {
+            clearInterval(timerInterval);
+        });
+
+        window.addEventListener('beforeunload', function () {
+            clearInterval(timerInterval);
+        });
+    });
+
+    let elapsedPausedTime = 0;
+</script>
+
+
 @endpush
+<style>
+/* Conteneur principal */
+.timer-container {
+    background-color:rgb(255, 255, 255);
+    border-radius: 10px;
+    padding: 15px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* Badge général uniforme */
+.badge-unified {
+    font-size: 0.9rem;
+    padding: 8px 14px;
+    border-radius: 25px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Badges patient */
+.large-badge.patient-info {
+    background-color: rgb(190, 150, 147);
+    color: #fff;
+    margin-right: 8px;
+}
+
+/* Timer */
+.timer-display .badge {
+    background-color:   #45b39d   !important;
+    color: #212529 !important;
+    font-family: 'Courier New', monospace;
+}
+
+/* Bouton pause/reprendre */
+.pause-btn {
+    background-color: #d4dfea;
+    border: none;
+    border-radius: 25px;
+    padding: 8px 14px;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pause-btn i {
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+/* Label */
+.timer-label {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .timer-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .pause-btn {
+        margin-top: 8px;
+        margin-left: 3px;
+    }
+
+    .timer-label {
+        margin-top: 5px;
+        margin-right: 3px;
+    }
+}
+.timer-display .paused {
+    background-color: #dc3545 !important; /* Rouge */
+    color: white !important;
+}
+
+
+</style>

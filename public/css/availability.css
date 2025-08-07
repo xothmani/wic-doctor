@@ -2,7 +2,7 @@ select.form-control {
     height: auto; /* Ensure the height adjusts to the content */
     padding: 5px 10px; /* Add appropriate padding */
     line-height: normal; /* Reset line-height */
-    border: 2px solid #7286D3; /* Consistent border with the rest of the form */
+    border: 2px solid #001f3f; /* Consistent border with the rest of the form */
     border-radius: 5px; /* Rounded corners for a clean look */
     font-size: 14px; /* Ensure the font size matches other form elements */
     color: #333; /* Text color */
@@ -12,19 +12,19 @@ select.form-control {
 
 select.form-control:focus {
     outline: none;
-    box-shadow: 0 0 5px #7286D3;
-    border-color: #7286D3;
+    box-shadow: 0 0 5px #001f3f;
+    border-color: #001f3f;
 }
 
 /* Table Styling */
 .table {
-    border: 1px solid #7286D3; /* Primary blue border */
+    border: 1px solid #001f3f; /* Primary blue border */
     border-radius: 5px;
     overflow: hidden;
 }
 
 .table thead th {
-    background-color: #7286D3;
+    background-color: #001f3f;
     color: #fff;
     text-align: center;
     font-weight: bold;
@@ -58,7 +58,7 @@ select.form-control:focus {
 
 /* Button Styling */
 .btn-primary {
-    background-color: #7286D3;
+    background-color: #001f3f;
     border: none;
     border-radius: 5px;
     padding: 10px 20px;
@@ -66,12 +66,12 @@ select.form-control:focus {
 }
 
 .btn-primary:hover {
-    background-color: #7286D3;
+    background-color: #001f3f;
 }
 
 /* Header and Card Styling */
 .card-header {
-    background-color: #7286D3;
+    background-color: #001f3f;
     color: white;
     font-weight: bold;
     text-transform: uppercase;
@@ -79,7 +79,7 @@ select.form-control:focus {
 }
 
 .card {
-    border: 1px solid #7286D3;
+    border: 1px solid #001f3f;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
@@ -148,7 +148,7 @@ select.form-control:focus {
 
 /* When the switch is checked */
 input:checked + .slider {
-    background-color: #2196F3; /* Blue color */
+    background-color: #001f3f; /* Blue color */
 }
 
 input:checked + .slider::before {

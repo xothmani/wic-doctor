@@ -422,8 +422,13 @@ class DoctorController extends Controller
         }
     
         $user->update([
-            'name' => ucfirst(strtolower($request->input('lastname'))),
-            'lastname' => strtoupper($request->input('name')),
+           'name' => json_encode([
+    'fr' => ucfirst(strtolower($request->input('lastname')))
+]),
+'lastname' => json_encode([
+    'fr' => strtoupper($request->input('name'))
+]),
+
             'email' => $request->input('email'),
             'phone_number' => $request->input('phone_number'),
         ]);
@@ -570,6 +575,8 @@ private function executeNodeScript($doctor)
     'adresse_exacte' => $adresse_exacte, 
     'specialities' => $specialitiesData, 
     'availability_mode'=> $doctor->availability_mode, 
+    'titre'=> $doctor->titre, 
+
     'type' => "conventionné", 
         ];
 
@@ -699,6 +706,8 @@ public function generateDoctorUrl($doctorId)
 
     /// Récupérer et traiter le nom du médecin
 $doctorName = $doctor->name;
+$doctorTitre = $doctor->titre ? strtolower(str_replace(' ', '', $doctor->titre)) : 'dr';
+
 if (is_string($doctorName)) {
     // Décoder le nom si nécessaire
     $decoded = json_decode($doctorName, true);
@@ -727,7 +736,7 @@ if ($doctorName) {
 
 
     // Générer l'URL du médecin
-    $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/dr-{$doctorName}-{$randomId}.html";
+    $link = "https://wic-doctor.com/medecin/{$pays}/{$gouvernorat}/{$specialityName}/{$doctorTitre}-{$doctorName}-{$randomId}.html";
 
     // Rediriger l'utilisateur vers l'URL générée
     return redirect()->away($link);
@@ -757,6 +766,23 @@ public function generateConnectedDoctorUrl()
 
 
 
+public function editParam(Request $request)
+{
+  // Récupérer l'utilisateur authentifié
+    $user = auth()->user();
+        
+  // Récupérer le médecin associé à l'utilisateur
+    $doctor = Doctor::where('user_id', $user->id)->first();
+    $doctor->notif_sms_personnalise = $request->notif_sms_personnalise ?? 0;
+    $doctor->notif_mail = $request->notif_mail ?? 0;
+    $doctor->notif_google_ajenda = $request->notif_google_ajenda ?? 0;
+    $doctor->mail_agenda = $request->mail_agenda ?? null;
+    $doctor->paiement_avance = $request->paiement_avance ?? 0;
+
+    $doctor->save();
+
+    return response()->json(['success' => true, 'message' => 'Paramètres enregistrés avec succès.']);
+}
 
 
 

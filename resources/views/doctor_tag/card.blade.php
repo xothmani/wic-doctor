@@ -113,7 +113,7 @@
 
         /* Tags sélectionnés en rouge */
         .tag-item.selected {
-            background-color: rgb(137, 149, 220);
+            background-color: #001f3f;
             color: white;
         }
 

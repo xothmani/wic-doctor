@@ -8,7 +8,12 @@
   <div class="container-fluid">
     <div class="row mb-2">
       <div class="col-md-6">
-        <h1 class="m-0 text-dark">{{trans('lang.fiche_details')}}  | <small> {{ $fiche->code }}</small></h1>
+      <h1 class="m-0 text-dark">
+    {{ trans('lang.fiche_details') }}  
+    | <small>{{ $fiche->code }}</small>
+   
+
+</h1>
       </div><!-- /.col -->
       <div class="col-md-6">
         <ol class="breadcrumb bg-white float-sm-right rounded-pill px-4 py-2 d-none d-md-flex">
@@ -48,11 +53,16 @@
     <i class="fas fa-user mr-2"></i>{{ trans('lang.patient_details') }}
   </strong>
   <a href="{{ route('patients.edit', $fiche->patient_id) }}" class="ml-auto" data-toggle="tooltip" data-placement="left" title="{{ trans('lang.patient_edit') }}">
-    <i class="fas fa-edit" style="cursor: pointer; color: #5784BA;"></i>
+  @if (!empty($fiche->numFiche))
+    <span class="badge" style="background-color: #5784BA; color: white;" data-placement="left">{{ $fiche->numFiche }}</span>
+@endif
+
+     <i class="fas fa-edit" style="cursor: pointer; color: #5784BA;"></i>
 </a>
 </div>
 
       <div class="card-body">
+ 
         <div class="row">
           <!-- Première ligne : Prénom et Nom -->
           <div class="col-md-6">
@@ -166,97 +176,102 @@
       <div class="row mt-3">
         <!-- Historique des consultations -->
         <div class="col-md-12">
-          <div class="card">
-            <div class="card-header">
-              <strong><i class="fas fa-history mr-2"></i>{{trans('lang.historique_consultations')}}</strong>
-            </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>{{trans('lang.consultation_date')}}</th>
-                      <th>{{trans('lang.consultation_reason')}}</th>
-                      <th>{{trans('lang.consultation_motif')}}</th>
-                      <th>{{trans('lang.actions')}}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @foreach($fiche->consultations as $consultation)
-                      <tr>
-                        <td>{{ $consultation->dateConsultation }}</td>
-                        <td class="consultation-reason" data-toggle="modal" data-target="#reasonModal{{ $consultation->id }}" style="cursor: pointer;">
-                          <!-- Affichage tronqué de la raison -->
-                          <span class="reason-text" style="display: inline-block; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            {{ $consultation->raison ?? 'N/A' }}
-                          </span>
-                        </td>
-                        <td class="consultation-motif" data-toggle="modal" data-target="#motifModal{{ $consultation->id }}" style="cursor: pointer;">
-                          <!-- Affichage tronqué de l'observation -->
-                          <span class="motif-text" style="display: inline-block; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            {{ $consultation->motif ?? 'N/A' }}
-                          </span>
-                        </td>
-                        <td>
-                          <!-- Icône Prescription -->
-                          <a href="{{ route('consultation.prescriptions', $consultation->id) }}" class="btn btn-info btn-sm" title="Voir les prescriptions">
-                            <i class="fa fa-file-medical-alt"></i> {{ trans('lang.see_prescriptions') }}
-                          </a>
-                        </td>
-                      </tr>
-                    @endforeach
-                  </tbody>
-                </table>
+  <div class="card">
+    <div class="card-header">
+      <strong><i class="fas fa-history mr-2"></i>{{ trans('lang.historique_consultations') }}</strong>
+    </div>
+    <div class="card-body">
 
-                @foreach($fiche->consultations as $consultation)
-                  <div class="modal fade" id="reasonModal{{ $consultation->id }}" tabindex="-1" role="dialog" aria-labelledby="reasonModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title" id="reasonModalLabel">{{trans('lang.consultation_reason')}}</h5>
-                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                          </button>
-                        </div>
-                        <div class="modal-body">
-                          <!-- Afficher la raison complète -->
-                          <p>{{ $consultation->raison }}</p>
-                        </div>
-                        <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary" data-dismiss="modal">{{trans('lang.close')}}</button>
-                        </div>
-                      </div>
-                    </div>
+      @if($fiche->consultations->isEmpty())
+        <div class="text-center text-muted">
+          {{ __("Le patient n'a pas encore de consultation.") }}
+        </div>
+      @else
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>{{ trans('lang.consultation_date') }}</th>
+                <th>{{ trans('lang.consultation_reason') }}</th>
+                <th>{{ trans('lang.consultation_motif') }}</th>
+                <th>{{ trans('lang.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($fiche->consultations as $consultation)
+                <tr>
+                  <td>{{ $consultation->dateConsultation }}</td>
+                  <td class="consultation-reason" data-toggle="modal" data-target="#reasonModal{{ $consultation->id }}" style="cursor: pointer;">
+                    <span class="reason-text" style="display: inline-block; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      {{ $consultation->raison ?? 'N/A' }}
+                    </span>
+                  </td>
+                  <td class="consultation-motif" data-toggle="modal" data-target="#motifModal{{ $consultation->id }}" style="cursor: pointer;">
+                    <span class="motif-text" style="display: inline-block; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      {{ $consultation->motif ?? 'N/A' }}
+                    </span>
+                  </td>
+                  <td>
+                    <a href="{{ route('consultation.prescriptions', $consultation->id) }}" class="btn btn-info btn-sm" title="Voir les prescriptions">
+                      <i class="fa fa-file-medical-alt"></i> {{ trans('lang.see_prescriptions') }}
+                    </a>
+                  </td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
+
+          {{-- Modals --}}
+          @foreach($fiche->consultations as $consultation)
+            {{-- Reason Modal --}}
+            <div class="modal fade" id="reasonModal{{ $consultation->id }}" tabindex="-1" role="dialog" aria-labelledby="reasonModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="reasonModalLabel">{{ trans('lang.consultation_reason') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
                   </div>
-                @endforeach
-
-                @foreach($fiche->consultations as $consultation)
-                  <div class="modal fade" id="motifModal{{ $consultation->id }}" tabindex="-1" role="dialog" aria-labelledby="motifModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title" id="motifModalLabel">{{trans('lang.consultation_motif')}}</h5>
-                          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                          </button>
-                        </div>
-                        <div class="modal-body">
-                          <!-- Afficher l'observation complète -->
-                          <p>{{ $consultation->motif }}</p>
-                        </div>
-                        <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary" data-dismiss="modal">{{trans('lang.close')}}</button>
-                        </div>
-                      </div>
-                    </div>
+                  <div class="modal-body">
+                    <p>{{ $consultation->raison }}</p>
                   </div>
-                @endforeach
-
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.close') }}</button>
+                  </div>
+                </div>
               </div>
             </div>
+          @endforeach
 
-          </div>
+          @foreach($fiche->consultations as $consultation)
+            {{-- Motif Modal --}}
+            <div class="modal fade" id="motifModal{{ $consultation->id }}" tabindex="-1" role="dialog" aria-labelledby="motifModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="motifModalLabel">{{ trans('lang.consultation_motif') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <p>{{ $consultation->motif }}</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ trans('lang.close') }}</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          @endforeach
         </div>
+      @endif
+
+    </div>
+  </div>
+</div>
+
       </div> 
 
 

@@ -15,6 +15,7 @@ use App\Models\Address;
 
 use App\Models\Doctor;
 
+use App\Models\Pattern;
 use App\Notifications\NewAppointment;
 use App\Notifications\StatusChangedAppointment;
 use App\Repositories\AddressRepository;
@@ -235,7 +236,8 @@ class AppointmentAPIController extends Controller
                 )->where('appointments.user_id', '=', $userId)
                 ->orderBy('appointments.start_at', 'desc') // Sort by closest appointment time
                 ->get();
-            Log::info("test get price doctor id", ['appointments' => $appointments[0]]);
+
+
             // Format the appointments to include nested objects
             $formattedAppointments = $appointments->map(function ($appointment) {
                 $decodedFirstName = json_decode($appointment->patient_first_name, true);
@@ -326,21 +328,17 @@ class AppointmentAPIController extends Controller
 
 
 
-            Log::info("Formatted Appointments Type:", ['type' => gettype($formattedAppointments)]);
 
 
             $formattedAppointments = $formattedAppointments->map(function ($app) {
-                Log::info("Appointment foreach = ", ["json data" => json_encode($app)]);
 
                 // Recherche du docteur
                 $doc = Doctor::find($app['doctor_id']);
                 $user = User::find($doc['user_id']);
                 $doc->user = $user;
-                Log::info("Appointment Doctor", ["Doctor" => $doc]);
+
                 if ($doc) {
-                    Log::info("Appointment foreach avant = ", ["Doctor" => json_encode($app)]);
-                    $app['doctor'] = $doc; // Ajouter le rate
-                    Log::info("Appointment foreach après = ", ["Doctor" => json_encode($app)]);
+                    $app['doctor'] = $doc; 
                 }
 
                 return $app; // Retourner l'élément modifié
@@ -348,8 +346,6 @@ class AppointmentAPIController extends Controller
 
 
 
-            // Log the formatted data
-            Log::info('Appointments retrieved successfully for user ID ' . $userId, ['appointments' => $formattedAppointments->toArray()]);
 
             // Return the response with the formatted appointments
             return response()->json([
@@ -358,8 +354,6 @@ class AppointmentAPIController extends Controller
                 'data' => $formattedAppointments
             ], 200);
         } catch (Exception $e) {
-            // Log the error message
-            Log::error('Error retrieving appointments:', ['message' => $e->getMessage()]);
 
             return response()->json([
                 'status' => 500,
@@ -396,9 +390,11 @@ class AppointmentAPIController extends Controller
         $doctor = $this->doctorRepository->findWithoutFail($appointment->doctor_id);
         $patient = $this->patientRepository->findWithoutFail($appointment->patient_id);
         $clinic = $this->clinicRepository->findWithoutFail($appointment->clinic_id);
+        $motif = Pattern::find($appointment->motif_id);
         $appointment->doctor = $doctor; // solution pour doctor cast
         $appointment->patient = $patient; // solution pour doctor cast
         $appointment->clinic = $clinic; // solution pour doctor cast
+        $appointment->motif = $motif; // solution pour doctor cast
         Log::info("Clinic cast error", [$clinic]);
         //Log::info($appointment->doctor_id);
 
@@ -447,48 +443,12 @@ class AppointmentAPIController extends Controller
             $utc = new \DateTimeZone('UTC');
             $tunis = new \DateTimeZone('Africa/Tunis');
 
-            /*$data = [
-                //'clinic' => json_encode($request->input('clinic')),
-                //'doctor' => json_encode($request->input('doctor')),
-                'doctor_id' => is_array($request->input('doctor.id')) ? $request->input('doctor.id')[0] : $request->input('doctor.id'),
-                //'patient' => json_encode($request->input('patient')),
-                'patient_id' => is_array($request->input('patient.id')) ? $request->input('patient.id')[0] : $request->input('patient.id'),
-                'user_id' => is_array($request->input('user_id')) ? $request->input('user_id')[0] : $request->input('user_id'),
-                'clinic_id' => is_array($request->input('clinic.id')) ? $request->input('clinic.id')[0] : $request->input('clinic.id'),
-                'quantity' => $request->input('quantity', 1),
-                'appointment_status_id' => $request->input('appointment_status_id', 1),
-                'payment_id' => $request->input('payment_id'),
-                'taxes' => json_encode($request->input('taxes')), // Encodé en JSON pour éviter les erreurs
-                'appointment_at' => $request->input('appointment_at'),
-                'start_at' => Carbon::parse($request->input('start_at')),//->setTimezone(config('app.timezone')),
-                'ends_at' => Carbon::parse($request->input('ends_at')),//->setTimezone(config('app.timezone')),
-                'hint' => $request->input('hint'),
-                'online' => 'mobile',
-                'cancel' => $request->input('cancel', false),
-                'motif_id' => is_array($request->input('motif_id.id')) ? $request->input('motif_id.id')[0] : $request->input('motif_id.id'),
-                'type' => $request->input('type', 'aucun'),
-            ];*/
-
-
-
-            /*$coupon = $request->input('coupon');
-            $address = $request->input('address');
-            if (!empty($coupon)) { // Vérifie si la valeur n'est pas vide
-                $data['coupon'] = json_encode($coupon); // Ajoute au tableau si elle est définie
-            }
-
-            if (!empty($address) || $address != null) {
-                Log::info("AddressIF", ["address" => $address]);
-                $data['address'] = json_encode($address); // Ajoute au tableau si elle est définie
-            }*/
-
-
             // Extract the necessary data from the nested objects
             $data = [
                 'doctor_id' => $request->input('doctor.id'), // Extract doctor ID
                 'patient_id' => $request->input('patient.id'), // Extract patient ID if needed
                 'user_id' => $request->input('user_id'),
-                'clinic_id' => $request->input('clinic.id'), // Extract clinic ID
+                //'clinic_id' => $request->input('clinic.id'), // Extract clinic ID
                 'quantity' => $request->input('quantity', 1),
                 'appointment_status_id' => $request->input('appointment_status_id', 1),
                 'address' => $request->input('address.address'), // Extract address as a string
@@ -499,15 +459,15 @@ class AppointmentAPIController extends Controller
                 'start_at' => Carbon::parse($request->input('start_at'), $tunis),
                 'ends_at' => Carbon::parse($request->input('ends_at'), $tunis),
                 'hint' => $request->input('hint'),
-                'online' => 'mobile',
+                'online' => $request->input('type', 'aucun'),
                 'cancel' => $request->input('cancel', false),
                 'motif_id' => $request->input('motif_id'),
-                'type' => $request->input('type', 'aucun'),
+                'type' => 'mobile',
             ];
 
 
             // Validate that critical fields are not null
-            if (is_null($data['doctor_id']) || is_null($data['user_id']) || is_null($data['clinic_id'])) {
+            if (is_null($data['doctor_id']) || is_null($data['user_id'])) {
                 Log::error("Missing required data: doctor_id, user_id, or clinic_id is null.");
                 return response()->json([
                     'status' => 400,
@@ -522,9 +482,7 @@ class AppointmentAPIController extends Controller
 
 
             //If the appointment is remote, create a room for it
-            if ($data['type'] == 'teleconsultation') {
-                Log::info("Create new room for online appointment", ["online" => $data['online']]);
-
+            /*if ($data['online'] == 'teleconsultation') {
                 try {
                     $startAt = Carbon::parse($request->input('start_at'), $utc)->setTimezone($tunis);
                     // Heure donnée (10:11:00)
@@ -536,11 +494,19 @@ class AppointmentAPIController extends Controller
                     $patient_last_name = $request->input('patient.last_name');
                     $patient_phone = $request->input('patient.phone_number');
                     $roomName = "{$patient_first_name}_{$patient_last_name}_{$patient_phone}_{$date}_{$time}";
+                    $doctorId = is_array($request->input('doctor.id')) ? $request->input('doctor.id')[0] : $request->input('doctor.id');
+                    $doctor = Doctor::find($doctorId);
+
+                    Log::info("RoomName", [
+                        "RoomName" => $roomName,
+                        "doctor" => $doctor,
+                        "user_id" => $doctor->user_id
+                    ]);
 
                     $roomData = [
                         'room_name' => $roomName,
                         'meet_link' => 'https://meet.wic-doctor.com/' . $roomName,
-                        'owner_id' => is_array($request->input('doctor.id')) ? $request->input('doctor.id')[0] : $request->input('doctor.id'),
+                        'owner_id' => $doctor->user_id,
                         'appointment_id' => $appointmentId,
                         'patient_id' => is_array($request->input('patient.id')) ? $request->input('patient.id')[0] : $request->input('patient.id'),
                         'date' => $date,
@@ -553,11 +519,11 @@ class AppointmentAPIController extends Controller
                     return response()->json("Room not created {$e}", 400);
                 }
 
-            }
+            }*/
 
 
             // Check if the doctor-patient relationship exists
-            $existingRecord = DB::table('doctor_patients')
+            /*$existingRecord = DB::table('doctor_patients')
                 ->where('doctor_id', $data['doctor_id'])
                 ->where('patient_id', $data['patient_id'])
                 ->first();
@@ -572,7 +538,7 @@ class AppointmentAPIController extends Controller
                     'doctor_id' => $data['doctor_id'],
                     'patient_id' => $data['patient_id']
                 ]);
-            }
+            }*/
 
 
             // Return success response with appointment ID
@@ -626,7 +592,12 @@ class AppointmentAPIController extends Controller
         $startAt = $request->input('start_at');
         if ($startAt != null && !empty($startAt)) {
             try {
-                $this->appointmentRepository->update(['start_at' => $request->input('start_at')], $id);
+                //$this->appointmentRepository->update(['start_at' => $request->input('start_at')], $id);
+                $this->appointmentRepository->update([
+                    'start_at' => $request->input('start_at'),
+                    'appointment_at' => $request->input('start_at'),
+                    'ends_at' => $request->input('ends_at')
+                ], $id);
                 return response()->json(true);
                 //return $this->sendResponse($appointment->toArray(), __('lang.saved_successfully', ['operator' => __('lang.appointment')]));
             } catch (ValidatorException $e) {
@@ -635,6 +606,14 @@ class AppointmentAPIController extends Controller
         } else {
             return response()->json(false);
         }
+    }
+
+
+
+    public function delete(int $id): JsonResponse
+    {
+        $this->appointmentRepository->delete($id);
+        return $this->sendResponse($id, __('lang.deleted_successfully', ['operator' => __('lang.appointment')]));
     }
 
 

@@ -147,13 +147,14 @@ class DoctorRequestController extends Controller
                 // Création d'un nouvel utilisateur
                 $patientPassword = Str::random(8); // Générer un nouveau mot de passe patient
                 $user = User::create([
-                    'name' => $doctorRequest->name,
-                    'lastname' => $doctorRequest->lastname,
+                    'name' => json_encode(['fr' => $doctorRequest->name]),
+                    'lastname' => json_encode(['fr' => $doctorRequest->lastname]),
                     'email' => $doctorRequest->email,
                     'phone_number' => $doctorRequest->Phone,
                     'password' => bcrypt($doctorPassword),
                     'passwordpatient' => Hash::make($patientPassword),
                 ]);
+                
 
                 // Logguer le dernier utilisateur créé
                 Log::info('Nouvel utilisateur créé.', ['user_id' => $user->id]);
@@ -181,10 +182,12 @@ class DoctorRequestController extends Controller
                 return redirect()->back()->with('error', 'Docteur déjà conventionné pour cet utilisateur.');
             }
             $availabilityMode = $request->input('availability_mode'); // Récupérer la valeur du formulaire
+            $titre = $request->input('titre'); // Récupérer la valeur du formulaire
+
 
 
             // Créer le docteur
-            $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode);
+            $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode, $titre);
             // Vérifier si le patient existe déjà
             $existingPatient = Patient::where('user_id', $user->id)->first();
             if (!$existingPatient) {
@@ -227,7 +230,8 @@ class DoctorRequestController extends Controller
     public function createUserFromDoctorRequest($doctorRequestId, Request $request)
     {
         $doctorRequest = DoctorRequest::findOrFail($doctorRequestId);
-        $availabilityMode = $request->input('availability_mode'); // Récupérer la valeur du formulaire
+        $availabilityMode = $request->input(key: 'availability_mode'); // Récupérer la valeur du formulaire
+        $titre = $request->input('titre'); // Récupérer la valeur du formulaire
 
 
         if ($doctorRequest->type !== 'Docteur') {
@@ -256,8 +260,8 @@ class DoctorRequestController extends Controller
                 // Création d'un nouvel utilisateur
                 $patientPassword = Str::random(8); // Générer un nouveau mot de passe patient
                 $user = User::create([
-                    'name' => $doctorRequest->name,
-                    'lastname' => $doctorRequest->lastname,
+                    'name' => json_encode(['fr' => $doctorRequest->name]),
+                    'lastname' => json_encode(['fr' => $doctorRequest->lastname]),
                     'email' => $doctorRequest->email,
                     'phone_number' => $doctorRequest->Phone,
                     'password' => bcrypt($doctorPassword),
@@ -296,7 +300,7 @@ class DoctorRequestController extends Controller
             }
 
             // Créer le docteur
-            $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode);
+            $doctor = $this->createDoctor($user, $doctorRequest, $availabilityMode, $titre);
 
 
             // Vérifier si le patient existe déjà
@@ -339,14 +343,14 @@ class DoctorRequestController extends Controller
 
 
 
-    private function createDoctor($user, $doctorRequest, $availabilityMode)
+    private function createDoctor($user, $doctorRequest, $availabilityMode, $titre)
     {
         $randomId = random_int(1000000000, 9999999999);
         while (Doctor::where('id_aleatoire', $randomId)->exists()) {
             $randomId = random_int(1000000000, 9999999999);
         }
 
-        $formattedName = ['fr' => $user->lastname . ' ' . $user->name];
+        $formattedName = ['fr' => $doctorRequest->name . ' ' . $doctorRequest->lastname];
 
         // Créer le docteur
         $doctor = Doctor::create([
@@ -356,6 +360,8 @@ class DoctorRequestController extends Controller
             'sexe' => $doctorRequest->sexe,
             'code_doctor' => $doctorRequest->code_doctor,
             'availability_mode' => $availabilityMode,
+            'titre' => $titre,
+
         ]);
 
         // Définir l'image par défaut selon le sexe
@@ -499,6 +505,8 @@ class DoctorRequestController extends Controller
             'specialities' => $specialitiesData,
             'type' => "conventionné",
             'availability_mode' => $doctor->availability_mode,
+            'titre' => $doctor->titre,
+
         ];
 
         file_put_contents($filePath, json_encode([$data], JSON_UNESCAPED_UNICODE));
@@ -581,16 +589,19 @@ class DoctorRequestController extends Controller
 
     private function createPatient($user, $doctorRequest)
     {
+        $decodedName = json_decode($user->name, true);
+        $decodedLastname = json_decode($user->lastname, true);
+    
         Patient::create([
             'user_id' => $user->id,
-            'first_name' => $user->name,
-            'last_name' => $user->lastname,
+            'first_name' => json_encode($decodedName),
+            'last_name' => json_encode($decodedLastname),
             'email' => $doctorRequest->email,
             'date_naissance' => $doctorRequest->date_naissance ?? null,
             'phone_number' => $doctorRequest->Phone,
-
         ]);
     }
+    
 
     public function destroy(string $id)
     {
