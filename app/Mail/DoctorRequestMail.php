@@ -57,7 +57,7 @@ class DoctorRequestMail extends Mailable
     public function attachments(): array
     {
         return [
-            Attachment::fromPath(storage_path('app/public/pdf/Guide modification photo de profil.pdf'))
+            Attachment::fromPath(storage_path('app/public/pdf/Guide_modification_photo_de_profil.pdf'))
                 ->as('Guide_WIC_Doctor.pdf')
                 ->withMime('application/pdf'),
 
